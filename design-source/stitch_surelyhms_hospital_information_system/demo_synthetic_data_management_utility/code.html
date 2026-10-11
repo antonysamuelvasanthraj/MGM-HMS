@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / IPD No / Bed / Patient Name / Ward..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital SQLite Database LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: SQLite Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Cloud Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Inpatient &amp; IPD Care</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="inpatient-admissions-bed-management" href="#"><span class="font-body-md text-body-md">Inpatient Admissions &amp; Bed Management</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ward-nursing-workspace" href="#"><span class="font-body-md text-body-md">Ward Nursing Workspace</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">24 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="icu-critical-care-unit" href="#"><span class="font-body-md text-body-md">ICU Critical Care Unit</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">6 Crit</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="discharge-coordination-desk" href="#"><span class="font-body-md text-body-md">Discharge Coordination Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">8 Ready</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Acute &amp; Specialty Care</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="emergency-casualty-desk" href="#"><span class="font-body-md text-body-md">Emergency &amp; Casualty Desk</span><span class="font-data-mono text-label-sm bg-error text-on-error px-1.5 py-0.5 rounded font-bold">Red Alert</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="operation-theatre-suite" href="#"><span class="font-body-md text-body-md">Operation Theatre (OT) Suite</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Live</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="maternity-obstetric-care" href="#"><span class="font-body-md text-body-md">Maternity &amp; Obstetric Care</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="intrapartum-partograph-chart" href="#"><span class="font-body-md text-body-md">Intrapartum Partograph Chart</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Labor Watch</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Clinical &amp; Diagnostic Modules</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ultrasound-usg-reporting-templates" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (USG)</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-tertiary-fixed font-bold">Pharmacy &amp; Inventory</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1 py-0.2 rounded font-bold">STOCK</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense-pos" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense &amp; POS</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">POS</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="medicine-master-catalog" href="#"><span class="font-body-md text-body-md">Medicine Master Catalog</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="stock-ledger-batches" href="#"><span class="font-body-md text-body-md">Stock Ledger &amp; Batches</span><span class="font-data-mono text-label-sm bg-amber-600/90 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Expiring</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="goods-receipt-grn" href="#"><span class="font-body-md text-body-md">Goods Receipt (GRN)</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="suppliers-vendors" href="#"><span class="font-body-md text-body-md">Suppliers &amp; Vendors</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-inventory-reports" href="#"><span class="font-body-md text-body-md">Pharmacy &amp; Inventory Reports</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Billing, TPA &amp; Accounts</span><span class="font-data-mono text-label-sm bg-primary-container text-on-primary px-1 py-0.2 rounded font-bold">FIN</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; IP Billing</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="insurance-claims" href="#"><span class="font-body-md text-body-md">Insurance &amp; TPA Claims Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18 Open</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="tariff-service-fee-master" href="#"><span class="font-body-md text-body-md">Tariff &amp; Service Fee Master</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="health-packages-bundles" href="#"><span class="font-body-md text-body-md">Health Packages &amp; Bundles</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="finance" href="#"><span class="font-body-md text-body-md">Hospital Accounts &amp; General Ledger</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="expenses" href="#"><span class="font-body-md text-body-md">Operational Expense Management</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administrative &amp; Executive Intelligence</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="hospital-reports" href="#"><span class="font-body-md text-body-md">Hospital Operational &amp; Financial Reports</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">MIS</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-tertiary-fixed font-bold">Hospital Administration &amp; Infrastructure</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1 py-0.2 rounded font-bold">SYSTEM</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="hospital-administration-access-control" href="#"><span class="font-body-md text-body-md">Hospital Administration &amp; Access Control</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">Admin</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="staff-roster-duty-attendance" href="#"><span class="font-body-md text-body-md">Staff Roster &amp; Duty Attendance</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">Roster</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="local-server-hybrid-cloud-sync" href="#"><span class="font-body-md text-body-md">Local Server &amp; Hybrid Cloud Sync</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">LAN/Sync</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="my-access-system-diagnostics" href="#"><span class="font-body-md text-body-md">My Access &amp; System Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">WhoAmI</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 SQLite Local</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Sync Active</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Persistent Evaluation Watermark Banner -->
+<div class="w-full bg-tertiary-container text-tertiary-fixed px-6 py-3 shadow-md flex items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary-fixed text-[24px] animate-pulse">warning</span>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg tracking-wider uppercase font-bold text-tertiary-fixed">
+          DEMO &amp; EVALUATION ENVIRONMENT ONLY • ALL DATA IS SYNTHETIC &amp; REGULATORY-INERT
+        </span>
+<span class="font-body-sm text-body-sm text-tertiary-fixed/80">
+          Hypothetical identities, fabricated clinical encounters, and sandbox ledger transactions. Not real patient health information (PHI).
+        </span>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="font-data-mono text-label-sm bg-tertiary px-2.5 py-1 rounded text-tertiary-fixed font-bold tracking-tight">
+        SANDBOX MODE: READ/WRITE
+      </span>
+<span class="font-data-mono text-label-sm bg-primary text-on-primary px-2.5 py-1 rounded font-bold">
+        SQLITE DEMO INSTANCE
+      </span>
+</div>
+</div>
+<!-- Operational Header Workspace Bar -->
+<div class="p-6 pb-2">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">System Administration • DevTools</span>
+<span class="font-data-mono text-label-sm bg-surface-container-high px-2 py-0.5 rounded text-on-surface-variant font-medium">Build 2024.10-SYNTH</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">Synthetic Data Management &amp; Demo Sandbox Utility</h1>
+</div>
+<div class="flex items-center gap-3">
+<a class="inline-flex items-center gap-2 px-4 py-2 rounded bg-surface-container-highest text-primary font-label-lg text-label-lg font-bold shadow-sm hover:bg-surface-container-high transition-colors" href="#prototype-walkthrough">
+<span class="material-symbols-outlined text-[18px]">play_circle</span>
+          Launch 12-Step NABH Mock Walkthrough
+        </a>
+<button class="inline-flex items-center gap-2 px-3 py-2 rounded bg-surface-container-lowest text-on-surface font-label-md text-label-md font-semibold shadow-sm hover:bg-surface-container transition-colors" onclick="document.getElementById('quick-status-drawer').classList.toggle('hidden')">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">terminal</span>
+          View Seed Log
+        </button>
+</div>
+</div>
+<!-- Architectural & Compliance Guardrails Notice Panel -->
+<div class="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+<div class="lg:col-span-8 bg-surface-container-lowest p-5 rounded shadow-sm">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[22px] mt-0.5">schema</span>
+<div class="space-y-1.5">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold">Purpose &amp; Mock Audit Simulation Architecture</h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              This utility populates the local SQLite database with realistic, high-fidelity synthetic clinical and financial records for staff training, clinical workflow testing, and <strong>NABH mock audit walkthroughs</strong>. Generated cohorts reflect Indian metropolitan hospital caseloads, complete with ICD-10 codings, CGHS/ECHS tarrif schedules, and real-time bed churn simulations.
+            </p>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4 bg-error-container text-on-error-container p-5 rounded shadow-sm flex items-start gap-3">
+<span class="material-symbols-outlined text-error text-[24px] shrink-0">gpp_maybe</span>
+<div>
+<span class="font-label-md text-label-md uppercase tracking-wider text-error font-bold block mb-1">Safety Guardrail Notice</span>
+<p class="font-body-sm text-body-sm text-on-error-container leading-normal">
+<strong>CRITICAL SAFETY GUARD:</strong> Database seeding and resetting tools are strictly disabled in production hospital deployments. Seed/reset actions are destructive and must <strong>NEVER</strong> be run against a live hospital database.
+          </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Bento Grid Workspace -->
+<div class="p-6 pt-2 grid grid-cols-1 xl:grid-cols-12 gap-6">
+<!-- Column Left: Scenarios & Data Generation Controls (8 cols) -->
+<div class="xl:col-span-8 space-y-6">
+<!-- Action Card: Seeding Engine -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-6">
+<div class="flex items-center justify-between pb-4">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[22px]">database_upload</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Guarded Sample-Data Scenarios</h2>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">SQLite Transaction Engine • WAL Mode</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+<!-- Scenario 1: Comprehensive Inpatient & Outpatient -->
+<div class="bg-surface-container-low rounded p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-primary px-2 py-0.5 rounded font-bold">Scenario A • Full Scale</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">domain_add</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Comprehensive OP &amp; Inpatient Clinical Cohort</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">
+                Populates balanced cross-departmental records for General Medicine, OB/GYN, Surgery, and ICU beds. Includes fully tracked billing ledger.
+              </p>
+<div class="flex flex-wrap gap-1.5 pt-2">
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">50 Patients</span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">12 OPD Cons</span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">8 Active IPD</span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">14 Lab Req</span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">6 Rx Vouchers</span>
+</div>
+</div>
+<button class="mt-5 w-full bg-primary-container text-on-primary hover:bg-primary font-label-lg text-label-lg py-2 rounded flex items-center justify-center gap-2 font-semibold transition-colors" onclick="simulateSeed('Comprehensive OP &amp; Inpatient Clinical Cohort', 90)">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              Seed Comprehensive Cohort
+            </button>
+</div>
+<!-- Scenario 2: Outpatient Fever Rush -->
+<div class="bg-surface-container-low rounded p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider bg-tertiary-fixed text-on-tertiary-fixed px-2 py-0.5 rounded font-bold">Scenario B • Stress Test</span>
+<span class="material-symbols-outlined text-tertiary text-[18px]">fluid_balance</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Outpatient Fever &amp; Respiratory Rush Scenario</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">
+                Simulates seasonal monsoon surge: rapid OPD triage queue, elevated temperature flags, diagnostic requisition spikes, and fast pharmacy POS throughput.
+              </p>
+<div class="flex flex-wrap gap-1.5 pt-2">
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">Tokens #40 to #65</span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">Dr. Venkat Rao Chamber</span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">25 Triage Vitals</span>
+</div>
+</div>
+<button class="mt-5 w-full bg-surface-container-highest text-primary hover:bg-surface-container-high font-label-lg text-label-lg py-2 rounded flex items-center justify-center gap-2 font-semibold transition-colors" onclick="simulateSeed('Outpatient Fever &amp; Respiratory Rush', 45)">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+              Inject Surge Tokens &amp; Vitals
+            </button>
+</div>
+<!-- Scenario 3: Financial & Audit Scenario -->
+<div class="bg-surface-container-low rounded p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded font-bold">Scenario C • Billing &amp; TPA</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">receipt_long</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Financial &amp; Claims Audit Scenario</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">
+                Generates TPA cashless pre-authorizations, insurance settlement disputes, delayed vendor invoices, and cashier day-end cash balance sheets for MIS scrutiny.
+              </p>
+<div class="flex flex-wrap gap-1.5 pt-2">
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">6 TPA Pre-auths</span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">2 Overdue GRNs</span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">1 Day Shift Handover</span>
+</div>
+</div>
+<button class="mt-5 w-full bg-surface-container-highest text-primary hover:bg-surface-container-high font-label-lg text-label-lg py-2 rounded flex items-center justify-center gap-2 font-semibold transition-colors" onclick="simulateSeed('Financial &amp; Claims Audit Scenario', 60)">
+<span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+              Populate Claims &amp; Ledger
+            </button>
+</div>
+<!-- Scenario 4: Extreme Destructive Sandbox Reset -->
+<div class="bg-surface-container-lowest rounded p-4 flex flex-col justify-between shadow-sm">
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider bg-error text-on-error px-2 py-0.5 rounded font-bold">Destructive Action</span>
+<span class="material-symbols-outlined text-error text-[18px]">restart_alt</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Reset Sandbox to Clean Factory State</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">
+                Purges all transactional clinical encounters, bed admissions, lab reports, and billing slips. Reinitializes clean ward beds and baseline staff master rosters.
+              </p>
+<div class="flex items-center gap-1.5 text-error font-data-mono text-label-sm pt-2">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+                Requires Typed Confirmation + Admin PIN
+              </div>
+</div>
+<button class="mt-5 w-full bg-error text-on-error hover:bg-on-error-container font-label-lg text-label-lg py-2 rounded flex items-center justify-center gap-2 font-bold transition-colors" onclick="openResetModal()">
+<span class="material-symbols-outlined text-[18px]">delete_forever</span>
+              Reset Database to Clean State
+            </button>
+</div>
+</div>
+</div>
+<!-- Execution Progress / Toast Notification (Interactive JS trigger) -->
+<div class="hidden bg-surface-container-high p-4 rounded shadow-sm" id="action-progress-box">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px] animate-spin">sync</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold" id="progress-action-title">Seeding database...</span>
+</div>
+<span class="font-data-mono text-body-sm text-primary font-bold" id="progress-percent">0%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded overflow-hidden">
+<div class="h-full bg-primary transition-all duration-300" id="progress-bar" style="width: 0%"></div>
+</div>
+<p class="font-data-mono text-label-sm text-on-surface-variant mt-2" id="progress-log">Writing synthetic entities to local SQLite master tables...</p>
+</div>
+<!-- 12-Step Walkthrough Map -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-6" id="prototype-walkthrough">
+<div class="flex items-center justify-between pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">route</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">12-Step End-to-End NABH Linked Journey</h2>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Continuous Clinical &amp; Operational Thread</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">
+          Click any step to inspect the mock workflow with prepopulated persona data across outpatient registration, diagnostic orders, admission, nursing care, and final discharge.
+        </p>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">01</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">person_add</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Patient Reg &amp; Triage</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">02</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">stethoscope</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">OPD Consultation</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">03</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">science</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Lab &amp; USG Order</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">04</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">medication</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">OPD Rx POS Billing</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">05</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">hotel</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">IPD Admission &amp; Bed</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">06</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">monitor_heart</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Ward Nursing Vitals</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">07</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">emergency</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">ICU Step-Up Care</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">08</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">vaccines</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">OT Pre-Op Check</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">09</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">clinical_notes</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Daily Doctor Round</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">10</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">health_and_safety</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">TPA Cashless Pre-Auth</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">11</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">output</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Discharge Summary</span>
+</a>
+<a class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container-highest transition-colors flex flex-col justify-between h-24" href="#">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm font-bold text-primary">12</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">point_of_sale</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Final Settlement</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Column Right: Active Persona, Context, Live Database Metrics (4 cols) -->
+<div class="xl:col-span-4 space-y-6">
+<!-- Active Synthetic Persona & Context Indicator Card -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-5 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none"></div>
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/30">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">badge</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold uppercase tracking-wider">Active Persona &amp; Context</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface px-2 py-0.5 rounded font-bold">LINKED SESSION</span>
+</div>
+<!-- Demographics Box -->
+<div class="mt-4 p-3 bg-surface-container-low rounded">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Patient Name</span>
+<div class="font-title-md text-title-md font-bold text-primary">Smt. Lakshmi Narayanan</div>
+<div class="font-data-mono text-body-sm text-on-surface font-medium mt-0.5">52Y • Female • B+ve</div>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container-highest text-primary font-bold px-2 py-1 rounded">
+              OPD TOKEN #42
+            </span>
+</div>
+<div class="mt-3 grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant/30">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">UHID No</span>
+<span class="font-data-mono text-body-sm font-bold text-on-surface">SHMS-2024-09142</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Current Encounter</span>
+<span class="font-data-mono text-body-sm font-bold text-on-surface">ENC-2024-10-0592</span>
+</div>
+</div>
+</div>
+<!-- Clinical & Financial Attachment Details -->
+<div class="mt-4 space-y-2.5">
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-on-surface-variant font-body-sm">Consulting Clinician:</span>
+<span class="font-data-mono font-medium text-on-surface">Dr. K. Venkat Rao, MD (Chamber 104)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-on-surface-variant font-body-sm">Specialty / Clinic:</span>
+<span class="font-data-mono font-medium text-on-surface">OP General Medicine</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-on-surface-variant font-body-sm">Consultation Bill:</span>
+<span class="font-data-mono font-medium text-on-surface">BILL-2024-0891 (₹300.00)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-on-surface-variant font-body-sm">Receipt Reference:</span>
+<span class="font-data-mono font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+              RC-2024-10-0595 • UPI Paid
+            </span>
+</div>
+</div>
+<div class="mt-5 pt-3 border-t border-outline-variant/30 flex gap-2">
+<button class="flex-1 py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md font-semibold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">switch_account</span> Switch Persona
+          </button>
+<button class="flex-1 py-1.5 rounded bg-primary-container text-on-primary hover:bg-primary font-label-md text-label-md font-semibold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">open_in_new</span> Open EMR Chart
+          </button>
+</div>
+</div>
+<!-- Live Scenario Status & DB Metrics Card -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-5">
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/30">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">insights</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold uppercase tracking-wider">Live Sandbox State</span>
+</div>
+<span class="h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+</div>
+<div class="mt-4 space-y-3">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Active Seed Dataset</span>
+<div class="font-title-md text-title-md font-bold text-on-surface" id="live-dataset-name">Comprehensive OP &amp; Inpatient Cohort (v2.4)</div>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-2">
+<div class="bg-surface-container-low p-2.5 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Total Patient Master</span>
+<span class="font-data-mono text-headline-md font-bold text-primary" id="stat-patients">50</span>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Active IPD Admissions</span>
+<span class="font-data-mono text-headline-md font-bold text-on-surface" id="stat-ipd">8</span>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Consultations Today</span>
+<span class="font-data-mono text-headline-md font-bold text-on-surface" id="stat-consults">12</span>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Pending Lab Orders</span>
+<span class="font-data-mono text-headline-md font-bold text-on-surface" id="stat-labs">14</span>
+</div>
+</div>
+<div class="pt-2 border-t border-outline-variant/30 text-body-sm space-y-1">
+<div class="flex justify-between">
+<span class="text-on-surface-variant">Last Seeded Timestamp:</span>
+<span class="font-data-mono font-medium text-on-surface" id="last-seed-time">24 Oct 2024, 11:28 AM</span>
+</div>
+<div class="flex justify-between">
+<span class="text-on-surface-variant">Local File Size:</span>
+<span class="font-data-mono font-medium text-on-surface">18.4 MB (surely_demo.db)</span>
+</div>
+<div class="flex justify-between">
+<span class="text-on-surface-variant">Regulatory Isolation:</span>
+<span class="font-data-mono font-bold text-emerald-700">100% AIRGAPPED</span>
+</div>
+</div>
+</div>
+<div class="mt-5">
+<button class="w-full py-2 rounded bg-surface-container-high text-on-surface hover:bg-surface-container-highest font-label-md text-label-md font-semibold transition-colors flex items-center justify-center gap-1.5" onclick="document.getElementById('quick-status-drawer').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[16px]">history</span> View Audit Seed Trail
+          </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Reset Confirmation Guardrail Modal (Hidden by default) -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/60 backdrop-blur-sm p-4" id="reset-modal">
+<div class="bg-surface-container-lowest max-w-lg w-full rounded shadow-2xl p-6 relative">
+<div class="flex items-center gap-3 text-error mb-3">
+<span class="material-symbols-outlined text-[32px]">warning</span>
+<h3 class="font-headline-md text-headline-md font-bold">Confirm Sandbox Database Reset</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-normal mb-4">
+        You are about to purge all synthetic records from the local SQLite database. This operation will wipe:
+      </p>
+<ul class="font-body-sm text-body-sm text-on-surface-variant list-disc list-inside space-y-1 bg-surface-container-low p-3 rounded mb-4">
+<li>All patient demographics, active IPD bed assignments, and ICU charts</li>
+<li>All lab orders, vitals history, and pharmacy invoices</li>
+<li>All TPA insurance claims and cashier cash shifts</li>
+</ul>
+<div class="space-y-3 mb-6">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1 font-semibold">
+            Type <span class="text-error font-data-mono font-bold">RESET-SANDBOX</span> to confirm:
+          </label>
+<input class="w-full h-9 px-3 bg-surface text-on-surface font-data-mono text-body-md rounded border border-outline-variant focus:outline-none focus:border-error" id="reset-confirm-text" placeholder="RESET-SANDBOX" type="text"/>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1 font-semibold">
+            Admin Verification PIN:
+          </label>
+<input class="w-28 h-9 px-3 bg-surface text-on-surface font-data-mono text-body-md rounded border border-outline-variant focus:outline-none focus:border-error text-center tracking-widest" id="reset-confirm-pin" maxlength="4" placeholder="••••" type="password"/>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3">
+<button class="px-4 py-2 rounded bg-surface-container-high text-on-surface hover:bg-surface-container-highest font-label-lg text-label-lg font-semibold transition-colors" onclick="closeResetModal()">
+          Cancel
+        </button>
+<button class="px-4 py-2 rounded bg-error text-on-error hover:bg-on-error-container font-label-lg text-label-lg font-bold transition-colors flex items-center gap-1.5" onclick="executeReset()">
+<span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+          Confirm Irrevocable Reset
+        </button>
+</div>
+</div>
+</div>
+<!-- Seed Log Drawer (collapsible) -->
+<div class="hidden p-6 pt-0" id="quick-status-drawer">
+<div class="bg-inverse-surface text-inverse-on-surface p-4 rounded shadow-md font-data-mono text-label-md">
+<div class="flex items-center justify-between pb-2 border-b border-inverse-on-surface/20">
+<span class="font-bold flex items-center gap-1.5 text-tertiary-fixed">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+          SANDBOX TRANSACTION LOG • SQLITE IN-MEMORY STAGING
+        </span>
+<button class="hover:text-tertiary-fixed" onclick="document.getElementById('quick-status-drawer').classList.add('hidden')">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<div class="mt-3 space-y-1 max-h-40 overflow-y-auto font-data-mono text-label-sm opacity-90" id="seed-console">
+<div>[11:28:01 IST] BEGIN TRANSACTION EXCLUSIVE;</div>
+<div>[11:28:02 IST] INSERT INTO patients (uhid, name, age, sex) VALUES ('SHMS-2024-09142', 'Lakshmi Narayanan', 52, 'F');</div>
+<div>[11:28:02 IST] INSERT INTO encounters (enc_id, uhid, type, doctor_id) VALUES ('ENC-2024-10-0592', 'SHMS-2024-09142', 'OPD', 'DOC-104');</div>
+<div>[11:28:03 IST] INSERT INTO bills (bill_id, enc_id, amount, status) VALUES ('BILL-2024-0891', 'ENC-2024-10-0592', 300.00, 'PAID');</div>
+<div>[11:28:04 IST] COMMIT; -- 50 patients, 12 OPD encounters seeded successfully.</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Micro-Interaction JavaScript -->
+<script>
+  function simulateSeed(scenarioName, count) {
+    const box = document.getElementById('action-progress-box');
+    const bar = document.getElementById('progress-bar');
+    const title = document.getElementById('progress-action-title');
+    const percent = document.getElementById('progress-percent');
+    const log = document.getElementById('progress-log');
+    const consoleLog = document.getElementById('seed-console');
+
+    box.classList.remove('hidden');
+    title.innerText = 'Seeding: ' + scenarioName;
+    bar.style.width = '0%';
+    percent.innerText = '0%';
+
+    let current = 0;
+    const interval = setInterval(() => {
+      current += 20;
+      bar.style.width = current + '%';
+      percent.innerText = current + '%';
+      log.innerText = 'Generated ' + Math.round((current / 100) * count) + ' synthetic tuples...';
+
+      if (current >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          box.classList.add('hidden');
+          document.getElementById('live-dataset-name').innerText = scenarioName;
+          document.getElementById('last-seed-time').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' IST (Just Now)';
+          
+          if (scenarioName.includes('Comprehensive')) {
+            document.getElementById('stat-patients').innerText = '50';
+            document.getElementById('stat-ipd').innerText = '8';
+            document.getElementById('stat-consults').innerText = '12';
+            document.getElementById('stat-labs').innerText = '14';
+          } else if (scenarioName.includes('Fever')) {
+            document.getElementById('stat-consults').innerText = '37';
+            document.getElementById('stat-labs').innerText = '29';
+          } else if (scenarioName.includes('Financial')) {
+            document.getElementById('stat-consults').innerText = '12';
+            document.getElementById('stat-labs').innerText = '14';
+          }
+
+          const newLine = document.createElement('div');
+          newLine.innerText = `[${new Date().toLocaleTimeString()} IST] SEED SUCCESS: ${scenarioName} committed.`;
+          consoleLog.appendChild(newLine);
+        }, 500);
+      }
+    }, 180);
+  }
+
+  function openResetModal() {
+    document.getElementById('reset-modal').classList.remove('hidden');
+  }
+
+  function closeResetModal() {
+    document.getElementById('reset-modal').classList.add('hidden');
+    document.getElementById('reset-confirm-text').value = '';
+    document.getElementById('reset-confirm-pin').value = '';
+  }
+
+  function executeReset() {
+    const text = document.getElementById('reset-confirm-text').value.trim();
+    const pin = document.getElementById('reset-confirm-pin').value.trim();
+
+    if (text !== 'RESET-SANDBOX') {
+      alert("Please type 'RESET-SANDBOX' exactly to confirm.");
+      return;
+    }
+    if (pin !== '9999' && pin !== '1234') {
+      alert("Invalid Admin PIN. Use test PIN '9999'.");
+      return;
+    }
+
+    closeResetModal();
+
+    // Reset UI Counters
+    document.getElementById('stat-patients').innerText = '0';
+    document.getElementById('stat-ipd').innerText = '0';
+    document.getElementById('stat-consults').innerText = '0';
+    document.getElementById('stat-labs').innerText = '0';
+    document.getElementById('live-dataset-name').innerText = 'Clean Factory State (Empty Database)';
+    document.getElementById('last-seed-time').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' IST';
+
+    const consoleLog = document.getElementById('seed-console');
+    const newLine = document.createElement('div');
+    newLine.innerText = `[${new Date().toLocaleTimeString()} IST] PURGE: Sandbox tables truncated. Factory state initialized.`;
+    newLine.className = 'text-error';
+    consoleLog.appendChild(newLine);
+
+    alert('Database successfully restored to pristine factory state.');
+  }
+</script></main></div></body></html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / IPD No / Bed / Patient Name / Ward..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Inpatient &amp; IPD Care</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="inpatient-admissions-bed-management" href="#"><span class="font-body-md text-body-md">Inpatient Admissions &amp; Bed Management</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ward-nursing-workspace" href="#"><span class="font-body-md text-body-md">Ward Nursing Workspace</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">24 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="icu-critical-care-unit" href="#"><span class="font-body-md text-body-md">ICU Critical Care Unit</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">6 Crit</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="discharge-coordination-desk" href="#"><span class="font-body-md text-body-md">Discharge Coordination Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">8 Ready</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Acute &amp; Specialty Care</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="emergency-casualty-desk" href="#"><span class="font-body-md text-body-md">Emergency &amp; Casualty Desk</span><span class="font-data-mono text-label-sm bg-error text-on-error px-1.5 py-0.5 rounded font-bold">Red Alert</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="operation-theatre-suite" href="#"><span class="font-body-md text-body-md">Operation Theatre (OT) Suite</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Live</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="maternity-obstetric-care" href="#"><span class="font-body-md text-body-md">Maternity &amp; Obstetric Care</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="intrapartum-partograph-chart" href="#"><span class="font-body-md text-body-md">Intrapartum Partograph Chart</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Labor Watch</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Clinical &amp; Diagnostic Modules</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ultrasound-usg-reporting-templates" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (USG)</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-tertiary-fixed font-bold">Pharmacy &amp; Inventory</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1 py-0.2 rounded font-bold">STOCK</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense-pos" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense &amp; POS</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">POS</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="medicine-master-catalog" href="#"><span class="font-body-md text-body-md">Medicine Master Catalog</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="stock-ledger-batches" href="#"><span class="font-body-md text-body-md">Stock Ledger &amp; Batches</span><span class="font-data-mono text-label-sm bg-amber-600/90 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Expiring</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="goods-receipt-grn" href="#"><span class="font-body-md text-body-md">Goods Receipt (GRN)</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="suppliers-vendors" href="#"><span class="font-body-md text-body-md">Suppliers &amp; Vendors</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-inventory-reports" href="#"><span class="font-body-md text-body-md">Pharmacy &amp; Inventory Reports</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Billing &amp; Hospital Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; IP Billing</span></a><a aria-current="page" class="flex items-center justify-between px-3 py-2 rounded transition-colors bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed" data-path="tariff-service-fee-master" href="#"><span class="font-body-md text-body-md">Tariff &amp; Service Fee Master</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="health-packages-bundles" href="#"><span class="font-body-md text-body-md">Health Packages &amp; Bundles</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Statutory & Governance Transparency Notice Banner -->
+<div class="bg-surface-container-highest/60 px-6 py-3.5 shadow-sm">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5" style="font-variation-settings: 'FILL' 1;">policy</span>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-primary tracking-tight font-bold">Institutional Tariff Governance &amp; Price Transparency Standard</span>
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded uppercase">CEA Sec 5 &amp; NABH-SHCO 4.2</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-5xl mt-0.5 leading-snug">
+<strong class="text-on-surface font-semibold">Tariff Architecture Rule:</strong> Master tariffs establish standard published fees with strict effective-date auditing. Visit-specific concessions, discounts, or waivers <span class="text-primary font-semibold underline decoration-primary/40 underline-offset-2">MUST NOT overwrite</span> master tariff definitions; concessions are granted exclusively as authorized, auditable transaction-level adjustments linked to approving authority credentials.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-2 self-end lg:self-center shrink-0">
+<span class="font-data-mono text-label-sm bg-surface-container-lowest text-on-surface-variant px-2.5 py-1 rounded shadow-sm">Ledger Hash: #HIS-TRF-2024-V2.1</span>
+<button class="bg-surface-container-lowest text-primary hover:bg-surface text-label-sm font-label-sm px-3 py-1.5 rounded shadow-sm transition-colors flex items-center gap-1 font-bold">
+<span class="material-symbols-outlined text-[14px]">history_edu</span> Policy Directive
+        </button>
+</div>
+</div>
+</div>
+<!-- Operational Workspace: Filtering Bar & Department Switcher -->
+<div class="px-6 py-4 flex flex-col gap-3">
+<!-- Top Action Row -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight font-bold flex items-center gap-2">
+          Tariff &amp; Service Fee Master
+          <span class="font-data-mono text-label-md bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-bold">FY 2024-25</span>
+</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Centralized institutional fee schedules, professional fee attribution, and concession threshold matrix.</p>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<button class="bg-surface-container-lowest text-on-surface hover:bg-surface-container-high font-label-lg text-label-lg px-3.5 py-1.5 rounded shadow-sm transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">file_download</span> Export Gazette (PDF/CSV)
+        </button>
+<button class="bg-primary text-on-primary hover:bg-primary-container font-label-lg text-label-lg px-4 py-1.5 rounded shadow-sm transition-all flex items-center gap-1.5 font-bold">
+<span class="material-symbols-outlined text-[18px]">add_circle</span> + Add New Service Tariff
+          <span class="font-data-mono text-label-sm bg-white/20 px-1.5 py-0.2 rounded ml-1 text-on-primary">F4</span>
+</button>
+</div>
+</div>
+<!-- Navigation Department Tabs -->
+<div class="flex items-center gap-1 overflow-x-auto pb-1">
+<button class="px-3.5 py-2 rounded font-label-lg text-label-lg bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-sm whitespace-nowrap transition-colors">
+        All Services (412)
+      </button>
+<button class="px-3.5 py-2 rounded font-label-lg text-label-lg bg-primary text-on-primary shadow-sm whitespace-nowrap flex items-center gap-1.5 font-bold">
+<span>Doctor Consultation Fees (28)</span>
+<span class="h-1.5 w-1.5 rounded-full bg-tertiary-fixed"></span>
+</button>
+<button class="px-3.5 py-2 rounded font-label-lg text-label-lg bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-sm whitespace-nowrap transition-colors">
+        Diagnostics &amp; Lab (184)
+      </button>
+<button class="px-3.5 py-2 rounded font-label-lg text-label-lg bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-sm whitespace-nowrap transition-colors">
+        Imaging &amp; Radiology (64)
+      </button>
+<button class="px-3.5 py-2 rounded font-label-lg text-label-lg bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-sm whitespace-nowrap transition-colors">
+        IPD Bed &amp; Nursing Care (46)
+      </button>
+<button class="px-3.5 py-2 rounded font-label-lg text-label-lg bg-surface-container-lowest text-on-surface-variant hover:text-on-surface shadow-sm whitespace-nowrap transition-colors">
+        Operation Theatre &amp; Procedures (90)
+      </button>
+</div>
+<!-- Filter Toolbar -->
+<div class="bg-surface-container-lowest p-2.5 rounded shadow-sm flex flex-col md:flex-row items-center gap-2.5">
+<div class="relative flex-1 w-full">
+<span class="material-symbols-outlined absolute left-3 top-2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full h-8 pl-9 pr-4 bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded placeholder:text-on-surface-variant/70 focus:bg-surface-container-lowest focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Search service name, CPT/NABH code, specialty or doctor name (e.g. 'TAR-OP-001' or 'Venkat Rao')..." type="text" value="TAR-OP"/>
+</div>
+<div class="flex items-center gap-2 w-full md:w-auto shrink-0">
+<div class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Specialty:</span>
+<select class="bg-transparent font-label-md text-label-md text-on-surface focus:outline-none cursor-pointer">
+<option>All Clinical Specialties</option>
+<option selected="">General Medicine</option>
+<option>Pulmonary Medicine</option>
+<option>Emergency Medicine</option>
+<option>Cardiology</option>
+<option>Orthopaedics</option>
+</select>
+</div>
+<div class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Revision Status:</span>
+<select class="bg-transparent font-label-md text-label-md text-on-surface focus:outline-none cursor-pointer">
+<option selected="">Current Active (28)</option>
+<option>Scheduled Revision Pending (3)</option>
+<option>Archived / Sunset (14)</option>
+</select>
+</div>
+<button class="p-1.5 rounded bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Reset Filters">
+<span class="material-symbols-outlined text-[18px]">filter_alt_off</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Content Layout (Table Work Area + Slide-Over Drawer) -->
+<div class="px-6 pb-6 flex items-start gap-4 relative">
+<!-- Center Left: Tabular ERP Grid -->
+<div class="flex-1 flex flex-col gap-4 min-w-0">
+<!-- Section 1: Doctor Outpatient Consultation Governance Matrix -->
+<div class="bg-surface-container-lowest rounded shadow-sm overflow-hidden flex flex-col">
+<!-- Table Header Panel -->
+<div class="px-4 py-2.5 bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">medical_services</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">Doctor OP Consultation Fee Schedule &amp; Concession Matrix</span>
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded font-bold">5 Items Displayed</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-emerald-600"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">NABH Price Published</span>
+</div>
+<span class="text-outline-variant">|</span>
+<button class="font-label-sm text-label-sm text-primary hover:underline font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">tune</span> Concession Cap Rules
+            </button>
+</div>
+</div>
+<!-- Table View -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider h-8">
+<th class="px-3 py-1.5 font-bold">Code &amp; Service Description</th>
+<th class="px-3 py-1.5 font-bold">Specialty / Doctor</th>
+<th class="px-3 py-1.5 font-bold">Visit Type</th>
+<th class="px-3 py-1.5 font-bold text-right">Master Tariff (₹)</th>
+<th class="px-3 py-1.5 font-bold">Effective Since</th>
+<th class="px-3 py-1.5 font-bold">Discretionary Concession Cap</th>
+<th class="px-3 py-1.5 font-bold">Approving Authority</th>
+<th class="px-3 py-1.5 font-bold text-center">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-body-sm font-body-sm text-on-surface">
+<!-- Row 1: Selected Record -->
+<tr class="bg-surface-container-high/60 cursor-pointer transition-colors" id="row-TAR-OP-001">
+<td class="px-3 py-2.5">
+<div class="flex items-start gap-1.5">
+<span class="material-symbols-outlined text-primary text-[16px] mt-0.5">verified</span>
+<div class="flex flex-col">
+<span class="font-data-mono text-label-md text-primary font-bold">TAR-OP-001</span>
+<span class="font-title-md text-body-md font-semibold text-on-surface leading-snug">Doctor OP Consultation — Senior Consultant</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">SAC 999312 • OP Clinical Evaluation</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Dr. K. Venkat Rao, MD</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">General Medicine (18 Yrs Exp)</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-label-sm text-label-sm bg-surface-container-lowest text-primary px-2 py-0.5 rounded shadow-sm font-semibold">First Visit / New OP</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono text-body-lg font-bold text-on-surface">
+                  ₹500.00
+                  <span class="block font-label-sm text-label-sm text-on-surface-variant font-normal">Standard Accrual</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-data-mono text-body-sm font-medium">01 Apr 2024</span>
+<span class="font-label-sm text-label-sm text-emerald-700">Active (V2.1)</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded font-semibold w-fit">Max 20% (₹100) Cashier Desk</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Up to 100% via CMO Override</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm font-medium text-on-surface">Dr. Priya Sharma</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Chief Medical Officer</span>
+</div>
+</td>
+<td class="px-3 py-2.5 text-center">
+<div class="flex items-center justify-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container-lowest text-primary font-bold" title="Inspect Master Dossier">
+<span class="material-symbols-outlined text-[18px]">edit_note</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-lowest text-on-surface-variant" title="View Audit Trail">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-start gap-1.5">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px] mt-0.5">check_circle</span>
+<div class="flex flex-col">
+<span class="font-data-mono text-label-md text-on-surface-variant font-bold">TAR-OP-002</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface leading-snug">Doctor OP Consultation — Routine Follow-up</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">SAC 999312 • Post-Discharge / Review</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Dr. K. Venkat Rao, MD</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">General Medicine</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-label-sm text-label-sm bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-semibold">Follow-up (&lt;7 Days)</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono text-body-lg font-bold text-on-surface">
+                  ₹0.00
+                  <span class="block font-label-sm text-label-sm text-emerald-700 font-normal">Complimentary Policy</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-data-mono text-body-sm font-medium">01 Jan 2024</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Active (V1.0)</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">N/A (Standard Clinical Benefit)</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-body-sm text-body-sm text-on-surface">Institutional Rule Book</span>
+</td>
+<td class="px-3 py-2.5 text-center">
+<div class="flex items-center justify-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container-high text-primary" title="Edit Tariff">
+<span class="material-symbols-outlined text-[18px]">edit_note</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant" title="View Audit Trail">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-start gap-1.5">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px] mt-0.5">check_circle</span>
+<div class="flex flex-col">
+<span class="font-data-mono text-label-md text-on-surface-variant font-bold">TAR-OP-003</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface leading-snug">Doctor OP Consultation — Senior Consultant</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">SAC 999312 • Specialty Evaluation</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Dr. Shalini Pillai, MD</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Pulmonary Medicine</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-label-sm text-label-sm bg-surface-container-low text-primary px-2 py-0.5 rounded font-semibold">First Visit / New OP</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono text-body-lg font-bold text-on-surface">
+                  ₹600.00
+                  <span class="block font-label-sm text-label-sm text-on-surface-variant font-normal">Standard Accrual</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-data-mono text-body-sm font-medium">01 Apr 2024</span>
+<span class="font-label-sm text-label-sm text-emerald-700">Active (V1.4)</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded font-semibold w-fit">Max 15% (₹90) Cashier Desk</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">100% via CMO Authorization</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm font-medium text-on-surface">Dr. Priya Sharma</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Chief Medical Officer</span>
+</div>
+</td>
+<td class="px-3 py-2.5 text-center">
+<div class="flex items-center justify-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container-high text-primary" title="Edit Tariff">
+<span class="material-symbols-outlined text-[18px]">edit_note</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant" title="View Audit Trail">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-start gap-1.5">
+<span class="material-symbols-outlined text-error text-[16px] mt-0.5">e911_emergency</span>
+<div class="flex flex-col">
+<span class="font-data-mono text-label-md text-error font-bold">TAR-OP-004</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface leading-snug">Emergency Casualty Medical Officer (CMO) Consultation</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">STAT Casualty Assessment • Zero Refusal Mandate</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Casualty Duty Medical Officer</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Emergency Medicine (Roster Rotation)</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-label-sm text-label-sm bg-error-container text-on-error-container px-2 py-0.5 rounded font-bold">24x7 STAT Triage</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono text-body-lg font-bold text-on-surface">
+                  ₹350.00
+                  <span class="block font-label-sm text-label-sm text-on-surface-variant font-normal">Fixed Emergency Cap</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-data-mono text-body-sm font-medium">01 Jul 2024</span>
+<span class="font-label-sm text-label-sm text-emerald-700">Active (V3.0)</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-label-sm text-label-sm bg-error/10 text-error px-2 py-0.5 rounded font-bold">
+                    Concession Blocked (Zero-Refusal Policy)
+                  </span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm font-medium text-on-surface">Hospital Board Resolution</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Statutory Compliance</span>
+</div>
+</td>
+<td class="px-3 py-2.5 text-center">
+<div class="flex items-center justify-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container-high text-primary" title="Edit Tariff">
+<span class="material-symbols-outlined text-[18px]">edit_note</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant" title="View Audit Trail">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-start gap-1.5">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px] mt-0.5">videocam</span>
+<div class="flex flex-col">
+<span class="font-data-mono text-label-md text-on-surface-variant font-bold">TAR-OP-005</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface leading-snug">Teleconsultation Virtual Follow-up</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">NMC Telemedicine Practice Guidelines</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Consultant Panel</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">General Medicine</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-label-sm text-label-sm bg-surface-container-low text-on-surface px-2 py-0.5 rounded font-semibold">Scheduled Video Review</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono text-body-lg font-bold text-on-surface">
+                  ₹300.00
+                  <span class="block font-label-sm text-label-sm text-on-surface-variant font-normal">Digital Payment Gateway</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-data-mono text-body-sm font-medium">15 Aug 2024</span>
+<span class="font-label-sm text-label-sm text-emerald-700">Active (V1.2)</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded font-semibold w-fit">Max 20% by Billing Admin</span>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm font-medium text-on-surface">Medical Superintendent</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Institutional Admin</span>
+</div>
+</td>
+<td class="px-3 py-2.5 text-center">
+<div class="flex items-center justify-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container-high text-primary" title="Edit Tariff">
+<span class="material-symbols-outlined text-[18px]">edit_note</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant" title="View Audit Trail">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Section 2: Clinical Ancillary & Facility Master Tariffs -->
+<div class="bg-surface-container-lowest rounded shadow-sm overflow-hidden flex flex-col">
+<div class="px-4 py-2.5 bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">biotech</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">Diagnostic, Radiology &amp; Inpatient Bed Master Tariffs</span>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded">Standard Service Codebase</span>
+</div>
+<a class="font-label-sm text-label-sm text-primary hover:underline font-bold" href="#">View Full Schedule (384 items) →</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider h-8">
+<th class="px-3 py-1.5 font-bold">Service Code</th>
+<th class="px-3 py-1.5 font-bold">Service Description</th>
+<th class="px-3 py-1.5 font-bold">Department</th>
+<th class="px-3 py-1.5 font-bold text-right">Standard Tariff (₹)</th>
+<th class="px-3 py-1.5 font-bold">Effective Date</th>
+<th class="px-3 py-1.5 font-bold">GST Exemption Rule</th>
+<th class="px-3 py-1.5 font-bold text-center">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-body-sm font-body-sm text-on-surface">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-3 py-2 font-data-mono text-label-md text-primary font-semibold">LAB-CBC-01</td>
+<td class="px-3 py-2 font-medium">Complete Blood Picture (CBC + 5-Part Differential + Platelets)</td>
+<td class="px-3 py-2">
+<span class="font-label-sm text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">Pathology &amp; Hematology</span>
+</td>
+<td class="px-3 py-2 text-right font-data-mono font-bold text-on-surface">₹280.00</td>
+<td class="px-3 py-2 font-data-mono text-label-md">01 Jan 2024</td>
+<td class="px-3 py-2 font-label-sm text-label-sm text-emerald-800">Nil Rated (Healthcare Dx)</td>
+<td class="px-3 py-2 text-center">
+<button class="p-1 rounded hover:bg-surface-container-high text-primary"><span class="material-symbols-outlined text-[16px]">tune</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-3 py-2 font-data-mono text-label-md text-primary font-semibold">RAD-XRAY-01</td>
+<td class="px-3 py-2 font-medium">Digital X-Ray Chest PA View (High-Resolution DR System)</td>
+<td class="px-3 py-2">
+<span class="font-label-sm text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">Radiology &amp; Imaging</span>
+</td>
+<td class="px-3 py-2 text-right font-data-mono font-bold text-on-surface">₹450.00</td>
+<td class="px-3 py-2 font-data-mono text-label-md">01 Apr 2024</td>
+<td class="px-3 py-2 font-label-sm text-label-sm text-emerald-800">Nil Rated (Healthcare Dx)</td>
+<td class="px-3 py-2 text-center">
+<button class="p-1 rounded hover:bg-surface-container-high text-primary"><span class="material-symbols-outlined text-[16px]">tune</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-3 py-2 font-data-mono text-label-md text-primary font-semibold">IPD-BED-02</td>
+<td class="px-3 py-2 font-medium">General Ward 3-Sharing AC Bed per day (Inclusive of Regular Nursing Care)</td>
+<td class="px-3 py-2">
+<span class="font-label-sm text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">Inpatient Nursing Care</span>
+</td>
+<td class="px-3 py-2 text-right font-data-mono font-bold text-on-surface">₹1,500.00 <span class="font-label-sm font-normal text-on-surface-variant">/ day</span></td>
+<td class="px-3 py-2 font-data-mono text-label-md">01 Apr 2024</td>
+<td class="px-3 py-2 font-label-sm text-label-sm text-emerald-800">Non-ICU &lt; ₹5000/day Exempt</td>
+<td class="px-3 py-2 text-center">
+<button class="p-1 rounded hover:bg-surface-container-high text-primary"><span class="material-symbols-outlined text-[16px]">tune</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Slide-Over Detail Drawer (~440px wide) for TAR-OP-001 -->
+<div class="w-[440px] shrink-0 bg-surface-container-lowest rounded shadow-md overflow-hidden flex flex-col self-start sticky top-20">
+<!-- Drawer Header -->
+<div class="bg-primary text-on-primary p-4">
+<div class="flex items-start justify-between gap-2">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-data-mono text-label-sm bg-white/20 px-2 py-0.5 rounded uppercase font-bold text-on-primary">Master Tariff Dossier</span>
+<span class="font-label-sm text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">V2.1 Active</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold mt-1 text-on-primary leading-tight">TAR-OP-001</h2>
+<p class="font-body-sm text-body-sm text-primary-fixed-dim">Dr. K. Venkat Rao OP Consultation</p>
+</div>
+<button class="text-primary-fixed-dim hover:text-on-primary p-1 rounded transition-colors" title="Close Panel">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+</div>
+<!-- Drawer Content Scrollable Area -->
+<div class="p-4 flex flex-col gap-4 max-h-[calc(100vh-14rem)] overflow-y-auto">
+<!-- 1. Active Schedule & Attribution -->
+<div class="bg-surface-container-low p-3 rounded flex flex-col gap-2.5">
+<div class="flex items-center justify-between pb-1.5">
+<span class="font-label-md text-label-md uppercase text-on-surface-variant tracking-wider font-bold">Active Schedule &amp; Commercial Model</span>
+<span class="font-data-mono text-label-sm text-emerald-800 font-bold">● Published in OP Register</span>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-surface-container-lowest p-2 rounded shadow-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Standard Rate</span>
+<span class="font-data-mono text-headline-md font-bold text-primary">₹500.00</span>
+</div>
+<div class="bg-surface-container-lowest p-2 rounded shadow-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Tax Code</span>
+<span class="font-label-md text-label-md font-semibold text-on-surface block mt-1">GST Exempt</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Notif 12/2017</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-2.5 rounded shadow-sm flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">Professional Payout Split Matrix</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Agreement: Med/2024/78</span>
+</div>
+<!-- Progress / Split Visual Bar -->
+<div class="w-full h-2.5 bg-surface-container rounded-full overflow-hidden flex">
+<div class="bg-primary h-full" style="width: 70%;" title="Doctor Share: 70%"></div>
+<div class="bg-surface-tint/40 h-full" style="width: 30%;" title="Hospital Share: 30%"></div>
+</div>
+<div class="flex items-center justify-between font-data-mono text-label-sm">
+<span class="text-primary font-semibold">Doctor 70%: ₹350.00</span>
+<span class="text-on-surface-variant">Facility 30%: ₹150.00</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm pt-1">
+<span class="text-on-surface-variant font-medium">Effective Period:</span>
+<span class="font-data-mono text-body-sm font-semibold">01 Apr 2024 → Indefinite</span>
+</div>
+</div>
+<!-- 2. Scheduled Future Price Revision (Audit Concept) -->
+<div class="bg-tertiary-fixed/20 p-3 rounded flex flex-col gap-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-amber-900 text-[18px]">update</span>
+<span class="font-label-md text-label-md uppercase font-bold text-amber-900 tracking-wider">Scheduled Future Price Revision</span>
+</div>
+<div class="bg-surface-container-lowest p-2.5 rounded shadow-sm flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Upcoming Master Rate</span>
+<span class="font-data-mono text-headline-md font-bold text-on-surface">₹600.00</span>
+<span class="font-label-sm text-label-sm text-emerald-700 font-semibold">+₹100 (+20%)</span>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Scheduled Effective Date</span>
+<span class="font-data-mono text-body-md font-bold text-on-surface">01 Jan 2025</span>
+<span class="font-label-sm text-label-sm bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded font-semibold inline-block mt-0.5">Pending Committee</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+<strong class="text-on-surface">Change Justification:</strong> Periodic inflation benchmark adjustment and 15-year clinical seniority qualification approved by Academic Board.
+          </p>
+</div>
+<!-- 3. Concession Governance vs Master Rate Architecture -->
+<div class="bg-surface-container-low p-3 rounded flex flex-col gap-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">lock_clock</span>
+<span class="font-label-md text-label-md uppercase font-bold text-primary tracking-wider">Concession Separation Standard</span>
+</div>
+<div class="bg-surface-container-lowest p-2.5 rounded shadow-sm text-body-sm font-body-sm text-on-surface flex flex-col gap-1.5 leading-snug">
+<p class="text-on-surface-variant">
+              Concessions entered at Cashier Desk (BPL, Staff Dependent, Courtesy Waiver) require an assigned concession code:
+            </p>
+<div class="bg-surface-container px-2 py-1 rounded font-data-mono text-label-md flex items-center justify-between">
+<span class="font-bold text-primary">CONC-DIR-100</span>
+<span class="text-on-surface-variant">Biometric / PIN Required</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant italic pt-0.5">
+              Accounting Note: Master revenue accrual remains fixed at ₹500.00 in the primary ledger. Waivers are credited to Account #4021 (Staff / Compassionate Write-offs).
+            </p>
+</div>
+</div>
+<!-- 4. Audit Trail & Version Log -->
+<div class="flex flex-col gap-2">
+<span class="font-label-md text-label-md uppercase text-on-surface-variant tracking-wider font-bold">Audit History &amp; Revision Log</span>
+<div class="flex flex-col gap-2">
+<!-- V2.1 -->
+<div class="bg-surface-container-low p-2.5 rounded flex items-start gap-2.5">
+<div class="h-6 w-6 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 font-data-mono text-label-sm font-bold mt-0.5">
+                2.1
+              </div>
+<div class="flex flex-col flex-1">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-bold text-on-surface">Standard Tariff: ₹500.00</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">01 Apr 2024</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Approved by Dr. Priya Sharma (CMO) • Roster sync updated</span>
+</div>
+</div>
+<!-- V2.0 -->
+<div class="bg-surface-container-low/60 p-2.5 rounded flex items-start gap-2.5 opacity-80">
+<div class="h-6 w-6 rounded-full bg-surface-variant text-on-surface flex items-center justify-center shrink-0 font-data-mono text-label-sm font-bold mt-0.5">
+                2.0
+              </div>
+<div class="flex flex-col flex-1">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Historical Tariff: ₹400.00</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">01 Apr 2022 - 31 Mar 2024</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Superseded upon FY24 Revision Committee ratification</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Drawer Footer Actions -->
+<div class="p-3.5 bg-surface-container border-t-0 flex items-center justify-between gap-2">
+<button class="bg-surface-container-lowest text-on-surface hover:bg-surface text-label-md font-label-md px-3 py-1.5 rounded shadow-sm transition-colors flex items-center gap-1 font-semibold">
+<span class="material-symbols-outlined text-[16px]">rule</span> Concession Limits
+        </button>
+<div class="flex items-center gap-2">
+<button class="bg-surface-container-highest text-primary hover:bg-primary/10 text-label-md font-label-md px-3 py-1.5 rounded transition-colors font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule_send</span> Schedule Revision
+          </button>
+<button class="bg-primary text-on-primary hover:bg-primary-container text-label-md font-label-md px-3.5 py-1.5 rounded shadow-sm transition-colors font-bold">
+            Save &amp; Close
+          </button>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

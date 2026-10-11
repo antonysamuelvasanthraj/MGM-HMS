@@ -1,0 +1,36 @@
+{
+  "name": "surelyhms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SurelyHMS - real-time hospital information system built on the Stitch 'Clinical Precision' design system",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "build:css": "tailwindcss -c tailwind.config.cjs -i client/src/app.src.css -o client/app.css --minify",
+    "watch:css": "tailwindcss -c tailwind.config.cjs -i client/src/app.src.css -o client/app.css --watch",
+    "convert": "node tools/convert.mjs",
+    "reset": "node server/reset.js",
+    "prestart": "node tools/ensure-css.mjs",
+    "predev": "node tools/ensure-css.mjs",
+    "test": "node tools/realtime-client-test.mjs && node tools/smoke-test.mjs && node tools/integration-regression-test.mjs",
+    "test:local-server": "node tools/local-server-test.mjs",
+    "test:integration-regressions": "node tools/integration-regression-test.mjs",
+    "tunnel": "node tools/tunnel.mjs",
+    "demo": "node tools/start-demo.mjs",
+    "demo:reset": "node tools/demo-reset.mjs",
+    "seed": "node tools/seed-demo-masters.mjs && node tools/seed-demo-staff.mjs",
+    "seed:workflows": "node tools/seed-demo-workflows.mjs",
+    "db:migrate": "node --input-type=module -e \"await import('./server/db.js'); console.log('database migrated')\""
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

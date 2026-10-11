@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / Mobile / Patient Name / Encounter..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Clinical Modules</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="consultation-history" href="#"><span class="font-body-md text-body-md">Consultation History</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="follow-up-teleconsult" href="#"><span class="font-body-md text-body-md">Follow-up / Teleconsult</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-registration" href="#"><span class="font-body-md text-body-md">OP Registration</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">42</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-fee-collection" href="#"><span class="font-body-md text-body-md">OP Fee Collection</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">14 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; Billing</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">9</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-orders-requisitions" href="#"><span class="font-body-md text-body-md">Clinical Orders &amp; Requisitions</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">16</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="laboratory-diagnostics" href="#"><span class="font-body-md text-body-md">Laboratory &amp; Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">34</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="imaging-radiology" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (PACS/USG)</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">11</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">7</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ipd-bed-mgmt" href="#"><span class="font-body-md text-body-md">IPD / Bed Mgmt</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="accounts-receipts" href="#"><span class="font-body-md text-body-md">Accounts &amp; Receipts</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="token-display" href="#"><span class="font-body-md text-body-md">Token Display</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Live</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full font-body-md text-body-md text-on-surface">
+<div class="px-6 py-4 bg-surface flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">Central Laboratory &amp; Diagnostic Information System (LIS)</span>
+<span class="font-data-mono text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase font-bold">Station: LAB-HEM-02</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1.5 text-on-secondary-fixed">
+<span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
+          LIS Analyzer Gateway: Online (HL7/ASTM Connected)
+        </span>
+<span>•</span>
+<span class="font-data-mono">Bidirectional Sync Active (Port 4102)</span>
+<span>•</span>
+<span>Shift: Morning Lab Roster A</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded text-label-lg font-label-lg transition-colors">
+<span class="material-symbols-outlined text-[16px]">sync_alt</span>
+        Re-poll Analyzers
+      </button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-container hover:bg-primary text-on-primary rounded text-label-lg font-label-lg shadow-sm transition-all">
+<span class="material-symbols-outlined text-[16px]">print</span>
+        Barcode Batch Print
+      </button>
+</div>
+</div>
+<div class="px-6 bg-surface-container-lowest shadow-sm">
+<nav class="flex items-center gap-1 overflow-x-auto">
+<button class="flex items-center gap-2 px-4 py-3 text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors whitespace-nowrap">
+<span>Ordered</span>
+<span class="bg-surface-container-high text-on-surface-variant px-1.5 py-0.2 rounded-full font-data-mono text-label-sm">18</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-3 text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors whitespace-nowrap">
+<span>Sample Collected</span>
+<span class="bg-surface-container-high text-on-surface-variant px-1.5 py-0.2 rounded-full font-data-mono text-label-sm">22</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-3 text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors whitespace-nowrap">
+<span>Processing</span>
+<span class="bg-surface-container-high text-on-surface-variant px-1.5 py-0.2 rounded-full font-data-mono text-label-sm">15</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-3 bg-surface-container text-primary font-bold font-label-lg text-label-lg rounded-t shadow-inner whitespace-nowrap">
+<span class="flex items-center gap-1">
+<span class="h-2 w-2 rounded-full bg-primary animate-ping"></span>
+          Awaiting Verification
+        </span>
+<span class="bg-primary-container text-on-primary px-2 py-0.5 rounded-full font-data-mono text-label-sm">9 Active</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-3 text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors whitespace-nowrap">
+<span>Released &amp; Printed</span>
+<span class="bg-surface-container-high text-on-surface-variant px-1.5 py-0.2 rounded-full font-data-mono text-label-sm">142 Today</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-3 text-error hover:bg-error-container/30 font-label-lg text-label-lg transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-[15px]">flag</span>
+<span>Rejected / Recalls</span>
+<span class="bg-error-container text-on-error-container px-1.5 py-0.2 rounded-full font-data-mono text-label-sm">3 Flagged</span>
+</button>
+</nav>
+</div>
+<div class="p-6 grid grid-cols-12 gap-5">
+<div class="col-span-12 xl:col-span-9 flex flex-col gap-5">
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-3">
+<div class="bg-primary/10 text-primary p-2 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">person</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface">Smt. Lakshmi Narayanan</span>
+<span class="bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm px-2 py-0.5 rounded-full">54Y / Female</span>
+<span class="bg-surface-container-high text-on-surface font-data-mono text-label-sm px-2 py-0.5 rounded">O Positive (O+)</span>
+</div>
+<div class="flex items-center gap-3 font-data-mono text-body-sm text-on-surface-variant mt-0.5">
+<span>UHID: <strong class="text-on-surface">SHMS-2024-09142</strong></span>
+<span>•</span>
+<span>Encounter: <strong class="text-on-surface">ENC-2024-10-0592</strong></span>
+<span>•</span>
+<span class="bg-surface-container px-2 py-0.2 rounded text-primary font-bold">OP Token #42 (Priority OP)</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-[18px] text-emerald-700">verified_user</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold">Double Identity Verification Passed</span>
+<span class="font-label-sm text-label-sm text-emerald-900/80">UHID &amp; Name matched with Barcode (Scanner S-04)</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg grid grid-cols-1 md:grid-cols-4 gap-3 text-body-sm font-body-sm">
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-label-sm text-label-sm uppercase">Specimen ID &amp; Type</span>
+<span class="font-data-mono font-bold text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">qr_code_2</span>
+              #BAR-990214-EDTA
+            </span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Whole Blood (K2 EDTA Vacutainer 3ml)</span>
+</div>
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-label-sm text-label-sm uppercase">Chain of Custody</span>
+<span class="text-on-surface font-medium">Collected: 11:22 AM (SN Kavitha)</span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Received in Lab: 11:28 AM (Accession Tech: Rohit)</span>
+</div>
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-label-sm text-label-sm uppercase">Analyzer Direct Stream</span>
+<span class="text-on-surface font-medium flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+              Sysmex XN-550 Automated
+            </span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Interface ASTM-E1394 Direct Raw Pull</span>
+</div>
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-label-sm text-label-sm uppercase">Requesting Physician / Indication</span>
+<span class="text-on-surface font-medium">Dr. K. Venkat Rao (General Medicine)</span>
+<span class="text-error font-semibold text-label-sm font-label-sm">Acute Febrile Illness, Rule out Thrombocytopenia</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Structured Laboratory Results</span>
+<span class="font-label-sm text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">Panel: Complete Hemogram (CBC) + Platelet + Dengue Serology</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1 text-label-md font-label-md px-2.5 py-1 bg-surface-container text-on-surface rounded hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[14px]">history</span>
+              Compare Historical Trends (Last: 12 Aug 2024)
+            </button>
+<button class="flex items-center gap-1 text-label-md font-label-md px-2.5 py-1 bg-surface-container text-on-surface rounded hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+              Auto-Delta Checked
+            </button>
+</div>
+</div>
+<div class="overflow-x-auto rounded-lg">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="bg-surface-container-high text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-2.5 px-3">Test Parameter</th>
+<th class="py-2.5 px-3 text-center">Flag</th>
+<th class="py-2.5 px-3 text-right">Result Value</th>
+<th class="py-2.5 px-3 text-left">Unit</th>
+<th class="py-2.5 px-3">Configured Reference Range</th>
+<th class="py-2.5 px-3">Biological Interval / Remarks</th>
+<th class="py-2.5 px-3 text-right">Analyzer Raw Data</th>
+</tr>
+</thead>
+<tbody class="divide-y-0">
+<tr class="hover:bg-surface-container/50 transition-colors">
+<td class="py-2.5 px-3 font-medium text-on-surface">Hemoglobin (Hb)</td>
+<td class="py-2.5 px-3 text-center">
+<span class="px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-emerald-100 text-emerald-800 font-bold">NORMAL</span>
+</td>
+<td class="py-2.5 px-3 text-right font-data-mono font-bold text-on-surface">13.2</td>
+<td class="py-2.5 px-3 text-on-surface-variant">g/dL</td>
+<td class="py-2.5 px-3 font-data-mono text-on-surface-variant">[12.0 - 15.5]</td>
+<td class="py-2.5 px-3 text-on-surface-variant">Adult Female Baseline (Cyanmethemoglobin)</td>
+<td class="py-2.5 px-3 text-right font-data-mono text-on-surface-variant">13.21 g/dL</td>
+</tr>
+<tr class="bg-amber-50/60 hover:bg-amber-100/60 transition-colors">
+<td class="py-2.5 px-3 font-medium text-on-surface">Total Leucocyte Count (TLC / WBC)</td>
+<td class="py-2.5 px-3 text-center">
+<span class="px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-amber-200 text-amber-900 font-bold flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[13px]">arrow_upward</span> HIGH
+                  </span>
+</td>
+<td class="py-2.5 px-3 text-right font-data-mono font-bold text-amber-900">12,800</td>
+<td class="py-2.5 px-3 text-on-surface-variant">/cu.mm</td>
+<td class="py-2.5 px-3 font-data-mono text-on-surface-variant">[4,000 - 11,000]</td>
+<td class="py-2.5 px-3 text-amber-900 font-medium">Neutrophilia present; Mild leukocytosis</td>
+<td class="py-2.5 px-3 text-right font-data-mono text-on-surface-variant">12,810 /cu.mm</td>
+</tr>
+<tr class="bg-surface-container-low/40">
+<td class="py-1 px-3 text-label-sm font-label-sm uppercase tracking-wider text-on-surface-variant font-bold" colspan="7">
+                  Differential Leucocyte Count (DLC Automated Scattergram)
+                </td>
+</tr>
+<tr class="hover:bg-surface-container/50 transition-colors pl-4">
+<td class="py-2 px-3 pl-6 text-on-surface">• Neutrophils</td>
+<td class="py-2 px-3 text-center">
+<span class="px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-amber-100 text-amber-800 font-bold">HIGH</span>
+</td>
+<td class="py-2 px-3 text-right font-data-mono font-bold text-amber-900">78</td>
+<td class="py-2 px-3 text-on-surface-variant">%</td>
+<td class="py-2 px-3 font-data-mono text-on-surface-variant">[40 - 70]</td>
+<td class="py-2 px-3 text-on-surface-variant">Shift to left noted</td>
+<td class="py-2 px-3 text-right font-data-mono text-on-surface-variant">78.2 %</td>
+</tr>
+<tr class="hover:bg-surface-container/50 transition-colors">
+<td class="py-2 px-3 pl-6 text-on-surface">• Lymphocytes</td>
+<td class="py-2 px-3 text-center">
+<span class="px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-blue-100 text-blue-800 font-bold">LOW</span>
+</td>
+<td class="py-2 px-3 text-right font-data-mono font-bold text-blue-900">16</td>
+<td class="py-2 px-3 text-on-surface-variant">%</td>
+<td class="py-2 px-3 font-data-mono text-on-surface-variant">[20 - 40]</td>
+<td class="py-2 px-3 text-on-surface-variant">Relative lymphopenia</td>
+<td class="py-2 px-3 text-right font-data-mono text-on-surface-variant">15.8 %</td>
+</tr>
+<tr class="hover:bg-surface-container/50 transition-colors">
+<td class="py-2 px-3 pl-6 text-on-surface">• Eosinophils</td>
+<td class="py-2 px-3 text-center">
+<span class="px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-emerald-100 text-emerald-800 font-bold">NORMAL</span>
+</td>
+<td class="py-2 px-3 text-right font-data-mono text-on-surface">3</td>
+<td class="py-2 px-3 text-on-surface-variant">%</td>
+<td class="py-2 px-3 font-data-mono text-on-surface-variant">[1 - 6]</td>
+<td class="py-2 px-3 text-on-surface-variant">Normal range</td>
+<td class="py-2 px-3 text-right font-data-mono text-on-surface-variant">3.1 %</td>
+</tr>
+<tr class="hover:bg-surface-container/50 transition-colors">
+<td class="py-2 px-3 pl-6 text-on-surface">• Monocytes</td>
+<td class="py-2 px-3 text-center">
+<span class="px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-emerald-100 text-emerald-800 font-bold">NORMAL</span>
+</td>
+<td class="py-2 px-3 text-right font-data-mono text-on-surface">3</td>
+<td class="py-2 px-3 text-on-surface-variant">%</td>
+<td class="py-2 px-3 font-data-mono text-on-surface-variant">[2 - 8]</td>
+<td class="py-2 px-3 text-on-surface-variant">Normal range</td>
+<td class="py-2 px-3 text-right font-data-mono text-on-surface-variant">2.9 %</td>
+</tr>
+<tr class="bg-error-container/40 hover:bg-error-container/60 transition-colors">
+<td class="py-3 px-3 font-bold text-on-error-container flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-error animate-pulse">crisis_alert</span>
+                  Platelet Count (Direct Impedance &amp; Optical)
+                </td>
+<td class="py-3 px-3 text-center">
+<span class="px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-error text-on-error font-bold flex items-center justify-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-white animate-ping"></span>
+                    CRITICAL LOW
+                  </span>
+</td>
+<td class="py-3 px-3 text-right font-data-mono font-bold text-headline-md text-error">88,000</td>
+<td class="py-3 px-3 text-on-error-container font-semibold">/cu.mm</td>
+<td class="py-3 px-3 font-data-mono text-on-error-container">[1,50,000 - 4,50,000]</td>
+<td class="py-3 px-3 text-error font-semibold">Marked Thrombocytopenia; Manual peripheral smear check advised</td>
+<td class="py-3 px-3 text-right font-data-mono text-on-error-container font-bold">87,900 /cu.mm (PLT-O)</td>
+</tr>
+<tr class="hover:bg-surface-container/50 transition-colors">
+<td class="py-2.5 px-3 font-medium text-on-surface">Packed Cell Volume (PCV / Hematocrit)</td>
+<td class="py-2.5 px-3 text-center">
+<span class="px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-emerald-100 text-emerald-800 font-bold">NORMAL</span>
+</td>
+<td class="py-2.5 px-3 text-right font-data-mono font-bold text-on-surface">39.5</td>
+<td class="py-2.5 px-3 text-on-surface-variant">%</td>
+<td class="py-2.5 px-3 font-data-mono text-on-surface-variant">[36.0 - 46.0]</td>
+<td class="py-2.5 px-3 text-on-surface-variant">Adequate hydration; no severe hemoconcentration</td>
+<td class="py-2.5 px-3 text-right font-data-mono text-on-surface-variant">39.48 %</td>
+</tr>
+<tr class="bg-error-container/30 hover:bg-error-container/50 transition-colors">
+<td class="py-3 px-3 font-bold text-on-error-container flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-error">coronavirus</span>
+                  Dengue NS1 Antigen (ELISA)
+                </td>
+<td class="py-3 px-3 text-center">
+<span class="px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-error text-on-error font-bold">
+                    REACTIVE (+)
+                  </span>
+</td>
+<td class="py-3 px-3 text-right font-data-mono font-bold text-error">POSITIVE (3.4)</td>
+<td class="py-3 px-3 text-on-error-container">Index</td>
+<td class="py-3 px-3 font-data-mono text-on-error-container">&lt; 0.9 Negative</td>
+<td class="py-3 px-3 text-error font-semibold">Confirmatory Rapid ELISA Reactive (Cutoff &gt; 1.1)</td>
+<td class="py-3 px-3 text-right font-data-mono text-on-error-container font-bold">OD 1.482 (Cal: 0.435)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="bg-surface-container p-3 rounded-lg flex flex-col md:flex-row items-center justify-between gap-3 text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">biotech</span>
+<span class="font-medium text-on-surface">Manual Microscopic Smear Verification Log:</span>
+<span class="italic text-on-surface-variant">"Peripheral smear reviewed under 100x oil immersion. Confirms true thrombocytopenia without platelet clumping/satellitism. Toxic granules in 15% neutrophils."</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface text-on-surface-variant px-2 py-1 rounded">Slide ID: #SMR-9142-EDTA (Slide Box 04-B)</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-md flex flex-col gap-4">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-surface-container-low p-3.5 rounded-lg">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover shadow-sm" data-alt="Professional clinical headshot portrait of Dr. R. K. Mukherjee, senior male consultant pathologist wearing white lab coat and stethoscope with neutral clinical laboratory background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCba_RnTWhh04I8oSvz-4LCeMr_jpW9wpXUO9JuivZ_5YI6iMLhdl1nfkPqSnaIlkRTmSeZzs_mP0tAazTfjMa7Z_KW-4yWe06oqlk3vgRmdS3Yyx3_gOLyBPsRo7LleY7CG8Be7LiMMdjdjzp8D1ptABMXQaxUGCFEgB5kM8gZwwAOX3pB-g-Dfhiu9PsEpTIGhhske3qr__Yk5zaFfA8ZV-R96obO2EW1gF7GfNc"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Dr. R. K. Mukherjee, MD</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">Consultant Pathologist &amp; Lab Director | Reg: KMC-38912</span>
+<span class="text-emerald-700 font-data-mono text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">key</span> Digital Signature Certificate Valid (Expires 2026)
+              </span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex flex-col">
+<label class="text-on-surface-variant font-label-sm text-label-sm mb-1" for="path-pin">Doctor Verification PIN / 2FA Token</label>
+<div class="flex items-center gap-2">
+<input class="w-32 h-9 px-3 bg-surface text-on-surface font-data-mono text-body-md rounded shadow-inner focus:outline-none focus:bg-surface-container-lowest" id="path-pin" type="password" value="••••"/>
+<button class="h-9 px-4 bg-primary-container hover:bg-primary text-on-primary rounded font-label-lg text-label-lg flex items-center gap-1.5 shadow-sm transition-all" onclick="alert('Report Signed &amp; Released! Attending Physician Dr. Venkat Rao alerted via LAN.')">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+                  Sign &amp; Release Diagnostic Report (Ctrl+Enter)
+                </button>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">science</span>
+              Hold for Dilution / Repeat Run
+            </button>
+<button class="px-3 py-1.5 bg-error-container/60 hover:bg-error-container text-on-error-container font-label-lg text-label-lg rounded transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">replay</span>
+              Recall Specimen / Request Fresh Sample
+            </button>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+              Preview PDF Layout
+            </button>
+<button class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">forward_to_inbox</span>
+              Critical Value SMS to Dr. Rao
+            </button>
+</div>
+</div>
+<div class="bg-surface-container-high/60 p-3 rounded text-on-surface-variant text-label-sm font-label-sm flex items-start gap-2">
+<span class="material-symbols-outlined text-on-surface text-[16px] mt-0.5">policy</span>
+<div>
+<strong class="text-on-surface">Hospital Release Policy:</strong> Results are immediately accessible to attending clinician (Dr. Venkat Rao) on local LAN. Patient printout released at billing counter based on configured policy: <span class="text-on-surface font-semibold">[Release Report upon Authorized Sign-off regardless of settlement / Financial ledger reconciled at final OP exit]</span>.
+          </div>
+</div>
+</div>
+</div>
+<div class="col-span-12 xl:col-span-3 flex flex-col gap-4">
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">pending_actions</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">Queue / Pending Specimens</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface">8 In Queue</span>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-on-surface-variant text-[16px]">filter_list</span>
+<input class="w-full h-8 pl-8 pr-3 text-body-sm font-body-sm bg-surface rounded focus:outline-none placeholder:text-on-surface-variant/60" placeholder="Filter Queue by Specimen ID..." type="text"/>
+</div>
+<div class="flex flex-col gap-2.5 mt-1 overflow-y-auto max-h-[620px] pr-1">
+<div class="p-3 rounded-lg bg-surface-container border-l-4 border-primary shadow-sm flex flex-col gap-1 cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-md font-bold text-primary">#BAR-990214-EDTA</span>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 rounded bg-error text-on-error font-bold">Selected</span>
+</div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface truncate">Smt. Lakshmi Narayanan</span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">CBC + Dengue NS1 (Critical Low Plt)</span>
+<div class="flex items-center justify-between text-label-sm text-on-surface-variant font-data-mono mt-1">
+<span>Sysmex XN-550</span>
+<span class="text-error font-bold">Plt 88k</span>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-surface hover:bg-surface-container transition-colors shadow-sm flex flex-col gap-1 cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-md font-bold text-on-surface">#BAR-990215-SST</span>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">Analysis Done</span>
+</div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface truncate">Sri K. Ramamurthy (68M)</span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Serum Electrolytes + Renal Function</span>
+<div class="flex items-center justify-between text-label-sm text-on-surface-variant font-data-mono mt-1">
+<span>Roche Cobas c311</span>
+<span class="text-amber-700 font-bold">K+ 5.8 mEq/L</span>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-surface hover:bg-surface-container transition-colors shadow-sm flex flex-col gap-1 cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-md font-bold text-on-surface">#BAR-990218-URN</span>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 font-bold">Reviewing</span>
+</div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface truncate">Master Vihaan Reddy (7M)</span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Urine Routine &amp; Microscopic</span>
+<div class="flex items-center justify-between text-label-sm text-on-surface-variant font-data-mono mt-1">
+<span>Dirui H-800</span>
+<span class="text-emerald-700 font-bold">Pus cells 10-12</span>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-error-container/40 shadow-sm flex flex-col gap-1 cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-md font-bold text-error">#BAR-990209-EDTA</span>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 rounded bg-error text-on-error font-bold">REJECTED</span>
+</div>
+<span class="font-label-lg text-label-lg font-bold text-on-error-container truncate">Mr. Abdul Gaffar (42M)</span>
+<span class="text-error text-label-sm font-label-sm font-medium">Specimen Rejected: Hemolysis index 4+</span>
+<div class="flex items-center justify-between text-label-sm text-on-error-container font-data-mono mt-1">
+<span>Phlebotomy Station 1</span>
+<span class="font-bold underline">Recalling Patient</span>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-surface hover:bg-surface-container transition-colors shadow-sm flex flex-col gap-1 cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-md font-bold text-on-surface">#BAR-990221-CIT</span>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">Running</span>
+</div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface truncate">Mrs. Shakuntala Devi (61F)</span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Coagulation Profile (PT/INR, aPTT)</span>
+<div class="flex items-center justify-between text-label-sm text-on-surface-variant font-data-mono mt-1">
+<span>Stago Compact Max</span>
+<span class="text-on-surface-variant font-bold">INR: Processing</span>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-surface hover:bg-surface-container transition-colors shadow-sm flex flex-col gap-1 cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-md font-bold text-on-surface">#BAR-990226-SER</span>
+<span class="text-label-sm font-label-sm px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">Delta Checked</span>
+</div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface truncate">Mr. T. Subba Rao (51M)</span>
+<span class="text-on-surface-variant text-label-sm font-label-sm">Cardiac Biomarkers (High Sensitivity Trop-I)</span>
+<div class="flex items-center justify-between text-label-sm text-on-surface-variant font-data-mono mt-1">
+<span>Abbott Architect</span>
+<span class="text-emerald-700 font-bold">Trop-I &lt; 0.01 ng/mL</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Internal Quality Control (IQC)</span>
+<span class="font-label-sm text-label-sm bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">In Range</span>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between text-label-sm font-label-sm">
+<span class="text-on-surface">Sysmex XN-550 L-1 Normal Control</span>
+<span class="font-data-mono text-emerald-700">1SD (+0.4%) OK</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-emerald-600 h-1.5 rounded-full" style="width: 52%"></div>
+</div>
+<div class="flex items-center justify-between text-label-sm font-label-sm mt-1">
+<span class="text-on-surface">Sysmex XN-550 L-2 Low Platelet Control</span>
+<span class="font-data-mono text-emerald-700">Pass (CV 2.8%)</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-emerald-600 h-1.5 rounded-full" style="width: 48%"></div>
+</div>
+<div class="flex items-center justify-between text-label-sm font-label-sm mt-1">
+<span class="text-on-surface">ELISA Dengue Calibrator Run #4</span>
+<span class="font-data-mono text-emerald-700">Valid (OD 0.435)</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-emerald-600 h-1.5 rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<div class="p-2.5 rounded bg-surface-container-low text-label-sm font-label-sm text-on-surface-variant flex items-center justify-between mt-1">
+<span>Daily Levey-Jennings Chart:</span>
+<a class="text-primary font-bold hover:underline" href="#">View LJ Plots</a>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Specimen Storage &amp; Disposal</span>
+<div class="flex flex-col text-label-sm font-label-sm text-on-surface-variant gap-1">
+<div class="flex justify-between">
+<span>Primary Rack:</span>
+<strong class="font-data-mono text-on-surface">RCK-HEM-A4 (Pos 18)</strong>
+</div>
+<div class="flex justify-between">
+<span>Retention Period:</span>
+<span class="text-on-surface">48 Hours (at 2-8°C)</span>
+</div>
+<div class="flex justify-between">
+<span>Scheduled Autoclave:</span>
+<span class="text-on-surface">26 Oct 2024, 02:00 PM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+    document.addEventListener('keydown', function(event) {
+      if (event.ctrlKey && event.key === 'Enter') {
+        event.preventDefault();
+        alert('Report for Patient Smt. Lakshmi Narayanan signed and released! Notification sent to Attending Physician Dr. K. Venkat Rao.');
+      }
+    });
+  </script>
+</div></main></div></body></html>

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-bright": "#f8f9ff",
+          "on-tertiary-fixed": "#251a00",
+          "surface-container-lowest": "#ffffff",
+          "on-tertiary-container": "#d4b264",
+          "surface-tint": "#a83541",
+          "on-error": "#ffffff",
+          "surface-container-high": "#dce9ff",
+          "on-secondary-container": "#7a4d54",
+          "on-tertiary": "#ffffff",
+          "secondary-container": "#fdc3ca",
+          "on-primary-container": "#ff999d",
+          "tertiary": "#402e00",
+          "outline": "#8a7171",
+          "on-surface-variant": "#574142",
+          "surface-container": "#e5eeff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-highest": "#d4e4fd",
+          "secondary": "#7f5258",
+          "tertiary-container": "#5b4400",
+          "on-primary": "#ffffff",
+          "on-secondary-fixed": "#321117",
+          "surface-container-low": "#eff4ff",
+          "surface": "#f8f9ff",
+          "on-error-container": "#93000a",
+          "background": "#f8f9ff",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "inverse-on-surface": "#eaf1ff",
+          "inverse-surface": "#223144",
+          "error-container": "#ffdad6",
+          "inverse-primary": "#ffb3b5",
+          "primary-container": "#881d2c",
+          "on-secondary-fixed-variant": "#643b41",
+          "on-primary-fixed": "#40000b",
+          "on-surface": "#0c1c2e",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-primary-fixed-variant": "#881d2c",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "tertiary-fixed": "#ffdf9a",
+          "primary": "#680118",
+          "on-secondary": "#ffffff",
+          "surface-dim": "#ccdbf4",
+          "on-background": "#0c1c2e",
+          "outline-variant": "#debfbf",
+          "surface-variant": "#d4e4fd",
+          "secondary-fixed-dim": "#f1b8bf",
+          "error": "#ba1a1a"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-lg": "1rem",
+          "gutter": "1rem",
+          "space-md": "0.75rem",
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "margin": "1.5rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "title-md": ["Inter"],
+          "body-md": ["Inter"],
+          "body-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "label-sm": ["Inter"],
+          "label-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "headline-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "body-sm": ["Inter"]
+        },
+        "fontSize": {
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-surface-container-high"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>City Campus - Main Hospital, Hyderabad</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / Mobile / Patient Name / Encounter..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">LAN: 192.168.1.10</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/40" src="https://lh3.googleusercontent.com/aida/AEtjO1XmP9Q8l0470v27u8hI4Bfx2HlVbM8Hj5mC3K9Q1u7y7_x0Gv1p8w_4z2L9n0k8j7_4w7_s3x4m8r2y7a1v4t7m9k2p"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-60 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Clinical Operations</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a aria-current="page" class="flex items-center justify-between px-3 py-2 rounded transition-colors bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed" data-path="role-specific-work-dashboard" href="dashboard.html"><span class="font-body-md text-body-md">Work Dashboard</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-reception-registration" href="#"><span class="font-body-md text-body-md">OP Registration</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">42</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; Billing</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals-station" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd-consultation" href="#"><span class="font-body-md text-body-md">Doctor OPD</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">29</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="laboratory-diagnostics" href="#"><span class="font-body-md text-body-md">Laboratory &amp; Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">34</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispensing" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">7</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ipd-bed-management" href="#"><span class="font-body-md text-body-md">IPD / Bed Mgmt</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administration &amp; Oversight</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="admin-owner-daily-operations" href="operations-dashboard.html"><span class="font-body-md text-body-md">Daily Operations</span><span class="font-data-mono text-label-sm bg-tertiary-fixed/30 text-tertiary-fixed px-1.5 py-0.5 rounded">Ops</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="owner-dashboard.html"><span class="font-body-md text-body-md">Management Overview</span><span class="font-data-mono text-label-sm bg-tertiary-fixed/30 text-tertiary-fixed px-1.5 py-0.5 rounded">Exec</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="public-queue-token-display" href="#"><span class="font-body-md text-body-md">Token Display</span><span class="font-data-mono text-label-sm text-tertiary-fixed">Live</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-60 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Dynamic Notification & Status Bar (Local-First Guarantee Strip) -->
+<div class="w-full bg-surface-container-highest/80 px-6 py-2 flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<span class="flex h-2 w-2 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+</span>
+<span class="font-data-mono text-data-mono text-on-surface font-semibold">
+        All patient movement confirmed on Local LAN
+      </span>
+<span class="font-data-mono text-label-sm bg-surface-container-lowest text-primary font-bold px-2 py-0.5 rounded shadow-sm">
+        Write confirmed: 14ms
+      </span>
+<span class="hidden md:inline font-body-sm text-body-sm text-on-surface-variant">
+        • Station: HYD-DESK-04 (OPD North Block Triage)
+      </span>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5 font-label-md text-label-md text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-tertiary">bolt</span>
+<span>Keyboard Hotkeys:</span>
+<kbd class="bg-surface-container-lowest px-1.5 py-0.5 rounded text-primary font-data-mono shadow-sm">F2: Reg</kbd>
+<kbd class="bg-surface-container-lowest px-1.5 py-0.5 rounded text-primary font-data-mono shadow-sm">F4: Billing</kbd>
+<kbd class="bg-surface-container-lowest px-1.5 py-0.5 rounded text-primary font-data-mono shadow-sm">Space: Next</kbd>
+</div>
+</div>
+</div>
+<div class="p-6 flex flex-col gap-6">
+<!-- Workstation View Role Switcher & Tactical Operations Header -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold bg-primary-fixed px-2 py-0.5 rounded">Live Triage Central</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Shift: Morning A • Turnaround Target: &lt;20m</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface font-bold">Operational Workflow Board</h1>
+</div>
+<!-- High Contrast Role Switcher Tabs -->
+<div class="flex items-center bg-surface-container p-1 rounded-lg">
+<button class="role-tab flex items-center gap-2 px-4 py-2 rounded-lg font-label-lg text-label-lg transition-all bg-primary text-on-primary shadow-sm font-bold" id="tab-reception" onclick="switchView('reception')">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+          Receptionist View
+          <span class="ml-1 bg-surface-container-lowest text-primary font-data-mono text-label-sm px-1.5 py-0.2 rounded-full font-bold">5</span>
+</button>
+<button class="role-tab flex items-center gap-2 px-4 py-2 rounded-lg font-label-lg text-label-lg transition-all text-on-surface hover:bg-surface-container-highest" id="tab-nurse" onclick="switchView('nurse')">
+<span class="material-symbols-outlined text-[18px]">vital_signs</span>
+          Staff Nurse View
+          <span class="ml-1 bg-surface-container-highest text-on-surface font-data-mono text-label-sm px-1.5 py-0.2 rounded-full">18</span>
+</button>
+<button class="role-tab flex items-center gap-2 px-4 py-2 rounded-lg font-label-lg text-label-lg transition-all text-on-surface hover:bg-surface-container-highest" id="tab-doctor" onclick="switchView('doctor')">
+<span class="material-symbols-outlined text-[18px]">stethoscope</span>
+          Consulting Doctor View
+          <span class="ml-1 bg-surface-container-highest text-on-surface font-data-mono text-label-sm px-1.5 py-0.2 rounded-full">26</span>
+</button>
+</div>
+</div>
+<!-- Real-Time Metrics Strip -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Today Arrivals</span>
+<div class="flex items-baseline justify-between mt-2">
+<span class="font-display-lg text-display-lg text-on-surface font-bold">142</span>
+<span class="font-data-mono text-label-sm text-[#166534] bg-[#DCFCE7] px-2 py-0.5 rounded-full font-bold">+12% vs y'day</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Awaiting Billing</span>
+<div class="flex items-baseline justify-between mt-2">
+<span class="font-display-lg text-display-lg text-[#92400E] font-bold">09</span>
+<span class="font-data-mono text-label-sm text-[#92400E] bg-[#FEF3C7] px-2 py-0.5 rounded-full font-bold">Desk 1 &amp; 2 Active</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Awaiting Vitals</span>
+<div class="flex items-baseline justify-between mt-2">
+<span class="font-display-lg text-display-lg text-[#1E40AF] font-bold">18</span>
+<span class="font-data-mono text-label-sm text-[#1E40AF] bg-[#DBEAFE] px-2 py-0.5 rounded-full font-bold">3 Nurses Logged</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">In Chambers</span>
+<div class="flex items-baseline justify-between mt-2">
+<span class="font-display-lg text-display-lg text-primary font-bold">26</span>
+<span class="font-data-mono text-label-sm text-primary font-bold bg-secondary-container/60 px-2 py-0.5 rounded-full">6 OPDs Open</span>
+</div>
+</div>
+<div class="col-span-2 md:col-span-1 bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Average Wait</span>
+<div class="flex items-baseline justify-between mt-2">
+<span class="font-display-lg text-display-lg text-on-surface font-bold">16<span class="font-body-md text-body-md text-on-surface-variant font-normal ml-1">mins</span></span>
+<span class="font-data-mono text-label-sm text-[#166534] bg-[#DCFCE7] px-2 py-0.5 rounded-full font-bold">Target &lt;25m</span>
+</div>
+</div>
+</div>
+<!-- Active Staff Role Peek Banner (Context awareness) -->
+<div class="bg-gradient-to-r from-surface-container-lowest to-surface-container p-4 rounded-xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4" id="role-context-banner">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-bold">
+<span class="material-symbols-outlined text-[24px]">assignment_ind</span>
+</div>
+<div>
+<h2 class="font-title-md text-title-md text-on-surface">Reception Desk Primary View • Floor 1 Gate Triage</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Incoming unverified arrivals take absolute priority. Ensure Aadhaar/ABHA linking during registration.</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-10 px-4 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg shadow-sm flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+          Quick Register [F2]
+        </button>
+<button class="h-10 px-3 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded-lg transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">print</span>
+          Batch Print Tokens
+        </button>
+</div>
+</div>
+<!-- Dominant 4-Column Action Triage Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-4 gap-4 items-start">
+<!-- SECTION 1: ARRIVALS & UNREGISTERED TRIAGE -->
+<div class="flex flex-col bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="p-3.5 bg-surface-container-highest/60 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">1. Arrivals &amp; Triage</h2>
+</div>
+<span class="font-data-mono text-label-sm bg-primary text-on-primary font-bold px-2 py-0.5 rounded-full">5 Waiting</span>
+</div>
+<div class="p-3 flex flex-col gap-3">
+<!-- Critical Urgent Fast Track Card -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2.5 shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm bg-[#FEE2E2] text-[#B91C1C] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#B91C1C] animate-ping"></span>
+                Emergency Bypass Needed
+              </span>
+<span class="font-data-mono text-label-sm text-on-surface-variant font-medium">Wait: 2m</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-bold">Sunita Devi (42y / F)</div>
+<p class="font-body-sm text-body-sm text-error font-medium mt-0.5">Acute Respiratory Distress • O2 Sat 89%</p>
+</div>
+<div class="flex flex-col gap-1.5 pt-1">
+<button class="w-full h-10 bg-[#B91C1C] hover:bg-[#93000a] text-on-error font-label-lg text-label-lg rounded-lg font-bold flex items-center justify-center gap-1.5 shadow-sm transition-colors">
+<span class="material-symbols-outlined text-[18px]">e911_emergency</span>
+                Emergency Fast-Track Bypass
+              </button>
+<div class="grid grid-cols-2 gap-1.5">
+<button class="h-8 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded font-semibold transition-colors">
+                  Check UHID
+                </button>
+<button class="h-8 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded font-semibold transition-colors">
+                  Assign Bed 02
+                </button>
+</div>
+</div>
+</div>
+<!-- Regular Arrival Item 1 -->
+<div class="bg-surface-container-low/70 hover:bg-surface-container-low p-3 rounded-lg flex flex-col gap-2 transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">TOKEN #A-41</span>
+<span class="font-label-sm text-label-sm bg-[#FEF3C7] text-[#92400E] px-2 py-0.2 rounded-full font-bold">Walk-in</span>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Mohammed Rizwan (29y / M)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Phone: +91 98492-XXXXX</div>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">4m wait</span>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-1">
+<button class="h-9 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded font-bold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">edit_document</span>
+                Register [F2]
+              </button>
+<button class="h-9 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded font-semibold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">fingerprint</span>
+                Verify UHID
+              </button>
+</div>
+</div>
+<!-- Regular Arrival Item 2 -->
+<div class="bg-surface-container-low/70 hover:bg-surface-container-low p-3 rounded-lg flex flex-col gap-2 transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">TOKEN #A-42</span>
+<span class="font-label-sm text-label-sm bg-[#DCFCE7] text-[#166534] px-2 py-0.2 rounded-full font-bold">ABHA Scan</span>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Ananya Reddy (8y / F)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Pediatric OPD • Dr. Rao Ref.</div>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">7m wait</span>
+</div>
+<button class="w-full h-9 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded font-bold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">how_to_reg</span>
+              Link ABHA &amp; Token Gen
+            </button>
+</div>
+<!-- Regular Arrival Item 3 -->
+<div class="bg-surface-container-low/70 p-2.5 rounded-lg flex items-center justify-between">
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-on-surface font-semibold truncate">Rajeshwar K. (61y / M)</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">UHID: SH-2024-8891 • Senior</span>
+</div>
+<button class="h-8 px-3 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface font-label-sm text-label-sm rounded font-bold transition-colors">
+              Dispatch
+            </button>
+</div>
+</div>
+</div>
+<!-- SECTION 2: BILLING & FEE COLLECTION DESK -->
+<div class="flex flex-col bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="p-3.5 bg-surface-container-highest/60 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#92400E]"></span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">2. Cashier &amp; Fee Queue</h2>
+</div>
+<span class="font-data-mono text-label-sm bg-tertiary-container text-on-tertiary-container font-bold px-2 py-0.5 rounded-full">3 Ready</span>
+</div>
+<div class="p-3 flex flex-col gap-3">
+<!-- Billing Item 1 -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-data-mono text-title-md text-primary font-bold">#28</span>
+<span class="font-label-sm text-label-sm bg-[#DCFCE7] text-[#166534] px-1.5 py-0.2 rounded font-semibold">Registered</span>
+</div>
+<span class="font-data-mono text-title-md text-on-surface font-bold">₹500.00</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">K. Venkataraman (54y / M)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">General Medicine • Dr. Archana</div>
+</div>
+<div class="flex flex-col gap-1.5 mt-1">
+<button class="w-full h-10 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg font-bold flex items-center justify-center gap-1.5 shadow-sm transition-colors">
+<span class="material-symbols-outlined text-[18px]">currency_rupee</span>
+                Collect Fee ₹500 [F4]
+              </button>
+<div class="grid grid-cols-2 gap-1.5">
+<button class="h-8 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded font-semibold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[14px]">qr_code_2</span> UPI QR
+                </button>
+<button class="h-8 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded font-semibold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[14px]">local_atm</span> Cash
+                </button>
+</div>
+</div>
+</div>
+<!-- Billing Item 2 -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-data-mono text-title-md text-primary font-bold">#29</span>
+<span class="font-label-sm text-label-sm bg-[#FEF3C7] text-[#92400E] px-1.5 py-0.2 rounded font-semibold">Follow-Up</span>
+</div>
+<span class="font-data-mono text-title-md text-on-surface font-bold">₹0.00</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">G. Parvati (68y / F)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Cardiology Review (Within 7 Days)</div>
+</div>
+<div class="flex gap-2 mt-1">
+<button class="flex-1 h-9 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded-lg font-bold transition-colors">
+                Issue Free Pass
+              </button>
+<button class="px-2.5 h-9 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg font-semibold" title="Doctor Signed Medical Exemption">
+                Waiver Form
+              </button>
+</div>
+</div>
+<!-- Billing Item 3 -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-data-mono text-title-md text-primary font-bold">#30</span>
+<span class="font-label-sm text-label-sm bg-[#DBEAFE] text-[#1E40AF] px-1.5 py-0.2 rounded font-semibold">Insurance / TPA</span>
+</div>
+<span class="font-data-mono text-title-md text-on-surface font-bold">₹1,200.00</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">B. Srinivas (37y / M)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Ortho Consultation + Knee X-Ray Pack</div>
+</div>
+<button class="w-full h-9 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded-lg font-bold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+              Authorize TPA Pre-Auth
+            </button>
+</div>
+</div>
+</div>
+<!-- SECTION 3: VITALS & NURSING TRIAGE -->
+<div class="flex flex-col bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="p-3.5 bg-surface-container-highest/60 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#1E40AF]"></span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">3. Vitals &amp; Triage Station</h2>
+</div>
+<span class="font-data-mono text-label-sm bg-[#DBEAFE] text-[#1E40AF] font-bold px-2 py-0.5 rounded-full">4 Queued</span>
+</div>
+<div class="p-3 flex flex-col gap-3">
+<!-- Vitals Card 1 (Elevated BP) -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">TOKEN #24</span>
+<span class="font-label-sm text-label-sm bg-[#FEE2E2] text-[#B91C1C] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#B91C1C]"></span> Elevated BP Alert
+              </span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Harish Chandra (58y / M)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Last Rec: 168/102 mmHg • PR 92 bpm</div>
+</div>
+<div class="grid grid-cols-3 gap-1.5 p-2 bg-surface-container-lowest rounded">
+<div class="text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">BP</span>
+<span class="font-data-mono text-label-md text-error font-bold">168/102</span>
+</div>
+<div class="text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Pulse</span>
+<span class="font-data-mono text-label-md text-on-surface font-bold">92 bpm</span>
+</div>
+<div class="text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">SpO2</span>
+<span class="font-data-mono text-label-md text-[#166534] font-bold">98%</span>
+</div>
+</div>
+<button class="w-full h-10 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg font-bold transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">monitor_heart</span>
+              Re-check &amp; Push to Chamber
+            </button>
+</div>
+<!-- Vitals Card 2 (Pediatric Priority) -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">TOKEN #26</span>
+<span class="font-label-sm text-label-sm bg-[#FEF3C7] text-[#92400E] px-2 py-0.5 rounded-full font-bold">Pediatric Priority</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Aarav Sen (4y / M)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Weight Check &amp; Temp Check Pending</div>
+</div>
+<button class="w-full h-9 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface font-label-md text-label-md rounded-lg font-bold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">straighten</span>
+              Record Weight, Temp &amp; Pulse
+            </button>
+</div>
+<!-- Vitals Card 3 (Normal Status) -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">TOKEN #27</span>
+<span class="font-label-sm text-label-sm bg-[#DCFCE7] text-[#166534] px-2 py-0.5 rounded-full font-bold">Normal Triage</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Deepa Nair (33y / F)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Cleared for Room 101 (Gen Med)</div>
+</div>
+<button class="w-full h-8 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded font-bold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[14px]">send</span>
+              Dispatch to OPD Corridor
+            </button>
+</div>
+</div>
+</div>
+<!-- SECTION 4: DOCTOR CHAMBER QUEUES OVERVIEW -->
+<div class="flex flex-col bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="p-3.5 bg-surface-container-highest/60 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">4. Doctor Chambers</h2>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">6 Active Chambers</span>
+</div>
+<div class="p-3 flex flex-col gap-3">
+<!-- Chamber Room 104 - Orthopedics (Active Calling) -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="font-label-md text-label-md text-primary font-bold">ROOM 104 • ORTHO</div>
+<span class="font-label-sm text-label-sm bg-[#DCFCE7] text-[#166534] px-1.5 py-0.2 rounded font-bold animate-pulse">CALLING</span>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-bold">Dr. Venkat Rao</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Current: <span class="font-data-mono font-bold text-primary">Token #28</span></span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container-highest px-2 py-0.5 rounded text-on-surface font-bold">3 waiting</span>
+</div>
+<div class="grid grid-cols-2 gap-1.5 mt-1">
+<button class="h-9 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded font-bold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">campaign</span>
+                Call Next
+              </button>
+<button class="h-9 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded font-semibold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">move_up</span>
+                Re-assign
+              </button>
+</div>
+</div>
+<!-- Chamber Room 101 - General Medicine -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="font-label-md text-label-md text-on-surface font-bold">ROOM 101 • GEN MED</div>
+<span class="font-label-sm text-label-sm bg-[#DBEAFE] text-[#1E40AF] px-1.5 py-0.2 rounded font-bold">IN CONSULT</span>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Dr. Archana Sen</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Consulting: #22 (8m in)</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container-highest px-2 py-0.5 rounded text-on-surface font-bold">4 waiting</span>
+</div>
+<button class="w-full h-8 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded font-bold transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[14px]">swap_horiz</span>
+              Balance Load to Room 103
+            </button>
+</div>
+<!-- Chamber Room 102 - Cardiology -->
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="font-label-md text-label-md text-on-surface font-bold">ROOM 102 • CARDIO</div>
+<span class="font-label-sm text-label-sm bg-[#FEF3C7] text-[#92400E] px-1.5 py-0.2 rounded font-bold">PROCEDURE</span>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Dr. Rajesh Varma</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">ECG Review • Token #19</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container-highest px-2 py-0.5 rounded text-on-surface font-bold">2 waiting</span>
+</div>
+<button class="w-full h-8 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm rounded font-bold transition-colors">
+              Chamber Schedule Details
+            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Dual Role Special Task Deck: Split Action Modules -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+<!-- Module 1: Staff Nurse View Tab Preview Callout -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">medical_services</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Staff Nurse Quick Care Tasks</h3>
+</div>
+<span class="font-label-sm text-label-sm bg-[#FEF3C7] text-[#92400E] px-2 py-0.5 rounded font-bold">3 High Urgency</span>
+</div>
+<div class="flex flex-col gap-2.5">
+<!-- Nurse Task Item 1 -->
+<div class="p-3 bg-surface-container-low rounded-lg flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-8 h-8 rounded-full bg-[#FEE2E2] text-[#B91C1C] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">vaccines</span>
+</div>
+<div class="truncate">
+<div class="font-label-lg text-label-lg text-on-surface font-bold truncate">STAT Injection: Inj Tramadol 50mg IV</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Patient: Ramesh Guha • IPD Bed 108 • Dr. Rao Order</div>
+</div>
+</div>
+<button class="h-9 px-3.5 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded font-bold shrink-0 transition-colors">
+              Administer &amp; Sign
+            </button>
+</div>
+<!-- Nurse Task Item 2 -->
+<div class="p-3 bg-surface-container-low rounded-lg flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-8 h-8 rounded-full bg-[#FEF3C7] text-[#92400E] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">bloodtype</span>
+</div>
+<div class="truncate">
+<div class="font-label-lg text-label-lg text-on-surface font-bold truncate">Pending Blood Draw: CBC + Serum Creatinine</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Patient: Vimala Devi • Token #A-34 • Barcode: #88921</div>
+</div>
+</div>
+<button class="h-9 px-3.5 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded font-bold shrink-0 transition-colors">
+              Collect Sample
+            </button>
+</div>
+<!-- Nurse Task Item 3 -->
+<div class="p-3 bg-surface-container-low rounded-lg flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-8 h-8 rounded-full bg-[#DBEAFE] text-[#1E40AF] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">monitor_heart</span>
+</div>
+<div class="truncate">
+<div class="font-label-lg text-label-lg text-on-surface font-bold truncate">Pre-op Vitals Check: Major Dressing Trolley Set</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Minor OT Room 2 • Scheduled 12:15 PM IST</div>
+</div>
+</div>
+<button class="h-9 px-3.5 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded font-bold shrink-0 transition-colors">
+              Verify Kit
+            </button>
+</div>
+</div>
+</div>
+<!-- Module 2: Doctor Assigned Patients Tab Preview Callout -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm flex flex-col justify-between gap-4">
+<div>
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">clinical_notes</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Doctor Assigned Patients &amp; Chamber Focus</h3>
+</div>
+<span class="font-data-mono text-label-sm bg-[#DCFCE7] text-[#166534] px-2 py-0.5 rounded font-bold">Dr. Priya Sharma (CMO)</span>
+</div>
+<!-- Active Consultation Patient Card with Visual Rich Demographics -->
+<div class="bg-surface-container-low p-4 rounded-xl flex flex-col gap-3">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-lg object-cover shadow-sm" data-alt="Clear frontal portrait of an elderly South Asian patient with glasses, neutral expression, clinical lighting for hospital electronic health record identification" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeAo_MKXm3t0KRzIqOT8qwyM66FRjF9zszSxWbAhu4cOu6UsE1HWsInkM6oGKdPDB5YGV5L4s-4cMuvCJrZ-WHufg95Nts7E872sQwaMQUQEHCEKp-Q8oJf9hyLcQKZIgbxypyH8Qqwmexil-3O7Cy2ZvklRzmtfXPP8S0_p81MqQZArnmnKXChBws1lNaPFZOYUn5otK9lPB7QBg_Z8dUGEGrXl9gicO_345eHvg"/>
+<div>
+<div class="flex items-center gap-2">
+<h4 class="font-headline-md text-headline-md text-on-surface font-bold">Anand Mohan Kapoor</h4>
+<span class="font-label-sm text-label-sm bg-primary-fixed text-on-primary-fixed px-1.5 py-0.2 rounded font-bold">O+ POSITIVE</span>
+</div>
+<div class="font-data-mono text-body-sm text-on-surface-variant">UHID: HYD-2024-00912 • Male / 63y • Token #18</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-[#FEF3C7] text-[#92400E] px-2.5 py-1 rounded-full font-bold self-start sm:self-auto">
+                Consultation Paused (Lab Results Arrived)
+              </span>
+</div>
+<!-- Compact Clinical Summary -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 bg-surface-container-lowest p-3 rounded-lg">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Primary Chief Complaint</span>
+<span class="font-body-sm text-body-sm text-on-surface font-semibold">Exertional Angina (Class II)</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Documented Allergies</span>
+<span class="font-body-sm text-body-sm text-error font-bold">Penicillin, NSAIDs</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Latest Fasting Blood Sugar</span>
+<span class="font-data-mono text-body-sm text-on-surface font-bold">142 mg/dL</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Recent ECG Verdict</span>
+<span class="font-body-sm text-body-sm text-[#166534] font-semibold">Sinus Bradycardia</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Dominant Action Footer for Doctor Consultation -->
+<div class="flex items-center justify-between gap-3 pt-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-tertiary">history</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Last encounter: 12 days ago with Dr. Sharma</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-10 px-3 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg font-bold transition-colors">
+              Review Lab Reports
+            </button>
+<button class="h-10 px-5 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg font-bold transition-colors shadow-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              Resume Consultation [Enter]
+            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function switchView(role) {
+    const tabs = document.querySelectorAll('.role-tab');
+    tabs.forEach(tab => {
+      tab.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm', 'font-bold');
+      tab.classList.add('text-on-surface');
+      const badge = tab.querySelector('span:last-child');
+      if (badge) {
+        badge.classList.remove('bg-surface-container-lowest', 'text-primary');
+        badge.classList.add('bg-surface-container-highest', 'text-on-surface');
+      }
+    });
+
+    const activeTab = document.getElementById('tab-' + role);
+    if (activeTab) {
+      activeTab.classList.add('bg-primary', 'text-on-primary', 'shadow-sm', 'font-bold');
+      activeTab.classList.remove('text-on-surface');
+      const activeBadge = activeTab.querySelector('span:last-child');
+      if (activeBadge) {
+        activeBadge.classList.add('bg-surface-container-lowest', 'text-primary');
+        activeBadge.classList.remove('bg-surface-container-highest', 'text-on-surface');
+      }
+    }
+
+    const banner = document.getElementById('role-context-banner');
+    if (banner) {
+      if (role === 'reception') {
+        banner.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-bold">
+              <span class="material-symbols-outlined text-[24px]">assignment_ind</span>
+            </div>
+            <div>
+              <h2 class="font-title-md text-title-md text-on-surface">Reception Desk Primary View • Floor 1 Gate Triage</h2>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Incoming unverified arrivals take absolute priority. Ensure Aadhaar/ABHA linking during registration.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="h-10 px-4 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg shadow-sm flex items-center gap-2 transition-colors">
+              <span class="material-symbols-outlined text-[18px]">person_add</span>
+              Quick Register [F2]
+            </button>
+            <button class="h-10 px-3 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded-lg transition-colors flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">print</span>
+              Batch Print Tokens
+            </button>
+          </div>
+        `;
+      } else if (role === 'nurse') {
+        banner.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#1E40AF] text-on-primary flex items-center justify-center font-bold">
+              <span class="material-symbols-outlined text-[24px]">vital_signs</span>
+            </div>
+            <div>
+              <h2 class="font-title-md text-title-md text-on-surface">Staff Nurse Triage Desk • Station 03 Active</h2>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">18 patients awaiting baseline vitals collection prior to chamber dispatch. Flag hypertensive cases instantly.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="h-10 px-4 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg shadow-sm flex items-center gap-2 transition-colors">
+              <span class="material-symbols-outlined text-[18px]">add_box</span>
+              New Vitals Entry
+            </button>
+            <button class="h-10 px-3 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded-lg transition-colors flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">inventory</span>
+              Inventory Request
+            </button>
+          </div>
+        `;
+      } else if (role === 'doctor') {
+        banner.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-tertiary text-tertiary-fixed flex items-center justify-center font-bold">
+              <span class="material-symbols-outlined text-[24px]">stethoscope</span>
+            </div>
+            <div>
+              <h2 class="font-title-md text-title-md text-on-surface">Doctor Chamber Consultation Deck • Dr. Priya Sharma</h2>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">26 patients assigned across chambers today. Fast e-prescription generation enabled with generic database lookup.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="h-10 px-4 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg rounded-lg shadow-sm flex items-center gap-2 transition-colors">
+              <span class="material-symbols-outlined text-[18px]">campaign</span>
+              Call Next Waiting Patient
+            </button>
+            <button class="h-10 px-3 bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded-lg transition-colors flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">edit_note</span>
+              Blank Prescription
+            </button>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Keyboard shortcut listener for instantaneous clinical workflow
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'F2') {
+      event.preventDefault();
+      switchView('reception');
+    } else if (event.key === 'F4') {
+      event.preventDefault();
+      // Emulate rapid cashier focus
+      const feeButton = document.querySelector('button:contains("Collect Fee")');
+      if (feeButton) feeButton.focus();
+    }
+  });
+</script></main></div></body></html>

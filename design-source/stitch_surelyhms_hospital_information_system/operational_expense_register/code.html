@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / IPD No / Bed / Patient Name / Ward..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital SQLite Database LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: SQLite Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Cloud Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Inpatient &amp; IPD Care</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="inpatient-admissions-bed-management" href="#"><span class="font-body-md text-body-md">Inpatient Admissions &amp; Bed Management</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ward-nursing-workspace" href="#"><span class="font-body-md text-body-md">Ward Nursing Workspace</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">24 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="icu-critical-care-unit" href="#"><span class="font-body-md text-body-md">ICU Critical Care Unit</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">6 Crit</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="discharge-coordination-desk" href="#"><span class="font-body-md text-body-md">Discharge Coordination Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">8 Ready</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Acute &amp; Specialty Care</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="emergency-casualty-desk" href="#"><span class="font-body-md text-body-md">Emergency &amp; Casualty Desk</span><span class="font-data-mono text-label-sm bg-error text-on-error px-1.5 py-0.5 rounded font-bold">Red Alert</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="operation-theatre-suite" href="#"><span class="font-body-md text-body-md">Operation Theatre (OT) Suite</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Live</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="maternity-obstetric-care" href="#"><span class="font-body-md text-body-md">Maternity &amp; Obstetric Care</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="intrapartum-partograph-chart" href="#"><span class="font-body-md text-body-md">Intrapartum Partograph Chart</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Labor Watch</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Clinical &amp; Diagnostic Modules</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ultrasound-usg-reporting-templates" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (USG)</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-tertiary-fixed font-bold">Pharmacy &amp; Inventory</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1 py-0.2 rounded font-bold">STOCK</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense-pos" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense &amp; POS</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">POS</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="medicine-master-catalog" href="#"><span class="font-body-md text-body-md">Medicine Master Catalog</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="stock-ledger-batches" href="#"><span class="font-body-md text-body-md">Stock Ledger &amp; Batches</span><span class="font-data-mono text-label-sm bg-amber-600/90 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Expiring</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="goods-receipt-grn" href="#"><span class="font-body-md text-body-md">Goods Receipt (GRN)</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="suppliers-vendors" href="#"><span class="font-body-md text-body-md">Suppliers &amp; Vendors</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-inventory-reports" href="#"><span class="font-body-md text-body-md">Pharmacy &amp; Inventory Reports</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Billing, TPA &amp; Accounts</span><span class="font-data-mono text-label-sm bg-primary-container text-on-primary px-1 py-0.2 rounded font-bold">FIN</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; IP Billing</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="insurance-claims" href="#"><span class="font-body-md text-body-md">Insurance &amp; TPA Claims Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18 Open</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="tariff-service-fee-master" href="#"><span class="font-body-md text-body-md">Tariff &amp; Service Fee Master</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="health-packages-bundles" href="#"><span class="font-body-md text-body-md">Health Packages &amp; Bundles</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="finance" href="#"><span class="font-body-md text-body-md">Hospital Accounts &amp; General Ledger</span></a><a aria-current="page" class="flex items-center justify-between px-3 py-2 rounded transition-colors bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed" data-path="expenses" href="#"><span class="font-body-md text-body-md">Operational Expense Management</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administrative &amp; Executive Intelligence</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="hospital-reports" href="#"><span class="font-body-md text-body-md">Hospital Operational &amp; Financial Reports</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">MIS</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 SQLite Local</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Sync Active</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Sticky Header Notice: Operational Expenditure Governance Standard -->
+<div class="px-6 py-2.5 bg-primary text-on-primary flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary-fixed text-[20px]" style="font-variation-settings: 'FILL' 1;">gavel</span>
+<div class="flex items-baseline gap-2">
+<span class="font-label-lg text-label-lg uppercase tracking-wider text-tertiary-fixed">Hospital Procurement &amp; Expenditure Governance (NABH &amp; Statutory Audit Clause)</span>
+<span class="font-body-sm text-body-sm text-primary-fixed-dim hidden md:inline">— Pre-approved cost center verification mandatory. Dual-sign authorization required for disbursements &gt;₹5,000. Verified GST/Tax e-Way bills enforced.</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-data-mono text-label-sm bg-primary-container px-2 py-0.5 rounded text-on-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-tertiary-fixed">verified_user</span>
+        FY 2024-25 Q3 AUDIT READY
+      </span>
+<span class="font-data-mono text-label-sm text-primary-fixed-dim">NABH-ACC-OPEX-V4</span>
+</div>
+</div>
+<div class="p-6 flex flex-col gap-6">
+<!-- Top Row: Operational Overview Banner & Executive Controls -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-display-lg text-display-lg font-bold text-primary tracking-tight">Operational Expense Management</span>
+<span class="font-data-mono text-label-sm bg-surface-container-highest text-on-surface px-2 py-0.5 rounded border border-outline-variant/30">HOSP-OPEX-CORE</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Disbursement ledger, multi-departmental cost centers, statutory compliance, and physical voucher reconciliations.</p>
+</div>
+<div class="flex items-center gap-2.5 shrink-0">
+<button class="h-9 px-3.5 bg-surface-container-lowest text-on-surface font-label-lg text-label-lg rounded shadow-sm hover:bg-surface-container-low transition-colors flex items-center gap-1.5" onclick="alert('Exporting verified expenditure ledger in XLSX and signed audit PDF pack...')">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">file_download</span>
+          Export Statutory Ledger
+        </button>
+<button class="h-9 px-4 bg-primary text-on-primary font-label-lg text-label-lg rounded shadow-md hover:bg-primary-container transition-colors flex items-center gap-2 active:scale-95" onclick="alert('Opening voucher creation form [F2 Shortcut]')">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>+ Record New Expense Voucher</span>
+<kbd class="font-data-mono text-[10px] bg-primary-container px-1 py-0.5 rounded text-on-primary ml-1">F2</kbd>
+</button>
+</div>
+</div>
+<!-- Expenditure KPI Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+<!-- Card 1: Total Expenses -->
+<div class="bg-surface-container-lowest p-3.5 rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-on-surface-variant font-bold">Total Expenses (MTD)</span>
+<span class="material-symbols-outlined text-[18px] text-primary">account_balance_wallet</span>
+</div>
+<div class="font-display-lg text-display-lg font-bold text-primary mt-2 text-right tracking-tight">₹18,45,200.00</div>
+</div>
+<div class="mt-3 pt-2 bg-surface-container-low/50 -mx-3.5 -mb-3.5 px-3.5 py-2 rounded-b">
+<div class="flex justify-between items-center text-label-sm font-label-sm">
+<span class="text-on-surface-variant">Budget: ₹24,00,000.00</span>
+<span class="font-data-mono text-primary font-bold">76.8% Used</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1.5">
+<div class="bg-primary h-full rounded-full" style="width: 76.8%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 2: Medical Consumables & Gases -->
+<div class="bg-surface-container-lowest p-3.5 rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-on-surface-variant font-bold">Medical Gases &amp; Packs</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">nephrology</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-bold text-on-surface mt-2 text-right">₹7,85,400.00</div>
+</div>
+<div class="mt-3 pt-2 bg-surface-container-low/50 -mx-3.5 -mb-3.5 px-3.5 py-2 rounded-b flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Cryo-Oxygen &amp; CSSD</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container px-1 rounded">42.5% MTD</span>
+</div>
+</div>
+<!-- Card 3: Facilities, Utilities & Bio-Waste -->
+<div class="bg-surface-container-lowest p-3.5 rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-on-surface-variant font-bold">Facility &amp; Bio-Waste</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">water_damage</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-bold text-on-surface mt-2 text-right">₹4,12,000.00</div>
+</div>
+<div class="mt-3 pt-2 bg-surface-container-low/50 -mx-3.5 -mb-3.5 px-3.5 py-2 rounded-b flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">DG Fuel, H₂O, Waste</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container px-1 rounded">22.3% MTD</span>
+</div>
+</div>
+<!-- Card 4: Equipment AMC & Repairs -->
+<div class="bg-surface-container-lowest p-3.5 rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-on-surface-variant font-bold">Biomed AMC &amp; Repairs</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">home_repair_service</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-bold text-on-surface mt-2 text-right">₹3,18,000.00</div>
+</div>
+<div class="mt-3 pt-2 bg-surface-container-low/50 -mx-3.5 -mb-3.5 px-3.5 py-2 rounded-b flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">USG &amp; C-Arm Calibrations</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container px-1 rounded">17.2% MTD</span>
+</div>
+</div>
+<!-- Card 5: Admin & Petty Cash -->
+<div class="bg-surface-container-lowest p-3.5 rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-on-surface-variant font-bold">Admin &amp; Petty Cash</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">receipt_long</span>
+</div>
+<div class="font-headline-lg text-headline-lg font-bold text-on-surface mt-2 text-right">₹3,29,800.00</div>
+</div>
+<div class="mt-3 pt-2 bg-surface-container-low/50 -mx-3.5 -mb-3.5 px-3.5 py-2 rounded-b flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Ward Snacks, Stationary</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container px-1 rounded">18.0% MTD</span>
+</div>
+</div>
+<!-- Card 6: Pending Approvals / Audits Alert -->
+<div class="bg-surface-container-lowest p-3.5 rounded shadow-sm flex flex-col justify-between bg-gradient-to-br from-surface-container-lowest via-surface-container-lowest to-secondary-container/20">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-primary font-bold">Audit Action Required</span>
+<span class="h-2 w-2 rounded-full bg-error animate-pulse"></span>
+</div>
+<div class="font-headline-lg text-headline-lg font-bold text-error mt-2 text-right">₹84,500.00</div>
+</div>
+<div class="mt-3 pt-2 bg-secondary-container/40 -mx-3.5 -mb-3.5 px-3.5 py-2 rounded-b flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary font-bold">3 Vouchers Pending</span>
+<button class="font-data-mono text-label-sm text-primary underline font-bold" onclick="document.getElementById('drawer').classList.remove('hidden')">Review #1044</button>
+</div>
+</div>
+</div>
+<!-- Filter & Operational Toolbar -->
+<div class="bg-surface-container-lowest p-3 rounded shadow-sm flex flex-wrap items-center justify-between gap-3">
+<div class="flex flex-wrap items-center gap-2.5">
+<!-- Cost Center Filter -->
+<div class="flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">apartment</span>
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">Cost Center:</label>
+<select class="bg-transparent text-on-surface font-body-sm text-body-sm focus:outline-none cursor-pointer">
+<option selected="">All Cost Centers (6 Active)</option>
+<option>OT &amp; Surgical Suite (#CC-SURG-01)</option>
+<option>ICU &amp; Critical Care (#CC-ICU-02)</option>
+<option>Facilities &amp; Engineering (#CC-ENG-04)</option>
+<option>Pharmacy Inward (#CC-PHARM-05)</option>
+<option>Pathology &amp; Diagnostics (#CC-PATH-03)</option>
+<option>Administration &amp; Housekeeping (#CC-GEN-08)</option>
+</select>
+</div>
+<!-- Date Range Filter -->
+<div class="flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">calendar_today</span>
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">Period:</label>
+<select class="bg-transparent text-on-surface font-body-sm text-body-sm focus:outline-none cursor-pointer">
+<option selected="">October 2024 (Month-to-Date)</option>
+<option>Last 7 Days</option>
+<option>Q2 (Jul - Sep 2024)</option>
+<option>Custom Date Span...</option>
+</select>
+</div>
+<!-- Payment Mode -->
+<div class="flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">credit_card</span>
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">Payment Mode:</label>
+<select class="bg-transparent text-on-surface font-body-sm text-body-sm focus:outline-none cursor-pointer">
+<option selected="">All Modes (NEFT/RTGS, Cheque, Card, Cash)</option>
+<option>NEFT / RTGS Bank Transfer</option>
+<option>Bank Cheque</option>
+<option>Corporate Card</option>
+<option>Petty Cash (Station Counter)</option>
+</select>
+</div>
+<!-- Approval Status -->
+<div class="flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">verified</span>
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold">Status:</label>
+<select class="bg-transparent text-on-surface font-body-sm text-body-sm focus:outline-none cursor-pointer">
+<option selected="">All Statuses</option>
+<option>Approved &amp; Paid (Audit Cleared)</option>
+<option>Pending Dual-Sign Authorization</option>
+<option>Audit Flagged / Missing Doc</option>
+</select>
+</div>
+</div>
+<!-- Quick Search / Record Count -->
+<div class="flex items-center gap-3">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-2 text-on-surface-variant text-[16px]">search</span>
+<input class="h-7 pl-7 pr-2 w-48 bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-on-surface-variant/60" placeholder="Voucher / Vendor / Ref..." type="text"/>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container px-2 py-1 rounded">6 of 142 Vouchers</span>
+</div>
+</div>
+<!-- Comprehensive Expense Voucher Register Table -->
+<div class="bg-surface-container-lowest rounded shadow-sm overflow-hidden flex flex-col">
+<div class="px-4 py-2.5 bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">receipt</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface uppercase tracking-wide">Operational Expense Register &amp; Statutory Audit Ledger</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-emerald-600"></span>
+<span class="font-data-mono text-label-sm text-on-surface">Auto-Synced with Hospital Accounts SQLite</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-2.5 px-3">Voucher ID</th>
+<th class="py-2.5 px-3">Date &amp; Cost Center</th>
+<th class="py-2.5 px-3">Expense Category &amp; Head</th>
+<th class="py-2.5 px-3">Payee / Vendor Legal Name</th>
+<th class="py-2.5 px-3">Description &amp; Clinical Justification</th>
+<th class="py-2.5 px-3">Payment Method &amp; Ref No.</th>
+<th class="py-2.5 px-3 text-right">Tax / GST (₹)</th>
+<th class="py-2.5 px-3 text-right">Gross Disbursed (₹)</th>
+<th class="py-2.5 px-3 text-center">Attachment</th>
+<th class="py-2.5 px-3 text-center">Audit &amp; Sign State</th>
+<th class="py-2.5 px-3 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high/60 font-body-md text-body-md text-on-surface">
+<!-- Row 1: Oxygen Refill -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-2 px-3">
+<span class="font-data-mono text-data-mono font-bold text-primary">EXP-2024-1048</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">TAX-INV-PRX-9941</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">24 Oct 2024</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">#CC-ENG-04 (Facilities)</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-bold text-on-surface">Medical Oxygen Liquid Refill</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Gases &amp; Cryogenics</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Praxair India / Inox Air</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">GSTIN: 36AAACP0914J1Z8</div>
+</td>
+<td class="py-2 px-3 max-w-xs">
+<span class="line-clamp-2 font-body-sm text-body-sm text-on-surface">Bulk 1,500 Ltrs cryogenic liquid oxygen for ICU, OT &amp; Emergency central manifold supply.</span>
+</td>
+<td class="py-2 px-3">
+<span class="font-data-mono text-body-sm text-on-surface font-semibold">RTGS Transfer</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Ref: HDFCR520241024</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-sm text-on-surface-variant">₹9,885.00</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">GST 12% Incl.</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-md font-bold text-primary">₹92,400.00</span>
+<div class="font-label-sm text-label-sm text-emerald-700">Bank Debited</div>
+</td>
+<td class="py-2 px-3 text-center">
+<button class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-data-mono text-label-sm" title="View Praxair Tax Invoice">
+<span class="material-symbols-outlined text-[13px] text-primary">attach_file</span>
+                  PDF
+                </button>
+</td>
+<td class="py-2 px-3 text-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm font-bold">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-700"></span>
+                  Approved &amp; Paid
+                </span>
+<div class="font-label-sm text-[9px] text-on-surface-variant mt-0.5">Dr. Priya Sharma</div>
+</td>
+<td class="py-2 px-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors" title="Print Payment Voucher"><span class="material-symbols-outlined text-[16px]">print</span></button>
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors" title="Audit History"><span class="material-symbols-outlined text-[16px]">history</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 2: USG Transducer Cable Replacement -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-2 px-3">
+<span class="font-data-mono text-data-mono font-bold text-primary">EXP-2024-1047</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">MND-SRV-2024-410</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">23 Oct 2024</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">#CC-PATH-03 (Biomed)</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-bold text-on-surface">USG Transducer Cable Repair</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Equipment Maintenance</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Mindray India Med Service</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">GSTIN: 27AABCM6489A1ZS</div>
+</td>
+<td class="py-2 px-3 max-w-xs">
+<span class="line-clamp-2 font-body-sm text-body-sm text-on-surface">Probe crystal replacement &amp; beam calibration for Mindray Resona 7 (Radiology Suite 2).</span>
+</td>
+<td class="py-2 px-3">
+<span class="font-data-mono text-body-sm text-on-surface font-semibold">NEFT Transfer</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Ref: N10239081248</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-sm text-on-surface-variant">₹5,872.88</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">GST 18% Incl.</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-md font-bold text-primary">₹38,500.00</span>
+<div class="font-label-sm text-label-sm text-emerald-700">Bank Debited</div>
+</td>
+<td class="py-2 px-3 text-center">
+<button class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-data-mono text-label-sm">
+<span class="material-symbols-outlined text-[13px] text-primary">attach_file</span>
+                  PDF
+                </button>
+</td>
+<td class="py-2 px-3 text-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm font-bold">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-700"></span>
+                  Approved &amp; Paid
+                </span>
+<div class="font-label-sm text-[9px] text-on-surface-variant mt-0.5">Dual-Sign Verified</div>
+</td>
+<td class="py-2 px-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">print</span></button>
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">history</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Biomedical Waste Incineration -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-2 px-3">
+<span class="font-data-mono text-data-mono font-bold text-primary">EXP-2024-1046</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">MNF-OCT-MB-82</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">23 Oct 2024</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">#CC-GEN-08 (Housekeeping)</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-bold text-on-surface">Biomed Waste Incineration</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Infection Control</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-md text-body-md font-semibold text-on-surface">M/s Maridi Bio Industries</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">PCB Permit: TS-BMW-094</div>
+</td>
+<td class="py-2 px-3 max-w-xs">
+<span class="line-clamp-2 font-body-sm text-body-sm text-on-surface">Monthly authorized clearance: Yellow, Red, White, Blue category hospital waste (420 kg weight).</span>
+</td>
+<td class="py-2 px-3">
+<span class="font-data-mono text-body-sm text-on-surface font-semibold">Cheque Payment</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Chq #491028 (SBI)</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-sm text-on-surface-variant">₹0.00</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">GST Exempt (Health)</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-md font-bold text-primary">₹28,400.00</span>
+<div class="font-label-sm text-label-sm text-emerald-700">Cheque Cleared</div>
+</td>
+<td class="py-2 px-3 text-center">
+<button class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-data-mono text-label-sm">
+<span class="material-symbols-outlined text-[13px] text-primary">attach_file</span>
+                  Manifest
+                </button>
+</td>
+<td class="py-2 px-3 text-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm font-bold">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-700"></span>
+                  Approved &amp; Paid
+                </span>
+<div class="font-label-sm text-[9px] text-on-surface-variant mt-0.5">IC Officer Verified</div>
+</td>
+<td class="py-2 px-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">print</span></button>
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">history</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Emergency Linen & Scrub Sets -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-2 px-3">
+<span class="font-data-mono text-data-mono font-bold text-primary">EXP-2024-1045</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">INV-BALAJI-4192</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">22 Oct 2024</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">#CC-SURG-01 (OT Core)</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-bold text-on-surface">Sterile Linen &amp; Scrub Sets</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">OT Supplies &amp; Wards</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Sri Balaji Textiles</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">GSTIN: 36AKYPA4112E1ZL</div>
+</td>
+<td class="py-2 px-3 max-w-xs">
+<span class="line-clamp-2 font-body-sm text-body-sm text-on-surface">100 Pairs autoclavable cotton OT drapes &amp; patient admission surgical gowns.</span>
+</td>
+<td class="py-2 px-3">
+<span class="font-data-mono text-body-sm text-on-surface font-semibold">Cheque Payment</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Chq #491022 (SBI)</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-sm text-on-surface-variant">₹885.71</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">GST 5% Incl.</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-md font-bold text-primary">₹18,600.00</span>
+<div class="font-label-sm text-label-sm text-emerald-700">Cheque Cleared</div>
+</td>
+<td class="py-2 px-3 text-center">
+<button class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-data-mono text-label-sm">
+<span class="material-symbols-outlined text-[13px] text-primary">attach_file</span>
+                  PDF
+                </button>
+</td>
+<td class="py-2 px-3 text-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm font-bold">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-700"></span>
+                  Approved &amp; Paid
+                </span>
+<div class="font-label-sm text-[9px] text-on-surface-variant mt-0.5">OT Nurse In-Charge</div>
+</td>
+<td class="py-2 px-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">print</span></button>
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">history</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 5: Diesel Generator Fuel (PENDING REVIEW / HIGHLIGHTED) -->
+<tr class="bg-secondary-container/20 hover:bg-secondary-container/30 transition-colors font-medium">
+<td class="py-2.5 px-3">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-error text-[14px]">flag</span>
+<span class="font-data-mono text-data-mono font-bold text-primary">EXP-2024-1044</span>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">IOCL-POS-90412</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="font-body-sm text-body-sm font-bold text-on-surface">24 Oct 2024</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">#CC-ENG-04 (Facilities)</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="font-body-sm text-body-sm font-bold text-primary">DG Set Diesel Fuel Restock</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Utilities &amp; Generator</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="font-body-md text-body-md font-bold text-on-surface">Indian Oil Corp (Dealer)</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Pump: Jubilee Hills Outlet</div>
+</td>
+<td class="py-2.5 px-3 max-w-xs">
+<span class="line-clamp-2 font-body-sm text-body-sm text-on-surface">400 Ltrs HSD Diesel for 250kVA Emergency Backup Generator. Grid drop on 22 Oct.</span>
+</td>
+<td class="py-2.5 px-3">
+<span class="font-data-mono text-body-sm text-on-surface font-semibold">Corporate Card</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Card-9182 (Facilities)</div>
+</td>
+<td class="py-2.5 px-3 text-right">
+<span class="font-data-mono text-body-sm text-on-surface font-bold">₹3,418.18</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">State VAT &amp; Cess</div>
+</td>
+<td class="py-2.5 px-3 text-right">
+<span class="font-data-mono text-body-md font-bold text-error">₹37,600.00</span>
+<div class="font-label-sm text-label-sm text-error font-bold">Sign Required</div>
+</td>
+<td class="py-2.5 px-3 text-center">
+<button class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-tertiary-fixed/60 text-on-tertiary-fixed font-data-mono text-label-sm font-bold" onclick="document.getElementById('drawer').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[13px]">receipt</span>
+                  Slip Attached
+                </button>
+</td>
+<td class="py-2.5 px-3 text-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-label-sm text-label-sm font-bold">
+<span class="h-1.5 w-1.5 rounded-full bg-amber-600"></span>
+                  Pending CMO Sign
+                </span>
+<div class="font-label-sm text-[9px] text-on-surface-variant mt-0.5">Supervisor Signed</div>
+</td>
+<td class="py-2.5 px-3 text-right">
+<button class="px-2 py-1 bg-primary text-on-primary font-label-sm text-label-sm rounded shadow-sm hover:bg-primary-container transition-all" onclick="document.getElementById('drawer').classList.remove('hidden')">
+                  Review Voucher
+                </button>
+</td>
+</tr>
+<!-- Row 6: Petty Cash Snacks -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-2 px-3">
+<span class="font-data-mono text-data-mono font-bold text-primary">EXP-2024-1043</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">VOUCH-PC-9104</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">24 Oct 2024</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">#CC-ICU-02 (Ward ICU)</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-sm text-body-sm font-bold text-on-surface">Night Shift Refreshments</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Nursing Staff Welfare</div>
+</td>
+<td class="py-2 px-3">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Hospital Central Canteen</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Internal Cost Transfer</div>
+</td>
+<td class="py-2 px-3 max-w-xs">
+<span class="line-clamp-2 font-body-sm text-body-sm text-on-surface">Emergency duty tea, biscuits &amp; meal packets for 14 staff nurses during continuous Code Blue duty.</span>
+</td>
+<td class="py-2 px-3">
+<span class="font-data-mono text-body-sm text-on-surface font-semibold">Petty Cash</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Voucher Imprest Box</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-sm text-on-surface-variant">₹0.00</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Nil</div>
+</td>
+<td class="py-2 px-3 text-right">
+<span class="font-data-mono text-body-md font-bold text-on-surface">₹1,400.00</span>
+<div class="font-label-sm text-label-sm text-emerald-700">Cash Disbursed</div>
+</td>
+<td class="py-2 px-3 text-center">
+<button class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-data-mono text-label-sm">
+<span class="material-symbols-outlined text-[13px] text-primary">image</span>
+                  JPG Slip
+                </button>
+</td>
+<td class="py-2 px-3 text-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm font-bold">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-700"></span>
+                  Approved &amp; Paid
+                </span>
+<div class="font-label-sm text-[9px] text-on-surface-variant mt-0.5">Nursing Supdt. Signed</div>
+</td>
+<td class="py-2 px-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">print</span></button>
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">history</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer & Summary Status Bar -->
+<div class="px-4 py-2 bg-surface-container-low flex flex-wrap items-center justify-between text-label-sm font-label-sm text-on-surface-variant">
+<div class="flex items-center gap-4">
+<span>Displaying 6 verified operational entries</span>
+<span>•</span>
+<span class="font-data-mono">Total Filtered Disbursement: ₹2,16,900.00</span>
+<span>•</span>
+<span class="font-data-mono">GST Input Tax Credit Accrued: ₹19,991.77</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2 py-1 rounded hover:bg-surface-container-high disabled:opacity-50" disabled="">Previous</button>
+<span class="px-2 py-1 font-data-mono font-bold bg-surface-container-high text-on-surface rounded">1</span>
+<button class="px-2 py-1 rounded hover:bg-surface-container-high">Next</button>
+</div>
+</div>
+</div>
+<!-- Supplementary Split Grid: Operational Fuel & Generator Log vs Dual-Sign Protocol Guide -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Left 2 cols: Fuel & Utility Consumables Watch -->
+<div class="lg:col-span-2 bg-surface-container-lowest p-4 rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">electric_bolt</span>
+<div>
+<span class="font-title-md text-title-md font-bold text-on-surface">Emergency Generator Fuel &amp; Grid Reliability Tracker</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cross-matching fuel procurement vouchers against facilities runtime logbooks.</p>
+</div>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface px-2 py-0.5 rounded">Oct 2024 Audit Period</span>
+</div>
+<div class="grid grid-cols-3 gap-4 pt-3 pb-4">
+<div class="p-3 rounded bg-surface-container-low">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Generator 1 (250 kVA)</span>
+<div class="font-headline-md text-headline-md font-bold text-on-surface mt-1">18.4 Hrs</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Run-time logged (Oct 22-23)</p>
+</div>
+<div class="p-3 rounded bg-surface-container-low">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Estimated Consumption</span>
+<div class="font-headline-md text-headline-md font-bold text-primary mt-1">386.4 Ltrs</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Rate: ~21 Ltrs/hr at 75% load</p>
+</div>
+<div class="p-3 rounded bg-surface-container-low">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Voucher Restock Delta</span>
+<div class="font-headline-md text-headline-md font-bold text-emerald-800 mt-1">+13.6 Ltrs</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Within 3.5% permissible variance</p>
+</div>
+</div>
+</div>
+<div class="pt-3 flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-emerald-700 text-[18px]">verified</span>
+<span>Fuel procurement fully reconciles with Telangana State Southern Power (TSSPDCL) outage logs.</span>
+</div>
+<button class="font-label-sm text-label-sm text-primary font-bold hover:underline" onclick="alert('Viewing Facilities Generator Run Log CSV')">View Generator Logbook</button>
+</div>
+</div>
+<!-- Right 1 col: Statutory Audit Checklist -->
+<div class="bg-surface-container-lowest p-4 rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 pb-2">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]" style="font-variation-settings: 'FILL' 1;">rule</span>
+<span class="font-title-md text-title-md font-bold text-on-surface">Audit Compliance Checklist</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Hospital statutory mandates per Finance Committee rules:</p>
+<div class="flex flex-col gap-2.5 mt-3">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-emerald-700 text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface">Dual sign required for all expenditures &gt;₹5,000.00.</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-emerald-700 text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface">Physical receipt / POS counterfoil mandatory for petty cash.</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-emerald-700 text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface">Valid GSTIN &amp; HSN code check before NEFT / RTGS dispatch.</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-amber-600 text-[18px] shrink-0 mt-0.5">pending</span>
+<span class="font-body-sm text-body-sm text-on-surface">Quarterly physical stock verification due in 7 days.</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 flex items-center justify-between">
+<span class="font-data-mono text-label-sm text-on-surface-variant">Internal Auditor: M/s Rao &amp; Associates</span>
+<span class="font-label-sm text-label-sm bg-surface-container-high px-2 py-0.5 rounded text-on-surface">NABH Cl. 6.2</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Slide-Over Expense Detail & Audit Authorization Drawer (Inspecting EXP-2024-1044) -->
+<div class="fixed inset-0 z-50 flex justify-end bg-inverse-surface/40 backdrop-blur-xs transition-opacity" id="drawer">
+<div class="w-full max-w-xl h-full bg-surface-container-lowest shadow-2xl flex flex-col justify-between overflow-y-auto">
+<!-- Drawer Header -->
+<div>
+<div class="p-4 bg-primary text-on-primary flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-tertiary-fixed text-[24px]">verified_user</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md font-bold text-on-primary">EXP-2024-1044</span>
+<span class="font-label-sm text-label-sm bg-error text-on-error px-1.5 py-0.2 rounded font-bold uppercase">Pending Counter-Sign</span>
+</div>
+<span class="font-body-sm text-body-sm text-primary-fixed-dim">Audit Verification &amp; Authorization Desk</span>
+</div>
+</div>
+<button class="text-on-primary hover:text-tertiary-fixed transition-colors" onclick="document.getElementById('drawer').classList.add('hidden')">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+</div>
+<!-- Drawer Content -->
+<div class="p-5 flex flex-col gap-5">
+<!-- Voucher Summary Banner -->
+<div class="p-3.5 rounded bg-surface-container-low flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Category &amp; Cost Center</span>
+<div class="font-title-md text-title-md font-bold text-primary mt-0.5">Utilities &amp; Fuel Generator Backup</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Cost Center: Facilities &amp; Engineering (#CC-ENG-04)</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Total Disbursed</span>
+<div class="font-headline-lg text-headline-lg font-bold text-error mt-0.5">₹37,600.00</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Corporate Card Payment</span>
+</div>
+</div>
+<!-- Requisitioner & Audit Metadata -->
+<div class="grid grid-cols-2 gap-4">
+<div class="p-3 rounded bg-surface-container-low">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Requisitioning Officer</span>
+<div class="font-body-md text-body-md font-bold text-on-surface mt-1">K. Ramesh</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Store In-Charge &amp; Facilities Supervisor</div>
+<div class="font-data-mono text-label-sm text-on-surface-variant mt-1">EMP-ID: #FAC-812</div>
+</div>
+<div class="p-3 rounded bg-surface-container-low">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Payee / Dealer Details</span>
+<div class="font-body-md text-body-md font-bold text-on-surface mt-1">Indian Oil Corporation Ltd.</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Dealer: Jubilee Hills Auto Fuels</div>
+<div class="font-data-mono text-label-sm text-on-surface-variant mt-1">POS Slip Ref: IOCL-90412</div>
+</div>
+</div>
+<!-- Amount Breakdown Table -->
+<div>
+<span class="font-label-md text-label-md uppercase text-on-surface-variant font-bold tracking-wider">Itemized Ledger Breakdown</span>
+<div class="mt-2 bg-surface-container-low rounded overflow-hidden">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="bg-surface-container font-label-sm text-label-sm text-on-surface-variant uppercase">
+<th class="py-2 px-3">Description</th>
+<th class="py-2 px-3 text-right">Qty / Rate</th>
+<th class="py-2 px-3 text-right">Tax (%)</th>
+<th class="py-2 px-3 text-right">Amount (₹)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high/60">
+<tr>
+<td class="py-2 px-3">
+<div class="font-semibold text-on-surface">HSD High Speed Diesel (Commercial Bulk)</div>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Base Rate before State levies</div>
+</td>
+<td class="py-2 px-3 text-right font-data-mono">400 L @ ₹85.45</td>
+<td class="py-2 px-3 text-right font-data-mono">VAT ~10%</td>
+<td class="py-2 px-3 text-right font-data-mono font-semibold">₹34,181.82</td>
+</tr>
+<tr>
+<td class="py-2 px-3 text-on-surface">Telangana State VAT + Clean Energy Cess</td>
+<td class="py-2 px-3 text-right font-data-mono">—</td>
+<td class="py-2 px-3 text-right font-data-mono">Standard</td>
+<td class="py-2 px-3 text-right font-data-mono font-semibold">₹3,418.18</td>
+</tr>
+<tr class="bg-surface-container font-semibold">
+<td class="py-2 px-3 text-right uppercase text-label-sm" colspan="3">Gross Total Paid via Card:</td>
+<td class="py-2 px-3 text-right font-data-mono font-bold text-primary">₹37,600.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Supporting Documents Section -->
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-on-surface-variant font-bold tracking-wider">Supporting Documents (2 Attached)</span>
+<span class="font-data-mono text-label-sm text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-bold">Verified Scan</span>
+</div>
+<div class="grid grid-cols-2 gap-3 mt-2">
+<div class="p-2.5 rounded bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
+<div>
+<div class="font-label-lg text-label-lg font-bold text-on-surface">IOCL_Slip_90412.pdf</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">1.2 MB • Scanned POS</span>
+</div>
+</div>
+<button class="p-1 hover:text-primary transition-colors" title="View Document"><span class="material-symbols-outlined text-[18px]">open_in_new</span></button>
+</div>
+<div class="p-2.5 rounded bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">history_edu</span>
+<div>
+<div class="font-label-lg text-label-lg font-bold text-on-surface">DG_Log_22Oct.pdf</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">840 KB • 18 Hr Runtime</span>
+</div>
+</div>
+<button class="p-1 hover:text-primary transition-colors" title="View Document"><span class="material-symbols-outlined text-[18px]">open_in_new</span></button>
+</div>
+</div>
+</div>
+<!-- Dual-Sign Authorization Workflow Stepper -->
+<div>
+<span class="font-label-md text-label-md uppercase text-on-surface-variant font-bold tracking-wider">Dual-Sign Authorization Workflow</span>
+<div class="mt-3 flex flex-col gap-3">
+<!-- Step 1: Supervisor -->
+<div class="flex items-start gap-3">
+<div class="flex flex-col items-center">
+<span class="h-6 w-6 rounded-full bg-emerald-600 text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+<div class="w-0.5 h-8 bg-emerald-600"></div>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Step 1: Facilities Supervisor Verified</span>
+<span class="font-data-mono text-label-sm bg-emerald-100 text-emerald-800 px-1 rounded">Signed</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">K. Ramesh (Facilities Lead) — Authenticated on 24 Oct 2024, 09:30 AM IST</p>
+</div>
+</div>
+<!-- Step 2: Internal Audit -->
+<div class="flex items-start gap-3">
+<div class="flex flex-col items-center">
+<span class="h-6 w-6 rounded-full bg-emerald-600 text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+<div class="w-0.5 h-8 bg-amber-400"></div>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Step 2: Internal Audit Budget Check</span>
+<span class="font-data-mono text-label-sm bg-emerald-100 text-emerald-800 px-1 rounded">Passed</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Expenditure conforms to monthly fuel budget cap (₹37.6k &lt; ₹80k Quota).</p>
+</div>
+</div>
+<!-- Step 3: Medical Director / Administrator Sign-off -->
+<div class="flex items-start gap-3">
+<div class="flex flex-col items-center">
+<span class="h-6 w-6 rounded-full bg-amber-500 text-on-primary flex items-center justify-center animate-bounce">
+<span class="material-symbols-outlined text-[14px]">draw</span>
+</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg font-bold text-primary">Step 3: Medical Director / Administrator Sign-Off</span>
+<span class="font-data-mono text-label-sm bg-amber-100 text-amber-900 px-1 rounded font-bold">Action Required</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Pending Dr. Priya Sharma authorization token.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Drawer Bottom Action Triggers -->
+<div class="p-4 bg-surface-container-low flex items-center justify-between gap-3 shadow-inner">
+<button class="h-9 px-3 bg-surface-container-lowest text-on-surface font-label-lg text-label-lg rounded shadow-sm hover:bg-surface-container transition-colors flex items-center gap-1.5" onclick="alert('Audit note appended: Requesting additional generator meter photo.')">
+<span class="material-symbols-outlined text-[18px]">help_outline</span>
+          Request Addl. Docs
+        </button>
+<div class="flex items-center gap-2">
+<button class="h-9 px-3 bg-surface-container-lowest text-on-surface font-label-lg text-label-lg rounded shadow-sm hover:bg-surface-container transition-colors flex items-center gap-1.5" onclick="alert('Printing certified statutory voucher slip...')">
+<span class="material-symbols-outlined text-[18px]">print</span>
+            Print Voucher
+          </button>
+<button class="h-9 px-4 bg-primary text-on-primary font-label-lg text-label-lg rounded shadow-md hover:bg-primary-container transition-all flex items-center gap-2 font-bold" onclick="alert('Expense Voucher EXP-2024-1044 officially signed by Dr. Priya Sharma, MD. GL Journal Entry #JRN-2024-8841 generated.'); document.getElementById('drawer').classList.add('hidden');">
+<span class="material-symbols-outlined text-[18px]">draw</span>
+            Authorize &amp; Sign Voucher
+          </button>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

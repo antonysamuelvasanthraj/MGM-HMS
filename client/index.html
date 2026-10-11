@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#39171D">
+<title>MGM HMS — Hospital Information System</title>
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body class="h-full">
+
+<!-- Sign-in gate; the shell only renders once a session exists -->
+<div id="auth-gate" class="hidden fixed inset-0 z-[100] bg-brand-dark"></div>
+
+<div id="app-shell" class="hidden">
+
+  <!-- ------------------------------------------------------------ rail -->
+  <aside id="sidebar" class="text-white">
+    <div class="h-16 flex items-center gap-2.5 px-4 border-b border-white/10 shrink-0">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(195,162,86,0.18);border:1px solid rgba(195,162,86,0.35)">
+        <img src="/assets/mgm-hospital-logo.png" alt="MGM Hospitals" style="width:32px;height:24px;object-fit:contain;background:white;border-radius:3px">
+      </div>
+      <div class="nav-label min-w-0">
+        <div class="font-headline-md text-headline-md leading-none tracking-tight">MGM HMS</div>
+        <div class="font-label-sm text-label-sm truncate mt-0.5" style="color:rgba(195,162,86,0.75)" id="rail-campus">Multi-Speciality Hospital</div>
+      </div>
+    </div>
+
+    <nav id="nav" class="flex-1 overflow-y-auto py-1" aria-label="Main"></nav>
+
+    <div class="shrink-0 border-t border-white/10 p-2">
+      <button id="nav-collapse" class="nav-item w-auto" title="Collapse sidebar (Ctrl+B)">
+        <span class="material-symbols-outlined text-[18px]" id="nav-collapse-icon">left_panel_close</span>
+        <span class="nav-label">Collapse</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- --------------------------------------------------------- content -->
+  <div id="view-area" class="flex flex-col">
+
+    <header id="topbar" class="h-16 shrink-0 bg-white border-b border-outline-variant sticky top-0 z-40">
+      <div class="h-16 px-5 flex items-center gap-4">
+        <button id="mobile-nav" class="btn-ghost lg:hidden !h-9 !w-9 !px-0" aria-label="Menu">
+          <span class="material-symbols-outlined text-[20px]">menu</span>
+        </button>
+
+        <div class="min-w-0 hidden md:block">
+          <nav class="flex items-center gap-1 font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant" id="breadcrumb"></nav>
+          <h1 class="font-headline-md text-headline-md text-on-surface truncate leading-tight" id="page-title">Loading…</h1>
+        </div>
+
+        <div class="flex-1 max-w-xl mx-auto relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">search</span>
+          <input id="global-search" type="text" autocomplete="off" spellcheck="false"
+                 class="field field-sm !h-9 !pl-9 !pr-16 bg-surface-container-low"
+                 placeholder="Search UHID / mobile / patient / bill / token…">
+          <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 font-data-mono text-label-sm px-1.5 py-0.5 rounded bg-white border border-outline-variant text-on-surface-variant pointer-events-none">Ctrl K</kbd>
+          <div id="search-results" class="hidden absolute left-0 right-0 top-11 z-50 card shadow-md overflow-hidden max-h-[420px] overflow-y-auto"></div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="env-badge" class="hidden items-center gap-1 px-2.5 h-8 rounded-lg border border-warning/40 bg-warning-bg text-warning font-label-sm text-label-sm uppercase tracking-wider" title="Demonstration copy — fictional patients only">
+            <span class="material-symbols-outlined text-[15px]">science</span>Demo environment</span>
+          <div class="hidden xl:flex items-center gap-1.5 px-2.5 h-8 rounded-lg border border-outline-variant text-on-surface-variant bg-surface-container-low">
+            <span class="material-symbols-outlined text-[15px]">schedule</span>
+            <span class="font-data-mono text-body-sm" id="clock">—</span>
+          </div>
+          <button id="conn-chip" class="hidden sm:flex items-center gap-1.5 px-2.5 h-8 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-surface-container transition-colors"
+                  title="Realtime link to the hospital server">
+            <span class="live-dot" id="conn-dot"></span>
+            <span class="font-data-mono text-label-sm text-on-surface" id="conn-text">live</span>
+          </button>
+          <button id="sync-chip" class="hidden sm:flex items-center gap-1.5 px-2.5 h-8 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-surface-container transition-colors" title="Cloud sync queue">
+            <span class="material-symbols-outlined text-[15px] text-on-surface-variant">cloud_sync</span>
+            <span class="font-data-mono text-label-sm" id="sync-text">0</span>
+          </button>
+          <button id="notif-btn" class="relative btn-ghost !h-9 !w-9 !px-0" aria-label="Notifications" title="Notifications">
+            <span class="material-symbols-outlined text-[20px]">notifications</span>
+            <span id="notif-dot" class="hidden absolute top-1 right-1 w-[9px] h-[9px] rounded-full bg-danger ring-2 ring-white"></span>
+          </button>
+          <div class="h-6 w-px bg-outline-variant"></div>
+          <button id="user-chip" class="flex items-center gap-2 pl-1 pr-2 h-10 rounded-lg hover:bg-surface-container-low transition-colors" title="Your profile">
+            <span class="w-8 h-8 rounded-full bg-primary text-white grid place-items-center font-label-lg text-[13px] shadow-sm" id="user-initials">–</span>
+            <span class="hidden lg:block text-left leading-tight">
+              <span class="block font-label-lg text-label-lg text-on-surface" id="user-name">—</span>
+              <span class="block font-label-sm text-label-sm text-on-surface-variant" id="user-role">—</span>
+            </span>
+            <span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_more</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="view" class="flex-1 min-w-0"></main>
+  </div>
+</div>
+
+<!-- portals -->
+<div id="toasts" class="fixed top-3 left-3 right-3 md:top-auto md:left-auto md:bottom-5 md:right-5 z-[90] flex flex-col gap-2 items-stretch md:items-end pointer-events-none"></div>
+<div id="modal-root" class="fixed inset-0 z-[80] hidden"></div>
+<div id="drawer-root" class="fixed inset-0 z-[70] hidden"></div>
+<div id="menu-root" class="fixed inset-0 z-[85] hidden"></div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

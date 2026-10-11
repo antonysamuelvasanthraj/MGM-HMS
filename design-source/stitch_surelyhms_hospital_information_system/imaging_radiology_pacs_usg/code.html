@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / Mobile / Patient Name / Encounter..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Clinical Modules</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="consultation-history" href="#"><span class="font-body-md text-body-md">Consultation History</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="follow-up-teleconsult" href="#"><span class="font-body-md text-body-md">Follow-up / Teleconsult</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-registration" href="#"><span class="font-body-md text-body-md">OP Registration</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">42</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-fee-collection" href="#"><span class="font-body-md text-body-md">OP Fee Collection</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">14 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; Billing</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">9</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-orders-requisitions" href="#"><span class="font-body-md text-body-md">Clinical Orders &amp; Requisitions</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">16</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="laboratory-diagnostics" href="#"><span class="font-body-md text-body-md">Laboratory &amp; Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">34</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="imaging-radiology" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (PACS/USG)</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">11</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">7</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ipd-bed-mgmt" href="#"><span class="font-body-md text-body-md">IPD / Bed Mgmt</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="accounts-receipts" href="#"><span class="font-body-md text-body-md">Accounts &amp; Receipts</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="token-display" href="#"><span class="font-body-md text-body-md">Token Display</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Live</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- PACS Gateway Header & Operational Telemetry -->
+<div class="bg-surface-container-lowest shadow-sm px-6 py-4 flex flex-col gap-3">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">radiology</span>
+</div>
+<div>
+<div class="flex items-center gap-2.5">
+<h1 class="font-headline-md text-headline-md text-on-surface">Radiology Information System (RIS) &amp; PACS Gateway</h1>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
+              PACS LIVE
+            </span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-data-mono text-body-sm text-on-surface-variant">DICOM Node: <span class="text-on-surface font-semibold">RIS-CITY-01</span> (192.168.1.50:104) Connected</span>
+<span class="text-outline-variant font-data-mono">•</span>
+<span class="font-data-mono text-body-sm text-on-surface-variant">AE Title: <span class="text-primary font-bold">SURELY_PACS</span></span>
+<span class="text-outline-variant font-data-mono">•</span>
+<span class="font-data-mono text-body-sm text-on-surface-variant">Modality Worklist: <span class="text-emerald-700 font-medium">MWL-ONLINE</span></span>
+</div>
+</div>
+</div>
+<!-- Live Pipeline Stats Micro-Cards -->
+<div class="flex items-center gap-2">
+<div class="px-3 py-1.5 rounded bg-surface-container-low flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Storage Pool</span>
+<span class="font-data-mono text-body-md font-semibold text-on-surface">4.2 TB / 12 TB (ZFS)</span>
+</div>
+<div class="px-3 py-1.5 rounded bg-surface-container-low flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Avg Turnaround</span>
+<span class="font-data-mono text-body-md font-semibold text-primary">28 min</span>
+</div>
+<button class="h-9 px-3.5 rounded bg-primary text-on-primary font-label-lg text-label-lg hover:bg-primary-container transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+          Manual Study Import
+        </button>
+</div>
+</div>
+<!-- Modality Filters & Progress Flow Bar -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+<!-- Modalities Selector -->
+<div class="flex items-center gap-1.5 bg-surface-container-low p-1 rounded-lg">
+<button class="px-3 py-1 rounded bg-primary text-on-primary font-label-md text-label-md shadow-sm">All Modalities</button>
+<button class="px-3 py-1 rounded hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-colors">Digital X-Ray (CR/DX)</button>
+<button class="px-3 py-1 rounded hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-colors">Computed Tomography (CT)</button>
+<button class="px-3 py-1 rounded hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-colors">MRI (1.5T / 3T)</button>
+<button class="px-3 py-1 rounded hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-colors">Mammography</button>
+</div>
+<!-- Quick Search Form -->
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full h-8 pl-8 pr-3 text-body-sm font-body-sm rounded bg-surface text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:bg-surface-container-lowest" placeholder="UHID, Token, Order ID, Accession..." type="text"/>
+</div>
+</div>
+<!-- Examination Progress Tabs -->
+<div class="flex items-center gap-2 overflow-x-auto pb-1 text-on-surface-variant">
+<button class="px-3 py-1.5 rounded-lg bg-surface-container flex items-center gap-2 font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors">
+<span>Scheduled / Awaiting Patient</span>
+<span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface font-data-mono text-label-sm font-bold">6</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container flex items-center gap-2 font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors">
+<span>Patient Positioned / In-Chamber</span>
+<span class="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 font-data-mono text-label-sm font-bold">2</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container flex items-center gap-2 font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors">
+<span>Images Acquired / DICOM Stored</span>
+<span class="px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-900 font-data-mono text-label-sm font-bold">8</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-primary-fixed text-on-primary-fixed font-semibold flex items-center gap-2 font-label-md text-label-md shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span>Radiologist Reporting Draft</span>
+<span class="px-1.5 py-0.2 rounded-full bg-primary text-on-primary font-data-mono text-label-sm font-bold">4 Active</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container flex items-center gap-2 font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors">
+<span>Authorized &amp; Finalized</span>
+<span class="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-900 font-data-mono text-label-sm font-bold">38 Today</span>
+</button>
+</div>
+</div>
+<!-- Main Split-Screen Workspace (Left 35% / Right 65%) -->
+<div class="p-6 grid grid-cols-12 gap-6 items-start">
+<!-- LEFT PANEL: Active Examination Queue (35% -> 4 cols on xl / 5 cols on lg) -->
+<div class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary">dynamic_feed</span>
+<h2 class="font-title-md text-title-md text-on-surface">Radiology Worklist Queue</h2>
+</div>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span>Sort:</span>
+<span class="font-bold text-on-surface underline decoration-dotted cursor-pointer">Severity Priority</span>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<!-- CARD 1: Selected Patient (Rajesh Kumar Verma) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-md ring-2 ring-primary/40 relative overflow-hidden transition-all">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
+<div class="flex items-start justify-between gap-2 pl-1 mb-2">
+<div>
+<span class="font-data-mono text-label-sm text-primary font-bold tracking-tight">ACC-2024-4192</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold mt-0.5">Rajesh Kumar Verma</h3>
+<p class="font-data-mono text-body-sm text-on-surface-variant">SHMS-2024-08923 • 46Y / Male • ENC-2024-10-0418</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-label-sm text-label-sm font-bold">Priority OPD</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">10:35 AM IST</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2.5 pl-3 mb-3 flex flex-col gap-1">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Modality / View:</span>
+<span class="font-semibold text-on-surface">Digital X-Ray Chest PA &amp; Lateral</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Referring Physician:</span>
+<span class="font-medium text-on-surface">Dr. K. Venkat Rao (Pulmonology)</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1.5 text-blue-800 bg-blue-50 px-2.5 py-1 rounded-full font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">view_carousel</span>
+              Images Acquired (2 Series)
+            </div>
+<button class="px-3 py-1 rounded bg-primary text-on-primary font-label-sm text-label-sm font-bold flex items-center gap-1 shadow-sm">
+<span>Reviewing</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- CARD 2: Mohd. Rizwan Ali (STAT Trauma) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm hover:shadow transition-all relative overflow-hidden cursor-pointer group">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-error"></div>
+<div class="flex items-start justify-between gap-2 pl-1 mb-2">
+<div>
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">ACC-2024-4195</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold group-hover:text-primary transition-colors">Mohd. Rizwan Ali</h3>
+<p class="font-data-mono text-body-sm text-on-surface-variant">SHMS-2023-01823 • 29Y / Male</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="px-2 py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-bold flex items-center gap-1 animate-pulse">
+<span class="material-symbols-outlined text-[12px]">emergency</span>
+                STAT Trauma
+              </span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">11:12 AM IST</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2.5 pl-3 mb-2 flex flex-col gap-1">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Modality:</span>
+<span class="font-semibold text-on-surface">CT Brain Plain (Non-Contrast)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Referring Doctor:</span>
+<span class="text-on-surface">Dr. Arun Joshi (Emergency Medicine)</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm pt-1">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-data-mono text-label-sm font-medium">DICOM Transferred (180 Slices)</span>
+<span class="text-primary font-label-sm text-label-sm font-bold flex items-center gap-1">Load Study <span class="material-symbols-outlined text-[14px]">chevron_right</span></span>
+</div>
+</div>
+<!-- CARD 3: Ch. Venkateshwarlu (Finalized) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm hover:shadow transition-all relative overflow-hidden cursor-pointer opacity-90">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-600"></div>
+<div class="flex items-start justify-between gap-2 pl-1 mb-2">
+<div>
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">ACC-2024-4188</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Ch. Venkateshwarlu</h3>
+<p class="font-data-mono text-body-sm text-on-surface-variant">SHMS-2024-11002 • 62Y / Male</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-label-sm text-label-sm font-bold">Finalized</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">09:40 AM</span>
+</div>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant pl-1 mb-2">
+            Study: <span class="text-on-surface font-medium">High Precision Chest HRCT (Inspiratory/Expiratory)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm pt-1">
+<span class="font-data-mono text-label-sm text-emerald-800 font-medium">Signed by Dr. Shalini Pillai</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">verified</span>
+</div>
+</div>
+<!-- CARD 4: Smt. Ananya Agarwal (Motion Artifact Warning) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm hover:shadow transition-all relative overflow-hidden cursor-pointer">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500"></div>
+<div class="flex items-start justify-between gap-2 pl-1 mb-2">
+<div>
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">ACC-2024-4180</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Smt. Ananya Agarwal</h3>
+<p class="font-data-mono text-body-sm text-on-surface-variant">SHMS-2024-03194 • 38Y / Female</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">warning</span>
+                Retake Required
+              </span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">09:15 AM</span>
+</div>
+</div>
+<div class="bg-amber-50 text-amber-950 rounded-lg p-2 text-body-sm font-body-sm mb-2 flex items-start gap-2">
+<span class="material-symbols-outlined text-amber-700 text-[18px] shrink-0 mt-0.5">report_problem</span>
+<span>Technician Flag: Severe patient deglutition / motion artifact on lateral cervical projection. Requested repeat shoot.</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm pt-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">X-Ray Cervical Spine AP/Lat</span>
+<button class="px-2.5 py-1 rounded bg-surface-container text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high">Notify Gantry</button>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT WORKSPACE: Radiology Reporting & PACS Review (65% -> 8 cols on xl / 7 cols on lg) -->
+<div class="col-span-12 lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
+<!-- Patient Header & Demographic Banner -->
+<div class="p-5 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-4">
+<div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/30 pb-3">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-headline-md">
+              RV
+            </div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">Rajesh Kumar Verma</h2>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-data-mono text-label-sm font-bold">B+ Positive</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface font-label-sm text-label-sm">Self-Paying OPD</span>
+</div>
+<p class="font-data-mono text-body-sm text-on-surface-variant mt-0.5">
+                UHID: <span class="font-semibold text-on-surface">SHMS-2024-08923</span> • 46 Yrs / Male • Contact: +91 98480 23114 • Hyderabad
+              </p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-8 px-3 rounded bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">folder_shared</span>
+              Past Imaging (3)
+            </button>
+<button class="h-8 px-3 rounded bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">assignment</span>
+              Lab Results
+            </button>
+</div>
+</div>
+<!-- Technical DICOM Metadata Bar -->
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 bg-surface-container-low p-3 rounded-lg font-data-mono text-body-sm">
+<div>
+<span class="text-label-sm text-on-surface-variant block uppercase font-label-sm">Accession No.</span>
+<span class="font-bold text-primary">ACC-2024-4192</span>
+</div>
+<div>
+<span class="text-label-sm text-on-surface-variant block uppercase font-label-sm">KVp / mAs</span>
+<span class="font-semibold text-on-surface">120 kVp / 4.5 mAs</span>
+</div>
+<div>
+<span class="text-label-sm text-on-surface-variant block uppercase font-label-sm">DAP / Rad Dose</span>
+<span class="font-semibold text-emerald-800">0.02 mSv (Low)</span>
+</div>
+<div>
+<span class="text-label-sm text-on-surface-variant block uppercase font-label-sm">Radiographer Tech</span>
+<span class="font-semibold text-on-surface">R. Sandeep (RT-4)</span>
+</div>
+<div>
+<span class="text-label-sm text-on-surface-variant block uppercase font-label-sm">Gantry Console</span>
+<span class="font-semibold text-on-surface">RadStation-03</span>
+</div>
+<div>
+<span class="text-label-sm text-on-surface-variant block uppercase font-label-sm">Storage Instance</span>
+<span class="font-semibold text-on-surface">2 Series / 2 DICOM</span>
+</div>
+</div>
+</div>
+<!-- High-Fidelity DICOM Viewer Strip & Quick Tools -->
+<div class="rounded-xl bg-inverse-surface text-inverse-on-surface p-4 shadow-md flex flex-col gap-3">
+<div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline/30 pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-tertiary-fixed">view_in_ar</span>
+<span class="font-title-md text-title-md font-semibold text-white">DICOM PACS Interactive Canvas</span>
+<span class="font-data-mono text-label-sm bg-white/10 px-2 py-0.5 rounded text-white/80">Lossless 16-Bit Monochromatic</span>
+</div>
+<!-- Cornerstone / Viewer Tools -->
+<div class="flex items-center gap-1.5 flex-wrap">
+<div class="flex items-center bg-white/10 rounded p-0.5 text-white">
+<button class="px-2 py-1 rounded bg-primary text-white font-data-mono text-label-sm" title="Window Level: Lung">WW/WL: Lung</button>
+<button class="px-2 py-1 rounded hover:bg-white/10 font-data-mono text-label-sm" title="Window Level: Mediastinum">Mediastinum</button>
+<button class="px-2 py-1 rounded hover:bg-white/10 font-data-mono text-label-sm" title="Window Level: Bone">Bone</button>
+</div>
+<div class="h-5 w-px bg-white/20"></div>
+<button class="p-1.5 rounded hover:bg-white/10 text-white" title="Pan / Zoom">
+<span class="material-symbols-outlined text-[18px]">zoom_in</span>
+</button>
+<button class="p-1.5 rounded hover:bg-white/10 text-white" title="Caliper / Measure Distance">
+<span class="material-symbols-outlined text-[18px]">straighten</span>
+</button>
+<button class="p-1.5 rounded hover:bg-white/10 text-white" title="Cobb Angle / Geometric Measurement">
+<span class="material-symbols-outlined text-[18px]">square_foot</span>
+</button>
+<button class="p-1.5 rounded hover:bg-white/10 text-white" title="Invert Grayscale">
+<span class="material-symbols-outlined text-[18px]">invert_colors</span>
+</button>
+<button class="ml-2 px-3 py-1 rounded bg-tertiary-container text-tertiary-fixed font-label-md text-label-md hover:bg-tertiary-container/80 transition-colors flex items-center gap-1.5 font-bold shadow-sm">
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+              Full PACS Viewer (Weasis)
+            </button>
+</div>
+</div>
+<!-- Radiographs Side-by-Side Render with Annotation Overlays -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Image 1: PA Chest Erect -->
+<div class="relative rounded-lg overflow-hidden bg-black flex flex-col items-center justify-center group h-72">
+<img class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300" data-alt="A diagnostic clinical PA chest X-ray digital radiograph of a 46-year-old male, high-resolution monochrome showing lungs, heart contour, clavicles, ribs, and diaphragm against a pitch black background in clinical DICOM presentation" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr2QifTyjDLawKsd8uqZuQN4B6DI2TxCpVTTcMX1ndMEjpRNiq96RZM2-ZjTdEAiER16JV4idn6tBw2xbPkH43rBOr1IPITLroaeduCzoqjlkLCqXPMYfrgKoepPwWWRK5jusEHuoOlqmF4nlw88846tvXxfzVqm0OEnFypATabm45mCj6g58reETCM19rwhNxAfIfn2E_t-oMg1nV3MO2T1hVsiY1VqFIuo5MuI4"/>
+<!-- Radiologist HUD Overlay Top-Left -->
+<div class="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-sm p-1.5 rounded text-white font-data-mono text-label-sm">
+<div>SERIES 1 / IM: 1 [PA ERECT]</div>
+<div class="text-white/70">W: 1500 L: -600 (Chest)</div>
+<div class="text-white/70">Matrix: 2840 x 2840</div>
+</div>
+<!-- HUD Overlay Top-Right Marker -->
+<div class="absolute top-2.5 right-2.5 font-headline-lg text-headline-lg font-bold text-amber-300 drop-shadow">
+              R
+            </div>
+<!-- HUD Bottom Controls -->
+<div class="absolute bottom-2 inset-x-2 flex items-center justify-between px-2 py-1 rounded bg-black/70 text-white font-label-sm text-label-sm">
+<span class="font-data-mono">Exposure: 10:32:18 IST</span>
+<button class="hover:text-primary-fixed-dim transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">crop_free</span>
+                Maximize Series
+              </button>
+</div>
+</div>
+<!-- Image 2: Lateral Chest Projection -->
+<div class="relative rounded-lg overflow-hidden bg-black flex flex-col items-center justify-center group h-72">
+<img class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300" data-alt="A clinical lateral view chest radiograph showing clear retrosternal clear space, cardiac shadow, thoracic vertebrae and posterior costophrenic angles on deep black background in medical DICOM format" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0G_ZXa3ZwJTklO6ftkjRJY4Je6SZD5NjGwQGQhWY04HW3KPUTSiNjk0ZO4gm_imYhTRiEtMb7q0IJHB6H5CusXz3DGYdpaQ6eRl92vkroRFjJb47I1plnIzStADGE_T6Y-N_YzOPQYcH4UG--u4qPvdt7UBtYVyj9eJe0c-W7bp6gS7RoPWdpYolNAXqc8x-MEMvso3fX-EJMAnCRLj07jrcAG-9MS8FDg790CXg"/>
+<!-- Radiologist HUD Overlay Top-Left -->
+<div class="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-sm p-1.5 rounded text-white font-data-mono text-label-sm">
+<div>SERIES 2 / IM: 1 [LATERAL VIEW]</div>
+<div class="text-white/70">W: 1600 L: -500</div>
+<div class="text-white/70">FOV: 35.0 cm</div>
+</div>
+<!-- HUD Overlay Top-Right Marker -->
+<div class="absolute top-2.5 right-2.5 font-headline-lg text-headline-lg font-bold text-amber-300 drop-shadow">
+              LAT
+            </div>
+<!-- HUD Bottom Controls -->
+<div class="absolute bottom-2 inset-x-2 flex items-center justify-between px-2 py-1 rounded bg-black/70 text-white font-label-sm text-label-sm">
+<span class="font-data-mono">Exposure: 10:34:02 IST</span>
+<button class="hover:text-primary-fixed-dim transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">crop_free</span>
+                Maximize Series
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Structured Clinical Report Editor -->
+<div class="p-6 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">description</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Diagnostic Radiology Dossier &amp; Impression</h3>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+              Auto-saved (11:38 AM)
+            </span>
+<button class="px-2.5 py-1 rounded bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">format_list_bulleted</span>
+              Insert Normal Template
+            </button>
+</div>
+</div>
+<!-- Clinical Indication Notice -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Clinical History &amp; Indication</span>
+<p class="font-body-md text-body-md text-on-surface font-medium">
+            46-year-old male with persistent dry cough for 3 weeks, mild intermittent fever, chest heaviness. Rule out consolidation, pneumonitis, or atypical pulmonary infection.
+          </p>
+</div>
+<!-- Findings Structured Inputs / View -->
+<div class="flex flex-col gap-3">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Radiological Findings</span>
+<div class="space-y-3">
+<!-- Finding 1 -->
+<div class="p-3 rounded-lg bg-surface-container-low/60 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">1. Bony Thorax &amp; Soft Tissues</span>
+<span class="font-label-sm text-label-sm text-emerald-700 bg-emerald-50 px-2 py-0.2 rounded font-medium">Unremarkable</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+                Symmetrical thoracic cage. No evidence of rib fracture, osteolytic or osteoblastic focal bone lesions. Soft tissues of the chest wall appear normal with no pathological calcification.
+              </p>
+</div>
+<!-- Finding 2 -->
+<div class="p-3 rounded-lg bg-surface-container-low/60 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">2. Trachea, Mediastinum &amp; Cardiac Silhouette</span>
+<span class="font-label-sm text-label-sm text-emerald-700 bg-emerald-50 px-2 py-0.2 rounded font-medium">Normal Limits</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+                Trachea is midline. Cardiothoracic ratio is well within normal limits (&lt; 0.50). Aortic knuckle, hilum, and superior mediastinal contours are unremarkable without lymphadenopathy or enlargement.
+              </p>
+</div>
+<!-- Finding 3 -->
+<div class="p-3 rounded-lg bg-surface-container-low/60 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">3. Lung Parenchyma &amp; Bronchovascular Markings</span>
+<span class="font-label-sm text-label-sm text-amber-800 bg-amber-50 px-2 py-0.2 rounded font-medium">Mild Prominence</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+                Both lung fields appear expanded and well-aerated. Bronchovascular markings are prominent bilaterally, notably accentuating in the retrocardiac and bilateral lower zones. No discrete focal parenchymal consolidation, cavitation, mass, or interstitial nodularity identified.
+              </p>
+</div>
+<!-- Finding 4 -->
+<div class="p-3 rounded-lg bg-surface-container-low/60 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">4. Diaphragms &amp; Pleural Spaces</span>
+<span class="font-label-sm text-label-sm text-emerald-700 bg-emerald-50 px-2 py-0.2 rounded font-medium">Clear</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+                Both hemidiaphragm domes are smooth and regular in contour. Bilateral costophrenic and cardiophrenic angles are acute and free of blunting or effusion.
+              </p>
+</div>
+</div>
+</div>
+<!-- Definitive Impression Box -->
+<div class="p-4 rounded-xl bg-primary/5 ring-1 ring-primary/20 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">flag</span>
+<span class="font-label-lg text-label-lg font-bold text-primary uppercase">Impression &amp; Clinical Recommendation</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant font-medium">ICD-10: R05 / J98.4</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-lowest font-body-md text-body-md text-on-surface leading-relaxed shadow-sm font-medium">
+            • No acute focal lobar consolidation, overt pneumonitis, or active pleuro-parenchymal pathology detected on current radiographs.<br/>
+            • Prominent bronchovascular markings bilaterally, favored to represent post-viral bronchial hyperreactivity or resolving mild bronchitis.<br/>
+            • Advise clinical correlation with inflammatory markers (CRP/ESR) and spirometry if symptoms persist over two weeks.
+          </div>
+</div>
+<!-- Radiologist Signature Strip -->
+<div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-outline-variant/30">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover ring-2 ring-primary/30" data-alt="Portrait photo of Dr. Shalini Pillai, Senior Consultant Radiologist wearing clinical coat with stethoscope in modern hospital radiology suite" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8SIh1cYKUP6iRaDPXGnbOosiwRnXwceTgVBaDaf5m3YSUnABcgO5VhdUs901nAeBskgpcw-nEC8Ze-TGMEzrNl3zfSR9hy0l2YonwYtaets9u96H5yI4Cav_ActZECJru-uTCb4SVIprRkBemv3GarOsa7Sd6Zz0qDZOM5pIFMvNdV8EFbrtEoB7VOo81xo73ict3YmEPBIWcfCdK84CWRrZ2TOSD8YeIcqEf9DM"/>
+<div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold">Dr. Shalini Pillai, MD</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Senior Consultant Radiologist • Reg: TSMC-51092</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded bg-amber-50 text-amber-800 font-label-md text-label-md font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">edit_note</span>
+              Draft Review Stage
+            </span>
+</div>
+</div>
+<!-- Release Policy Disclaimer -->
+<div class="p-3 rounded-lg bg-surface-container-low text-body-sm font-body-sm text-on-surface-variant flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">policy</span>
+<span>
+<strong class="text-on-surface font-medium">Hospital Release Policy:</strong> Upon digital authorization, this report will immediately publish to the referring consultant's OPD workstation (Dr. K. Venkat Rao) and the patient's Ayushman Bharat Digital Mission (ABDM) PHR vault. High-definition DICOM print releases upon Cashier billing clearance.
+          </span>
+</div>
+<!-- Primary Action Toolbar -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-3">
+<div class="flex items-center gap-2">
+<button class="h-9 px-3.5 rounded bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">replay</span>
+              Request Re-scan / Views
+            </button>
+<button class="h-9 px-3.5 rounded bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">print</span>
+              Print Dossier
+            </button>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-9 px-3.5 rounded bg-surface text-primary font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">priority_high</span>
+              Return with Urgent Alert
+            </button>
+<button class="h-9 px-5 rounded bg-primary text-on-primary font-label-lg text-label-lg hover:bg-primary-container transition-colors flex items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Authorize &amp; Finalize Report</span>
+<span class="font-data-mono text-label-sm bg-black/20 px-1.5 py-0.2 rounded text-white/80">Ctrl+Enter</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

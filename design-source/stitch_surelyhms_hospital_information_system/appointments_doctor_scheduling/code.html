@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-bright": "#f8f9ff",
+          "on-tertiary-fixed": "#251a00",
+          "surface-container-lowest": "#ffffff",
+          "on-tertiary-container": "#d4b264",
+          "surface-tint": "#a83541",
+          "on-error": "#ffffff",
+          "surface-container-high": "#dce9ff",
+          "on-secondary-container": "#7a4d54",
+          "on-tertiary": "#ffffff",
+          "secondary-container": "#fdc3ca",
+          "on-primary-container": "#ff999d",
+          "tertiary": "#402e00",
+          "outline": "#8a7171",
+          "on-surface-variant": "#574142",
+          "surface-container": "#e5eeff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-highest": "#d4e4fd",
+          "secondary": "#7f5258",
+          "tertiary-container": "#5b4400",
+          "on-primary": "#ffffff",
+          "on-secondary-fixed": "#321117",
+          "surface-container-low": "#eff4ff",
+          "surface": "#f8f9ff",
+          "on-error-container": "#93000a",
+          "background": "#f8f9ff",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "inverse-on-surface": "#eaf1ff",
+          "inverse-surface": "#223144",
+          "error-container": "#ffdad6",
+          "inverse-primary": "#ffb3b5",
+          "primary-container": "#881d2c",
+          "on-secondary-fixed-variant": "#643b41",
+          "on-primary-fixed": "#40000b",
+          "on-surface": "#0c1c2e",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-primary-fixed-variant": "#881d2c",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "tertiary-fixed": "#ffdf9a",
+          "primary": "#680118",
+          "on-secondary": "#ffffff",
+          "surface-dim": "#ccdbf4",
+          "on-background": "#0c1c2e",
+          "outline-variant": "#debfbf",
+          "surface-variant": "#d4e4fd",
+          "secondary-fixed-dim": "#f1b8bf",
+          "error": "#ba1a1a"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-lg": "1rem",
+          "gutter": "1rem",
+          "space-md": "0.75rem",
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "margin": "1.5rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "title-md": ["Inter"],
+          "body-md": ["Inter"],
+          "body-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "label-sm": ["Inter"],
+          "label-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "headline-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "body-sm": ["Inter"]
+        },
+        "fontSize": {
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-surface-container-high"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>City Campus - Main Hospital, Hyderabad</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / Mobile / Patient Name / Encounter..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">LAN: 192.168.1.10</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/40" src="https://lh3.googleusercontent.com/aida/AEtjO1XmP9Q8l0470v27u8hI4Bfx2HlVbM8Hj5mC3K9Q1u7y7_x0Gv1p8w_4z2L9n0k8j7_4w7_s3x4m8r2y7a1v4t7m9k2p"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-60 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Clinical Operations</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="role-specific-work-dashboard" href="dashboard.html"><span class="font-body-md text-body-md">Work Dashboard</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="patient-search-registration" href="patients.html"><span class="font-body-md text-body-md">Patient Registration</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">New</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="patient-profile-encounter-timeline" href="patient-profile.html"><span class="font-body-md text-body-md">Patient Records</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">EMR</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="appointments-doctor-scheduling" href="appointments.html"><span class="font-body-md text-body-md">Appointments</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">54</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="reception-visit-tracking-queue" href="visit-queue.html"><span class="font-body-md text-body-md">OP Visit Queue</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">38</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; Billing</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals-station" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd-consultation" href="#"><span class="font-body-md text-body-md">Doctor OPD</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">29</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="laboratory-diagnostics" href="#"><span class="font-body-md text-body-md">Laboratory &amp; Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">34</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispensing" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">7</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ipd-bed-management" href="#"><span class="font-body-md text-body-md">IPD / Bed Mgmt</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administration &amp; Oversight</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="admin-owner-daily-operations" href="operations-dashboard.html"><span class="font-body-md text-body-md">Daily Operations</span><span class="font-data-mono text-label-sm bg-tertiary-fixed/30 text-tertiary-fixed px-1.5 py-0.5 rounded">Ops</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="owner-dashboard.html"><span class="font-body-md text-body-md">Management Overview</span><span class="font-data-mono text-label-sm bg-tertiary-fixed/30 text-tertiary-fixed px-1.5 py-0.5 rounded">Exec</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="public-queue-token-display" href="#"><span class="font-body-md text-body-md">Token Display</span><span class="font-data-mono text-label-sm text-tertiary-fixed">Live</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-60 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Top Quick Stats & Clinical Roster Bar -->
+<div class="bg-surface-container-lowest px-6 py-3 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">OPD Outpatient Census</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface">Day Schedule &amp; Chamber Roster</span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">OPD Wing B (Rooms 101-106)</span>
+</div>
+</div>
+<div class="h-8 w-px bg-surface-container-high hidden md:block"></div>
+<div class="hidden lg:flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-secondary-container/40 text-on-secondary-container font-label-md text-label-md">
+<span class="h-2 w-2 rounded-full bg-primary animate-ping"></span>
+          Live Synchronized
+        </span>
+</div>
+</div>
+<!-- Metrics Strip -->
+<div class="flex items-center gap-2.5 flex-wrap">
+<div class="bg-surface-container-low px-3 py-1.5 rounded flex items-center gap-3">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Total Booked</span>
+<span class="font-data-mono text-title-md text-title-md font-bold text-on-surface">48</span>
+</div>
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+</div>
+</div>
+<div class="bg-surface-container-low px-3 py-1.5 rounded flex items-center gap-3">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Checked-In</span>
+<span class="font-data-mono text-title-md text-title-md font-bold text-tertiary">34</span>
+</div>
+<div class="w-8 h-8 rounded bg-tertiary-fixed/40 flex items-center justify-center text-tertiary-container">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+</div>
+</div>
+<div class="bg-surface-container-low px-3 py-1.5 rounded flex items-center gap-3">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Completed</span>
+<span class="font-data-mono text-title-md text-title-md font-bold text-primary">18</span>
+</div>
+<div class="w-8 h-8 rounded bg-secondary-fixed/50 flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[18px]">task_alt</span>
+</div>
+</div>
+<div class="bg-surface-container-low px-3 py-1.5 rounded flex items-center gap-3">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">No-Show</span>
+<span class="font-data-mono text-title-md text-title-md font-bold text-error">03</span>
+</div>
+<div class="w-8 h-8 rounded bg-error-container/60 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[18px]">person_off</span>
+</div>
+</div>
+<div class="bg-surface-container-low px-3 py-1.5 rounded flex items-center gap-3">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Available Slots</span>
+<span class="font-data-mono text-title-md text-title-md font-bold text-on-surface">12</span>
+</div>
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">more_time</span>
+</div>
+</div>
+<button class="ml-2 h-9 px-3.5 bg-primary hover:bg-primary-container text-on-primary rounded flex items-center gap-2 font-label-lg text-label-lg transition-colors shadow-sm" onclick="toggleModal('modal-book-appointment', true)">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Book Appointment</span>
+<span class="font-data-mono text-[10px] bg-on-primary/20 px-1 py-0.2 rounded ml-0.5">Alt + B</span>
+</button>
+</div>
+</div>
+<!-- Operational Filter Bar & View Toggle -->
+<div class="px-6 py-3 bg-surface-container-lowest flex flex-wrap items-center justify-between gap-3 shadow-sm mt-1">
+<div class="flex flex-wrap items-center gap-3">
+<!-- Doctor Selector Dropdown -->
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Practitioner:</span>
+<div class="relative">
+<select class="h-8 pl-3 pr-8 bg-surface-container-low text-on-surface font-title-md text-title-md rounded focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer" id="doctor-filter">
+<option selected="" value="all">All Doctors (6 On Duty)</option>
+<option value="dr-venkat">Dr. K. Venkat Rao - Ortho (Chamber 101)</option>
+<option value="dr-archana">Dr. Archana Sen - Gen Med (Chamber 102)</option>
+<option value="dr-arun">Dr. Arun Joshi - Cardio (Chamber 103)</option>
+<option value="dr-s-rao">Dr. S. Rao - Pediatrics (Chamber 104)</option>
+<option value="dr-nambiar">Dr. S. Nambiar - OBGYN (Chamber 105)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2 text-on-surface-variant pointer-events-none text-[16px]">expand_more</span>
+</div>
+</div>
+<!-- Date Switcher -->
+<div class="flex items-center gap-1 bg-surface-container-low rounded p-0.5">
+<button class="h-7 w-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<div class="flex items-center gap-1.5 px-2">
+<span class="material-symbols-outlined text-[15px] text-primary">event</span>
+<span class="font-data-mono text-label-lg text-label-lg font-bold text-on-surface">Today: 24 Oct 2024</span>
+</div>
+<button class="h-7 w-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<!-- Department Quick Pill -->
+<div class="hidden xl:flex items-center gap-1">
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-1 rounded text-on-surface font-medium">All OPD Specializations</span>
+<span class="font-label-sm text-label-sm bg-secondary-fixed/40 px-2 py-1 rounded text-on-secondary-fixed font-medium">Morning Shift (09:00 - 13:00)</span>
+</div>
+</div>
+<!-- View Mode Switcher -->
+<div class="flex items-center gap-3">
+<div class="bg-surface-container-low p-0.5 rounded flex items-center">
+<button class="flex items-center gap-1.5 px-3 py-1 rounded bg-primary text-on-primary font-label-md text-label-md transition-all shadow-sm" id="btn-view-grid" onclick="switchView('grid')">
+<span class="material-symbols-outlined text-[15px]">grid_view</span>
+<span>Chamber Day Grid</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-all" id="btn-view-list" onclick="switchView('list')">
+<span class="material-symbols-outlined text-[15px]">view_timeline</span>
+<span>Chronological List</span>
+</button>
+</div>
+<!-- Quick Refresh / Print Roster -->
+<div class="flex items-center gap-1">
+<button class="h-8 w-8 rounded bg-surface-container-low text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors" title="Refresh Roster Feed">
+<span class="material-symbols-outlined text-[18px]">sync</span>
+</button>
+<button class="h-8 w-8 rounded bg-surface-container-low text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors" title="Print Roster Sheet">
+<span class="material-symbols-outlined text-[18px]">print</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Legend Bar -->
+<div class="px-6 py-2 bg-surface-container flex flex-wrap items-center justify-between text-on-surface-variant text-label-sm font-label-sm">
+<div class="flex flex-wrap items-center gap-4">
+<span class="font-bold text-on-surface uppercase tracking-wider text-[9px]">Lifecycle Legend:</span>
+<span class="flex items-center gap-1.5">
+<span class="h-2.5 w-2.5 rounded-full bg-blue-600"></span>
+<span class="text-on-surface">Scheduled / Confirmed</span>
+</span>
+<span class="flex items-center gap-1.5">
+<span class="h-2.5 w-2.5 rounded-full bg-amber-600"></span>
+<span class="text-on-surface">Arrived / Checked-In</span>
+</span>
+<span class="flex items-center gap-1.5">
+<span class="h-2.5 w-2.5 rounded-full bg-primary animate-pulse"></span>
+<span class="text-on-surface font-bold">In-Chamber (Consulting)</span>
+</span>
+<span class="flex items-center gap-1.5">
+<span class="h-2.5 w-2.5 rounded-full bg-emerald-600"></span>
+<span class="text-on-surface">Completed</span>
+</span>
+<span class="flex items-center gap-1.5">
+<span class="h-2.5 w-2.5 rounded-full bg-on-surface-variant/40"></span>
+<span class="text-on-surface-variant">No-Show / Reschedule Prompt</span>
+</span>
+</div>
+<div class="hidden sm:flex items-center gap-2 text-[11px] font-data-mono">
+<span class="material-symbols-outlined text-[14px] text-tertiary">info</span>
+<span>Click any appointment card to trigger safeguard check-in or view clinical token</span>
+</div>
+</div>
+<!-- MAIN OPERATIONAL WORK AREA -->
+<div class="p-6">
+<!-- VIEW 1: CHAMBER DAY GRID VIEW (DEFAULT) -->
+<div class="flex flex-col gap-4" id="chamber-grid-view">
+<!-- Chamber Columns Header -->
+<div class="grid grid-cols-12 gap-3">
+<!-- Time Column Header Placeholder -->
+<div class="col-span-1 bg-surface-container-high/60 rounded p-2 text-center flex flex-col justify-center">
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant">Time Slot</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant/80">15-Min Step</span>
+</div>
+<!-- Doctor 1 Header -->
+<div class="col-span-11 md:col-span-3 lg:col-span-2 bg-surface-container-lowest rounded p-2.5 shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<img class="w-8 h-8 rounded-full object-cover shrink-0" data-alt="Close up portrait photograph of Dr. K. Venkat Rao, a senior male Indian orthopedic specialist wearing rimless spectacles and a formal white doctor coat with a stethoscope over a collared shirt in hospital lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCebFJYeCXqqrByk3CE1u-fq9pUIDnHaTHLo7ZpcWsnu7rVO9-rWROboLu8dDiF8qxkaEqT-GzLCatbZoz0VJnDDLsubGNMJT-MKq2FK38F_6gY5GHusqgouFe1rmviRZLQdBLilXvydI-j6xHtCil50Cd1TYSJN_ZZIzQUYqhOtuWk1EKklmkAQSz3-1Lwk23o4CK0aiRwSRhHuywne24giDUSw7JdyB9iUfC_7M"/>
+<div class="min-w-0">
+<span class="font-title-md text-title-md font-bold text-on-surface truncate block">Dr. Venkat Rao</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate block">Ortho • Rm 101</span>
+</div>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-1.5 py-0.5 rounded font-bold text-primary">8/12</span>
+</div>
+<!-- Doctor 2 Header -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-surface-container-lowest rounded p-2.5 shadow-sm items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<img class="w-8 h-8 rounded-full object-cover shrink-0" data-alt="Portrait photograph of Dr. Archana Sen, a middle-aged female Indian physician wearing a maroon border saree under an ivory consultation coat inside a clinic chamber." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1LyNJty6_1EEMw017lTwrtWq-uof5wiqUyPomf0vPgcNcNYYR1w9lI3E-o1gDCbKkBZQy8IIQgV6Hg3BzoEicccBy-ykD0sD6-U45arLAchhMJ4PWQAwUMRWkqP-K40wtylzD6OYaaWpTcXLtfWhz_oNEiygrGX5JlFvjMuuFSoZWtTsF5VcHw58oRsAZrqAAxByc3p_2IGifz7uogXc6a-HSrCulBNxjOh6vE1Q"/>
+<div class="min-w-0">
+<span class="font-title-md text-title-md font-bold text-on-surface truncate block">Dr. Archana Sen</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate block">Gen Med • Rm 102</span>
+</div>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-1.5 py-0.5 rounded font-bold text-primary">10/12</span>
+</div>
+<!-- Doctor 3 Header -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-surface-container-lowest rounded p-2.5 shadow-sm items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<img class="w-8 h-8 rounded-full object-cover shrink-0" data-alt="Professional bust shot of Dr. Arun Joshi, male cardiologist with grey hair, navy tie, and medical coat standing confidently with hospital hallway softly blurred in the background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3XYBvay_8nJhvGGUHrC16wC_KS_Hzes8B1lua9t786mH4EPMtvCeNk1GFRz4dKSaqYa-3FcZZZ3IT8UujMqL3liurBBwuBrk7L0zPknhcFN_Df25VygixHXoFR3a2kRBII7miqb-Be3ytN1hr9cR5TSvO-BvfxImXs8VM7uM8ecsF-7UYouwJ9xKdXdVOvYcRyan9tsbpNxT3NWzESNGhJPqBJK3MX064ubsuN-o"/>
+<div class="min-w-0">
+<span class="font-title-md text-title-md font-bold text-on-surface truncate block">Dr. Arun Joshi</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate block">Cardio • Rm 103</span>
+</div>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-1.5 py-0.5 rounded font-bold text-primary">11/14</span>
+</div>
+<!-- Doctor 4 Header -->
+<div class="hidden lg:flex lg:col-span-2 bg-surface-container-lowest rounded p-2.5 shadow-sm items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<img class="w-8 h-8 rounded-full object-cover shrink-0" data-alt="Portrait of Dr. S. Rao, female pediatrician in teal scrubs with yellow stethoscope in clean brightly illuminated outpatient clinic chamber." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqdSrCPET8TTwb6aoyGFHNw6eJWbKumDZbfYlKqUPG6MYNm4lDeEAfz1CndzeI7SffQpTmG2HIj4ejpkVyxbIBWrQiGPOFn9CxwPvtCXAjf7TRjPv5wb-7FQCPXF2shwNbSQLbJP6QgSIJh75XTgdDYUKk1-TKhVf7ykQrAn5TeWjqWkJEMT7DehHgwo7ihxU2XXvm5T6qn7n03fYMr0991-NZT6r0R3mozOBtPy0"/>
+<div class="min-w-0">
+<span class="font-title-md text-title-md font-bold text-on-surface truncate block">Dr. S. Rao</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate block">Pediatrics • Rm 104</span>
+</div>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-1.5 py-0.5 rounded font-bold text-primary">9/10</span>
+</div>
+<!-- Doctor 5 Header -->
+<div class="hidden xl:flex xl:col-span-3 bg-surface-container-lowest rounded p-2.5 shadow-sm items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<img class="w-8 h-8 rounded-full object-cover shrink-0" data-alt="Studio portrait of Dr. S. Nambiar, senior gynecologist in spectacles and burgundy surgical cap holding a digital tablet in modern Indian medical office." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzc7ymiXgD36Om8M51NoCiCqcVigUoc-P6RfylYLwuhCQ_K-4KG8QRHkbs8oDLRMixzI-uy5uvo-N6WujuxERsWFuafBg-wwd7oXpQb8H9HKXu-52RGGShOySadsJ6Q9eI2eQb-OTV59nw4TGZtQ_mJa1ho3Mg3dTVt19NKTf0PuxT8GZcf1j7EwHq9pfe-bLgGVb84zo6J9dmOcMB1rdPaxc0JNlprByciKPyKyI"/>
+<div class="min-w-0">
+<span class="font-title-md text-title-md font-bold text-on-surface truncate block">Dr. S. Nambiar</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate block">OBGYN • Rm 105</span>
+</div>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-1.5 py-0.5 rounded font-bold text-primary">10/10</span>
+</div>
+</div>
+<!-- Time Interval Rows (09:00 AM to 12:00 PM representative block) -->
+<div class="flex flex-col gap-2.5">
+<!-- ROW: 09:00 AM -->
+<div class="grid grid-cols-12 gap-3 items-stretch">
+<div class="col-span-1 bg-surface-container-high/40 rounded flex flex-col items-center justify-center py-2">
+<span class="font-data-mono text-body-md font-bold text-on-surface">09:00</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">AM</span>
+</div>
+<!-- Col 1: Completed -->
+<div class="col-span-11 md:col-span-3 lg:col-span-2 bg-[#DCFCE7] text-[#166534] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between" onclick="openSafeguardModal('UHID-98214', 'Ramesh Chandra Verma', '48y / M', 'Dr. Venkat Rao', 'Ortho', '09:00 AM', 'completed', 'Token #01')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BBF7D0] px-1.5 py-0.5 rounded">Completed</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #01</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#14532D] truncate">Ramesh Verma</p>
+<p class="font-data-mono text-[11px] text-[#166534]/90">UHID-98214 • Knee Follow-up</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">9:02 - 9:18 AM</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+</div>
+<!-- Col 2: Completed -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-[#DCFCE7] text-[#166534] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-77291', 'Geeta Devi Gupta', '56y / F', 'Dr. Archana Sen', 'Gen Med', '09:00 AM', 'completed', 'Token #02')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BBF7D0] px-1.5 py-0.5 rounded">Completed</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #02</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#14532D] truncate">Geeta Devi Gupta</p>
+<p class="font-data-mono text-[11px] text-[#166534]/90">UHID-77291 • Hypertension</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">9:00 - 9:15 AM</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+</div>
+<!-- Col 3: Completed -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-[#DCFCE7] text-[#166534] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-33418', 'M. Venkatesh', '62y / M', 'Dr. Arun Joshi', 'Cardio', '09:00 AM', 'completed', 'Token #03')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BBF7D0] px-1.5 py-0.5 rounded">Completed</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #03</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#14532D] truncate">M. Venkatesh</p>
+<p class="font-data-mono text-[11px] text-[#166534]/90">UHID-33418 • Post-Angio Rev</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">9:05 - 9:22 AM</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+</div>
+<!-- Col 4: Completed -->
+<div class="hidden lg:flex lg:col-span-2 bg-[#DCFCE7] text-[#166534] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-11029', 'Baby Aarav (R. Sneha)', '4y / M', 'Dr. S. Rao', 'Pediatrics', '09:00 AM', 'completed', 'Token #04')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BBF7D0] px-1.5 py-0.5 rounded">Completed</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #04</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#14532D] truncate">Baby Aarav</p>
+<p class="font-data-mono text-[11px] text-[#166534]/90">UHID-11029 • MMR Booster</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">9:01 - 9:14 AM</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+</div>
+<!-- Col 5: Completed -->
+<div class="hidden xl:flex xl:col-span-3 bg-[#DCFCE7] text-[#166534] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-49012', 'Ananya Sharma', '29y / F', 'Dr. S. Nambiar', 'OBGYN', '09:00 AM', 'completed', 'Token #05')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BBF7D0] px-1.5 py-0.5 rounded">Completed</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #05</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#14532D] truncate">Ananya Sharma</p>
+<p class="font-data-mono text-[11px] text-[#166534]/90">UHID-49012 • 28w Antenatal Check</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">9:00 - 9:25 AM</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+</div>
+</div>
+<!-- ROW: 09:30 AM -->
+<div class="grid grid-cols-12 gap-3 items-stretch">
+<div class="col-span-1 bg-surface-container-high/40 rounded flex flex-col items-center justify-center py-2">
+<span class="font-data-mono text-body-md font-bold text-on-surface">09:30</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">AM</span>
+</div>
+<!-- Col 1: Completed -->
+<div class="col-span-11 md:col-span-3 lg:col-span-2 bg-[#DCFCE7] text-[#166534] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between" onclick="openSafeguardModal('UHID-55091', 'Suresh K. Patel', '52y / M', 'Dr. Venkat Rao', 'Ortho', '09:30 AM', 'completed', 'Token #08')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BBF7D0] px-1.5 py-0.5 rounded">Completed</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #08</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#14532D] truncate">Suresh K. Patel</p>
+<p class="font-data-mono text-[11px] text-[#166534]/90">UHID-55091 • Spine Physio Review</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">9:32 - 9:48 AM</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+</div>
+<!-- Col 2: No-show -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-surface-container-high text-on-surface-variant p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between opacity-80" onclick="openSafeguardModal('UHID-66320', 'Harish Babu Reddy', '39y / M', 'Dr. Archana Sen', 'Gen Med', '09:30 AM', 'noshow', '')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-error/10 text-error px-1.5 py-0.5 rounded">No-Show</span>
+<span class="font-data-mono text-[11px] text-error font-bold">Missed</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold line-through text-on-surface truncate">Harish Reddy</p>
+<p class="font-data-mono text-[11px] text-on-surface-variant">UHID-66320 • Routine Health</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1 text-primary">
+<span class="font-label-sm text-[10px] underline">Click to Reschedule</span>
+<span class="material-symbols-outlined text-[14px]">event_repeat</span>
+</div>
+</div>
+<!-- Col 3: Completed -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-[#DCFCE7] text-[#166534] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-88120', 'Prabhakar Rao', '67y / M', 'Dr. Arun Joshi', 'Cardio', '09:30 AM', 'completed', 'Token #09')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BBF7D0] px-1.5 py-0.5 rounded">Completed</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #09</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#14532D] truncate">Prabhakar Rao</p>
+<p class="font-data-mono text-[11px] text-[#166534]/90">UHID-88120 • Holter Eval</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">9:31 - 9:50 AM</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+</div>
+<!-- Col 4: Empty Slot -->
+<div class="hidden lg:flex lg:col-span-2 bg-surface-container-lowest hover:bg-surface-container rounded p-2.5 shadow-sm transition-all cursor-pointer flex-col justify-center items-center text-center group" onclick="quickBookSlot('Dr. S. Rao', '09:30 AM')">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant/60 group-hover:text-primary transition-colors">add_circle_outline</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium mt-1">Available Slot</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant/70">Click to assign</span>
+</div>
+<!-- Col 5: Completed -->
+<div class="hidden xl:flex xl:col-span-3 bg-[#DCFCE7] text-[#166534] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-90114', 'Sunita Mahajan', '33y / F', 'Dr. S. Nambiar', 'OBGYN', '09:30 AM', 'completed', 'Token #11')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BBF7D0] px-1.5 py-0.5 rounded">Completed</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #11</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#14532D] truncate">Sunita Mahajan</p>
+<p class="font-data-mono text-[11px] text-[#166534]/90">UHID-90114 • USG Doppler Report</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">9:28 - 9:46 AM</span>
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+</div>
+</div>
+<!-- ROW: 10:15 AM (CURRENT ACTIVE TIME - IN CHAMBER / ARRIVED FOCUS) -->
+<div class="grid grid-cols-12 gap-3 items-stretch relative">
+<!-- Time indicator badge -->
+<div class="col-span-1 bg-primary text-on-primary rounded flex flex-col items-center justify-center py-2 shadow-sm">
+<span class="font-data-mono text-body-md font-bold">10:15</span>
+<span class="font-label-sm text-[9px] uppercase tracking-wider bg-on-primary/20 px-1 rounded mt-0.5">NOW</span>
+</div>
+<!-- Col 1: In Chamber (Doctor Venkat Rao) -->
+<div class="col-span-11 md:col-span-3 lg:col-span-2 bg-[#881D2C] text-on-primary p-2.5 rounded shadow-md hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between" onclick="openSafeguardModal('UHID-44182', 'Rajesh K. Singhania', '54y / M', 'Dr. Venkat Rao', 'Ortho', '10:15 AM', 'inchamber', 'Token #15')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-on-primary/25 text-on-primary px-1.5 py-0.5 rounded flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-white animate-ping"></span> In-Chamber
+              </span>
+<span class="font-data-mono text-[11px] font-bold bg-white text-primary px-1.5 py-0.5 rounded">Tk #15</span>
+</div>
+<div class="my-1.5">
+<p class="font-title-md text-title-md font-bold text-white truncate">Rajesh Singhania</p>
+<p class="font-data-mono text-[11px] text-primary-fixed truncate">UHID-44182 • Left ACL Strain</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1 text-primary-fixed-dim">
+<span class="font-label-sm text-[10px]">Elapsed: 08 min</span>
+<span class="material-symbols-outlined text-[15px] text-white">stethoscope</span>
+</div>
+</div>
+<!-- Col 2: In Chamber (Dr Archana Sen) -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-[#881D2C] text-on-primary p-2.5 rounded shadow-md hover:shadow-lg transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-32981', 'Anita Deshmukh', '41y / F', 'Dr. Archana Sen', 'Gen Med', '10:15 AM', 'inchamber', 'Token #16')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-on-primary/25 text-on-primary px-1.5 py-0.5 rounded flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-white animate-ping"></span> In-Chamber
+              </span>
+<span class="font-data-mono text-[11px] font-bold bg-white text-primary px-1.5 py-0.5 rounded">Tk #16</span>
+</div>
+<div class="my-1.5">
+<p class="font-title-md text-title-md font-bold text-white truncate">Anita Deshmukh</p>
+<p class="font-data-mono text-[11px] text-primary-fixed truncate">UHID-32981 • Persistent Pyrexia</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1 text-primary-fixed-dim">
+<span class="font-label-sm text-[10px]">Elapsed: 12 min</span>
+<span class="material-symbols-outlined text-[15px] text-white">stethoscope</span>
+</div>
+</div>
+<!-- Col 3: Arrived / Checked-in (Dr Arun Joshi) -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-[#FEF3C7] text-[#92400E] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-67210', 'K. Venkataraman', '59y / M', 'Dr. Arun Joshi', 'Cardio', '10:15 AM', 'arrived', 'Token #17')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#FDE68A] px-1.5 py-0.5 rounded">Arrived (Waiting)</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #17</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#78350F] truncate">K. Venkataraman</p>
+<p class="font-data-mono text-[11px] text-[#92400E]/90">UHID-67210 • Angina Review</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px] text-amber-800">Vitals Logged • Waiting</span>
+<span class="material-symbols-outlined text-[14px]">timer</span>
+</div>
+</div>
+<!-- Col 4: In Chamber (Dr S Rao) -->
+<div class="hidden lg:flex lg:col-span-2 bg-[#881D2C] text-on-primary p-2.5 rounded shadow-md hover:shadow-lg transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-19823', 'Master Vihaan Shah', '2y / M', 'Dr. S. Rao', 'Pediatrics', '10:15 AM', 'inchamber', 'Token #18')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-on-primary/25 text-on-primary px-1.5 py-0.5 rounded flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-white animate-ping"></span> In-Chamber
+              </span>
+<span class="font-data-mono text-[11px] font-bold bg-white text-primary px-1.5 py-0.5 rounded">Tk #18</span>
+</div>
+<div class="my-1.5">
+<p class="font-title-md text-title-md font-bold text-white truncate">Master Vihaan Shah</p>
+<p class="font-data-mono text-[11px] text-primary-fixed truncate">UHID-19823 • Acute Wheezing</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1 text-primary-fixed-dim">
+<span class="font-label-sm text-[10px]">Elapsed: 04 min</span>
+<span class="material-symbols-outlined text-[15px] text-white">stethoscope</span>
+</div>
+</div>
+<!-- Col 5: Arrived (Dr S Nambiar) -->
+<div class="hidden xl:flex xl:col-span-3 bg-[#FEF3C7] text-[#92400E] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-78103', 'Pooja Iyer', '27y / F', 'Dr. S. Nambiar', 'OBGYN', '10:15 AM', 'arrived', 'Token #19')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#FDE68A] px-1.5 py-0.5 rounded">Arrived (Waiting)</span>
+<span class="font-data-mono text-[11px] font-bold">Tk #19</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#78350F] truncate">Pooja Iyer</p>
+<p class="font-data-mono text-[11px] text-[#92400E]/90">UHID-78103 • 1st Trimester Screen</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px] text-amber-800">Nurse Triage Done</span>
+<span class="material-symbols-outlined text-[14px]">notifications_active</span>
+</div>
+</div>
+</div>
+<!-- ROW: 10:45 AM -->
+<div class="grid grid-cols-12 gap-3 items-stretch">
+<div class="col-span-1 bg-surface-container-high/40 rounded flex flex-col items-center justify-center py-2">
+<span class="font-data-mono text-body-md font-bold text-on-surface">10:45</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">AM</span>
+</div>
+<!-- Col 1: Arrived / Waiting Check-In Safeguard Target -->
+<div class="col-span-11 md:col-span-3 lg:col-span-2 bg-[#FEF3C7] text-[#92400E] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between" onclick="openSafeguardModal('UHID-29103', 'Balwant S. Chadha', '61y / M', 'Dr. Venkat Rao', 'Ortho', '10:45 AM', 'arrived', 'Token #24')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#FDE68A] px-1.5 py-0.5 rounded">Checked-In</span>
+<span class="font-data-mono text-[11px] font-bold bg-[#FEF08A] px-1 rounded">Tk #24</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#78350F] truncate">Balwant Chadha</p>
+<p class="font-data-mono text-[11px] text-[#92400E]/90">UHID-29103 • Total Knee Review</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px] text-amber-800">Encounter Active</span>
+<span class="material-symbols-outlined text-[14px]">receipt_long</span>
+</div>
+</div>
+<!-- Col 2: Scheduled / Confirmed (Needs Check-In) -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-[#DBEAFE] text-[#1E40AF] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-83021', 'Meera Nambeesan', '35y / F', 'Dr. Archana Sen', 'Gen Med', '10:45 AM', 'scheduled', '')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BFDBFE] px-1.5 py-0.5 rounded">Scheduled</span>
+<span class="font-data-mono text-[11px] font-bold">Slot 10:45</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#1E3A8A] truncate">Meera Nambeesan</p>
+<p class="font-data-mono text-[11px] text-[#1E40AF]/90">UHID-83021 • Thyroid Consultation</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">Awaiting Arrival</span>
+<span class="material-symbols-outlined text-[14px]">login</span>
+</div>
+</div>
+<!-- Col 3: Scheduled / Confirmed -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-[#DBEAFE] text-[#1E40AF] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-51004', 'Tanmay B. Joshi', '45y / M', 'Dr. Arun Joshi', 'Cardio', '10:45 AM', 'scheduled', '')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BFDBFE] px-1.5 py-0.5 rounded">Scheduled</span>
+<span class="font-data-mono text-[11px] font-bold">Slot 10:45</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#1E3A8A] truncate">Tanmay B. Joshi</p>
+<p class="font-data-mono text-[11px] text-[#1E40AF]/90">UHID-51004 • Lipid Panel Review</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">SMS Sent</span>
+<span class="material-symbols-outlined text-[14px]">sms</span>
+</div>
+</div>
+<!-- Col 4: Scheduled / Confirmed -->
+<div class="hidden lg:flex lg:col-span-2 bg-[#DBEAFE] text-[#1E40AF] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-72901', 'Baby Zoya (F. Begum)', '18m / F', 'Dr. S. Rao', 'Pediatrics', '10:45 AM', 'scheduled', '')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BFDBFE] px-1.5 py-0.5 rounded">Scheduled</span>
+<span class="font-data-mono text-[11px] font-bold">Slot 10:45</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#1E3A8A] truncate">Baby Zoya</p>
+<p class="font-data-mono text-[11px] text-[#1E40AF]/90">UHID-72901 • Growth Milestone</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">Pre-Registered</span>
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+</div>
+<!-- Col 5: Scheduled / Confirmed -->
+<div class="hidden xl:flex xl:col-span-3 bg-[#DBEAFE] text-[#1E40AF] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-63118', 'Shruti Chawla', '31y / F', 'Dr. S. Nambiar', 'OBGYN', '10:45 AM', 'scheduled', '')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BFDBFE] px-1.5 py-0.5 rounded">Scheduled</span>
+<span class="font-data-mono text-[11px] font-bold">Slot 10:45</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#1E3A8A] truncate">Shruti Chawla</p>
+<p class="font-data-mono text-[11px] text-[#1E40AF]/90">UHID-63118 • High Risk Anomaly</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">Awaiting Arrival</span>
+<span class="material-symbols-outlined text-[14px]">pending_actions</span>
+</div>
+</div>
+</div>
+<!-- ROW: 11:15 AM -->
+<div class="grid grid-cols-12 gap-3 items-stretch">
+<div class="col-span-1 bg-surface-container-high/40 rounded flex flex-col items-center justify-center py-2">
+<span class="font-data-mono text-body-md font-bold text-on-surface">11:15</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">AM</span>
+</div>
+<!-- Col 1: Scheduled -->
+<div class="col-span-11 md:col-span-3 lg:col-span-2 bg-[#DBEAFE] text-[#1E40AF] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between" onclick="openSafeguardModal('UHID-89234', 'Devendra Patil', '50y / M', 'Dr. Venkat Rao', 'Ortho', '11:15 AM', 'scheduled', '')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BFDBFE] px-1.5 py-0.5 rounded">Scheduled</span>
+<span class="font-data-mono text-[11px] font-bold">Slot 11:15</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#1E3A8A] truncate">Devendra Patil</p>
+<p class="font-data-mono text-[11px] text-[#1E40AF]/90">UHID-89234 • Lumbar Spondylosis</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">New Patient</span>
+<span class="material-symbols-outlined text-[14px]">person_add</span>
+</div>
+</div>
+<!-- Col 2: Available -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-surface-container-lowest hover:bg-surface-container rounded p-2.5 shadow-sm transition-all cursor-pointer flex-col justify-center items-center text-center group" onclick="quickBookSlot('Dr. Archana Sen', '11:15 AM')">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant/60 group-hover:text-primary transition-colors">add_circle_outline</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium mt-1">Available Slot</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant/70">Click to book</span>
+</div>
+<!-- Col 3: Scheduled -->
+<div class="hidden md:flex md:col-span-3 lg:col-span-2 bg-[#DBEAFE] text-[#1E40AF] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-33109', 'Naveen Kurien', '49y / M', 'Dr. Arun Joshi', 'Cardio', '11:15 AM', 'scheduled', '')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BFDBFE] px-1.5 py-0.5 rounded">Scheduled</span>
+<span class="font-data-mono text-[11px] font-bold">Slot 11:15</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#1E3A8A] truncate">Naveen Kurien</p>
+<p class="font-data-mono text-[11px] text-[#1E40AF]/90">UHID-33109 • Echo Cardiogram Rev</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">Pre-Booked</span>
+<span class="material-symbols-outlined text-[14px]">event_note</span>
+</div>
+</div>
+<!-- Col 4: Available -->
+<div class="hidden lg:flex lg:col-span-2 bg-surface-container-lowest hover:bg-surface-container rounded p-2.5 shadow-sm transition-all cursor-pointer flex-col justify-center items-center text-center group" onclick="quickBookSlot('Dr. S. Rao', '11:15 AM')">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant/60 group-hover:text-primary transition-colors">add_circle_outline</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium mt-1">Available Slot</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant/70">Click to book</span>
+</div>
+<!-- Col 5: Scheduled -->
+<div class="hidden xl:flex xl:col-span-3 bg-[#DBEAFE] text-[#1E40AF] p-2.5 rounded shadow-sm hover:shadow-md transition-all cursor-pointer flex-col justify-between" onclick="openSafeguardModal('UHID-18239', 'Kavita Menon', '26y / F', 'Dr. S. Nambiar', 'OBGYN', '11:15 AM', 'scheduled', '')">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-[10px] uppercase font-bold tracking-wider bg-[#BFDBFE] px-1.5 py-0.5 rounded">Scheduled</span>
+<span class="font-data-mono text-[11px] font-bold">Slot 11:15</span>
+</div>
+<div class="my-1">
+<p class="font-title-md text-title-md font-bold text-[#1E3A8A] truncate">Kavita Menon</p>
+<p class="font-data-mono text-[11px] text-[#1E40AF]/90">UHID-18239 • PCOS Management</p>
+</div>
+<div class="flex items-center justify-between text-[11px] pt-1">
+<span class="font-label-sm text-[10px]">Follow-Up</span>
+<span class="material-symbols-outlined text-[14px]">autorenew</span>
+</div>
+</div>
+</div>
+<!-- Afternoon Slot Indicator / Collapsed Ribbon -->
+<div class="bg-surface-container-low rounded p-3 flex items-center justify-between shadow-sm my-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">schedule</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Afternoon Roster (12:00 PM - 05:00 PM)</span>
+<span class="font-data-mono text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">22 Additional Slots Configured</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Lunch Break Scheduled 01:30 PM - 02:00 PM</span>
+<button class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1 font-bold">
+<span>Expand All PM Slots</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- VIEW 2: CHRONOLOGICAL TIME SLOT LIST (TOGGLED VIA JS) -->
+<div class="hidden flex flex-col gap-3" id="chronological-list-view">
+<div class="bg-surface-container-lowest rounded shadow-sm overflow-hidden">
+<div class="p-4 bg-surface-container-low flex items-center justify-between">
+<div>
+<h3 class="font-title-md text-title-md font-bold text-on-surface">Chronological Master Appointment Schedule</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Continuous feed ordered by scheduled visit time for all active OPD consulting chambers.</p>
+</div>
+<div class="flex items-center gap-2">
+<input class="h-8 px-3 bg-surface-container-lowest text-on-surface rounded text-body-sm focus:outline-none focus:ring-1 focus:ring-primary w-64" placeholder="Filter patient name / token..." type="text"/>
+<button class="h-8 px-3 bg-surface-container hover:bg-surface-container-high rounded text-on-surface font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+<span>Filter Status</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-2.5 px-4">Time Slot</th>
+<th class="py-2.5 px-4">Token #</th>
+<th class="py-2.5 px-4">Patient Demographics</th>
+<th class="py-2.5 px-4">UHID</th>
+<th class="py-2.5 px-4">Attending Doctor</th>
+<th class="py-2.5 px-4">Chamber</th>
+<th class="py-2.5 px-4">Encounter / Visit Reason</th>
+<th class="py-2.5 px-4">Lifecycle State</th>
+<th class="py-2.5 px-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high/40 text-body-md">
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-3 px-4 font-data-mono font-bold text-on-surface">10:15 AM</td>
+<td class="py-3 px-4 font-data-mono font-bold text-primary">#15</td>
+<td class="py-3 px-4">
+<div class="font-bold text-on-surface">Rajesh K. Singhania</div>
+<div class="font-label-sm text-on-surface-variant">54y / Male • +91 98490 22119</div>
+</td>
+<td class="py-3 px-4 font-data-mono text-on-surface-variant">UHID-44182</td>
+<td class="py-3 px-4 font-bold text-on-surface">Dr. K. Venkat Rao</td>
+<td class="py-3 px-4 font-label-sm text-on-surface-variant">Room 101</td>
+<td class="py-3 px-4 text-on-surface truncate max-w-xs">Left ACL Strain Post-MR</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary text-on-primary">
+<span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span> In-Chamber
+                  </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="h-7 px-2.5 bg-surface-container hover:bg-surface-container-high rounded text-on-surface font-label-sm text-label-sm" onclick="openSafeguardModal('UHID-44182', 'Rajesh K. Singhania', '54y / M', 'Dr. Venkat Rao', 'Ortho', '10:15 AM', 'inchamber', 'Token #15')">
+                    Manage
+                  </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-3 px-4 font-data-mono font-bold text-on-surface">10:15 AM</td>
+<td class="py-3 px-4 font-data-mono font-bold text-primary">#16</td>
+<td class="py-3 px-4">
+<div class="font-bold text-on-surface">Anita Deshmukh</div>
+<div class="font-label-sm text-on-surface-variant">41y / Female • +91 94401 88201</div>
+</td>
+<td class="py-3 px-4 font-data-mono text-on-surface-variant">UHID-32981</td>
+<td class="py-3 px-4 font-bold text-on-surface">Dr. Archana Sen</td>
+<td class="py-3 px-4 font-label-sm text-on-surface-variant">Room 102</td>
+<td class="py-3 px-4 text-on-surface truncate max-w-xs">Persistent Pyrexia 5-days</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary text-on-primary">
+<span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span> In-Chamber
+                  </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="h-7 px-2.5 bg-surface-container hover:bg-surface-container-high rounded text-on-surface font-label-sm text-label-sm" onclick="openSafeguardModal('UHID-32981', 'Anita Deshmukh', '41y / F', 'Dr. Archana Sen', 'Gen Med', '10:15 AM', 'inchamber', 'Token #16')">
+                    Manage
+                  </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-3 px-4 font-data-mono font-bold text-on-surface">10:45 AM</td>
+<td class="py-3 px-4 font-data-mono font-bold text-tertiary">#24</td>
+<td class="py-3 px-4">
+<div class="font-bold text-on-surface">Balwant S. Chadha</div>
+<div class="font-label-sm text-on-surface-variant">61y / Male • +91 99890 33410</div>
+</td>
+<td class="py-3 px-4 font-data-mono text-on-surface-variant">UHID-29103</td>
+<td class="py-3 px-4 font-bold text-on-surface">Dr. K. Venkat Rao</td>
+<td class="py-3 px-4 font-label-sm text-on-surface-variant">Room 101</td>
+<td class="py-3 px-4 text-on-surface truncate max-w-xs">Post-Op Knee Checkup (6 Wks)</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF3C7] text-[#92400E]">
+<span class="h-1.5 w-1.5 rounded-full bg-amber-600"></span> Arrived / Active
+                  </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="h-7 px-2.5 bg-surface-container hover:bg-surface-container-high rounded text-on-surface font-label-sm text-label-sm" onclick="openSafeguardModal('UHID-29103', 'Balwant S. Chadha', '61y / M', 'Dr. Venkat Rao', 'Ortho', '10:45 AM', 'arrived', 'Token #24')">
+                    Open Safeguard
+                  </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-3 px-4 font-data-mono font-bold text-on-surface">10:45 AM</td>
+<td class="py-3 px-4 font-data-mono text-on-surface-variant">Pending</td>
+<td class="py-3 px-4">
+<div class="font-bold text-on-surface">Meera Nambeesan</div>
+<div class="font-label-sm text-on-surface-variant">35y / Female • +91 98112 00119</div>
+</td>
+<td class="py-3 px-4 font-data-mono text-on-surface-variant">UHID-83021</td>
+<td class="py-3 px-4 font-bold text-on-surface">Dr. Archana Sen</td>
+<td class="py-3 px-4 font-label-sm text-on-surface-variant">Room 102</td>
+<td class="py-3 px-4 text-on-surface truncate max-w-xs">Thyroid Function &amp; Lethargy</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#DBEAFE] text-[#1E40AF]">
+                    Scheduled
+                  </span>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="h-7 px-2.5 bg-primary text-on-primary rounded font-label-sm text-label-sm hover:bg-primary-container transition-colors" onclick="openSafeguardModal('UHID-83021', 'Meera Nambeesan', '35y / F', 'Dr. Archana Sen', 'Gen Med', '10:45 AM', 'scheduled', '')">
+                    Check-in
+                  </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL 1: SAFEGUARD AGAINST DUPLICATE ENCOUNTER CREATION -->
+<div class="fixed inset-0 z-50 hidden flex items-center justify-center bg-on-surface/50 backdrop-blur-sm p-4" id="modal-safeguard">
+<div class="bg-surface-container-lowest rounded-xl max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+<!-- Modal Header -->
+<div class="bg-surface-container px-6 py-4 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-tertiary-fixed/60 flex items-center justify-center text-tertiary-container" id="safeguard-icon-badge">
+<span class="material-symbols-outlined text-[20px]">shield</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Appointment Action Verification</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Duplicate Encounter &amp; Double-Billing Safeguard</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface rounded-full p-1 transition-colors" onclick="toggleModal('modal-safeguard', false)">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Patient Demographics Banner -->
+<div class="p-6 flex flex-col gap-4">
+<div class="bg-surface-container-low rounded-lg p-3.5 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md font-bold text-on-surface" id="sg-patient-name">Patient Name</span>
+<span class="font-data-mono text-body-sm text-on-surface-variant" id="sg-patient-meta">UHID-00000 • Age/Sex</span>
+</div>
+<div class="text-right">
+<span class="font-data-mono text-title-md text-title-md font-bold text-on-surface" id="sg-slot-time">10:45 AM</span>
+<span class="font-label-sm text-label-sm block text-on-surface-variant" id="sg-doctor-assigned">Dr. Attending</span>
+</div>
+</div>
+<!-- Safeguard Alert Box -->
+<div class="bg-[#FEF3C7] text-[#92400E] p-3.5 rounded-lg flex items-start gap-3" id="safeguard-alert-active">
+<span class="material-symbols-outlined text-[22px] text-amber-700 shrink-0">check_circle</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold text-[#78350F]">Encounter Record Already Active!</span>
+<p class="font-body-sm text-body-sm mt-0.5 text-amber-900 leading-snug">
+              This patient has already checked in with <strong id="sg-active-token">Token #24</strong>. An active OPD clinical encounter exists in the hospital LAN database. Generating a new visit is locked to eliminate duplicate billings or split vitals records.
+            </p>
+</div>
+</div>
+<!-- Safeguard Alert Box for Unchecked Patient -->
+<div class="hidden bg-blue-50 text-blue-900 p-3.5 rounded-lg flex items-start gap-3" id="safeguard-alert-unregistered">
+<span class="material-symbols-outlined text-[22px] text-blue-700 shrink-0">info</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold text-blue-950">Patient Ready for Check-In</span>
+<p class="font-body-sm text-body-sm mt-0.5 text-blue-900 leading-snug">
+              No OPD clinical encounter currently exists for this patient on 24 Oct 2024. Confirming will generate a new digital queue token and open a fresh clinical chart in Doctor Chamber.
+            </p>
+</div>
+</div>
+<!-- Quick Encounter Info Summary -->
+<div class="grid grid-cols-2 gap-2 text-label-sm font-label-sm">
+<div class="bg-surface-container-low p-2 rounded">
+<span class="text-on-surface-variant uppercase text-[10px] block">Hospital Wing / Counter</span>
+<span class="text-on-surface font-bold">OPD Main Wing - Token Station #02</span>
+</div>
+<div class="bg-surface-container-low p-2 rounded">
+<span class="text-on-surface-variant uppercase text-[10px] block">Billing / Consultation Fee</span>
+<span class="text-on-surface font-bold">₹ 500 (Covered / Cash Paid)</span>
+</div>
+</div>
+<!-- Safeguard Decision Buttons -->
+<div class="flex flex-col gap-2 pt-2">
+<!-- Button A: Active Encounter Handler -->
+<button class="w-full h-11 bg-primary hover:bg-primary-container text-on-primary rounded font-label-lg text-label-lg flex items-center justify-center gap-2 transition-colors shadow-sm" id="sg-btn-existing">
+<span class="material-symbols-outlined text-[18px]">meeting_room</span>
+<span id="sg-btn-existing-text">Encounter Active (Token #24) - Go to Vitals / Chamber</span>
+</button>
+<!-- Button B: Check-in / Open Encounter Handler (when NOT checked in yet) -->
+<button class="hidden w-full h-11 bg-primary hover:bg-primary-container text-on-primary rounded font-label-lg text-label-lg flex items-center justify-center gap-2 transition-colors shadow-sm" id="sg-btn-checkin">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+<span>Check-in &amp; Open Visit (Assign Token)</span>
+</button>
+<!-- Secondary Actions -->
+<div class="flex items-center gap-2 mt-1">
+<button class="flex-1 h-9 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-label-md text-label-md transition-colors" onclick="toggleModal('modal-safeguard', false)">
+              Close Dialog
+            </button>
+<button class="h-9 px-3 bg-surface-container text-error hover:bg-error-container/40 rounded font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+<span>Cancel Appointment</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL 2: SLIDE-OVER / MODAL 'BOOK NEW APPOINTMENT' -->
+<div class="fixed inset-0 z-50 hidden flex justify-end bg-on-surface/40 backdrop-blur-xs transition-opacity duration-200" id="modal-book-appointment">
+<div class="bg-surface-container-lowest w-full max-w-xl h-full shadow-2xl flex flex-col justify-between overflow-y-auto">
+<!-- Slide-Over Header -->
+<div class="bg-surface-container px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">calendar_add_on</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Book New OPD Appointment</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Real-time Chamber Slot Allocation System</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface rounded-full p-1 transition-colors" onclick="toggleModal('modal-book-appointment', false)">
+<span class="material-symbols-outlined text-[22px]">close</span>
+</button>
+</div>
+<!-- Form Body -->
+<div class="p-6 flex flex-col gap-5 flex-1">
+<!-- Patient Lookup (UHID / Mobile Search Auto-fill) -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-lg text-label-lg text-on-surface flex items-center justify-between">
+<span>Patient Identification (UHID / Mobile)</span>
+<span class="text-label-sm text-primary font-bold">Auto-fetch enabled</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full h-9 pl-9 pr-24 bg-surface-container-low text-on-surface font-body-md text-body-md rounded focus:outline-none focus:ring-1 focus:ring-primary" id="patient-lookup-input" placeholder="Search UHID / Mobile No / Aadhaar / Patient Name..." type="text" value="UHID-94102 (S. V. Raman, 58y, M)"/>
+<button class="absolute right-2 top-1.5 px-2 py-0.5 bg-primary text-on-primary rounded font-label-sm text-label-sm hover:bg-primary-container transition-colors" type="button">
+              Verify
+            </button>
+</div>
+<!-- Auto-filled Quick Card -->
+<div class="bg-surface-container-low p-2.5 rounded flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-[24px]">account_circle</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold text-on-surface">Mr. S. V. Raman</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">UHID-94102 • +91 94412 77011 • Hyd East</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-bold">Registered</span>
+</div>
+</div>
+<!-- Doctor & Department Selection -->
+<div class="grid grid-cols-2 gap-3">
+<div class="flex flex-col gap-1.5">
+<label class="font-label-lg text-label-lg text-on-surface">Department</label>
+<select class="h-9 px-3 bg-surface-container-low text-on-surface rounded text-body-md focus:outline-none focus:ring-1 focus:ring-primary">
+<option>Orthopedics</option>
+<option selected="">General Medicine</option>
+<option>Cardiology</option>
+<option>Pediatrics</option>
+<option>Obstetrics &amp; Gynecology</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-label-lg text-label-lg text-on-surface">Consulting Doctor</label>
+<select class="h-9 px-3 bg-surface-container-low text-on-surface rounded text-body-md focus:outline-none focus:ring-1 focus:ring-primary" id="modal-doctor-select">
+<option>Dr. K. Venkat Rao (Ortho - Rm 101)</option>
+<option selected="">Dr. Archana Sen (Gen Med - Rm 102)</option>
+<option>Dr. Arun Joshi (Cardio - Rm 103)</option>
+<option>Dr. S. Rao (Pediatrics - Rm 104)</option>
+<option>Dr. S. Nambiar (OBGYN - Rm 105)</option>
+</select>
+</div>
+</div>
+<!-- Appointment Type Selection -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-lg text-label-lg text-on-surface">Appointment Classification</label>
+<div class="grid grid-cols-3 gap-2">
+<label class="flex items-center gap-2 p-2 rounded bg-surface-container-low hover:bg-surface-container cursor-pointer">
+<input checked="" class="text-primary focus:ring-primary" name="app-type" type="radio" value="new"/>
+<span class="font-label-md text-label-md text-on-surface">New Consultation</span>
+</label>
+<label class="flex items-center gap-2 p-2 rounded bg-surface-container-low hover:bg-surface-container cursor-pointer">
+<input class="text-primary focus:ring-primary" name="app-type" type="radio" value="followup"/>
+<span class="font-label-md text-label-md text-on-surface">Post-Op Follow-up</span>
+</label>
+<label class="flex items-center gap-2 p-2 rounded bg-surface-container-low hover:bg-surface-container cursor-pointer">
+<input class="text-primary focus:ring-primary" name="app-type" type="radio" value="tele"/>
+<span class="font-label-md text-label-md text-on-surface">Tele-Review</span>
+</label>
+</div>
+</div>
+<!-- Available Slot Picker with Capacity Indicator -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<label class="font-label-lg text-label-lg text-on-surface">Select Time Slot (24 Oct 2024)</label>
+<span class="font-data-mono text-label-sm text-on-surface-variant">15-min Intervals</span>
+</div>
+<!-- Capacity slots matrix -->
+<div class="grid grid-cols-2 gap-2">
+<!-- Slot Option 1 -->
+<div class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container cursor-pointer flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-lg text-label-lg font-bold text-on-surface">10:30 AM - 10:45 AM</span>
+<span class="font-label-sm text-[10px] bg-secondary-fixed text-on-secondary-fixed px-1.5 py-0.2 rounded font-bold">2 of 4 Booked</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-1/2"></div>
+</div>
+</div>
+<!-- Slot Option 2 (Selected) -->
+<div class="p-2.5 rounded bg-secondary-container text-on-secondary-container cursor-pointer flex flex-col gap-1.5 ring-1 ring-primary">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-lg text-label-lg font-bold">11:00 AM - 11:15 AM</span>
+<span class="font-label-sm text-[10px] bg-primary text-on-primary px-1.5 py-0.2 rounded font-bold">1 of 4 Booked</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-1/4"></div>
+</div>
+</div>
+<!-- Slot Option 3 -->
+<div class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container cursor-pointer flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-lg text-label-lg font-bold text-on-surface">11:30 AM - 11:45 AM</span>
+<span class="font-label-sm text-[10px] bg-secondary-fixed text-on-secondary-fixed px-1.5 py-0.2 rounded font-bold">3 of 4 Booked</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-amber-600 h-full w-3/4"></div>
+</div>
+</div>
+<!-- Slot Option 4 (Full) -->
+<div class="p-2.5 rounded bg-surface-container-high/40 opacity-60 cursor-not-allowed flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-lg text-label-lg font-bold text-on-surface-variant">11:45 AM - 12:00 PM</span>
+<span class="font-label-sm text-[10px] bg-error/10 text-error px-1.5 py-0.2 rounded font-bold">Capacity Full (4/4)</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-error h-full w-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Reason for Visit / Chief Complaint -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-lg text-label-lg text-on-surface">Reason for Visit / Chief Complaints</label>
+<textarea class="w-full p-2.5 bg-surface-container-low text-on-surface font-body-md text-body-md rounded focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Specify presenting symptoms, referring physician note, or chronic management history..." rows="3"></textarea>
+</div>
+<!-- SMS / WhatsApp Notification Toggle -->
+<div class="bg-surface-container-low p-3 rounded flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px]">sms</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold text-on-surface">Dispatch SMS / WhatsApp Token Alert</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Sends patient time slot + live queue tracking link</span>
+</div>
+</div>
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-primary" type="checkbox"/>
+</div>
+</div>
+<!-- Slide-Over Footer Actions -->
+<div class="p-4 bg-surface-container border-t border-surface-container-high flex items-center justify-between sticky bottom-0">
+<button class="h-9 px-4 bg-surface-container-lowest hover:bg-surface-container-low text-on-surface rounded font-label-md text-label-md transition-colors" onclick="toggleModal('modal-book-appointment', false)">
+          Cancel [Esc]
+        </button>
+<button class="h-9 px-5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-lg text-label-lg flex items-center gap-2 transition-colors shadow-sm" onclick="confirmAppointmentBooking()">
+<span class="material-symbols-outlined text-[18px]">check</span>
+<span>Confirm Appointment [Enter]</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Notification Toast -->
+<div class="fixed bottom-6 right-6 z-50 hidden bg-surface-container-lowest text-on-surface px-4 py-3 rounded-lg shadow-xl border-l-4 border-primary flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2" id="action-toast">
+<span class="material-symbols-outlined text-primary text-[22px]">verified</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold" id="toast-title">Appointment Confirmed</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="toast-desc">UHID-94102 scheduled for 11:00 AM</span>
+</div>
+</div>
+<!-- Script for Roster Micro-interactions -->
+<script>
+    function switchView(mode) {
+      const gridView = document.getElementById('chamber-grid-view');
+      const listView = document.getElementById('chronological-list-view');
+      const btnGrid = document.getElementById('btn-view-grid');
+      const btnList = document.getElementById('btn-view-list');
+
+      if (mode === 'grid') {
+        gridView.classList.remove('hidden');
+        listView.classList.add('hidden');
+        btnGrid.classList.add('bg-primary', 'text-on-primary', 'shadow-sm');
+        btnGrid.classList.remove('text-on-surface-variant');
+        btnList.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm');
+        btnList.classList.add('text-on-surface-variant');
+      } else {
+        gridView.classList.add('hidden');
+        listView.classList.remove('hidden');
+        btnList.classList.add('bg-primary', 'text-on-primary', 'shadow-sm');
+        btnList.classList.remove('text-on-surface-variant');
+        btnGrid.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm');
+        btnGrid.classList.add('text-on-surface-variant');
+      }
+    }
+
+    function toggleModal(modalId, show) {
+      const modal = document.getElementById(modalId);
+      if (show) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function openSafeguardModal(uhid, name, ageSex, doctor, dept, slotTime, state, token) {
+      document.getElementById('sg-patient-name').textContent = name;
+      document.getElementById('sg-patient-meta').textContent = `${uhid} • ${ageSex} • ${dept}`;
+      document.getElementById('sg-slot-time').textContent = slotTime;
+      document.getElementById('sg-doctor-assigned').textContent = doctor;
+
+      const alertActive = document.getElementById('safeguard-alert-active');
+      const alertUnregistered = document.getElementById('safeguard-alert-unregistered');
+      const btnExisting = document.getElementById('sg-btn-existing');
+      const btnCheckin = document.getElementById('sg-btn-checkin');
+      const btnExistingText = document.getElementById('sg-btn-existing-text');
+      const iconBadge = document.getElementById('safeguard-icon-badge');
+
+      if (state === 'arrived' || state === 'inchamber' || state === 'completed') {
+        alertActive.classList.remove('hidden');
+        alertUnregistered.classList.add('hidden');
+        btnExisting.classList.remove('hidden');
+        btnCheckin.classList.add('hidden');
+
+        const activeTokenStr = token || 'Token #24';
+        document.getElementById('sg-active-token').textContent = activeTokenStr;
+        btnExistingText.textContent = `Encounter Active (${activeTokenStr}) - Go to Vitals / Chamber`;
+      } else {
+        alertActive.classList.add('hidden');
+        alertUnregistered.classList.remove('hidden');
+        btnExisting.classList.add('hidden');
+        btnCheckin.classList.remove('hidden');
+      }
+
+      toggleModal('modal-safeguard', true);
+    }
+
+    function quickBookSlot(doctor, timeSlot) {
+      toggleModal('modal-book-appointment', true);
+    }
+
+    function confirmAppointmentBooking() {
+      toggleModal('modal-book-appointment', false);
+      const toast = document.getElementById('action-toast');
+      document.getElementById('toast-title').textContent = 'Appointment Confirmed';
+      document.getElementById('toast-desc').textContent = 'Token & SMS confirmation dispatched successfully.';
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+
+    // Keyboard Shortcuts (Alt + B for booking, Esc for close)
+    document.addEventListener('keydown', function(event) {
+      if (event.altKey && (event.key === 'b' || event.key === 'B')) {
+        event.preventDefault();
+        toggleModal('modal-book-appointment', true);
+      }
+      if (event.key === 'Escape') {
+        toggleModal('modal-book-appointment', false);
+        toggleModal('modal-safeguard', false);
+      }
+    });
+  </script>
+</div></main></div></body></html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / IPD No / Bed / Patient Name / Ward..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Inpatient &amp; IPD Care</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="inpatient-admissions-bed-management" href="#"><span class="font-body-md text-body-md">Inpatient Admissions &amp; Bed Management</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ward-nursing-workspace" href="#"><span class="font-body-md text-body-md">Ward Nursing Workspace</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">24 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="icu-critical-care-unit" href="#"><span class="font-body-md text-body-md">ICU Critical Care Unit</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">6 Crit</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="discharge-coordination-desk" href="#"><span class="font-body-md text-body-md">Discharge Coordination Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">8 Ready</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Acute &amp; Specialty Care</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="emergency-casualty-desk" href="#"><span class="font-body-md text-body-md">Emergency &amp; Casualty Desk</span><span class="font-data-mono text-label-sm bg-error text-on-error px-1.5 py-0.5 rounded font-bold">Red Alert</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="operation-theatre-suite" href="#"><span class="font-body-md text-body-md">Operation Theatre (OT) Suite</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Live</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="maternity-obstetric-care" href="#"><span class="font-body-md text-body-md">Maternity &amp; Obstetric Care</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="intrapartum-partograph-chart" href="#"><span class="font-body-md text-body-md">Intrapartum Partograph Chart</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Labor Watch</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Clinical &amp; Diagnostic Modules</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ultrasound-usg-reporting-templates" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (USG)</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-tertiary-fixed font-bold">Pharmacy &amp; Inventory</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1 py-0.2 rounded font-bold">STOCK</span></div><a aria-current="page" class="flex items-center justify-between px-3 py-2 rounded transition-colors bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed" data-path="pharmacy-dispense-pos" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense &amp; POS</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">POS</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="medicine-master-catalog" href="#"><span class="font-body-md text-body-md">Medicine Master Catalog</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="stock-ledger-batches" href="#"><span class="font-body-md text-body-md">Stock Ledger &amp; Batches</span><span class="font-data-mono text-label-sm bg-amber-600/90 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Expiring</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="goods-receipt-grn" href="#"><span class="font-body-md text-body-md">Goods Receipt (GRN)</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Billing &amp; Hospital Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; IP Billing</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- REGULATORY GOVERNANCE NOTICE -->
+<div class="bg-primary px-6 py-2 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-2 text-on-primary">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed shrink-0">verified_user</span>
+<p class="font-label-md text-label-md tracking-wide">
+<span class="font-bold text-tertiary-fixed uppercase mr-1.5">Institutional Pharmacy Governance:</span>
+        Separation of Financial Settlement &amp; Clinical Dispensing. Physical release of scheduled pharmaceuticals requires verified prescription authenticity and dual-state authorization (‘Paid / Credit Authorized’ AND ‘Physically Dispensed &amp; Double-Checked’).
+      </p>
+</div>
+<div class="hidden 2xl:flex items-center gap-3 shrink-0">
+<span class="font-data-mono text-label-sm text-primary-fixed-dim bg-primary-container px-2 py-0.5 rounded">CDSCO GSR-1337(E) Compliance</span>
+<span class="font-data-mono text-label-sm text-primary-fixed-dim">Audit Trace: ACTIVE</span>
+</div>
+</div>
+<!-- OPERATIONAL SUB-HEADER & LIVE TELEMETRY BAR -->
+<div class="bg-surface-container-lowest px-6 py-3 shadow-sm flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+<!-- Mode Switcher Tabs -->
+<div class="flex items-center gap-2">
+<button class="bg-primary text-on-primary font-label-lg text-label-lg px-3.5 py-1.5 rounded flex items-center gap-2 shadow-sm transition-all hover:bg-primary-container">
+<span class="material-symbols-outlined text-[16px]">prescriptions</span>
+<span>Prescription Dispensing</span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed font-data-mono text-label-sm px-1.5 py-0.2 rounded font-bold">7 Active</span>
+</button>
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-lg text-label-lg px-3 py-1.5 rounded flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">point_of_sale</span>
+<span>Direct Walk-in / Counter OTC Sales</span>
+<span class="bg-surface-dim text-on-surface font-data-mono text-label-sm px-1.5 py-0.2 rounded">Queue: 3</span>
+</button>
+</div>
+<!-- Live Scanner Affordance & Shift Counters -->
+<div class="flex flex-wrap items-center gap-3">
+<!-- Hardware Integration Chip -->
+<div class="flex items-center gap-2 bg-surface-container px-2.5 py-1 rounded">
+<span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold leading-none">Barcode Scanner</span>
+<span class="font-data-mono text-label-sm text-on-surface font-medium leading-tight">Honeywell 1900GSR [USB-HID Active]</span>
+</div>
+<button class="bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface-variant font-label-sm text-label-sm px-1.5 py-0.5 rounded transition-colors ml-1" id="scanSimBtn">Simulate Scan</button>
+</div>
+<!-- Quick Metrics Strip -->
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1 rounded">
+<div class="flex items-center gap-1.5 pr-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Awaiting:</span>
+<span class="font-data-mono text-body-sm font-bold text-primary">7</span>
+</div>
+<div class="h-3 w-px bg-outline-variant/50"></div>
+<div class="flex items-center gap-1.5 px-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Dispensed:</span>
+<span class="font-data-mono text-body-sm font-bold text-on-surface">142</span>
+</div>
+<div class="h-3 w-px bg-outline-variant/50"></div>
+<div class="flex items-center gap-1.5 px-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Stock Flags:</span>
+<span class="font-data-mono text-body-sm font-bold text-error">2</span>
+</div>
+<div class="h-3 w-px bg-outline-variant/50"></div>
+<div class="flex items-center gap-1.5 pl-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Shift Gross:</span>
+<span class="font-data-mono text-body-sm font-bold text-on-surface">₹48,920.00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- PATIENT CONTEXT CLINICAL BANNER -->
+<div class="px-6 py-4">
+<div class="bg-surface-container-lowest rounded shadow-sm p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+<div class="flex items-start gap-4">
+<!-- Patient Portrait with high-contrast badge -->
+<div class="relative shrink-0">
+<img class="w-14 h-14 rounded object-cover shadow-sm" data-alt="Close up clinical portrait of an Indian elderly female patient aged 52 with warm composed expression, neutral hospital lighting, clinical photography style, high key framing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcqsRIgxQgiD9Q-8jlPf2fvR3KJhczyCIMq4R9-wl3ZVtm66CZ9_4GBmvW0DMdxeMevcK_z95dS7ffAzbDK5ZYYeMWmjI0shmSdWKOORhVbbyVPT39uD9nM8Sz93rqtqbBoQeK1FX4aELrdLnfPQTp6ZBrItW3CZQGgldtUGWCkWF0ddZxgchXpHVHIquF0JMVlzVcxGFrBiUhyzEKg8FcQIZvm-HV8VVP_CUaojE"/>
+<span class="absolute -bottom-1 -right-1 bg-primary text-on-primary font-data-mono text-[9px] px-1 py-0.2 rounded font-bold">Tk #42</span>
+</div>
+<!-- Demographic Details -->
+<div class="flex flex-col gap-1">
+<div class="flex flex-wrap items-center gap-2">
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Smt. Lakshmi Narayanan</h2>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded font-bold">52Y / Female</span>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded">UHID: SHMS-2024-09142</span>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded">ENC-2024-10-0592</span>
+</div>
+<div class="flex flex-wrap items-center gap-3 text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-primary">stethoscope</span>
+<strong class="font-semibold text-on-surface">Dr. K. Venkat Rao, MD</strong> (General Medicine)
+            </span>
+<span class="h-3 w-px bg-outline-variant/60"></span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">meeting_room</span>
+              OP Chamber 104
+            </span>
+<span class="h-3 w-px bg-outline-variant/60"></span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+              Rx Generated: <span class="font-data-mono font-medium text-on-surface">Today, 11:46 AM IST</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Critical Allergy and Triage Badges -->
+<div class="flex flex-wrap items-center gap-3 bg-surface-container-low p-2.5 rounded xl:self-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-error font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span> Known Drug Allergies
+          </span>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="bg-error text-on-error font-label-sm text-label-sm px-2 py-0.5 rounded font-bold flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-white"></span>PENICILLINS
+            </span>
+<span class="bg-error text-on-error font-label-sm text-label-sm px-2 py-0.5 rounded font-bold flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-white"></span>SULFA DRUGS
+            </span>
+</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/40 mx-1"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Billing Route</span>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold mt-1">OP Cashier Desk #2</span>
+</div>
+</div>
+</div>
+</div>
+<!-- MAIN OPERATIONAL WORKSPACE: 12-COLUMN BESPOKE SPLIT -->
+<div class="px-6 pb-6 grid grid-cols-1 2xl:grid-cols-12 gap-5 items-start">
+<!-- LEFT & CENTER (8 COLS): DISPENSE TABLE & SEARCH RUNNER -->
+<div class="2xl:col-span-8 flex flex-col gap-4">
+<!-- FAST PHARMACEUTICAL LOOKUP & SCANNER FIELD -->
+<div class="bg-surface-container-lowest p-3 rounded shadow-sm flex flex-col md:flex-row items-center gap-3">
+<div class="relative flex-1 w-full">
+<span class="material-symbols-outlined absolute left-3 top-2 text-on-surface-variant text-[18px]">barcode_scanner</span>
+<input class="w-full h-8 pl-9 pr-24 bg-surface text-on-surface font-body-md text-body-md rounded focus:outline-none focus:bg-surface-container-lowest placeholder:text-on-surface-variant/60 shadow-inner" id="rxMedicineSearch" placeholder="[F2] or Scan Pack 2D DataMatrix / Generic Formula / Brand Name..." type="text"/>
+<div class="absolute right-2 top-1.5 flex items-center gap-1">
+<span class="font-data-mono text-label-sm bg-surface-container px-1.5 py-0.5 rounded text-on-surface-variant font-semibold">Hotkey [F2]</span>
+</div>
+</div>
+<!-- Filter Badges -->
+<div class="flex items-center gap-1.5 shrink-0 w-full md:w-auto overflow-x-auto">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold pr-1">Fast Filter:</span>
+<button class="bg-primary-container text-on-primary font-label-sm text-label-sm px-2 py-1 rounded">All Rx Items (4)</button>
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm px-2 py-1 rounded">Pending (1)</button>
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm px-2 py-1 rounded">Fulfilled (3)</button>
+</div>
+</div>
+<!-- CLINICAL PRESCRIBED ITEMS & BATCH ALLOCATION MATRIX -->
+<div class="bg-surface-container-lowest rounded shadow-sm overflow-hidden">
+<div class="px-4 py-3 bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">medication</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">Prescription Lines &amp; Real-time FIFO Batch Allocations</span>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface px-1.5 py-0.5 rounded">4 Prescribed Items</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-emerald-600"></span>Stock Valid</span>
+<span class="flex items-center gap-1 ml-2"><span class="h-2 w-2 rounded-full bg-amber-500"></span>Partial Supply</span>
+<span class="flex items-center gap-1 ml-2"><span class="h-2 w-2 rounded-full bg-error"></span>Locked/Expired</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container font-label-md text-label-md text-on-surface-variant uppercase">
+<th class="py-2.5 pl-4 pr-2 w-8">#</th>
+<th class="py-2.5 px-3">Prescribed Medicine &amp; Generic Formula</th>
+<th class="py-2.5 px-2">Regimen / Duration</th>
+<th class="py-2.5 px-2 text-right">Rx Qty</th>
+<th class="py-2.5 px-3">Allocated Batch / Expiry / Current SOH</th>
+<th class="py-2.5 px-2 text-right">Dispense Qty</th>
+<th class="py-2.5 px-2 text-right">MRP (₹)</th>
+<th class="py-2.5 px-3 text-right">Net Amount</th>
+<th class="py-2.5 px-3">Fulfillment Status</th>
+<th class="py-2.5 pr-4 pl-2 text-center">Action</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md divide-y-0 text-on-surface">
+<!-- ROW 1: Dolo 650 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-2.5 pl-4 pr-2 font-data-mono text-label-sm text-on-surface-variant">01</td>
+<td class="py-2.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<strong class="font-title-md text-title-md text-on-surface">Tab. Paracetamol 650mg</strong>
+<span class="font-label-sm text-[9px] bg-surface-container text-on-surface-variant px-1 rounded">Brand: Dolo 650</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Generic: Paracetamol IP 650mg | Micro Labs</span>
+</div>
+</td>
+<td class="py-2.5 px-2">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-primary">Oral • TDS (1-1-1)</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Duration: 3 Days (Post Meals)</span>
+</div>
+</td>
+<td class="py-2.5 px-2 text-right font-data-mono text-body-md font-bold">9</td>
+<td class="py-2.5 px-3">
+<div class="flex items-center justify-between gap-2 bg-surface p-1.5 rounded shadow-sm">
+<div class="flex flex-col">
+<span class="font-data-mono text-label-sm font-bold text-primary">Batch: B-24098</span>
+<span class="font-data-mono text-[10px] text-emerald-800">Exp: 08/2026</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-1 py-0.5 rounded text-on-surface-variant" title="Stock on hand">SOH: 420</span>
+</div>
+</td>
+<td class="py-2.5 px-2 text-right">
+<input class="w-14 h-7 text-right font-data-mono text-body-md font-bold bg-surface-container-low px-1.5 rounded focus:outline-none focus:bg-surface-container-lowest text-on-surface" max="9" min="1" type="number" value="9"/>
+</td>
+<td class="py-2.5 px-2 text-right font-data-mono text-body-sm text-on-surface-variant">3.20</td>
+<td class="py-2.5 px-3 text-right font-data-mono text-body-md font-bold text-on-surface">28.80</td>
+<td class="py-2.5 px-3">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> Full Allocation
+                  </span>
+</td>
+<td class="py-2.5 pr-4 pl-2 text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Scan pack verification">
+<span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+</button>
+</td>
+</tr>
+<!-- ROW 2: Pan 40 -->
+<tr class="bg-surface-container-lowest hover:bg-surface-container-low/60 transition-colors">
+<td class="py-2.5 pl-4 pr-2 font-data-mono text-label-sm text-on-surface-variant">02</td>
+<td class="py-2.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<strong class="font-title-md text-title-md text-on-surface">Tab. Pantoprazole 40mg</strong>
+<span class="font-label-sm text-[9px] bg-surface-container text-on-surface-variant px-1 rounded">Brand: Pan 40</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Generic: Pantoprazole Sodium IP 40mg | Alkem Labs</span>
+</div>
+</td>
+<td class="py-2.5 px-2">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-primary">Oral • OD (1-0-0)</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Duration: 5 Days (Early Morning)</span>
+</div>
+</td>
+<td class="py-2.5 px-2 text-right font-data-mono text-body-md font-bold">5</td>
+<td class="py-2.5 px-3">
+<div class="flex items-center justify-between gap-2 bg-surface p-1.5 rounded shadow-sm">
+<div class="flex flex-col">
+<span class="font-data-mono text-label-sm font-bold text-primary">Batch: P-88211</span>
+<span class="font-data-mono text-[10px] text-emerald-800">Exp: 11/2025</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-1 py-0.5 rounded text-on-surface-variant">SOH: 180</span>
+</div>
+</td>
+<td class="py-2.5 px-2 text-right">
+<input class="w-14 h-7 text-right font-data-mono text-body-md font-bold bg-surface-container-low px-1.5 rounded focus:outline-none focus:bg-surface-container-lowest text-on-surface" max="5" min="1" type="number" value="5"/>
+</td>
+<td class="py-2.5 px-2 text-right font-data-mono text-body-sm text-on-surface-variant">11.50</td>
+<td class="py-2.5 px-3 text-right font-data-mono text-body-md font-bold text-on-surface">57.50</td>
+<td class="py-2.5 px-3">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> Full Allocation
+                  </span>
+</td>
+<td class="py-2.5 pr-4 pl-2 text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Scan pack verification">
+<span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+</button>
+</td>
+</tr>
+<!-- ROW 3: Electral ORS -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-2.5 pl-4 pr-2 font-data-mono text-label-sm text-on-surface-variant">03</td>
+<td class="py-2.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<strong class="font-title-md text-title-md text-on-surface">Oral Rehydration Salts IP (Electral)</strong>
+<span class="font-label-sm text-[9px] bg-surface-container text-on-surface-variant px-1 rounded">21.8g Sachet</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Generic: WHO Formula Oral Electrolyte Powder | FDC</span>
+</div>
+</td>
+<td class="py-2.5 px-2">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-primary">Oral • Ad lib (In 1L water)</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Duration: 3 Days</span>
+</div>
+</td>
+<td class="py-2.5 px-2 text-right font-data-mono text-body-md font-bold">3</td>
+<td class="py-2.5 px-3">
+<div class="flex items-center justify-between gap-2 bg-surface p-1.5 rounded shadow-sm">
+<div class="flex flex-col">
+<span class="font-data-mono text-label-sm font-bold text-primary">Batch: EL-0924</span>
+<span class="font-data-mono text-[10px] text-emerald-800">Exp: 03/2026</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-1 py-0.5 rounded text-on-surface-variant">SOH: 85</span>
+</div>
+</td>
+<td class="py-2.5 px-2 text-right">
+<input class="w-14 h-7 text-right font-data-mono text-body-md font-bold bg-surface-container-low px-1.5 rounded focus:outline-none focus:bg-surface-container-lowest text-on-surface" max="3" min="1" type="number" value="3"/>
+</td>
+<td class="py-2.5 px-2 text-right font-data-mono text-body-sm text-on-surface-variant">22.00</td>
+<td class="py-2.5 px-3 text-right font-data-mono text-body-md font-bold text-on-surface">66.00</td>
+<td class="py-2.5 px-3">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> Full Allocation
+                  </span>
+</td>
+<td class="py-2.5 pr-4 pl-2 text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Scan pack verification">
+<span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+</button>
+</td>
+</tr>
+<!-- ROW 4: CRITICAL SHORTAGE / PARTIAL FULFILLMENT -->
+<tr class="bg-amber-500/10 hover:bg-amber-500/15 transition-colors">
+<td class="py-2.5 pl-4 pr-2 font-data-mono text-label-sm text-on-surface-variant">04</td>
+<td class="py-2.5 px-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<strong class="font-title-md text-title-md text-on-surface">Tab. Carica Papaya Leaf Extract 1100mg</strong>
+<span class="font-label-sm text-[9px] bg-secondary-container text-on-secondary-container px-1 rounded font-bold">Brand: Platimax</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Platelet Enhancer Formulation • Zuventus Healthcare</span>
+</div>
+</td>
+<td class="py-2.5 px-2">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-primary">Oral • TID (1-1-1)</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Duration: 5 Days (15 Tabs)</span>
+</div>
+</td>
+<td class="py-2.5 px-2 text-right font-data-mono text-body-md font-bold text-amber-900">15</td>
+<td class="py-2.5 px-3">
+<div class="flex items-center justify-between gap-2 bg-surface p-1.5 rounded shadow-sm">
+<div class="flex flex-col">
+<span class="font-data-mono text-label-sm font-bold text-primary">Batch: CP-1092</span>
+<span class="font-data-mono text-[10px] text-amber-800">Exp: 12/2024 (Near-Exp)</span>
+</div>
+<span class="font-data-mono text-label-sm bg-amber-200 text-amber-900 px-1 py-0.5 rounded font-bold">SOH: 6 ONLY</span>
+</div>
+</td>
+<td class="py-2.5 px-2 text-right">
+<div class="flex flex-col items-end">
+<input class="w-14 h-7 text-right font-data-mono text-body-md font-bold bg-amber-100 text-amber-950 px-1.5 rounded focus:outline-none" max="6" type="number" value="6"/>
+<span class="font-data-mono text-[10px] text-error font-bold tracking-tight">Owed: 9 Tabs</span>
+</div>
+</td>
+<td class="py-2.5 px-2 text-right font-data-mono text-body-sm text-on-surface-variant">45.00</td>
+<td class="py-2.5 px-3 text-right font-data-mono text-body-md font-bold text-on-surface">270.00</td>
+<td class="py-2.5 px-3">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+<span class="material-symbols-outlined text-[12px]">incomplete_circle</span> Partial Stock Fulfilled
+                    </span>
+<span class="font-data-mono text-[10px] text-amber-900 bg-surface px-1.5 py-0.5 rounded">Owed Voucher #OV-9142</span>
+</div>
+</td>
+<td class="py-2.5 pr-4 pl-2 text-center">
+<button class="bg-amber-200 hover:bg-amber-300 text-amber-950 font-label-sm text-[10px] px-1.5 py-1 rounded transition-colors" title="Print shortage slip">
+                    Slip
+                  </button>
+</td>
+</tr>
+<!-- ROW 5: PREVENTED / LOCKED SYSTEM STATE (EXPIRED STOCK DEFENSE) -->
+<tr class="bg-error-container/40 text-on-surface-variant select-none">
+<td class="py-2.5 pl-4 pr-2 font-data-mono text-label-sm text-error">
+<span class="material-symbols-outlined text-[15px]">lock</span>
+</td>
+<td class="py-2.5 px-3" colspan="3">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm uppercase bg-error text-on-error px-1.5 py-0.2 rounded font-bold">Defensive Lockout</span>
+<span class="font-data-mono text-label-sm font-semibold text-error">Batch E-0199 (Platimax Alt) • Exp: 09/2024 (EXPIRED 24 Days Ago)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-error-container mt-0.5">
+                    Physical selection prevented by HIS core drug safety engine. Quarantine manifest #QR-881 filed automatically.
+                  </p>
+</td>
+<td class="py-2.5 px-3" colspan="6">
+<div class="flex items-center justify-end gap-2 text-error font-data-mono text-label-sm font-bold pr-2">
+<span class="material-symbols-outlined text-[16px]">block</span>
+                    DISPENSE SELECTION LOCKED &amp; AUDITED
+                  </div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- TABLE FOOTER AUDIT METRICS -->
+<div class="bg-surface-container px-4 py-2.5 flex flex-wrap items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1.5 font-data-mono">
+<span class="material-symbols-outlined text-[15px] text-primary">local_pharmacy</span>
+              Prescribed Lines: 4 (Total Units: 32)
+            </span>
+<span class="flex items-center gap-1.5 font-data-mono text-emerald-800">
+<span class="material-symbols-outlined text-[15px]">done_all</span>
+              Allocated Lines: 4 (Dispensed Units: 23)
+            </span>
+<span class="flex items-center gap-1.5 font-data-mono text-amber-800">
+<span class="material-symbols-outlined text-[15px]">pending_actions</span>
+              Pending/Owed: 9 Units
+            </span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-[11px]">Pharmacist Initial: <strong>PH-SRI-4091</strong></span>
+<button class="bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface font-label-sm text-label-sm px-2 py-0.5 rounded transition-colors">
+              Batch Switch [Alt+B]
+            </button>
+</div>
+</div>
+</div>
+<!-- INFORMATIVE CLINICAL INSTRUCTION SCRATCHPAD -->
+<div class="bg-surface-container-lowest p-4 rounded shadow-sm flex flex-col md:flex-row gap-4 items-start">
+<div class="p-2 bg-surface-container rounded shrink-0">
+<span class="material-symbols-outlined text-primary text-[24px]">assignment_turned_in</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h3 class="font-title-md text-title-md font-bold text-on-surface">Medication Label Envelope &amp; Patient Advisory</h3>
+<span class="font-label-sm text-label-sm bg-tertiary-fixed text-on-tertiary-fixed font-bold px-2 py-0.5 rounded">Tamil / Telugu / English Prints</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+            Platimax 1100mg shortage reported to Attending Physician (Dr. K. Venkat Rao). Immediate supply of 6 tabs provides 48h coverage for Dengue convalescence monitoring. Patient informed to collect balance 9 tabs against voucher #OV-9142 upon 4:00 PM consignment arrival.
+          </p>
+<div class="flex flex-wrap items-center gap-2 mt-2">
+<span class="font-label-sm text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">Label Warning: Take after meals</span>
+<span class="font-label-sm text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">Storage: Below 25°C &amp; Dry</span>
+<span class="font-label-sm text-label-sm bg-surface-container text-on-surface px-2 py-0.5 rounded">High Hydration Caution</span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN (4 COLS): FINANCIAL SUMMARY & TWO-PILLAR GOVERNANCE PANEL -->
+<div class="2xl:col-span-4 flex flex-col gap-4">
+<!-- DUAL PILLAR VERIFICATION GOVERNANCE CARD -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-4 flex flex-col gap-4">
+<div class="flex items-center justify-between pb-2 bg-surface-container-low -m-4 p-4 rounded-t">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">account_balance_wallet</span>
+<h3 class="font-title-md text-title-md font-bold text-on-surface">Two-Pillar Release Authorization</h3>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface px-2 py-0.5 rounded font-bold">Desk #04</span>
+</div>
+<!-- Pillar 1: Financial Settlement Pillar -->
+<div class="bg-emerald-500/10 p-3 rounded flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-emerald-950 font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-emerald-800">paid</span> Pillar 1: Financial Settlement
+            </span>
+<span class="bg-emerald-100 text-emerald-900 font-label-sm text-label-sm px-2 py-0.5 rounded font-bold">VERIFIED</span>
+</div>
+<p class="font-body-sm text-body-sm text-emerald-950 font-medium">
+            PAID IN FULL — Cashier Receipt <strong class="font-data-mono">#RC-2024-10-0595</strong> Verified
+          </p>
+<div class="flex items-center justify-between font-data-mono text-label-sm text-emerald-800 mt-1">
+<span>Settled via UPI / Desk #2</span>
+<span>Ref: TXN-9982-1402</span>
+</div>
+</div>
+<!-- Pillar 2: Clinical Physical Dispensing Status -->
+<div class="bg-amber-500/10 p-3 rounded flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-amber-950 font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-amber-800">front_hand</span> Pillar 2: Physical Dispense State
+            </span>
+<span class="bg-amber-200 text-amber-900 font-label-sm text-label-sm px-2 py-0.5 rounded font-bold">AWAITING DOUBLE-CHECK</span>
+</div>
+<p class="font-body-sm text-body-sm text-amber-950">
+            Awaiting mandatory safety checklist &amp; barcode physical pack confirmation before physical handover.
+          </p>
+<!-- DISPENSING PHARMACIST CHECKPOINTS -->
+<div class="flex flex-col gap-2 pt-2 bg-surface-container-lowest/80 p-2.5 rounded">
+<span class="font-label-sm text-label-sm uppercase text-on-surface font-bold">Mandatory Pharmacist Handover Checklist</span>
+<label class="flex items-center gap-2 cursor-pointer select-none">
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">Batch numbers verified against physical strips</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer select-none">
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">Expiry dates confirmed &gt; 90 days validity</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer select-none">
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">Patient identity &amp; allergy cross-check completed</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer select-none">
+<input class="w-4 h-4 rounded text-primary focus:ring-0 cursor-pointer" id="chkEnvelope" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Dosage instructions printed on label envelope</span>
+</label>
+</div>
+</div>
+<!-- FINANCIAL RECAP BREAKDOWN -->
+<div class="bg-surface-container-low p-3.5 rounded flex flex-col gap-2">
+<div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface-variant">
+<span>Prescribed Total (4 Items, 32 Units)</span>
+<span class="font-data-mono text-right">₹827.30</span>
+</div>
+<div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface-variant">
+<span>Stock Shortage Deduction (9 Platimax Tabs)</span>
+<span class="font-data-mono text-error text-right">-₹405.00</span>
+</div>
+<div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface-variant">
+<span>GST (CGST 6% + SGST 6% Included)</span>
+<span class="font-data-mono text-right">₹45.24</span>
+</div>
+<div class="h-px bg-outline-variant/40 my-1"></div>
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-on-surface font-bold">Dispense Total</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">Current Handover Value</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-display-lg text-headline-lg font-bold text-primary font-data-mono">₹422.30</span>
+<span class="font-data-mono text-[10px] text-emerald-800 font-bold">MATCHES CASHIER RECEIPT</span>
+</div>
+</div>
+</div>
+<!-- ACTION BUTTON MATRIX -->
+<div class="flex flex-col gap-2 pt-1">
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg py-3 px-4 rounded font-bold shadow-md flex items-center justify-center gap-2 transition-all transform active:scale-[0.99]" id="dispenseBtn">
+<span class="material-symbols-outlined text-[18px]">print</span>
+<span>Complete Dispense &amp; Print Thermal Labels [F4]</span>
+</button>
+<div class="grid grid-cols-2 gap-2">
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm py-2 px-2 rounded font-semibold flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[15px] text-amber-800">confirmation_number</span>
+<span>Issue Shortage Voucher</span>
+</button>
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm py-2 px-2 rounded font-semibold flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[15px] text-error">assignment_return</span>
+<span>Re-route to Cashier</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ACTIVE QUEUE MINI-ROSTER -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-3.5 flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md font-bold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">queue</span>
+            Upcoming OPD Dispense Queue
+          </span>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded font-bold">6 More</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<!-- Queue item 1 (Current Active) -->
+<div class="p-2 rounded bg-primary text-on-primary flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-label-sm bg-primary-container px-1 py-0.5 rounded font-bold">Tk #42</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold leading-tight">Lakshmi Narayanan (52F)</span>
+<span class="font-data-mono text-[10px] text-primary-fixed-dim leading-tight">Dr. K. Venkat Rao • Paid</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Active</span>
+</div>
+<!-- Queue item 2 -->
+<div class="p-2 rounded bg-surface hover:bg-surface-container-high transition-colors flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-label-sm bg-surface-container px-1 py-0.5 rounded text-on-surface-variant">Tk #43</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-on-surface leading-tight">Ramesh Babu G. (39M)</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant leading-tight">Dr. Anita S. • Paid Receipt #0596</span>
+</div>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">3 Items</span>
+</div>
+<!-- Queue item 3 -->
+<div class="p-2 rounded bg-surface hover:bg-surface-container-high transition-colors flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-label-sm bg-surface-container px-1 py-0.5 rounded text-on-surface-variant">Tk #44</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-on-surface leading-tight">Baby Aradhya (4F)</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant leading-tight">Dr. Rajiv Menon (Pediatrics) • Credit Auth</span>
+</div>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">2 Syrups</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- FLOATING INTERACTIVE NOTIFICATION POPUP (TRIGGERED ON ACTION) -->
+<div class="fixed bottom-6 right-6 max-w-md bg-surface-container-lowest rounded shadow-xl p-4 hidden border-l-4 border-emerald-600 transition-all z-50" id="dispenseSuccessAlert">
+<div class="flex items-start gap-3">
+<div class="p-1.5 bg-emerald-100 rounded text-emerald-800 shrink-0">
+<span class="material-symbols-outlined text-[20px]">task_alt</span>
+</div>
+<div class="flex flex-col flex-1">
+<h4 class="font-title-md text-title-md font-bold text-on-surface">Dispensation Verified &amp; Finalized</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+          Rx ENC-2024-10-0592 closed. Thermal labels dispatched to Zebra TLP-2844. Stock ledger balances decreased across batches B-24098, P-88211, EL-0924, CP-1092.
+        </p>
+<div class="mt-2 flex items-center gap-2">
+<button class="bg-surface-container hover:bg-surface-container-high font-label-sm text-label-sm px-2 py-1 rounded text-on-surface" id="closeAlertBtn">
+            Dismiss
+          </button>
+<span class="font-data-mono text-label-sm text-emerald-800 font-bold">Moving to Token #43...</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const scanBtn = document.getElementById('scanSimBtn');
+    const rxInput = document.getElementById('rxMedicineSearch');
+    const dispenseBtn = document.getElementById('dispenseBtn');
+    const alertBox = document.getElementById('dispenseSuccessAlert');
+    const closeAlert = document.getElementById('closeAlertBtn');
+    const chkEnvelope = document.getElementById('chkEnvelope');
+
+    if (scanBtn && rxInput) {
+      scanBtn.addEventListener('click', function() {
+        rxInput.value = '8901234567890 [EAN-13: DOLO-650 MICRO LABS]';
+        rxInput.classList.add('bg-emerald-50');
+        setTimeout(() => {
+          rxInput.classList.remove('bg-emerald-50');
+        }, 1200);
+      });
+    }
+
+    if (dispenseBtn && alertBox) {
+      dispenseBtn.addEventListener('click', function() {
+        if (chkEnvelope && !chkEnvelope.checked) {
+          chkEnvelope.checked = true;
+        }
+        alertBox.classList.remove('hidden');
+        alertBox.classList.add('flex');
+        
+        setTimeout(() => {
+          alertBox.classList.add('hidden');
+          alertBox.classList.remove('flex');
+        }, 6000);
+      });
+    }
+
+    if (closeAlert && alertBox) {
+      closeAlert.addEventListener('click', function() {
+        alertBox.classList.add('hidden');
+        alertBox.classList.remove('flex');
+      });
+    }
+
+    // Keyboard Hotkey Listener [F2 for search, F4 for Complete Dispense]
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'F2') {
+        e.preventDefault();
+        if (rxInput) rxInput.focus();
+      } else if (e.key === 'F4') {
+        e.preventDefault();
+        if (dispenseBtn) dispenseBtn.click();
+      }
+    });
+  })();
+</script></main></div></body></html>

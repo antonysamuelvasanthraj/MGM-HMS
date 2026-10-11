@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-bright": "#f8f9ff",
+          "on-tertiary-fixed": "#251a00",
+          "surface-container-lowest": "#ffffff",
+          "on-tertiary-container": "#d4b264",
+          "surface-tint": "#a83541",
+          "on-error": "#ffffff",
+          "surface-container-high": "#dce9ff",
+          "on-secondary-container": "#7a4d54",
+          "on-tertiary": "#ffffff",
+          "secondary-container": "#fdc3ca",
+          "on-primary-container": "#ff999d",
+          "tertiary": "#402e00",
+          "outline": "#8a7171",
+          "on-surface-variant": "#574142",
+          "surface-container": "#e5eeff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-highest": "#d4e4fd",
+          "secondary": "#7f5258",
+          "tertiary-container": "#5b4400",
+          "on-primary": "#ffffff",
+          "on-secondary-fixed": "#321117",
+          "surface-container-low": "#eff4ff",
+          "surface": "#f8f9ff",
+          "on-error-container": "#93000a",
+          "background": "#f8f9ff",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "inverse-on-surface": "#eaf1ff",
+          "inverse-surface": "#223144",
+          "error-container": "#ffdad6",
+          "inverse-primary": "#ffb3b5",
+          "primary-container": "#881d2c",
+          "on-secondary-fixed-variant": "#643b41",
+          "on-primary-fixed": "#40000b",
+          "on-surface": "#0c1c2e",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-primary-fixed-variant": "#881d2c",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "tertiary-fixed": "#ffdf9a",
+          "primary": "#680118",
+          "on-secondary": "#ffffff",
+          "surface-dim": "#ccdbf4",
+          "on-background": "#0c1c2e",
+          "outline-variant": "#debfbf",
+          "surface-variant": "#d4e4fd",
+          "secondary-fixed-dim": "#f1b8bf",
+          "error": "#ba1a1a"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-lg": "1rem",
+          "gutter": "1rem",
+          "space-md": "0.75rem",
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "margin": "1.5rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "title-md": ["Inter"],
+          "body-md": ["Inter"],
+          "body-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "label-sm": ["Inter"],
+          "label-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "headline-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "body-sm": ["Inter"]
+        },
+        "fontSize": {
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-surface-container-high"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>City Campus - Main Hospital, Hyderabad</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / Mobile / Patient Name / Encounter..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">LAN: 192.168.1.10</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/40" src="https://lh3.googleusercontent.com/aida/AEtjO1XmP9Q8l0470v27u8hI4Bfx2HlVbM8Hj5mC3K9Q1u7y7_x0Gv1p8w_4z2L9n0k8j7_4w7_s3x4m8r2y7a1v4t7m9k2p"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-60 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Clinical Operations</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="role-specific-work-dashboard" href="dashboard.html"><span class="font-body-md text-body-md">Work Dashboard</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="patient-search-registration" href="patients.html"><span class="font-body-md text-body-md">Patient Registration</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">New</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="patient-profile-encounter-timeline" href="patient-profile.html"><span class="font-body-md text-body-md">Patient Records</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">EMR</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="appointments-doctor-scheduling" href="appointments.html"><span class="font-body-md text-body-md">Appointments</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">54</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="reception-visit-tracking-queue" href="visit-queue.html"><span class="font-body-md text-body-md">OP Visit Queue</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">38</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; Billing</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals-station" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd-consultation" href="#"><span class="font-body-md text-body-md">Doctor OPD</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">29</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="laboratory-diagnostics" href="#"><span class="font-body-md text-body-md">Laboratory &amp; Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">34</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispensing" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">7</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ipd-bed-management" href="#"><span class="font-body-md text-body-md">IPD / Bed Mgmt</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administration &amp; Oversight</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="admin-owner-daily-operations" href="operations-dashboard.html"><span class="font-body-md text-body-md">Daily Operations</span><span class="font-data-mono text-label-sm bg-tertiary-fixed/30 text-tertiary-fixed px-1.5 py-0.5 rounded">Ops</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="owner-dashboard.html"><span class="font-body-md text-body-md">Management Overview</span><span class="font-data-mono text-label-sm bg-tertiary-fixed/30 text-tertiary-fixed px-1.5 py-0.5 rounded">Exec</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="public-queue-token-display" href="#"><span class="font-body-md text-body-md">Token Display</span><span class="font-data-mono text-label-sm text-tertiary-fixed">Live</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-60 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<div class="p-6 space-y-5">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">person_search</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="font-headline-md text-headline-md text-on-surface">Patient Search &amp; Intake Registry</h1>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-container/40 text-primary uppercase font-bold tracking-wider">Protocol: Search-First</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Mandatory duplicate cross-check active across Central EMR, Ayushman Bharat (ABHA), and Local Cache</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-3 py-2 rounded bg-surface-container text-on-surface font-label-lg text-label-lg shadow-sm hover:bg-surface-container-high transition-colors" id="quick-compare-btn">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">compare_arrows</span>
+<span>Compare Records (2)</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded bg-primary-container text-on-primary font-label-lg text-label-lg shadow-sm hover:bg-primary transition-all" id="open-register-drawer-btn">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+<span>New Patient Registration <span class="font-data-mono text-label-sm opacity-80">[F3]</span></span>
+</button>
+</div>
+</div>
+<!-- Search Section -->
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex flex-col md:flex-row items-stretch gap-3">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-primary text-[20px]">manage_search</span>
+<input class="w-full h-11 pl-11 pr-32 bg-surface font-body-lg text-body-lg text-on-surface rounded-lg focus:outline-none focus:bg-surface-container-lowest placeholder:text-on-surface-variant/60" id="main-patient-search" placeholder="Type UHID (e.g. SHMS-2024-08923), 10-digit mobile (+91), or Full Patient Name..." type="text" value="98490 23145"/>
+<div class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface-variant px-1.5 py-0.5 rounded">F2</span>
+<button class="text-on-surface-variant hover:text-primary transition-colors" id="clear-search">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<select class="h-11 px-3 bg-surface font-body-md text-body-md text-on-surface rounded-lg focus:outline-none cursor-pointer">
+<option>Search Scope: All Telangana &amp; AP Units</option>
+<option>Current Facility Only (Hyderabad Main)</option>
+<option>OP Registrations Today</option>
+<option>Emergency &amp; Trauma Logs</option>
+</select>
+<button class="h-11 px-5 rounded bg-primary text-on-primary font-label-lg text-label-lg flex items-center gap-2 shadow-sm hover:bg-primary-container transition-all">
+<span class="material-symbols-outlined text-[18px]">search</span>
+<span>Query EMR</span>
+</button>
+</div>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+<div class="flex items-center flex-wrap gap-1.5">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant mr-1">Active Filter Tags:</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm">
+<span>Mobile: 98490 23145</span>
+<span class="material-symbols-outlined text-[12px] cursor-pointer">close</span>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+<span>Status: Any Encounter</span>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+<span>ABHA Verified + Unverified</span>
+</span>
+<button class="font-label-sm text-label-sm text-primary hover:underline ml-1">+ Add Tag Filter</button>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant font-data-mono text-label-sm">
+<span>Search latency: <strong class="text-primary">12ms</strong></span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Central Index: Synced 38s ago</span>
+</div>
+</div>
+</div>
+<!-- Duplicate Warning Alert Banner -->
+<div class="rounded-xl bg-tertiary-fixed/30 p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4" id="duplicate-warning-banner">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded-full bg-amber-500/20 text-tertiary-container flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-title-md text-title-md text-on-surface font-bold">Potential Duplicate Record Warning</h2>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold uppercase">2 Matches Flagged</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            Mobile number <strong class="text-on-surface font-data-mono font-bold">+91 98490 23145</strong> already matches 2 registered hospital UHIDs. Per NABH &amp; Ayushman Bharat compliance guidelines, verify patient identity before issuing a new UHID.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+<button class="px-3 py-1.5 rounded bg-surface-container-lowest text-on-surface font-label-lg text-label-lg shadow-sm hover:bg-surface transition-colors flex items-center gap-1.5" id="view-duplicate-diff-btn">
+<span class="material-symbols-outlined text-[16px] text-primary">visibility</span>
+<span>Side-by-Side Review</span>
+</button>
+<button class="px-3 py-1.5 rounded bg-tertiary-container text-on-tertiary font-label-lg text-label-lg hover:bg-tertiary transition-colors">
+          Proceed as Dependent
+        </button>
+</div>
+</div>
+<!-- Quick Metrics & Clinical Overview Bento Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Today's Intake Roster</span>
+<span class="font-headline-lg text-headline-lg text-primary font-bold">142</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant block mt-0.5">118 Existing, 24 Fresh UHID</span>
+</div>
+<div class="w-12 h-12 rounded-lg bg-surface-container-high/60 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">group_add</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">ABHA Linking Rate</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">89.4%</span>
+<span class="font-body-sm text-body-sm text-emerald-700 block mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>+4.2% MoM
+          </span>
+</div>
+<div class="w-12 h-12 rounded-lg bg-surface-container-high/60 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">verified</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Pending Billing Dues</span>
+<span class="font-headline-lg text-headline-lg text-error font-bold">₹14,850</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant block mt-0.5">3 flagged records in queue</span>
+</div>
+<div class="w-12 h-12 rounded-lg bg-error-container/40 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[24px]">account_balance_wallet</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Avg Triage Speed</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">2m 14s</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant block mt-0.5">Search to Token Dispense</span>
+</div>
+<div class="w-12 h-12 rounded-lg bg-surface-container-high/60 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">speed</span>
+</div>
+</div>
+</div>
+<!-- Returning Patients Table Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<div class="px-5 py-3.5 bg-surface-container-low flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<span class="font-title-md text-title-md text-on-surface font-bold">Existing Patient Records</span>
+<span class="font-data-mono text-label-sm bg-primary-fixed text-on-primary-fixed px-2 py-0.5 rounded-full font-bold">2 Matches Found</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant hidden md:inline">Matches based on primary telephone: 98490 23145</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-2.5 py-1 text-on-surface-variant hover:text-primary rounded text-label-sm font-label-sm flex items-center gap-1 bg-surface-container-lowest shadow-sm">
+<span class="material-symbols-outlined text-[14px]">tune</span> Filter Columns
+          </button>
+<button class="px-2.5 py-1 text-on-surface-variant hover:text-primary rounded text-label-sm font-label-sm flex items-center gap-1 bg-surface-container-lowest shadow-sm">
+<span class="material-symbols-outlined text-[14px]">print</span> Print Rosters
+          </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-2.5 px-4">UHID &amp; ABHA</th>
+<th class="py-2.5 px-4">Patient Demographics</th>
+<th class="py-2.5 px-4">Contact &amp; Address</th>
+<th class="py-2.5 px-4">Last Encounter</th>
+<th class="py-2.5 px-4">Attending Doctor</th>
+<th class="py-2.5 px-4 text-right">Outstanding Dues</th>
+<th class="py-2.5 px-4 text-center">Triage Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-transparent">
+<!-- Row 1 -->
+<tr class="hover:bg-surface/80 transition-colors bg-surface-container-lowest">
+<td class="py-3 px-4 align-top">
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-label-lg font-bold text-primary">SHMS-2023-04891</span>
+<button class="text-on-surface-variant hover:text-primary transition-colors" title="Copy UHID">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+<div class="mt-1 flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[10px]">check_circle</span> ABHA Verified
+                  </span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">91-4820-2184-9021</span>
+</div>
+</td>
+<td class="py-3 px-4 align-top">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Ramesh Kumar Varma</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-bold">B+ve</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                  52 Yrs / Male • Son of late K. Sanyasi Raju
+                </div>
+<div class="mt-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold flex items-center gap-1 inline-flex">
+<span class="h-1.5 w-1.5 rounded-full bg-rose-600"></span> Allergy: Penicillin G &amp; NSAIDs
+                  </span>
+</div>
+</td>
+<td class="py-3 px-4 align-top">
+<div class="flex items-center gap-1 text-on-surface font-data-mono text-body-md font-medium">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">call</span>
+<span>+91 98490 23145</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 line-clamp-2 max-w-xs">
+                  Flat 402, Sai Balaji Enclave, Road No. 12, Banjara Hills, Hyderabad 500034
+                </div>
+</td>
+<td class="py-3 px-4 align-top">
+<div class="font-data-mono text-body-sm text-on-surface font-semibold">12 Sep 2024</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">OPD Follow-up (42d ago)</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium inline-block mt-1">Discharged / Stable</span>
+</td>
+<td class="py-3 px-4 align-top">
+<div class="font-body-md text-body-md text-on-surface font-semibold">Dr. K. Venkat Rao</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Orthopaedics &amp; Joint Replacement</div>
+<div class="font-label-sm text-label-sm text-primary font-medium mt-0.5">Room 204 • OPD Block B</div>
+</td>
+<td class="py-3 px-4 align-top text-right">
+<div class="font-data-mono text-title-md text-error font-bold">₹ 1,450.00</div>
+<div class="font-label-sm text-label-sm text-error/80 uppercase font-semibold">Pharmacy Pending</div>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-error-container text-on-error-container inline-block mt-1">Collect at desk</span>
+</td>
+<td class="py-3 px-4 align-top text-center">
+<div class="flex flex-col gap-1.5 items-center justify-center">
+<button class="w-full px-3 py-1.5 rounded bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors flex items-center justify-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">local_hospital</span>
+<span>Open New Visit</span>
+</button>
+<a class="w-full px-3 py-1.5 rounded bg-surface text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center justify-center gap-1 shadow-sm" href="patient-profile.html">
+<span class="material-symbols-outlined text-[14px]">folder_shared</span>
+<span>View Records</span>
+</a>
+</div>
+</td>
+</tr>
+<!-- Row 2 (Duplicate Flag Match) -->
+<tr class="hover:bg-surface/80 transition-colors bg-surface-container-lowest">
+<td class="py-3 px-4 align-top">
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-label-lg font-bold text-primary">SHMS-2024-01103</span>
+<button class="text-on-surface-variant hover:text-primary transition-colors" title="Copy UHID">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+<div class="mt-1 flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[10px]">pending</span> Non-Linked
+                  </span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Primary Mobile Match</span>
+</div>
+</td>
+<td class="py-3 px-4 align-top">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Sunita Varma</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-bold">O+ve</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                  48 Yrs / Female • Spouse of Ramesh Kumar Varma
+                </div>
+<div class="mt-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant inline-flex">
+                    Family Primary Contact Shared
+                  </span>
+</div>
+</td>
+<td class="py-3 px-4 align-top">
+<div class="flex items-center gap-1 text-on-surface font-data-mono text-body-md font-medium">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">call</span>
+<span>+91 98490 23145</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 line-clamp-2 max-w-xs">
+                  Flat 402, Sai Balaji Enclave, Road No. 12, Banjara Hills, Hyderabad 500034
+                </div>
+</td>
+<td class="py-3 px-4 align-top">
+<div class="font-data-mono text-body-sm text-on-surface font-semibold">04 Jun 2024</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">General Health Check</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium inline-block mt-1">Completed</span>
+</td>
+<td class="py-3 px-4 align-top">
+<div class="font-body-md text-body-md text-on-surface font-semibold">Dr. Archana Sen</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">General Medicine &amp; Diabetology</div>
+<div class="font-label-sm text-label-sm text-primary font-medium mt-0.5">Room 102 • OPD Block A</div>
+</td>
+<td class="py-3 px-4 align-top text-right">
+<div class="font-data-mono text-title-md text-emerald-700 font-bold">₹ 0.00</div>
+<div class="font-label-sm text-label-sm text-emerald-600 uppercase font-semibold">Clear Account</div>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 inline-block mt-1">Good Standing</span>
+</td>
+<td class="py-3 px-4 align-top text-center">
+<div class="flex flex-col gap-1.5 items-center justify-center">
+<button class="w-full px-3 py-1.5 rounded bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors flex items-center justify-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">local_hospital</span>
+<span>Open New Visit</span>
+</button>
+<a class="w-full px-3 py-1.5 rounded bg-surface text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center justify-center gap-1 shadow-sm" href="patient-profile.html">
+<span class="material-symbols-outlined text-[14px]">folder_shared</span>
+<span>View Records</span>
+</a>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-4 py-3 bg-surface-container-low flex flex-col md:flex-row items-center justify-between gap-3 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+<span>Double check identity using photo or Aadhaar/ABHA ID before initiating new UHID creation to avoid health record fragmentation.</span>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="font-label-sm text-label-sm uppercase">Is this a completely distinct person?</span>
+<button class="px-3 py-1 rounded bg-primary text-on-primary font-label-sm text-label-sm uppercase font-bold tracking-wider hover:bg-primary-container transition-all" id="bypass-duplicate-btn">
+            Proceed with New UHID Registration
+          </button>
+</div>
+</div>
+</div>
+<!-- Secondary Split: Daily Registrations Timeline & Clinic Workload -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+<!-- Fast Triage Summary -->
+<div class="lg:col-span-2 bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">schedule</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Recent Registrations &amp; Live OPD Queue Intake</h3>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Real-time Stream (24 Oct)</span>
+</div>
+<div class="space-y-2.5">
+<div class="p-3 rounded-lg bg-surface-container-low flex items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<span class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-data-mono text-label-md font-bold">#42</span>
+<div>
+<div class="font-body-md text-body-md font-semibold text-on-surface">Harpreet Singh • 34M</div>
+<div class="font-data-mono text-label-sm text-on-surface-variant">UHID: SHMS-2024-08942 • Token OP-042</div>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Dr. Arun Joshi (Cardio)</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant mt-0.5">Walk-in • 6 mins ago</div>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low flex items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<span class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-data-mono text-label-md font-bold">#41</span>
+<div>
+<div class="font-body-md text-body-md font-semibold text-on-surface">K. Laxmi Prasanna • 29F</div>
+<div class="font-data-mono text-label-sm text-on-surface-variant">UHID: SHMS-2024-08941 • Token OP-041</div>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">Dr. Archana Sen (Med)</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant mt-0.5">Appt Ref #9021 • 14 mins ago</div>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low flex items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<span class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-800 font-data-mono text-label-md font-bold">EM</span>
+<div>
+<div class="font-body-md text-body-md font-semibold text-on-surface">Unknown Trauma Male • ~40M</div>
+<div class="font-data-mono text-label-sm text-error font-semibold">UHID: SHMS-2024-EM014 • Triage Red</div>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-rose-200 text-rose-900 font-bold">ER Trauma Bay 2</span>
+<div class="font-data-mono text-label-sm text-on-surface-variant mt-0.5">Ambulance In • 21 mins ago</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Station Status & Hardware Peripheral Links -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Registration Peripherals</h3>
+<span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
+</div>
+<div class="space-y-3">
+<div class="p-3 rounded-lg bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px]">fingerprint</span>
+<div>
+<div class="font-body-md text-body-md font-bold text-on-surface">Mantra MFS100 Biometric</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Aadhaar/UIDAI eKYC Ready</div>
+</div>
+</div>
+<span class="font-data-mono text-label-sm px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">Online</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px]">print</span>
+<div>
+<div class="font-body-md text-body-md font-bold text-on-surface">TVS Thermal Slip Printer</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">OP Token Slip &amp; Barcode</div>
+</div>
+</div>
+<span class="font-data-mono text-label-sm px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">Ready</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px]">qr_code_scanner</span>
+<div>
+<div class="font-body-md text-body-md font-bold text-on-surface">2D Barcode / ABHA Scanner</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">HID Keyboard Wedge Mode</div>
+</div>
+</div>
+<span class="font-data-mono text-label-sm px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">Active</span>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-tertiary-fixed/20 text-on-tertiary-fixed-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<p class="font-body-sm text-body-sm">
+            ABDM M1 &amp; M2 Compliant: Automatic creation of ABHA Address &amp; QR verification.
+          </p>
+</div>
+</div>
+</div>
+</div>
+<!-- SLIDE-OVER DRAWER: New Patient Registration -->
+<div aria-labelledby="slide-over-title" aria-modal="true" class="fixed inset-0 z-50 overflow-hidden hidden" id="registration-drawer" role="dialog">
+<!-- Backdrop with ambient dimming -->
+<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-[2px] transition-opacity" id="drawer-backdrop"></div>
+<div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+<div class="w-screen max-w-3xl bg-surface-container-lowest shadow-2xl flex flex-col justify-between">
+<!-- Drawer Header -->
+<div class="p-5 bg-primary text-on-primary flex items-center justify-between shrink-0 shadow-md">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[24px]">person_add</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-headline-md text-headline-md text-on-primary font-bold">New Patient Registration</h2>
+<span class="font-data-mono text-label-sm px-2 py-0.5 rounded bg-tertiary-fixed/30 text-tertiary-fixed font-bold">NEW UHID GEN</span>
+</div>
+<p class="font-body-sm text-body-sm text-primary-fixed-dim">Complete demographics, ABDM linking &amp; optional OP encounter allocation</p>
+</div>
+</div>
+<button class="text-primary-fixed-dim hover:text-on-primary transition-colors p-1.5 rounded-lg hover:bg-primary-container" id="close-drawer-btn">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+</div>
+<!-- Drawer Body Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<!-- Notice on Search-First Validation -->
+<div class="p-3 bg-surface-container-high/50 rounded-lg flex items-center justify-between gap-3 text-on-surface">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<span class="font-body-sm text-body-sm">Search check completed: No direct duplicate found for this unique identity.</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant font-bold">Auto-Gen ID: SHMS-2024-08945</span>
+</div>
+<!-- Section A: Identity & Demographics -->
+<div class="bg-surface rounded-xl p-4 space-y-4">
+<div class="flex items-center justify-between pb-2">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold">A</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Identity &amp; Personal Demographics</h3>
+</div>
+<span class="font-label-sm text-label-sm text-error font-semibold">* Denotes required fields</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+<!-- Full Name -->
+<div class="sm:col-span-2 space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Full Legal Name <span class="text-error">*</span></label>
+<div class="relative">
+<input class="w-full h-9 px-3 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none focus:bg-surface-container-low" placeholder="e.g. Ananya Radhakrishnan" type="text" value="Dr. Arvind Swamy"/>
+</div>
+</div>
+<!-- Gender -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Gender <span class="text-error">*</span></label>
+<select class="w-full h-9 px-2 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none cursor-pointer">
+<option selected="">Male</option>
+<option>Female</option>
+<option>Transgender</option>
+<option>Other / Unspecified</option>
+</select>
+</div>
+<!-- Age / DOB combo -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Age (Years) <span class="text-error">*</span></label>
+<div class="relative flex items-center">
+<input class="w-full h-9 px-3 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none" placeholder="Years" type="number" value="44"/>
+<span class="absolute right-3 font-data-mono text-label-sm text-on-surface-variant">Yrs</span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Date of Birth</label>
+<input class="w-full h-9 px-3 bg-surface-container-lowest font-data-mono text-body-md text-on-surface rounded focus:outline-none" type="date" value="1980-05-18"/>
+</div>
+<!-- Blood Group -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Blood Group</label>
+<select class="w-full h-9 px-2 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none cursor-pointer">
+<option>Select Group...</option>
+<option selected="">O +ve</option>
+<option>O -ve</option>
+<option>A +ve</option>
+<option>A -ve</option>
+<option>B +ve</option>
+<option>B -ve</option>
+<option>AB +ve</option>
+<option>AB -ve</option>
+</select>
+</div>
+<!-- Marital Status -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Marital Status</label>
+<select class="w-full h-9 px-2 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none cursor-pointer">
+<option selected="">Married</option>
+<option>Single / Unmarried</option>
+<option>Widowed</option>
+<option>Divorced</option>
+</select>
+</div>
+<!-- Aadhaar / ABHA ID with Link & Verify -->
+<div class="sm:col-span-2 space-y-1">
+<div class="flex items-center justify-between">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Aadhaar or ABHA Address (ABDM)</label>
+<span class="font-data-mono text-label-sm text-primary font-bold cursor-pointer hover:underline flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">qr_code_scanner</span> Scan QR
+                  </span>
+</div>
+<div class="flex items-center gap-2">
+<input class="flex-1 h-9 px-3 bg-surface-container-lowest font-data-mono text-body-md text-on-surface rounded focus:outline-none placeholder:text-on-surface-variant/60" placeholder="14-digit ABHA (e.g. 91-4820-XXXX-XXXX) or Aadhaar" type="text" value="arvind.swamy@abdm"/>
+<button class="h-9 px-3 rounded bg-emerald-700 text-on-primary font-label-md text-label-md flex items-center gap-1 shrink-0 hover:bg-emerald-800 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>Link &amp; Verify</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Section B: Contact & Emergency -->
+<div class="bg-surface rounded-xl p-4 space-y-4">
+<div class="flex items-center gap-2 pb-2">
+<span class="w-6 h-6 rounded bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold">B</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Contact &amp; Emergency Coordinates</h3>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+<!-- Primary Mobile +91 -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Primary Mobile (+91) <span class="text-error">*</span></label>
+<div class="relative flex items-center">
+<span class="absolute left-3 font-data-mono text-body-md text-on-surface-variant font-bold">+91</span>
+<input class="w-full h-9 pl-12 pr-3 bg-surface-container-lowest font-data-mono text-body-md text-on-surface rounded focus:outline-none" placeholder="10 digits" type="tel" value="98765 43210"/>
+</div>
+</div>
+<!-- Alternate Phone -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Alternate Contact / Landline</label>
+<input class="w-full h-9 px-3 bg-surface-container-lowest font-data-mono text-body-md text-on-surface rounded focus:outline-none" placeholder="Optional phone number" type="tel"/>
+</div>
+<!-- Guardian / Spouse Name -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Guardian / Next of Kin Name</label>
+<input class="w-full h-9 px-3 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none" placeholder="Full name of contact" type="text" value="Meera Swamy"/>
+</div>
+<!-- Relation -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Relationship to Patient</label>
+<select class="w-full h-9 px-2 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none cursor-pointer">
+<option selected="">Spouse</option>
+<option>Parent</option>
+<option>Child</option>
+<option>Sibling</option>
+<option>Guardian</option>
+<option>Other</option>
+</select>
+</div>
+<!-- Residential Address -->
+<div class="sm:col-span-2 space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Residential Address</label>
+<input class="w-full h-9 px-3 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none" placeholder="House/Flat No, Street, Landmark" type="text" value="House No 12-B, Prashasan Nagar, Jubilee Hills"/>
+</div>
+<!-- City & District -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">City / District <span class="text-error">*</span></label>
+<input class="w-full h-9 px-3 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none" type="text" value="Hyderabad"/>
+</div>
+<!-- Pin Code & State -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">PIN Code</label>
+<div class="flex items-center gap-2">
+<input class="w-full h-9 px-3 bg-surface-container-lowest font-data-mono text-body-md text-on-surface rounded focus:outline-none" type="text" value="500096"/>
+<span class="font-label-sm text-label-sm px-2 py-1 rounded bg-surface-container text-on-surface-variant font-bold whitespace-nowrap">Telangana</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Section C: Encounter Creation Toggle -->
+<div class="bg-surface rounded-xl p-4 space-y-4">
+<div class="flex items-center justify-between pb-2">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold">C</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Encounter Creation Mode</h3>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-tertiary-fixed/40 text-on-tertiary-fixed font-bold">Immediate Token Mode</span>
+</div>
+<!-- Radio Mode Selector -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<label class="relative flex items-start gap-3 p-3 rounded-lg bg-surface-container-lowest cursor-pointer hover:bg-surface-container-low transition-colors">
+<input class="mt-1 accent-primary" id="mode-record-only" name="encounter-mode" type="radio" value="record-only"/>
+<div>
+<div class="font-body-md text-body-md font-bold text-on-surface">Create Patient Record Only</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Generate UHID and save demographics. No OP encounter ticket or consulting doctor assigned today.</p>
+</div>
+</label>
+<label class="relative flex items-start gap-3 p-3 rounded-lg bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors">
+<input checked="" class="mt-1 accent-primary" id="mode-start-visit" name="encounter-mode" type="radio" value="start-visit"/>
+<div>
+<div class="font-body-md text-body-md font-bold text-primary">Register Patient &amp; Start Visit</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Create UHID and immediately assign doctor queue, visit token, and OPD receipt entry.</p>
+</div>
+</label>
+</div>
+<!-- Nested Start Visit Configuration (Visible when 'Start Visit' is active) -->
+<div class="pt-2 space-y-4" id="start-visit-panel">
+<div class="p-4 rounded-lg bg-surface-container-low space-y-3.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Encounter Specification</span>
+<span class="font-label-sm text-label-sm text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">confirmation_number</span> Live Token Preview: #OP-043
+                  </span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<!-- Doctor Selection -->
+<div class="sm:col-span-2 space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Attending Doctor <span class="text-error">*</span></label>
+<select class="w-full h-9 px-2 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none cursor-pointer">
+<option value="venkat">Dr. K. Venkat Rao, MS (Ortho) • Room 204 (12 in Queue)</option>
+<option value="archana">Dr. Archana Sen, MD (Gen Med) • Room 102 (8 in Queue)</option>
+<option selected="" value="arun">Dr. Arun Joshi, DM (Cardiology) • Room 105 (5 in Queue)</option>
+</select>
+</div>
+<!-- Department auto-linked -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Department</label>
+<input class="w-full h-9 px-3 bg-surface-container-high/60 font-body-md text-body-md text-on-surface rounded focus:outline-none font-semibold" readonly="" type="text" value="Cardiology"/>
+</div>
+<!-- Visit Type -->
+<div class="sm:col-span-2 space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Visit Classification <span class="text-error">*</span></label>
+<select class="w-full h-9 px-2 bg-surface-container-lowest font-body-md text-body-md text-on-surface rounded focus:outline-none cursor-pointer">
+<option selected="">New OP Consultation (Standard Fee: ₹ 600)</option>
+<option>Review within 7 days (Zero Fee)</option>
+<option>Emergency Triage / Urgent Stabilisation (Fee: ₹ 1,200)</option>
+<option>Corporate / CGHS / ECHS Cashless Empaneled</option>
+</select>
+</div>
+<!-- Consultation Fee / Mode -->
+<div class="space-y-1">
+<label class="block font-label-md text-label-md text-on-surface-variant font-semibold">Collect Consultation Fee</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 font-data-mono text-body-md text-on-surface-variant">₹</span>
+<input class="w-full h-9 pl-7 pr-3 bg-surface-container-lowest font-data-mono text-body-md text-on-surface rounded focus:outline-none font-bold" type="text" value="600.00"/>
+</div>
+</div>
+</div>
+<!-- Token Allocation Preview Card -->
+<div class="p-3 rounded bg-surface-container-lowest flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-primary text-on-primary flex flex-col items-center justify-center">
+<span class="font-data-mono text-label-sm leading-none opacity-80">TOKEN</span>
+<span class="font-data-mono text-title-md font-bold leading-none">43</span>
+</div>
+<div>
+<div class="font-body-md text-body-md font-bold text-on-surface">OPD Token #OP-043 allocated</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Cardiology OPD • Dr. Arun Joshi • Expected wait: ~18 mins</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<label class="flex items-center gap-1.5 cursor-pointer text-on-surface font-body-sm text-body-sm">
+<input checked="" class="accent-primary rounded" type="checkbox"/>
+<span>Auto-Print Slip</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Drawer Footer Actions -->
+<div class="p-4 bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 shadow-inner">
+<div class="flex items-center gap-3 font-data-mono text-label-sm text-on-surface-variant">
+<span class="flex items-center gap-1 text-emerald-700 font-bold">
+<span class="h-2 w-2 rounded-full bg-emerald-600"></span> Local LAN: 12ms
+            </span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">cloud_done</span> Offline Buffer: Ready
+            </span>
+</div>
+<div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+<button class="px-4 py-2 rounded bg-surface text-on-surface font-label-lg text-label-lg shadow-sm hover:bg-surface-container transition-colors" id="save-record-only-btn" type="button">
+              Save Patient Record Only
+            </button>
+<button class="px-5 py-2 rounded bg-primary-container text-on-primary font-label-lg text-label-lg shadow-sm hover:bg-primary transition-all flex items-center gap-2" id="submit-registration-btn" type="button">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+<span>Register Patient &amp; Start Visit</span>
+<span class="font-data-mono text-label-sm opacity-80">[Ctrl + Enter]</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL: Side-by-Side Duplicate Record Comparison -->
+<div aria-labelledby="modal-title" aria-modal="true" class="fixed inset-0 z-50 overflow-y-auto hidden" id="duplicate-diff-modal" role="dialog">
+<div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-[2px] transition-opacity" id="modal-backdrop"></div>
+<span aria-hidden="true" class="hidden sm:inline-block sm:align-middle sm:h-screen">​</span>
+<div class="inline-block align-bottom bg-surface-container-lowest rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+<!-- Modal Header -->
+<div class="px-6 py-4 bg-tertiary-fixed/30 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[22px]">difference</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Cross-Verification: Candidate Records with Mobile 98490 23145</h3>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-1 rounded" id="close-diff-modal-btn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Body: Side-by-side Cards -->
+<div class="p-6 space-y-4">
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Inspect demographic markers below to ascertain whether the individual at the reception desk is an already cataloged patient or an affiliated household family member.
+          </p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Candidate 1 -->
+<div class="p-4 rounded-xl bg-surface-container-low space-y-3">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-md font-bold text-primary">UHID: SHMS-2023-04891</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">ABHA Linked</span>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface font-bold">Ramesh Kumar Varma</h4>
+<div class="font-body-md text-body-md text-on-surface-variant">52 Yrs • Male • Blood: B+ve</div>
+</div>
+<div class="space-y-1.5 font-body-sm text-body-sm text-on-surface-variant pt-2">
+<div><strong>Aadhaar/ABHA:</strong> 91-4820-2184-9021</div>
+<div><strong>Father / Kin:</strong> Late K. Sanyasi Raju (Father)</div>
+<div><strong>Address:</strong> Flat 402, Sai Balaji Encl, Road 12, Banjara Hills, Hyd</div>
+<div><strong>Last Visit:</strong> 12 Sep 2024 with Dr. K. Venkat Rao (Ortho)</div>
+<div class="text-error font-semibold"><strong>Balance Due:</strong> ₹ 1,450.00 (Unpaid)</div>
+</div>
+<div class="pt-2">
+<button class="w-full py-2 rounded bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">check</span>
+<span>Confirm: This Is Ramesh Kumar Varma</span>
+</button>
+</div>
+</div>
+<!-- Candidate 2 -->
+<div class="p-4 rounded-xl bg-surface-container-low space-y-3">
+<div class="flex items-center justify-between">
+<span class="font-data-mono text-label-md font-bold text-primary">UHID: SHMS-2024-01103</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">Family Mobile</span>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface font-bold">Sunita Varma</h4>
+<div class="font-body-md text-body-md text-on-surface-variant">48 Yrs • Female • Blood: O+ve</div>
+</div>
+<div class="space-y-1.5 font-body-sm text-body-sm text-on-surface-variant pt-2">
+<div><strong>Aadhaar/ABHA:</strong> Not Verified on Local Portal</div>
+<div><strong>Father / Kin:</strong> Ramesh Kumar Varma (Spouse)</div>
+<div><strong>Address:</strong> Flat 402, Sai Balaji Encl, Road 12, Banjara Hills, Hyd</div>
+<div><strong>Last Visit:</strong> 04 Jun 2024 with Dr. Archana Sen (Med)</div>
+<div class="text-emerald-700 font-semibold"><strong>Balance Due:</strong> ₹ 0.00 (Cleared)</div>
+</div>
+<div class="pt-2">
+<button class="w-full py-2 rounded bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">check</span>
+<span>Confirm: This Is Sunita Varma</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-6 py-3 bg-surface-container-high/40 flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Neither matches the patient present at counter?</span>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded bg-surface text-on-surface font-label-lg text-label-lg hover:bg-surface-container" id="diff-cancel-btn">Close</button>
+<button class="px-4 py-1.5 rounded bg-primary text-on-primary font-label-lg text-label-lg hover:bg-primary-container" id="diff-create-distinct-btn">Create Brand New UHID</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Persistent Operational Keyboard Shortcuts Sticky Footer -->
+<footer class="sticky bottom-0 z-30 bg-surface-container-lowest/95 backdrop-blur-md px-6 py-2.5 shadow-md flex flex-wrap items-center justify-between gap-3 text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-4 flex-wrap">
+<div class="flex items-center gap-1.5">
+<kbd class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-data-mono font-bold">F2</kbd>
+<span>Global Patient Search</span>
+</div>
+<div class="flex items-center gap-1.5">
+<kbd class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-data-mono font-bold">F3</kbd>
+<span>New Patient Intake</span>
+</div>
+<div class="flex items-center gap-1.5">
+<kbd class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-data-mono font-bold">Ctrl + Enter</kbd>
+<span>Submit &amp; Dispense Token</span>
+</div>
+<div class="flex items-center gap-1.5">
+<kbd class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-data-mono font-bold">Esc</kbd>
+<span>Dismiss Active Drawer / Modal</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1 text-emerald-800 font-data-mono font-medium">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+<span>HIS Central Gateway: Online (192.168.1.10)</span>
+</div>
+<span class="text-outline-variant">|</span>
+<div class="font-data-mono text-on-surface-variant">
+        Currency: <strong class="text-on-surface">INR (₹)</strong> • ABDM v2.4
+      </div>
+</div>
+</footer>
+</div>
+<!-- Inline Logic for Drawer, Modal and Keyboard shortcuts -->
+<script>
+  (function() {
+    const drawer = document.getElementById('registration-drawer');
+    const drawerBackdrop = document.getElementById('drawer-backdrop');
+    const openDrawerBtn = document.getElementById('open-register-drawer-btn');
+    const closeDrawerBtn = document.getElementById('close-drawer-btn');
+    const bypassDuplicateBtn = document.getElementById('bypass-duplicate-btn');
+
+    const diffModal = document.getElementById('duplicate-diff-modal');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const viewDiffBtn = document.getElementById('view-duplicate-diff-btn');
+    const quickCompareBtn = document.getElementById('quick-compare-btn');
+    const closeDiffBtn = document.getElementById('close-diff-modal-btn');
+    const diffCancelBtn = document.getElementById('diff-cancel-btn');
+    const diffCreateDistinctBtn = document.getElementById('diff-create-distinct-btn');
+
+    const searchInput = document.getElementById('main-patient-search');
+    const clearSearchBtn = document.getElementById('clear-search');
+
+    const modeRecordOnly = document.getElementById('mode-record-only');
+    const modeStartVisit = document.getElementById('mode-start-visit');
+    const startVisitPanel = document.getElementById('start-visit-panel');
+
+    function openDrawer() {
+      if (drawer) drawer.classList.remove('hidden');
+    }
+    function closeDrawer() {
+      if (drawer) drawer.classList.add('hidden');
+    }
+
+    function openModal() {
+      if (diffModal) diffModal.classList.remove('hidden');
+    }
+    function closeModal() {
+      if (diffModal) diffModal.classList.add('hidden');
+    }
+
+    if (openDrawerBtn) openDrawerBtn.addEventListener('click', openDrawer);
+    if (closeDrawerBtn) closeDrawerBtn.addEventListener('click', closeDrawer);
+    if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeDrawer);
+    if (bypassDuplicateBtn) bypassDuplicateBtn.addEventListener('click', openDrawer);
+
+    if (viewDiffBtn) viewDiffBtn.addEventListener('click', openModal);
+    if (quickCompareBtn) quickCompareBtn.addEventListener('click', openModal);
+    if (closeDiffBtn) closeDiffBtn.addEventListener('click', closeModal);
+    if (diffCancelBtn) diffCancelBtn.addEventListener('click', closeModal);
+    if (modalBackdrop) modalBackdrop.addEventListener('click', closeModal);
+    if (diffCreateDistinctBtn) {
+      diffCreateDistinctBtn.addEventListener('click', () => {
+        closeModal();
+        openDrawer();
+      });
+    }
+
+    if (clearSearchBtn && searchInput) {
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchInput.focus();
+      });
+    }
+
+    // Toggle start visit panel visibility
+    if (modeRecordOnly && modeStartVisit && startVisitPanel) {
+      modeRecordOnly.addEventListener('change', () => {
+        if (modeRecordOnly.checked) {
+          startVisitPanel.classList.add('hidden');
+        }
+      });
+      modeStartVisit.addEventListener('change', () => {
+        if (modeStartVisit.checked) {
+          startVisitPanel.classList.remove('hidden');
+        }
+      });
+    }
+
+    // Keyboard Shortcuts (F2, F3, Esc, Ctrl+Enter)
+    window.addEventListener('keydown', (e) => {
+      // F2 -> focus search
+      if (e.key === 'F2') {
+        e.preventDefault();
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      }
+      // F3 -> open registration drawer
+      if (e.key === 'F3') {
+        e.preventDefault();
+        openDrawer();
+      }
+      // Esc -> close open drawer or modal
+      if (e.key === 'Escape') {
+        if (diffModal && !diffModal.classList.contains('hidden')) {
+          closeModal();
+        } else if (drawer && !drawer.classList.contains('hidden')) {
+          closeDrawer();
+        }
+      }
+      // Ctrl + Enter -> Submit
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submit-registration-btn');
+        if (submitBtn && !drawer.classList.contains('hidden')) {
+          submitBtn.click();
+        }
+      }
+    });
+
+    // Mock submit trigger
+    const submitRegBtn = document.getElementById('submit-registration-btn');
+    if (submitRegBtn) {
+      submitRegBtn.addEventListener('click', () => {
+        alert('Patient Registered & OPD Token #OP-043 Dispensed to Thermal Printer (LAN: 12ms).');
+        closeDrawer();
+      });
+    }
+  })();
+</script></main></div></body></html>

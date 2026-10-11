@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-secondary-container": "#7a4d54",
+          "on-surface-variant": "#574142",
+          "on-primary-container": "#ff999d",
+          "on-error-container": "#93000a",
+          "tertiary": "#402e00",
+          "primary": "#680118",
+          "primary-fixed-dim": "#ffb3b5",
+          "background": "#f8f9ff",
+          "on-error": "#ffffff",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-container-highest": "#d4e4fd",
+          "surface-dim": "#ccdbf4",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-background": "#0c1c2e",
+          "on-primary-fixed": "#40000b",
+          "surface-bright": "#f8f9ff",
+          "outline": "#8a7171",
+          "surface-variant": "#d4e4fd",
+          "error": "#ba1a1a",
+          "surface-container": "#e5eeff",
+          "primary-container": "#881d2c",
+          "on-tertiary-container": "#d4b264",
+          "secondary-container": "#fdc3ca",
+          "primary-fixed": "#ffdada",
+          "inverse-surface": "#223144",
+          "surface-container-lowest": "#ffffff",
+          "error-container": "#ffdad6",
+          "tertiary-fixed-dim": "#e6c273",
+          "on-secondary-fixed": "#321117",
+          "on-secondary-fixed-variant": "#643b41",
+          "on-tertiary-fixed": "#251a00",
+          "on-secondary": "#ffffff",
+          "outline-variant": "#debfbf",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "secondary": "#7f5258",
+          "on-primary-fixed-variant": "#881d2c",
+          "on-tertiary": "#ffffff",
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "surface-container-low": "#eff4ff",
+          "surface-container-high": "#dce9ff",
+          "secondary-fixed": "#ffd9dd",
+          "on-surface": "#0c1c2e",
+          "tertiary-container": "#5b4400",
+          "secondary-fixed-dim": "#f1b8bf",
+          "inverse-on-surface": "#eaf1ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-lg": "1rem",
+          "space-xl": "1.5rem",
+          "space-xs": "0.25rem",
+          "margin": "1.5rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-md": ["Inter"],
+          "body-md": ["Inter"],
+          "data-mono": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-sm": ["Inter"],
+          "title-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "label-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "headline-lg": ["Inter"],
+          "display-lg": ["Inter"]
+        },
+        "fontSize": {
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-surface-container-high"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>City Campus - Main Hospital, Hyderabad</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / Mobile / Patient Name / Encounter..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">LAN: 192.168.1.10</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-60 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Clinical Modules</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-reception-registration" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px]">how_to_reg</span><span class="font-body-md text-body-md">OP Registration</span></div><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">42</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px]">receipt_long</span><span class="font-body-md text-body-md">Cashier & Billing</span></div><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals-station" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px]">vital_signs</span><span class="font-body-md text-body-md">Nursing & Vitals</span></div><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12</span></a><a aria-current="page" class="flex items-center justify-between px-3 py-2 rounded transition-colors bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed" data-path="doctor-opd-consultation" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px]">stethoscope</span><span class="font-body-md text-body-md">Doctor OPD</span></div><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">29</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="laboratory-diagnostics" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px]">science</span><span class="font-body-md text-body-md">Laboratory & Diagnostics</span></div><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">34</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispensing" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px]">medication</span><span class="font-body-md text-body-md">Pharmacy Dispense</span></div><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">7</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ipd-bed-management" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px]">hotel</span><span class="font-body-md text-body-md">IPD / Bed Mgmt</span></div><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="owner-admin-cloud-analytics" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px]">insights</span><span class="font-body-md text-body-md">Admin Analytics</span></div></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="public-queue-token-display" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px]">tv</span><span class="font-body-md text-body-md">Token Display</span></div><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">open_in_new</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-60 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Sticky Clinical Context Banner -->
+<div class="sticky top-0 z-30 bg-surface-container-lowest shadow-sm px-6 py-3 flex flex-col gap-2.5">
+<div class="flex flex-wrap items-center justify-between gap-3">
+<!-- Left: Patient Demographics & Profile Photo -->
+<div class="flex items-center gap-3.5">
+<div class="relative w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Close up clinical portrait of an Indian male patient, mid 40s with a calm demeanor, natural hospital lighting and realistic medical identity photo style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2uNkCCCKc-SVg6oJV5Xz-ygzIoKaI6jWRyAGmZ0aCUY_6zfac5rZnkoWe-Bs08635zk8_Kyo92IR1aophQLZO_W8IaldCN1peQbCsXKR-04C2je6R-jB3i5Ed5ZN3QAmlcKKTFfW6sXnhkjPxOTfZ7anOCzES7snys8GT-le8B5Kp9tH8mZMLknd3kpxWU1QdRa5V4tgPS2ldOmkYJo-YMpKr6ZFSZbKxeUq9PV4"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-600 rounded-full"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface font-bold truncate">Rajesh Kumar Verma</span>
+<span class="font-label-sm text-label-sm uppercase bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full">B+ve</span>
+<span class="font-data-mono text-label-md bg-surface-container-high text-primary px-2 py-0.5 rounded font-semibold">Token #28</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5 text-on-surface-variant font-body-sm text-body-sm">
+<span class="font-data-mono font-medium text-on-surface">UHID: SHMS-2024-08923</span>
+<span>•</span>
+<span>46 Yrs / Male</span>
+<span>•</span>
+<span class="font-data-mono text-on-surface-variant">ENC-2024-10-0418</span>
+<span class="bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm px-1.5 py-0.2 rounded font-medium">Gen Med OP</span>
+</div>
+</div>
+</div>
+<!-- Center: Critical Allergy Alert Tag -->
+<div class="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-1.5 rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-[20px] text-error animate-pulse">warning</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase font-bold tracking-wide text-error">CRITICAL ALLERGIES</span>
+<span class="font-title-md text-title-md font-bold leading-tight">Penicillin, Sulfa Drugs</span>
+</div>
+</div>
+<!-- Right: Local Sync State & Quick Triage -->
+<div class="flex items-center gap-3 shrink-0">
+<div class="hidden xl:flex flex-col text-right">
+<div class="flex items-center justify-end gap-1.5 text-emerald-700">
+<span class="material-symbols-outlined text-[16px]">cloud_done</span>
+<span class="font-data-mono text-label-md font-bold">Auto-saved 11:44:12 AM</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Enc. Status: <strong class="text-primary font-medium">In-Progress Room #4</strong></span>
+</div>
+<button class="flex items-center gap-1.5 h-8 px-3 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">history</span>
+<span>Full EHR</span>
+</button>
+</div>
+</div>
+<!-- Sub-strip: Nursing Vitals & Co-morbidities -->
+<div class="flex flex-wrap items-center justify-between gap-2 pt-2 bg-surface-container-low px-3 py-1.5 rounded">
+<div class="flex flex-wrap items-center gap-4 text-on-surface font-body-sm text-body-sm">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px]">vital_signs</span>
+<span class="font-label-sm text-label-sm uppercase">Vitals (11:30 AM by Staff Kavitha):</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-on-surface-variant">BP:</span>
+<span class="font-data-mono text-label-md font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-900">138/86 mmHg</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-on-surface-variant">Pulse:</span>
+<span class="font-data-mono text-label-md font-bold text-on-surface">78 bpm</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-on-surface-variant">SpO2:</span>
+<span class="font-data-mono text-label-md font-bold text-emerald-800">98%</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-on-surface-variant">Temp:</span>
+<span class="font-data-mono text-label-md font-bold text-on-surface">98.4°F</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-on-surface-variant">Wt / BMI:</span>
+<span class="font-data-mono text-label-md font-semibold text-on-surface">74 kg (BMI 24.8)</span>
+</div>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Past History:</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-medium text-body-sm">Type 2 DM (5y)</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-medium text-body-sm">Mild HTN</span>
+</div>
+</div>
+</div>
+<!-- Main Consultation 3-Column Grid Area -->
+<div class="p-4 grid grid-cols-12 gap-4 items-start">
+<!-- ================= COLUMN 1: QUEUE & PREVIOUS ENCOUNTERS (25% ~ 3 cols) ================= -->
+<div class="col-span-12 lg:col-span-3 flex flex-col gap-4">
+<!-- OP Queue Navigation Card -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-3.5 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">groups</span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">Doctor's OPD Queue</h2>
+</div>
+<span class="font-data-mono text-label-sm bg-primary-fixed text-on-primary-fixed font-bold px-2 py-0.5 rounded-full">27 Total</span>
+</div>
+<!-- Pill Status Selectors -->
+<div class="grid grid-cols-2 gap-1.5 bg-surface-container-low p-1 rounded">
+<button class="py-1 px-2 text-left rounded font-label-md text-label-md bg-surface-container-lowest text-primary font-bold shadow-sm flex items-center justify-between">
+<span>In Room</span>
+<span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+</button>
+<button class="py-1 px-2 text-left rounded font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-between">
+<span>Waiting</span>
+<span class="font-data-mono text-label-sm font-bold bg-surface-container-highest px-1 rounded">4</span>
+</button>
+<button class="py-1 px-2 text-left rounded font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-between">
+<span>Completed</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant font-medium">19</span>
+</button>
+<button class="py-1 px-2 text-left rounded font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-between">
+<span>Review/Follow</span>
+<span class="font-data-mono text-label-sm font-bold text-tertiary-container bg-tertiary-fixed px-1 rounded">3</span>
+</button>
+</div>
+<!-- Current Active Queue Item -->
+<div class="flex flex-col gap-1.5 mt-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Active Encounter</span>
+<div class="p-2.5 rounded bg-primary-container text-on-primary shadow-sm flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg font-bold">#28 Rajesh Kumar Verma</span>
+<span class="font-data-mono text-label-sm bg-surface-container-lowest/20 px-1.5 py-0.5 rounded">11:15 AM</span>
+</div>
+<span class="font-body-sm text-body-sm text-primary-fixed-dim">Fever, Myalgia (3 days) • Repeat Visit</span>
+</div>
+<!-- Waiting Queue Feed -->
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold mt-2">Next in Line</span>
+<div class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-semibold">#29 Sunita N. Rao</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">11:28 AM</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span>38 F • Severe Migraine</span>
+<span class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 font-label-sm text-label-sm">Waiting 16m</span>
+</div>
+</div>
+<div class="p-2.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-semibold">#30 Mohammed Siddiqui</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">11:35 AM</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span>52 M • Glycemic Review (Fasting: 184)</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container-high text-on-surface font-label-sm text-label-sm">Follow-up</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Past Clinical Visits Timeline & Fast Rx Preview -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-3.5 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">calendar_month</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Past Encounters</h3>
+</div>
+<button class="font-label-sm text-label-sm text-primary font-bold hover:underline">Compare</button>
+</div>
+<div class="flex flex-col gap-2">
+<!-- Past Visit 1 -->
+<div class="p-2.5 rounded bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">12 Jul 2024 (OPD)</span>
+<span class="font-label-sm text-label-sm bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">Resolved</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Diag: Acute Gastroenteritis. Given Tab. Ofloxacin + Ornidazole, ORS sachets.</p>
+<div class="flex items-center justify-between pt-1">
+<span class="font-data-mono text-label-sm text-on-surface-variant">Dr. P. Sharma</span>
+<button class="font-label-sm text-label-sm text-primary font-bold flex items-center gap-0.5 hover:underline">
+<span class="material-symbols-outlined text-[14px]">content_copy</span> Repeat Rx
+              </button>
+</div>
+</div>
+<!-- Past Visit 2 -->
+<div class="p-2.5 rounded bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">04 Mar 2024 (OPD)</span>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface px-1.5 py-0.5 rounded">Quarterly Check</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Diag: T2DM & HTN review. HbA1c: 7.2%. Continued Metformin 500mg BD & Telmisartan 40mg OD.</p>
+<div class="flex items-center justify-between pt-1">
+<span class="font-data-mono text-label-sm text-on-surface-variant">Dr. A. Sen</span>
+<button class="font-label-sm text-label-sm text-primary font-bold flex items-center gap-0.5 hover:underline">
+<span class="material-symbols-outlined text-[14px]">description</span> View Lab
+              </button>
+</div>
+</div>
+</div>
+<!-- Patient Attachment Thumbnail -->
+<div class="flex items-center gap-3 p-2 bg-surface-container-low rounded">
+<div class="w-10 h-10 rounded overflow-hidden shrink-0 bg-surface">
+<img class="w-full h-full object-cover" data-alt="Scanned clinical ultrasound lab report with medical graphs, clear typography on clean hospital station surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcY_qABrpMR8NkAkAhmfbxtJ1D5RYMiuGX_SprHT58ISdq3RHy_8TGEKEAAb_ZdNtgZI7ZEEyBBAnFDZAMUNoNG4p2XQ98o7-lgUxw5zCiS1yIVFj2-OYvN0iL9UWc9oHEuBLEJmvQIttkHHPCgDjcikNdF8BBlreR40jpPL0hGoiL3YUgAMmVKom1eoafKL_AbuMoAD4Ig16oBY9YXNHlm0l4bmGR70zXC0oTHds"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-bold truncate">USG_Abdomen_March2024.pdf</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Grade 1 Fatty Liver • 1.2 MB</span>
+</div>
+</div>
+</div>
+</div>
+<!-- ================= COLUMN 2: CLINICAL WORKSPACE & DOCUMENTATION (48% ~ 6 cols) ================= -->
+<div class="col-span-12 lg:col-span-6 flex flex-col gap-4">
+<!-- Chief Complaints & HPI -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-4 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary">symptoms</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Clinical Encounter Notes</h2>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-high px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">mic</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Speech-to-Text Active</span>
+</div>
+</div>
+<!-- Chief Complaints -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md uppercase tracking-wider text-on-surface font-bold flex items-center justify-between">
+<span>Chief Complaints</span>
+<span class="text-on-surface-variant font-normal text-body-sm">Click chips to quickly append</span>
+</label>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2.5 py-1 rounded bg-primary-fixed text-on-primary-fixed font-label-md text-label-md font-bold flex items-center gap-1">
+              Fever with chills (3 days) <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</span>
+<span class="px-2.5 py-1 rounded bg-primary-fixed text-on-primary-fixed font-label-md text-label-md font-bold flex items-center gap-1">
+              Generalized body ache / Myalgia <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</span>
+<span class="px-2.5 py-1 rounded bg-primary-fixed text-on-primary-fixed font-label-md text-label-md font-bold flex items-center gap-1">
+              Mild productive cough <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</span>
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">add</span> Sore Throat
+            </button>
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">add</span> Nausea
+            </button>
+</div>
+</div>
+<!-- HPI & Physical Exam -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-bold">History of Present Illness (HPI)</label>
+<textarea class="w-full p-2.5 bg-surface-container-low rounded text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none placeholder:text-on-surface-variant/60 resize-none" rows="3">Patient reports acute onset high-grade intermittent fever since Wednesday, associated with rigors and retro-orbital headache. Mild dry cough, no chest tightness, no hemoptysis. Normal appetite mildly reduced.</textarea>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-bold">Physical Examination Findings</label>
+<textarea class="w-full p-2.5 bg-surface-container-low rounded text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none placeholder:text-on-surface-variant/60 resize-none" rows="3">Conscious, oriented, febrile to touch. No pallor, icterus, cyanosis, clubbing, or lymphadenopathy.
+Chest: Bilateral air entry clear, no wheeze/crepts.
+CVS: S1, S2 heard, no murmurs.
+P/A: Soft, non-tender, no hepatosplenomegaly.</textarea>
+</div>
+</div>
+<!-- Provisional Diagnosis & ICD-10 Search -->
+<div class="flex flex-col gap-1.5 pt-2">
+<label class="font-label-md text-label-md uppercase tracking-wider text-on-surface font-bold flex items-center justify-between">
+<span>Provisional & Final Diagnosis (ICD-10)</span>
+<span class="font-data-mono text-label-sm text-primary font-bold">Selected: 1 Primary</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full h-9 pl-9 pr-24 bg-surface-container-low rounded font-body-md text-body-md text-on-surface font-medium focus:bg-surface-container-lowest focus:outline-none" type="text" value="Viral Pyrexia with Upper Respiratory Tract Infection (ICD-10: J06.9)"/>
+<span class="absolute right-2.5 top-2 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm font-bold">CONFIRMED</span>
+</div>
+</div>
+</div>
+<!-- E-Prescription Desk with Real-Time Safety Cross-Check -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-4 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary">medication</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Prescription & Medication Orders</h2>
+</div>
+<!-- Allergy Validator Shield -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-900 rounded-full font-label-md text-label-md font-bold shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-emerald-700">verified_user</span>
+<span>Drug-Allergy Cross-Check: PASSED (No Penicillin / Sulfa)</span>
+</div>
+</div>
+<!-- Quick Drug Search / Auto-suggest -->
+<div class="grid grid-cols-12 gap-2 bg-surface-container-low p-2 rounded">
+<div class="col-span-6 relative">
+<input class="w-full h-8 pl-3 pr-8 bg-surface-container-lowest rounded font-body-sm text-body-sm text-on-surface focus:outline-none" placeholder="Search drug name, generic formulation, strength..." type="text"/>
+<span class="material-symbols-outlined absolute right-2 top-2 text-on-surface-variant text-[16px]">search</span>
+</div>
+<div class="col-span-2">
+<select class="w-full h-8 bg-surface-container-lowest px-2 rounded font-body-sm text-body-sm text-on-surface focus:outline-none">
+<option>1-0-1 (After Food)</option>
+<option>0-0-1 (Night)</option>
+<option>1-1-1 (TDS)</option>
+<option>1-0-0 (Morning)</option>
+<option>SOS (As Needed)</option>
+</select>
+</div>
+<div class="col-span-2">
+<input class="w-full h-8 px-2 bg-surface-container-lowest rounded font-body-sm text-body-sm text-on-surface focus:outline-none" placeholder="Duration (e.g. 5 Days)" type="text"/>
+</div>
+<div class="col-span-2">
+<button class="w-full h-8 bg-primary text-on-primary rounded font-label-md text-label-md font-bold hover:bg-primary-container transition-colors flex items-center justify-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">add</span> Add Drug
+            </button>
+</div>
+</div>
+<!-- High-Density Medication Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase">
+<th class="py-2 px-3">#</th>
+<th class="py-2 px-3">Medication & Form</th>
+<th class="py-2 px-3">Dosage / Frequency</th>
+<th class="py-2 px-3">Duration</th>
+<th class="py-2 px-3 text-right">Dispense Qty</th>
+<th class="py-2 px-3 text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-transparent font-body-md text-body-md text-on-surface">
+<!-- Item 1 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-2.5 px-3 font-data-mono text-label-sm text-on-surface-variant">01</td>
+<td class="py-2.5 px-3">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold text-on-surface">Tab. Paracetamol 650mg</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Generic: Paracetamol (Dolo / Calpol equivalent)</span>
+</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="font-data-mono font-semibold bg-surface-container px-2 py-0.5 rounded text-on-surface">1 - 0 - 1</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant ml-1">After food</span>
+</td>
+<td class="py-2.5 px-3 font-data-mono">3 Days</td>
+<td class="py-2.5 px-3 text-right font-data-mono font-bold text-primary">6 Tabs</td>
+<td class="py-2.5 px-3 text-center">
+<button class="text-on-surface-variant hover:text-error transition-colors p-1">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<!-- Item 2 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-2.5 px-3 font-data-mono text-label-sm text-on-surface-variant">02</td>
+<td class="py-2.5 px-3">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold text-on-surface">Tab. Cetirizine 10mg</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Generic: Cetirizine Dihydrochloride</span>
+</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="font-data-mono font-semibold bg-surface-container px-2 py-0.5 rounded text-on-surface">0 - 0 - 1</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant ml-1">Night / Bedtime</span>
+</td>
+<td class="py-2.5 px-3 font-data-mono">5 Days</td>
+<td class="py-2.5 px-3 text-right font-data-mono font-bold text-primary">5 Tabs</td>
+<td class="py-2.5 px-3 text-center">
+<button class="text-on-surface-variant hover:text-error transition-colors p-1">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<!-- Item 3 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-2.5 px-3 font-data-mono text-label-sm text-on-surface-variant">03</td>
+<td class="py-2.5 px-3">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold text-on-surface">Syp. Diphenhydramine Cough Expectorant 100ml</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Ammonium Chloride + Sodium Citrate + Diphenhydramine</span>
+</div>
+</td>
+<td class="py-2.5 px-3">
+<span class="font-data-mono font-semibold bg-surface-container px-2 py-0.5 rounded text-on-surface">5 ml TDS</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant ml-1">With warm water</span>
+</td>
+<td class="py-2.5 px-3 font-data-mono">5 Days</td>
+<td class="py-2.5 px-3 text-right font-data-mono font-bold text-primary">1 Bottle</td>
+<td class="py-2.5 px-3 text-center">
+<button class="text-on-surface-variant hover:text-error transition-colors p-1">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Laboratory & Diagnostics Investigation Requisition -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-4 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary">biotech</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Investigation & Diagnostic Orders</h3>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Order Priority:</span>
+<span class="font-label-md text-label-md px-2 py-0.5 bg-error-container text-on-error-container font-bold rounded-full">Stat / Urgent</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+<!-- Ordered Test 1 -->
+<div class="p-3 bg-surface-container-low rounded flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px]">science</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold text-on-surface">Complete Blood Picture (CBC + Platelets)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Automated Hematology • EDTA Whole Blood</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-label-md font-bold text-on-surface">₹350</span>
+<span class="material-symbols-outlined text-emerald-700 text-[18px]">check_circle</span>
+</div>
+</div>
+<!-- Ordered Test 2 -->
+<div class="p-3 bg-surface-container-low rounded flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px]">coronavirus</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold text-on-surface">Dengue NS1 Antigen (Rapid Serology)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Early Detection Assay • Serum Sample</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-label-md font-bold text-on-surface">₹600</span>
+<span class="material-symbols-outlined text-emerald-700 text-[18px]">check_circle</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-1">
+<input class="flex-1 h-8 px-3 bg-surface-container-low rounded font-body-sm text-body-sm text-on-surface focus:outline-none" placeholder="Search & add lab test (e.g., Widal, Liver Function, Serum Creatinine, Chest X-Ray)..." type="text"/>
+<button class="h-8 px-3 bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded font-label-md text-label-md font-bold transition-colors">
+            Browse Profiles
+          </button>
+</div>
+</div>
+</div>
+<!-- ================= COLUMN 3: CHARGES PREVIEW, ADVICE & ACTIONS (27% ~ 3 cols) ================= -->
+<div class="col-span-12 lg:col-span-3 flex flex-col gap-4">
+<!-- Action Command Station -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-4 flex flex-col gap-3">
+<div class="flex items-center justify-between pb-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Consultation Desk</span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+</div>
+<!-- Primary Action -->
+<button class="w-full h-11 bg-primary hover:bg-primary-container text-on-primary rounded font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]">
+<span class="material-symbols-outlined text-[20px]">draw</span>
+<span>Sign & Complete Consultation</span>
+</button>
+<span class="text-center font-data-mono text-label-sm text-on-surface-variant -mt-1">Shortcut: Press Ctrl + Enter</span>
+<div class="grid grid-cols-1 gap-2 pt-1">
+<button class="w-full h-9 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-label-md text-label-md font-bold flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[18px] text-primary">cloud_upload</span>
+<span>Order Diagnostics & Hold</span>
+</button>
+<button class="w-full h-9 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-label-md text-label-md font-bold flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[18px]">print</span>
+<span>Print Rx (English & Telugu)</span>
+</button>
+<button class="w-full h-9 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-label-md text-label-md font-bold flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[18px] text-error">personal_injury</span>
+<span>Refer to Specialist / Admit IPD</span>
+</button>
+</div>
+</div>
+<!-- Live Clinical Billing & Charges Breakdown -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-4 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Charges Summary</h3>
+<span class="font-label-sm text-label-sm bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-bold">Auto-Sync Enabled</span>
+</div>
+<div class="flex flex-col gap-2 pt-1 font-body-sm text-body-sm">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">OP Consultation Fee</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">RC-9921 • Dr. P. Sharma</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-data-mono text-body-md font-bold text-on-surface">₹500.00</span>
+<span class="material-symbols-outlined text-[16px] text-emerald-700" title="Paid">check</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Lab Requisitions (2 tests)</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">CBC (₹350) + Dengue NS1 (₹600)</span>
+</div>
+<span class="font-data-mono text-body-md font-bold text-on-surface">₹950.00</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Pharmacy Rx Estimate</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">3 Meds (12 Units Total)</span>
+</div>
+<span class="font-data-mono text-body-md font-bold text-on-surface">₹185.00</span>
+</div>
+<div class="my-1 h-px bg-surface-container-high"></div>
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Total Encounter Bill</span>
+<div class="text-right">
+<span class="font-data-mono text-headline-md text-headline-md text-primary font-bold">₹1,635.00</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">₹500 Paid / ₹1,135 Due at Cashier</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Follow-up Planner & Patient Advice -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-4 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Patient Advice & Follow-Up</h3>
+<span class="material-symbols-outlined text-[18px] text-primary">event</span>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-bold">Scheduled Follow-up</label>
+<div class="grid grid-cols-2 gap-1.5">
+<button class="py-1.5 px-2 bg-primary-fixed text-on-primary-fixed rounded font-label-md text-label-md font-bold flex items-center justify-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+<span>In 3 Days (27 Oct)</span>
+</button>
+<button class="py-1.5 px-2 bg-surface-container text-on-surface rounded font-label-md text-label-md hover:bg-surface-container-high transition-colors text-center">
+                Custom Date
+              </button>
+</div>
+</div>
+<div class="flex flex-col gap-1 mt-1">
+<label class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-bold">Clinical Care Advice (Bilingual Print)</label>
+<textarea class="w-full p-2 bg-surface-container-low rounded text-on-surface font-body-sm text-body-sm focus:bg-surface-container-lowest focus:outline-none resize-none leading-tight" rows="3">1. Adequate hydration (min 2.5L fluids daily - coconut water/ORS).
+2. Warm saline gargling BD.
+3. Cold sponging if temperature >101°F.
+4. Report to ER immediately if severe abdominal pain, persistent vomiting, or petechiae appear.</textarea>
+</div>
+</div>
+</div>
+<!-- Destructive / Supervisor Safeguard -->
+<div class="bg-surface-container-low rounded p-3 flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[18px] text-outline">lock</span>
+<span>Discard / Void Encounter</span>
+</div>
+<button class="font-label-sm text-label-sm text-error font-bold hover:underline">
+          Requires Passcode
+        </button>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

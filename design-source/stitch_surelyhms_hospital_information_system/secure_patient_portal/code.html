@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_blank" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary-container":"#881d2c","on-tertiary-fixed-variant":"#5a4300","inverse-surface":"#223144","tertiary":"#402e00","error-container":"#ffdad6","on-background":"#0c1c2e","surface-dim":"#ccdbf4","outline":"#8a7171","surface-container-highest":"#d4e4fd","on-tertiary-fixed":"#251a00","surface-tint":"#a83541","inverse-on-surface":"#eaf1ff","surface-variant":"#d4e4fd","surface-bright":"#f8f9ff","on-surface-variant":"#574142","on-primary":"#ffffff","on-surface":"#0c1c2e","secondary-fixed-dim":"#f1b8bf","inverse-primary":"#ffb3b5","on-secondary-container":"#7a4d54","background":"#f8f9ff","secondary-fixed":"#ffd9dd","surface-container-high":"#dce9ff","on-primary-container":"#ff999d","primary":"#680118","on-secondary":"#ffffff","surface-container-lowest":"#ffffff","on-tertiary-container":"#d4b264","secondary":"#7f5258","surface-container-low":"#eff4ff","outline-variant":"#debfbf","primary-fixed-dim":"#ffb3b5","tertiary-fixed-dim":"#e6c273","surface":"#f8f9ff","on-primary-fixed-variant":"#881d2c","on-tertiary":"#ffffff","secondary-container":"#fdc3ca","on-secondary-fixed-variant":"#643b41","surface-container":"#e5eeff","on-error-container":"#93000a","error":"#ba1a1a","on-primary-fixed":"#40000b","tertiary-fixed":"#ffdf9a","primary-fixed":"#ffdada","on-secondary-fixed":"#321117","tertiary-container":"#5b4400","on-error":"#ffffff"},borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},spacing:{"space-xl":"1.5rem","space-lg":"1rem","space-sm":"0.5rem","space-xs":"0.25rem","margin":"1.5rem","space-md":"0.75rem","gutter":"1rem"},fontFamily:{"headline-md":["Inter"],"body-md":["Inter"],"label-lg":["Inter"],"headline-lg":["Inter"],"label-md":["Inter"],"body-lg":["Inter"],"title-md":["Inter"],"display-lg":["Inter"],"label-sm":["Inter"],"data-mono":["Inter"],"body-sm":["Inter"]},fontSize:{"headline-md":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-md":["13px",{"lineHeight":"18px","fontWeight":"400"}],"label-lg":["13px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"600"}],"headline-lg":["22px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["11px",{"lineHeight":"14px","letterSpacing":"0.03em","fontWeight":"600"}],"body-lg":["14px",{"lineHeight":"20px","fontWeight":"400"}],"title-md":["15px",{"lineHeight":"20px","fontWeight":"600"}],"display-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-sm":["10px",{"lineHeight":"12px","letterSpacing":"0.04em","fontWeight":"700"}],"data-mono":["12px",{"lineHeight":"16px","letterSpacing":"-0.01em","fontWeight":"500"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><main class="w-full min-h-screen bg-surface flex flex-col"><div class="flex flex-col w-full">
+<!-- Portal Header Bar -->
+<header class="w-full bg-surface-container-lowest shadow-sm">
+<div class="max-w-7xl mx-auto px-space-lg py-space-md flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-[24px]">local_hospital</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-md text-headline-md text-primary tracking-tight">SurelyHMS</span>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface text-label-sm uppercase font-label-sm">Patient Portal</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary">Apollo Gleneagles & Multi-Speciality Institute, Hyderabad</p>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="hidden sm:flex items-center gap-space-xs px-space-md py-1.5 rounded-xl bg-surface-container-low text-on-surface">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+<span class="text-data-mono font-data-mono text-secondary">Session: <span class="font-bold text-primary" id="sessionTimer">13:48</span> remaining</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-space-sm py-1 rounded-full bg-surface-container text-on-surface text-label-sm font-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">verified_user</span> ABHA Verified
+          </span>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-dim text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1" onclick="handleSignOut()">
+<span class="material-symbols-outlined text-[16px]">logout</span>
+<span>Exit Portal</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Statutory Security & ABHA Privacy Notice Bar -->
+<section class="w-full bg-surface-container-low px-space-lg py-space-sm">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-space-sm text-body-sm font-body-sm text-on-surface-variant">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary-container text-[18px] mt-0.5">encrypted</span>
+<div>
+<span class="font-label-md text-label-md text-primary-container uppercase tracking-wide">Statutory Privacy Notice:</span>
+<span> Patient Health Record Portal — Backend OTP & ABHA Verification Required. Access to diagnostic reports, prescriptions, and billing receipts requires verified two-factor authentication (SMS OTP sent to mobile registered with UHID) or Ayushman Bharat Health Account (ABHA) digital consent. Public links do not grant open access.</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs whitespace-nowrap pl-space-md">
+<span class="material-symbols-outlined text-[16px] text-primary">lock</span>
+<span class="text-label-sm font-label-sm text-secondary">256-Bit Encrypted Clinical Gateway</span>
+</div>
+</div>
+</section>
+<!-- Main Patient Operational Canvas -->
+<main class="max-w-7xl w-full mx-auto px-space-lg py-space-lg flex flex-col gap-space-lg">
+<!-- Verified Patient Context Banner -->
+<div class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg">
+<div class="flex items-start sm:items-center gap-space-lg">
+<div class="relative">
+<div class="w-16 h-16 rounded-xl bg-surface-container flex items-center justify-center text-primary-container font-headline-lg text-headline-lg font-bold">
+              LN
+            </div>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center text-on-primary" title="Aadhaar Verified">
+<span class="material-symbols-outlined text-[12px]">check</span>
+</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="flex flex-wrap items-center gap-space-xs">
+<h1 class="font-headline-lg text-headline-lg text-on-surface font-semibold">Smt. Lakshmi Narayanan</h1>
+<span class="px-space-xs py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed text-label-sm font-label-sm">B+ Positive</span>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container text-secondary text-label-sm font-label-sm">Female • 52 Yrs</span>
+</div>
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 text-body-sm font-body-sm text-secondary">
+<span class="flex items-center gap-1">
+<span class="text-label-sm font-label-sm uppercase text-on-surface-variant">UHID:</span>
+<strong class="text-on-surface font-data-mono text-data-mono">SHMS-2024-09142</strong>
+</span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="text-label-sm font-label-sm uppercase text-on-surface-variant">Active Encounter:</span>
+<span class="font-data-mono text-data-mono text-on-surface">ENC-2024-10-0592</span>
+</span>
+<span>•</span>
+<span>OP General Medicine (Dr. K. Venkat Rao)</span>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-auto flex flex-col sm:flex-row items-start sm:items-center gap-space-md p-space-sm rounded-xl bg-surface-container-low">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">verified</span>
+<div class="text-left">
+<p class="text-label-sm font-label-sm text-secondary uppercase">Verification Credential</p>
+<p class="text-body-sm font-body-sm text-on-surface font-medium">Aadhaar-linked OTP (+91 98****4401)</p>
+</div>
+</div>
+<div class="hidden sm:block w-px h-8 bg-surface-container-high"></div>
+<button class="w-full sm:w-auto px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-label-md font-label-md shadow-sm flex items-center justify-center gap-1.5 transition-colors" onclick="triggerEmergencyAlert()">
+<span class="material-symbols-outlined text-[16px]">call</span>
+<span>24/7 Rapid Response</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Portal Navigation Tabs -->
+<div class="w-full flex items-center gap-space-xs overflow-x-auto pb-1">
+<button class="tab-btn px-space-lg py-space-sm rounded-lg bg-primary text-on-primary font-label-lg text-label-lg shadow-sm flex items-center gap-2 transition-all" id="tab-prescriptions" onclick="switchTab('prescriptions')">
+<span class="material-symbols-outlined text-[18px]">medication</span>
+<span>Active Prescriptions & Rx</span>
+<span class="px-1.5 py-0.5 rounded-full bg-primary-container text-on-primary text-label-sm font-label-sm ml-1">4</span>
+</button>
+<button class="tab-btn px-space-lg py-space-sm rounded-lg bg-surface-container-lowest text-secondary hover:bg-surface-container-low font-label-lg text-label-lg flex items-center gap-2 transition-all" id="tab-diagnostics" onclick="switchTab('diagnostics')">
+<span class="material-symbols-outlined text-[18px]">chips</span>
+<span>Diagnostic & Lab Reports</span>
+<span class="px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface text-label-sm font-label-sm ml-1">3</span>
+</button>
+<button class="tab-btn px-space-lg py-space-sm rounded-lg bg-surface-container-lowest text-secondary hover:bg-surface-container-low font-label-lg text-label-lg flex items-center gap-2 transition-all" id="tab-appointments" onclick="switchTab('appointments')">
+<span class="material-symbols-outlined text-[18px]">calendar_clock</span>
+<span>Appointments & Follow-ups</span>
+</button>
+<button class="tab-btn px-space-lg py-space-sm rounded-lg bg-surface-container-lowest text-secondary hover:bg-surface-container-low font-label-lg text-label-lg flex items-center gap-2 transition-all" id="tab-billing" onclick="switchTab('billing')">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+<span>Billing & Tax Receipts</span>
+</button>
+<button class="tab-btn px-space-lg py-space-sm rounded-lg bg-surface-container-lowest text-secondary hover:bg-surface-container-low font-label-lg text-label-lg flex items-center gap-2 transition-all" id="tab-support" onclick="switchTab('support')">
+<span class="material-symbols-outlined text-[18px]">support_agent</span>
+<span>24x7 Help Desk</span>
+</button>
+</div>
+<!-- TAB PANELS CONTAINER -->
+<div class="w-full flex flex-col gap-space-lg">
+<!-- SECTION 1: ACTIVE PRESCRIPTIONS & MEDICATIONS -->
+<section class="tab-panel w-full flex flex-col gap-space-lg" id="panel-prescriptions">
+<!-- Pharmacy Fulfillment State Banner -->
+<div class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">local_pharmacy</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface">Central Pharmacy Fulfillment</span>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm">Dispensed & Verified</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary">
+                Dispensed at Central Pharmacy Desk #04 by Pharm. S. Reddy • Batch Ref: <span class="font-data-mono text-data-mono">RX-2024-8849</span>
+</p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1.5 transition-colors" onclick="triggerPrintRx()">
+<span class="material-symbols-outlined text-[16px]">print</span>
+<span>Print Official Rx Slip</span>
+</button>
+<button class="px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-label-md font-label-md flex items-center gap-1.5 transition-colors" onclick="downloadRxPDF()">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>Signed PDF (NABH)</span>
+</button>
+</div>
+</div>
+<!-- Prescribed Drug Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+<!-- Drug Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-secondary">Analgesic & Antipyretic</span>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Tab. Dolo 650mg</h3>
+<p class="text-body-sm font-body-sm text-secondary">Paracetamol IP 650mg</p>
+</div>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface text-label-sm font-label-sm">1-0-1 (5 Days)</span>
+</div>
+<div class="mt-space-sm p-space-sm rounded-lg bg-surface-container-low text-body-sm font-body-sm text-on-surface flex flex-col gap-1">
+<div class="flex items-center gap-1 text-primary font-medium">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span>Twice daily after meals (Morning / Night)</span>
+</div>
+<div class="text-secondary italic text-body-sm">
+                  భోజనం తర్వాత ఉదయం మరియు రాత్రి తీసుకోండి • खाने के बाद लें
+                </div>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary pt-space-xs">
+<span>Qty Dispensed: <strong class="text-on-surface">10 Tablets</strong></span>
+<span class="text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Batch: MKL-4091
+              </span>
+</div>
+</div>
+<!-- Drug Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-secondary">Gastro-Resistant PPI</span>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Tab. Pan 40mg</h3>
+<p class="text-body-sm font-body-sm text-secondary">Pantoprazole Gastro-resistant Tablets IP</p>
+</div>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface text-label-sm font-label-sm">1-0-0 (7 Days)</span>
+</div>
+<div class="mt-space-sm p-space-sm rounded-lg bg-surface-container-low text-body-sm font-body-sm text-on-surface flex flex-col gap-1">
+<div class="flex items-center gap-1 text-primary font-medium">
+<span class="material-symbols-outlined text-[16px]">restaurant</span>
+<span>Once daily Empty Stomach (30 mins before breakfast)</span>
+</div>
+<div class="text-secondary italic text-body-sm">
+                  ఉదయం టిఫిన్‌కు 30 నిమిషాల ముందు ఖాళీ కడుపుతో తీసుకోండి
+                </div>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary pt-space-xs">
+<span>Qty Dispensed: <strong class="text-on-surface">7 Tablets</strong></span>
+<span class="text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Batch: ALK-9902
+              </span>
+</div>
+</div>
+<!-- Drug Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-secondary">Platelet Booster Formulation</span>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Tab. Platimax 1100mg</h3>
+<p class="text-body-sm font-body-sm text-secondary">Carica Papaya Leaf Extract Standardized</p>
+</div>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface text-label-sm font-label-sm">1-1-1 (4 Days)</span>
+</div>
+<div class="mt-space-sm p-space-sm rounded-lg bg-surface-container-low text-body-sm font-body-sm text-on-surface flex flex-col gap-1">
+<div class="flex items-center gap-1 text-primary font-medium">
+<span class="material-symbols-outlined text-[16px]">water_drop</span>
+<span>Thrice daily post meals with plenty of fluids</span>
+</div>
+<div class="text-secondary italic text-body-sm">
+                  రక్తకణాల కౌంట్ కోసం రోజుకు 3 సార్లు ఆహారం తర్వాత తీసుకోండి
+                </div>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary pt-space-xs">
+<span>Qty Dispensed: <strong class="text-on-surface">12 Tablets</strong></span>
+<span class="text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Batch: PLT-1188
+              </span>
+</div>
+</div>
+<!-- Drug Card 4 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-secondary">Electrolyte Restoration</span>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Oral Rehydration Salts (WHO Formula)</h3>
+<p class="text-body-sm font-body-sm text-secondary">Electral Sachet 21.8g</p>
+</div>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface text-label-sm font-label-sm">SOS / Hydration</span>
+</div>
+<div class="mt-space-sm p-space-sm rounded-lg bg-surface-container-low text-body-sm font-body-sm text-on-surface flex flex-col gap-1">
+<div class="flex items-center gap-1 text-primary font-medium">
+<span class="material-symbols-outlined text-[16px]">local_drink</span>
+<span>Dissolve 1 sachet in 1 Litre of clean drinking water</span>
+</div>
+<div class="text-secondary italic text-body-sm">
+                  ఒక ప్యాకెట్‌ను 1 లీటర్ శుభ్రమైన నీటిలో కలిపి రోజంతా కొద్దికొద్దిగా తాగండి
+                </div>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary pt-space-xs">
+<span>Qty Dispensed: <strong class="text-on-surface">4 Sachets</strong></span>
+<span class="text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Batch: ORS-5520
+              </span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: DIAGNOSTIC & LAB REPORTS -->
+<section class="tab-panel hidden w-full flex flex-col gap-space-lg" id="panel-diagnostics">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Diagnostic Laboratory & Radiology Records</h2>
+<p class="text-body-sm font-body-sm text-secondary">Only digitally verified reports approved by certifying pathologists are released.</p>
+</div>
+<span class="px-space-sm py-1 rounded-full bg-surface-container text-secondary text-label-sm font-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span> NABL Accredited Lab
+          </span>
+</div>
+<div class="flex flex-col gap-space-md">
+<!-- Released Report 1: CBC -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-primary mt-1">
+<span class="material-symbols-outlined text-[28px]">bloodtype</span>
+</div>
+<div>
+<div class="flex flex-wrap items-center gap-space-xs">
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Complete Blood Picture (CBC + Platelets)</h3>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm">Final Released</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary mt-0.5">
+                  Verified by Pathologist Dr. N. Rao (MD Path) • Barcode: <span class="font-data-mono text-data-mono">LAB-2024-99120</span>
+</p>
+<div class="flex flex-wrap items-center gap-space-md mt-space-sm text-body-sm font-body-sm text-on-surface">
+<span>Hemoglobin: <strong>12.4 g/dL</strong> (Normal)</span>
+<span>WBC: <strong>6,800 /uL</strong> (Normal)</span>
+<span class="text-primary font-semibold">Platelet Count: <strong>1,42,000 /uL</strong> (Borderline Low)</span>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-auto flex items-center gap-space-sm">
+<button class="flex-1 lg:flex-none px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center justify-center gap-1.5 transition-colors" onclick="previewCBCReport()">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span>View Summary</span>
+</button>
+<button class="flex-1 lg:flex-none px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-label-md font-label-md flex items-center justify-center gap-1.5 transition-colors" onclick="downloadSignedPDF('CBC')">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>Download Signed PDF</span>
+</button>
+</div>
+</div>
+<!-- Released Report 2: Chest X-Ray -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-primary mt-1">
+<span class="material-symbols-outlined text-[28px]">radiology</span>
+</div>
+<div>
+<div class="flex flex-wrap items-center gap-space-xs">
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Chest X-Ray PA View (Digital Radiography)</h3>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm">Radiologist Verified</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary mt-0.5">
+                  Reported by Dr. M. K. Ananth (MD Radiodiagnosis) • Study UID: <span class="font-data-mono text-data-mono">DICOM-RAD-4491</span>
+</p>
+<div class="mt-space-sm p-space-sm rounded-lg bg-surface-container-low text-body-sm font-body-sm text-on-surface">
+<span class="font-semibold text-primary">Impression:</span> No active parenchymal infiltration. Normal cardiothoracic ratio. Bilateral CP angles are clear.
+                </div>
+</div>
+</div>
+<div class="w-full lg:w-auto flex items-center gap-space-sm">
+<button class="flex-1 lg:flex-none px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center justify-center gap-1.5 transition-colors" onclick="openPACSViewer()">
+<span class="material-symbols-outlined text-[16px]">image</span>
+<span>Digital PACS Viewer</span>
+</button>
+<button class="flex-1 lg:flex-none px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-label-md font-label-md flex items-center justify-center gap-1.5 transition-colors" onclick="downloadSignedPDF('XRAY')">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>Download Report</span>
+</button>
+</div>
+</div>
+<!-- Pending Report 3: Urine Culture -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary mt-1">
+<span class="material-symbols-outlined text-[28px] animate-pulse">hourglass_top</span>
+</div>
+<div>
+<div class="flex flex-wrap items-center gap-space-xs">
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Urine Culture & Sensitivity</h3>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container text-secondary text-label-sm font-label-sm">Sample in Incubation</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary mt-0.5">
+                  Microbiology Dept • Automated 48-hr Aerobic Culture Protocol • Sample Coll: 24 Oct 2024, 09:15 AM
+                </p>
+<div class="flex items-center gap-1 mt-space-sm text-body-sm font-body-sm text-secondary">
+<span class="material-symbols-outlined text-[16px] text-primary">info</span>
+<span>Incubation progress: 28/48 Hours elapsed. <strong>Expected Release: 26 Oct 2024 at 11:30 AM</strong></span>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-auto flex items-center">
+<div class="px-space-md py-1.5 rounded-lg bg-surface-container-low text-secondary text-label-md font-label-md flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>Auto-SMS Alert upon Pathologist Sign-off</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: APPOINTMENTS & FOLLOW-UPS -->
+<section class="tab-panel hidden w-full flex flex-col gap-space-lg" id="panel-appointments">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+<!-- Next Confirmed Visit Card -->
+<div class="lg:col-span-2 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-lg">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm uppercase font-semibold">Scheduled Appointment</span>
+<span class="text-label-sm font-label-sm text-secondary font-data-mono">Token #OP-44</span>
+</div>
+<div class="flex items-start gap-space-md">
+<div class="w-16 h-16 rounded-xl bg-surface-container-low flex flex-col items-center justify-center text-primary">
+<span class="font-headline-md text-headline-md font-bold leading-none">29</span>
+<span class="text-label-sm font-label-sm uppercase tracking-wider">OCT</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface font-semibold">Clinical Follow-up & Platelet Review</h3>
+<p class="text-body-md font-body-md text-secondary">Dr. K. Venkat Rao (Senior Consultant Physician)</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">OPD Block B, First Floor, Consultation Room 104</p>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm p-space-md rounded-xl bg-surface-container-low">
+<div>
+<span class="text-label-sm font-label-sm text-secondary uppercase">Date & Time</span>
+<p class="text-body-md font-body-md text-on-surface font-semibold">Tue, 29 Oct 2024</p>
+<p class="text-body-sm font-body-sm text-secondary">10:30 AM IST</p>
+</div>
+<div>
+<span class="text-label-sm font-label-sm text-secondary uppercase">Specialty</span>
+<p class="text-body-md font-body-md text-on-surface font-semibold">Internal Medicine</p>
+<p class="text-body-sm font-body-sm text-secondary">Unit II Team</p>
+</div>
+<div>
+<span class="text-label-sm font-label-sm text-secondary uppercase">Instructions</span>
+<p class="text-body-md font-body-md text-on-surface font-semibold">Bring Report Folio</p>
+<p class="text-body-sm font-body-sm text-secondary">Fasting not required</p>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-space-md pt-space-sm">
+<button class="flex-1 sm:flex-none px-space-lg py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 transition-colors" onclick="addToCalendar()">
+<span class="material-symbols-outlined text-[18px]">event</span>
+<span>Add to Google / Apple Calendar</span>
+</button>
+<button class="flex-1 sm:flex-none px-space-lg py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 transition-colors" onclick="openRescheduleModal()">
+<span class="material-symbols-outlined text-[18px]">update</span>
+<span>Request Reschedule</span>
+</button>
+</div>
+</div>
+<!-- Doctor Profile & Clinical Note -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-sm">
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-secondary">Primary Consultant</span>
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold">
+                  VR
+                </div>
+<div>
+<h4 class="font-title-md text-title-md text-on-surface font-semibold">Dr. K. Venkat Rao</h4>
+<p class="text-body-sm font-body-sm text-secondary">MD, DNB (Internal Medicine)</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Reg No: TS-MCI-48190</p>
+</div>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low text-body-sm font-body-sm text-on-surface flex flex-col gap-1">
+<span class="font-label-md text-label-md text-primary font-semibold uppercase">Physician Clinical Advisory:</span>
+<p>"Patient Lakshmi Narayanan instructed to report immediately if any skin petechiae, gum bleed, or recurrent fever spike (>100°F) occurs before the scheduled follow-up."</p>
+</div>
+</div>
+<div class="text-body-sm font-body-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+<span>OPD Fee pre-cleared for this encounter cycle.</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 4: BILLING & OFFICIAL RECEIPTS -->
+<section class="tab-panel hidden w-full flex flex-col gap-space-lg" id="panel-billing">
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Verified Invoices & Official Receipts</h2>
+<p class="text-body-sm font-body-sm text-secondary">Digitally signed GST invoices compliant with IRDAI Mediclaim claim reimbursement standards.</p>
+</div>
+<button class="px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-label-md font-label-md flex items-center gap-1.5 transition-colors" onclick="downloadConsolidatedReceipt()">
+<span class="material-symbols-outlined text-[16px]">receipt</span>
+<span>Download Combined Tax Folio</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+<!-- Receipt 1: Consultation -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-secondary">OPD Registration & Consult</span>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Receipt #RC-2024-10-0594</h3>
+<p class="text-body-sm font-body-sm text-secondary">Date: 24 Oct 2024, 08:45 AM • Cash Counter #01</p>
+</div>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm">PAID (CASH)</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1 text-body-sm font-body-sm mt-space-sm">
+<div class="flex items-center justify-between">
+<span class="text-secondary">Specialist Doctor Consultation</span>
+<span class="font-data-mono text-data-mono text-on-surface">₹500.00</span>
+</div>
+<div class="flex items-center justify-between text-secondary">
+<span>SGST (0%) + CGST (0%) Health Care Exemption</span>
+<span class="font-data-mono text-data-mono">₹0.00</span>
+</div>
+<div class="flex items-center justify-between font-semibold text-on-surface pt-1">
+<span>Total Amount Paid</span>
+<span class="font-data-mono text-data-mono text-primary font-bold text-headline-md">₹500.00</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+</div>
+<span class="text-label-sm font-label-sm text-secondary">IRDAI E-Invoice QR Embedded</span>
+</div>
+<button class="px-space-md py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1 transition-colors" onclick="downloadSingleInvoice('RC-2024-10-0594')">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>PDF Slip</span>
+</button>
+</div>
+</div>
+<!-- Receipt 2: Pharmacy -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-start justify-between">
+<div>
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-secondary">Central Hospital Pharmacy</span>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Receipt #RC-2024-10-0595</h3>
+<p class="text-body-sm font-body-sm text-secondary">Date: 24 Oct 2024, 09:30 AM • POS Desk #04</p>
+</div>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm">PAID (UPI)</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1 text-body-sm font-body-sm mt-space-sm">
+<div class="flex items-center justify-between">
+<span class="text-secondary">Prescription Medications (4 Line Items)</span>
+<span class="font-data-mono text-data-mono text-on-surface">₹377.05</span>
+</div>
+<div class="flex items-center justify-between text-secondary">
+<span>GST Applied (12% Pharma Rate)</span>
+<span class="font-data-mono text-data-mono">₹45.25</span>
+</div>
+<div class="flex items-center justify-between font-semibold text-on-surface pt-1">
+<span>Total Amount Paid (via UPI)</span>
+<span class="font-data-mono text-data-mono text-primary font-bold text-headline-md">₹422.30</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+</div>
+<span class="text-label-sm font-label-sm text-secondary">Ref: UPI/429810298411</span>
+</div>
+<button class="px-space-md py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1 transition-colors" onclick="downloadSingleInvoice('RC-2024-10-0595')">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>PDF Slip</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 5: 24x7 HELP & EMERGENCY -->
+<section class="tab-panel hidden w-full flex flex-col gap-space-lg" id="panel-support">
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+<div class="max-w-3xl">
+<h2 class="font-headline-md text-headline-md text-on-surface">Emergency Response & Patient Assistance</h2>
+<p class="text-body-sm font-body-sm text-secondary mt-1">
+              Direct emergency triage links and dedicated helpline desks for Apollo Gleneagles SurelyHMS enrolled patients.
+            </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md mt-space-lg">
+<!-- Emergency Line -->
+<div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="w-10 h-10 rounded-lg bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">emergency</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mt-space-xs">Emergency Casualty Desk</h3>
+<p class="text-body-sm font-body-sm text-secondary">Immediate acute trauma, cardiac, or respiratory distress assistance.</p>
+<div class="font-headline-md text-headline-md text-primary font-bold font-data-mono mt-space-xs">
+                  040-2360-7777
+                </div>
+</div>
+<a class="w-full py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-label-md font-label-md text-center block transition-colors" href="tel:04023607777">
+                Call Casualty Desk
+              </a>
+</div>
+<!-- Pharmacy WhatsApp -->
+<div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="w-10 h-10 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">chat</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mt-space-xs">Pharmacy WhatsApp Desk</h3>
+<p class="text-body-sm font-body-sm text-secondary">Refill queries, home delivery dispatch, and medication usage guidance.</p>
+<div class="font-headline-md text-headline-md text-on-surface font-bold font-data-mono mt-space-xs">
+                  +91 91540 88201
+                </div>
+</div>
+<a class="w-full py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md text-center block transition-colors" href="https://wa.me/919154088201" target="_blank">
+                Open WhatsApp Query
+              </a>
+</div>
+<!-- Ambulance Line -->
+<div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="w-10 h-10 rounded-lg bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">ambulance</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mt-space-xs">Ambulance Dispatch 1066</h3>
+<p class="text-body-sm font-body-sm text-secondary">ICU on Wheels equipped with ventilators and paramedic crew.</p>
+<div class="font-headline-md text-headline-md text-primary font-bold font-data-mono mt-space-xs">
+                  Toll Free: 1066
+                </div>
+</div>
+<a class="w-full py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-label-md font-label-md text-center block transition-colors" href="tel:1066">
+                Dial Rapid Ambulance
+              </a>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Quick Help & Legal Footer Notice -->
+<div class="w-full rounded-xl bg-surface-container-low p-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm text-body-sm font-body-sm text-secondary">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-primary">security</span>
+<span>Electronic Medical Record protected under Digital Personal Data Protection (DPDP) Act 2023.</span>
+</div>
+<div class="flex items-center gap-space-md">
+<a class="hover:text-primary transition-colors underline" href="#support" onclick="switchTab('support')">Patient Grievance Cell</a>
+<span>•</span>
+<span>SurelyHMS v4.2.8 (Build 9042)</span>
+</div>
+</div>
+</main>
+<!-- Interactive Feedback Toast (Hidden by default) -->
+<div class="fixed bottom-6 right-6 px-space-lg py-space-md rounded-xl bg-inverse-surface text-inverse-on-surface shadow-xl flex items-center gap-space-sm transition-all duration-300 opacity-0 pointer-events-none transform translate-y-2 z-50" id="portalToast">
+<span class="material-symbols-outlined text-[20px] text-primary-fixed" id="toastIcon">check_circle</span>
+<span class="text-body-md font-body-md font-medium" id="toastMessage">Notification triggered.</span>
+</div>
+<script>
+    // Tab switching function
+    function switchTab(tabId) {
+      const tabs = ['prescriptions', 'diagnostics', 'appointments', 'billing', 'support'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tab-' + t);
+        const panel = document.getElementById('panel-' + t);
+        if (t === tabId) {
+          btn.classList.remove('bg-surface-container-lowest', 'text-secondary', 'hover:bg-surface-container-low');
+          btn.classList.add('bg-primary', 'text-on-primary', 'shadow-sm');
+          panel.classList.remove('hidden');
+        } else {
+          btn.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm');
+          btn.classList.add('bg-surface-container-lowest', 'text-secondary', 'hover:bg-surface-container-low');
+          panel.classList.add('hidden');
+        }
+      });
+    }
+
+    // Micro-interactions and triggers
+    function showToast(msg, icon = 'check_circle') {
+      const toast = document.getElementById('portalToast');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+      msgEl.innerText = msg;
+      iconEl.innerText = icon;
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+      }, 3500);
+    }
+
+    function triggerPrintRx() {
+      showToast('Opening print preview for Rx Slip (ENC-2024-10-0592)...', 'print');
+      setTimeout(() => window.print(), 800);
+    }
+
+    function downloadRxPDF() {
+      showToast('Generating digitally signed NABH prescription slip PDF...', 'download');
+    }
+
+    function previewCBCReport() {
+      showToast('Opening Pathologist certified CBC summary modal...', 'visibility');
+    }
+
+    function downloadSignedPDF(type) {
+      showToast('Downloading encrypted ' + type + ' diagnostic report with digital seal...', 'file_download');
+    }
+
+    function openPACSViewer() {
+      showToast('Initializing Web PACS viewer for DICOM-RAD-4491...', 'image');
+    }
+
+    function addToCalendar() {
+      showToast('Calendar event created: Follow-up with Dr. K. Venkat Rao on 29 Oct 2024.', 'event_available');
+    }
+
+    function openRescheduleModal() {
+      showToast('Appointment reschedule request routed to OPD Desk #104.', 'schedule_send');
+    }
+
+    function downloadConsolidatedReceipt() {
+      showToast('Downloading consolidated IRDAI tax invoice package (Zip/PDF)...', 'receipt');
+    }
+
+    function downloadSingleInvoice(invId) {
+      showToast('Downloading official e-receipt: ' + invId, 'download');
+    }
+
+    function triggerEmergencyAlert() {
+      showToast('Routing call to SurelyHMS 24/7 Rapid Response Desk (040-2360-7777)...', 'emergency');
+    }
+
+    function handleSignOut() {
+      if (confirm("Are you sure you want to securely exit the patient health record session?")) {
+        showToast("Signing out and clearing decrypted health cache...", "lock");
+        setTimeout(() => location.reload(), 1200);
+      }
+    }
+
+    // Session timer countdown
+    let totalSeconds = 14 * 60 - 12;
+    const timerElement = document.getElementById('sessionTimer');
+    setInterval(() => {
+      if (totalSeconds > 0) {
+        totalSeconds--;
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        timerElement.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      } else {
+        timerElement.innerText = "Expired";
+      }
+    }, 1000);
+  </script>
+</div></main></body></html>

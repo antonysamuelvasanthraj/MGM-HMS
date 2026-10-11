@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / IPD No / Bed / Patient Name / Ward..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Inpatient &amp; IPD Care</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="inpatient-admissions-bed-management" href="#"><span class="font-body-md text-body-md">Inpatient Admissions &amp; Bed Management</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ward-nursing-workspace" href="#"><span class="font-body-md text-body-md">Ward Nursing Workspace</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">24 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="icu-critical-care-unit" href="#"><span class="font-body-md text-body-md">ICU Critical Care Unit</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">6 Crit</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="discharge-coordination-desk" href="#"><span class="font-body-md text-body-md">Discharge Coordination Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">8 Ready</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Acute &amp; Specialty Care</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="emergency-casualty-desk" href="#"><span class="font-body-md text-body-md">Emergency &amp; Casualty Desk</span><span class="font-data-mono text-label-sm bg-error text-on-error px-1.5 py-0.5 rounded font-bold">Red Alert</span></a><a aria-current="page" class="flex items-center justify-between px-3 py-2 rounded transition-colors bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed" data-path="operation-theatre-suite" href="#"><span class="font-body-md text-body-md">Operation Theatre (OT) Suite</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Live</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="maternity-obstetric-care" href="#"><span class="font-body-md text-body-md">Maternity &amp; Obstetric Care</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="intrapartum-partograph-chart" href="#"><span class="font-body-md text-body-md">Intrapartum Partograph Chart</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Labor Watch</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Clinical &amp; Diagnostic Modules</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ultrasound-usg-reporting-templates" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (USG)</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; IP Billing</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Hospital Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<div class="p-6 space-y-6">
+<section class="bg-surface-container-low rounded-xl p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+<div class="flex items-start gap-3">
+<div class="p-2 bg-primary/10 rounded-lg text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<div class="space-y-0.5">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-on-surface">Institutional Surgical Safety Protocol (WHO Safe Surgery)</span>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded">NABH-OT-STD-REV4</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-4xl">
+            Surgical Safety Protocol Notice: Preoperative verification, anesthesia fitness (PAC), and written informed consent must be independently verified by operating surgeon and circulating nurse. Checklist contents displayed represent institutional documentation templates, not an auto-validated clinical protocol.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-2 self-end md:self-center shrink-0">
+<span class="font-data-mono text-label-sm px-2.5 py-1 bg-surface-container-lowest text-on-surface rounded shadow-sm flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+          Telemetry Synchronized: 11:45:02
+        </span>
+</div>
+</section>
+<div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-3">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Operation Theatre Day Schedule</h1>
+<span class="font-label-sm text-label-sm bg-primary text-on-primary px-2.5 py-1 rounded shadow-sm">4 ACTIVE SUITES + PACU</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Real-time scheduling grid, room turnover, sterile supply sync &amp; multi-specialty operative rosters</p>
+</div>
+<div class="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
+<div class="flex items-center bg-surface-container-lowest rounded-lg p-1 shadow-sm">
+<button class="px-3 py-1.5 rounded font-label-md text-label-md bg-primary text-on-primary shadow-sm flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">view_timeline</span> Timeline Grid
+          </button>
+<button class="px-3 py-1.5 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">view_agenda</span> Suite Boards
+          </button>
+</div>
+<div class="h-6 w-px bg-outline-variant/30 hidden sm:block"></div>
+<div class="flex items-center gap-2">
+<button class="h-9 px-3 bg-surface-container-lowest text-on-surface rounded-lg shadow-sm hover:bg-surface-container-high transition-colors font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">filter_alt</span> Filter Specialties
+          </button>
+<button class="h-9 px-4 bg-primary text-on-primary rounded-lg shadow-sm hover:bg-primary-container transition-colors font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_circle</span> Book Emergency / Add-On
+          </button>
+</div>
+</div>
+</div>
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="space-y-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Scheduled Today</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg font-bold text-on-surface">14</span>
+<span class="font-data-mono text-body-sm text-on-surface-variant">Surgeries</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span> 3 Completed
+          </span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">event_available</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="space-y-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">In-Procedure Now</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg font-bold text-primary">03</span>
+<span class="font-data-mono text-body-sm text-on-surface-variant">Suites Active</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> OT-1, OT-2, OT-3 Live
+          </span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-secondary-container/40 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="space-y-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">PACU Recovery</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg font-bold text-on-surface">04</span>
+<span class="font-data-mono text-body-sm text-on-surface-variant">/ 8 Beds Occupied</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">bed</span> Aldrete Scores ≥ 8: 2 Ready
+          </span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-[24px]">airline_seat_flat</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="space-y-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-error font-bold">Turnover / Conflict</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg font-bold text-error">01</span>
+<span class="font-data-mono text-body-sm text-on-surface-variant">Flagged</span>
+</div>
+<span class="font-body-sm text-body-sm text-error flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[14px]">warning</span> OT-2 Equipment Overlap
+          </span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[24px]">crisis_alert</span>
+</div>
+</div>
+</section>
+<div class="bg-surface-container-lowest rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3 bg-gradient-to-r from-error-container/40 via-surface-container-lowest to-surface-container-lowest">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error text-[24px]">report_problem</span>
+<div class="space-y-0.5">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-on-error-container">Critical Equipment Conflict Detected (OT-2)</span>
+<span class="font-data-mono text-label-sm bg-error text-on-error px-2 py-0.5 rounded font-bold">Action Needed</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Orthopaedic C-Arm overlapping booking between <strong class="text-on-surface">Case #04 (Dr. V. Rao)</strong> and <strong class="text-on-surface">Case #05 (Dr. S. Kulkarni)</strong> at 12:30 PM — Requires Relocation or Slot Adjustment.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<button class="px-3 py-1.5 bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded-lg shadow-sm hover:bg-surface-container-high transition-colors">
+          View Secondary C-Arm Log
+        </button>
+<button class="px-3 py-1.5 bg-error text-on-error font-label-md text-label-md rounded-lg shadow-sm hover:opacity-90 transition-opacity">
+          Resolve Slot Overlap
+        </button>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+<div class="xl:col-span-8 flex flex-col gap-4 min-w-0">
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-4">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight">Suite Timetable Grid (08:00 – 18:00)</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Hover blocks for team assignment or click to inspect surgical dossier</p>
+</div>
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
+<span class="w-3 h-3 rounded bg-primary-container"></span> Selected Case
+              </span>
+<span class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
+<span class="w-3 h-3 rounded bg-surface-container-high"></span> In Progress
+              </span>
+<span class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
+<span class="w-3 h-3 rounded bg-error-container"></span> Conflict
+              </span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<div class="min-w-[760px] space-y-3">
+<div class="grid grid-cols-12 text-center font-data-mono text-label-sm text-on-surface-variant py-1 bg-surface-container rounded-lg">
+<div class="col-span-2 text-left pl-3 font-bold text-on-surface">THEATRE / BAY</div>
+<div>08:00</div>
+<div>09:00</div>
+<div>10:00</div>
+<div>11:00</div>
+<div>12:00</div>
+<div>13:00</div>
+<div>14:00</div>
+<div>15:00</div>
+<div>16:00</div>
+<div>17:00</div>
+</div>
+<div class="bg-surface-container-low/60 rounded-xl p-2.5 space-y-2">
+<div class="grid grid-cols-12 gap-2 items-center">
+<div class="col-span-2 space-y-0.5">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">OT-1</span>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface px-1.5 rounded">Major</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Gen / Laparoscopic</p>
+</div>
+<div class="col-span-10 relative h-16 bg-surface-container-lowest rounded-lg p-1 flex items-center gap-1.5 shadow-sm">
+<div class="w-[20%] h-full bg-surface-container rounded p-1.5 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface truncate font-bold">Appendectomy</span>
+<span class="material-symbols-outlined text-emerald-600 text-[14px]">check</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">08:00 - 09:30</span>
+</div>
+<div class="w-[35%] h-full bg-primary-container text-on-primary rounded p-2 flex flex-col justify-between cursor-pointer shadow-md transform hover:-translate-y-0.5 transition-transform" title="Selected Case - Ramesh Mehta">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold truncate">Lap. Cholecystectomy</span>
+<span class="font-data-mono text-label-sm bg-primary text-on-primary px-1 rounded">10:30 LIVE</span>
+</div>
+<div class="flex items-center justify-between text-on-primary/80 font-data-mono text-label-sm">
+<span>Dr. Deshmukh / Dr. Radhika</span>
+<span class="bg-surface-container-lowest/20 px-1 rounded">UHID: 06109</span>
+</div>
+</div>
+<div class="w-[22%] h-full bg-surface-container-high rounded p-1.5 flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-bold truncate">Inguinal Hernia Repair</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">14:00 - 15:45</span>
+</div>
+<div class="w-[18%] h-full bg-surface-container rounded p-1.5 flex flex-col justify-between opacity-80">
+<span class="font-label-sm text-label-sm text-on-surface truncate">Thyroidectomy</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">16:15 - 17:45</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low/60 rounded-xl p-2.5 space-y-2">
+<div class="grid grid-cols-12 gap-2 items-center">
+<div class="col-span-2 space-y-0.5">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">OT-2</span>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface px-1.5 rounded">Laminar</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Orthopaedic Joint</p>
+</div>
+<div class="col-span-10 relative h-16 bg-surface-container-lowest rounded-lg p-1 flex items-center gap-1.5 shadow-sm">
+<div class="w-[30%] h-full bg-surface-container rounded p-1.5 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-bold truncate">Total Knee Arthroplasty (R)</span>
+<span class="material-symbols-outlined text-emerald-600 text-[14px]">check</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">08:30 - 11:15</span>
+</div>
+<div class="w-[28%] h-full bg-error-container text-on-error-container rounded p-1.5 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold truncate">DHS Femur Fixation</span>
+<span class="material-symbols-outlined text-error text-[14px]">warning</span>
+</div>
+<div class="flex items-center justify-between font-data-mono text-label-sm">
+<span class="text-error font-bold">C-Arm Conflict</span>
+<span>12:00 - 14:15</span>
+</div>
+</div>
+<div class="w-[22%] h-full bg-surface-container rounded p-1.5 flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-bold truncate">ACL Reconstruction</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">14:45 - 16:30</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low/60 rounded-xl p-2.5 space-y-2">
+<div class="grid grid-cols-12 gap-2 items-center">
+<div class="col-span-2 space-y-0.5">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">OT-3</span>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface px-1.5 rounded">Surg</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Obstetric &amp; Gynae</p>
+</div>
+<div class="col-span-10 relative h-16 bg-surface-container-lowest rounded-lg p-1 flex items-center gap-1.5 shadow-sm">
+<div class="w-[25%] h-full bg-surface-container rounded p-1.5 flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-bold truncate">TLH + BSO</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">08:00 - 10:15</span>
+</div>
+<div class="w-[25%] h-full bg-surface-container-high rounded p-1.5 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-bold truncate">Emergency LSCS (Cat 2)</span>
+<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">10:45 - 12:45</span>
+</div>
+<div class="w-[22%] h-full bg-surface-container rounded p-1.5 flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-bold truncate">Diagnostic Hysteroscopy</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">13:30 - 14:45</span>
+</div>
+<div class="w-[20%] h-full bg-surface-container rounded p-1.5 flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-bold truncate">Pelvic Floor Repair</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">15:30 - 17:00</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low/60 rounded-xl p-2.5 space-y-2">
+<div class="grid grid-cols-12 gap-2 items-center">
+<div class="col-span-2 space-y-0.5">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">OT-4</span>
+<span class="font-data-mono text-label-sm bg-primary text-on-primary px-1.5 rounded">Trauma</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Emergency Suite</p>
+</div>
+<div class="col-span-10 relative h-16 bg-surface-container-lowest rounded-lg p-2 flex items-center justify-center shadow-sm">
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px] text-primary">emergency</span>
+<div class="flex flex-col text-left">
+<span class="font-label-md text-label-md text-on-surface font-bold">OT-4 Emergency Suite (Currently On Standby — 0 Cases Scheduled)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Dedicated trauma readiness protocol engaged. Surgical team on immediate 10-minute paging callout.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low/60 rounded-xl p-2.5 space-y-2">
+<div class="grid grid-cols-12 gap-2 items-center">
+<div class="col-span-2 space-y-0.5">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">PACU</span>
+<span class="font-data-mono text-label-sm bg-surface-container-high text-on-surface px-1.5 rounded">8 Beds</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Post-Anesthesia Bay</p>
+</div>
+<div class="col-span-10 relative h-16 bg-surface-container-lowest rounded-lg p-1.5 flex items-center justify-between shadow-sm">
+<div class="grid grid-cols-4 gap-2 w-full">
+<div class="bg-surface-container p-1 rounded text-center">
+<div class="font-label-sm text-label-sm font-bold text-on-surface">Bed 1: Suresh K.</div>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Aldrete: 9/10 (Ward Ready)</div>
+</div>
+<div class="bg-surface-container p-1 rounded text-center">
+<div class="font-label-sm text-label-sm font-bold text-on-surface">Bed 2: Anita Roy</div>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Aldrete: 8/10 (Obs 15m)</div>
+</div>
+<div class="bg-surface-container p-1 rounded text-center">
+<div class="font-label-sm text-label-sm font-bold text-on-surface">Bed 3: Meera Nair</div>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Aldrete: 6/10 (Sedated)</div>
+</div>
+<div class="bg-surface-container p-1 rounded text-center">
+<div class="font-label-sm text-label-sm font-bold text-on-surface">Bed 4: Rahul Sen</div>
+<div class="font-data-mono text-label-sm text-on-surface-variant">Aldrete: 7/10 (Warming)</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Surgical Instrument Sterile Trays</span>
+<span class="font-label-sm text-label-sm text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-bold">CSSD SYNCED</span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low text-body-sm">
+<span class="font-medium text-on-surface">Lap Chole Set #3 (Karl Storz 4K)</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Autoclaved @ 06:30 | Indicator PASS</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low text-body-sm">
+<span class="font-medium text-on-surface">Orthopaedic Basic Bone Instrument Set</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Autoclaved @ 07:15 | Indicator PASS</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low text-body-sm">
+<span class="font-medium text-on-surface">Emergency Vascular Trauma Clamp Kit</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Sterile Stock | Exp: 48h</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Surgical Blood Bank Reservations</span>
+<span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-2 py-0.5 rounded font-bold">5 UNITS HELD</span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low text-body-sm">
+<div>
+<span class="font-medium text-on-surface">Ramesh Mehta (OT-1)</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">B Pos • 1 Unit PRBC Reserve #BB-9021</p>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">Cross-matched</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low text-body-sm">
+<div>
+<span class="font-medium text-on-surface">DHS Femur Case #04 (OT-2)</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">O Pos • 2 Units PRBC Reserve #BB-9024</p>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">Cross-matched</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="xl:col-span-4 flex flex-col gap-4">
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-5">
+<div class="flex items-center justify-between pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">assignment_ind</span>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight">Surgical Dossier</h2>
+</div>
+<span class="font-data-mono text-label-sm bg-primary text-on-primary px-2 py-0.5 rounded font-bold">OT-1 CASE #02</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-3.5 space-y-2.5">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Ramesh Mehta</span>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface px-1.5 py-0.2 rounded">70Y / Male</span>
+</div>
+<p class="font-data-mono text-label-sm text-on-surface-variant mt-0.5">UHID: SHMS-06109 | IPD-2024-0350</p>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded font-bold bg-secondary-container text-on-secondary-container">
+                B Positive
+              </span>
+</div>
+<div class="flex items-center justify-between text-body-sm text-on-surface pt-1">
+<span class="text-on-surface-variant">Bed: <strong class="text-on-surface">Deluxe Suite D-01</strong></span>
+<span class="text-on-surface-variant">Admission: <strong class="text-on-surface">23 Oct, 06:30 PM</strong></span>
+</div>
+</div>
+<div class="space-y-1.5">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Planned Procedure</span>
+<div class="p-3 bg-surface-container-high/50 rounded-lg">
+<div class="font-body-lg text-body-lg text-on-surface font-bold">Laparoscopic Cholecystectomy</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Indication: Symptomatic Cholelithiasis with recurrent biliary colic</p>
+</div>
+</div>
+<div class="space-y-2">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Surgical &amp; Anesthesia Team</span>
+<div class="grid grid-cols-2 gap-2 text-body-sm">
+<div class="p-2 bg-surface-container rounded-lg">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Lead Surgeon</span>
+<span class="font-medium text-on-surface">Dr. Deshmukh, MS</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Gen Surgery</span>
+</div>
+<div class="p-2 bg-surface-container rounded-lg">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Consultant Anesthetist</span>
+<span class="font-medium text-on-surface">Dr. K. Radhika, MD</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Cardiac &amp; Neuro OT</span>
+</div>
+<div class="p-2 bg-surface-container rounded-lg">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Scrub Nurse</span>
+<span class="font-medium text-on-surface">SN Deepa M.</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Badge: OT-204</span>
+</div>
+<div class="p-2 bg-surface-container rounded-lg">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Circulating Nurse</span>
+<span class="font-medium text-on-surface">SN Rajesh K.</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Badge: OT-189</span>
+</div>
+</div>
+</div>
+<div class="space-y-2.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Preoperative Verification Checklist</span>
+<span class="font-data-mono text-label-sm text-emerald-700 font-bold">5 / 5 VERIFIED</span>
+</div>
+<div class="space-y-2 bg-surface-container-low p-3 rounded-lg">
+<div class="flex items-start gap-2.5 text-body-sm">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] shrink-0">check_box</span>
+<div>
+<span class="font-medium text-on-surface">Pre-Anesthesia Clearance (PAC)</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Validated (ASA Grade II - Controlled HTN) by Dr. Radhika</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5 text-body-sm">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] shrink-0">check_box</span>
+<div>
+<span class="font-medium text-on-surface">Surgical Informed Consent</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Verified Signed (Bilingual English/Telugu + Attendant Counter-Sign)</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5 text-body-sm">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] shrink-0">check_box</span>
+<div>
+<span class="font-medium text-on-surface">Site &amp; Side Marking</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Confirmed Right Upper Quadrant (RUQ) by Dr. Deshmukh</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5 text-body-sm">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] shrink-0">check_box</span>
+<div>
+<span class="font-medium text-on-surface">Blood Cross-Match &amp; Reservation</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">1 Unit PRBC reserved in Blood Bank (#BB-9021 Available)</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5 text-body-sm">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] shrink-0">check_box</span>
+<div>
+<span class="font-medium text-on-surface">NPO Status</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Verified 8 Hours (Fasting strictly since 02:00 AM IST)</p>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Procedure &amp; PACU Lifecycle</span>
+<span class="font-data-mono text-label-sm text-primary font-bold">STAGE 4 OF 7</span>
+</div>
+<div class="relative pl-6 space-y-3 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-outline-variant/30">
+<div class="relative flex items-center justify-between text-body-sm">
+<span class="absolute -left-6 w-4 h-4 rounded-full bg-emerald-600 text-on-primary flex items-center justify-center text-[10px]">✓</span>
+<span class="text-on-surface-variant line-through">1. Check-in to Holding Area</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">09:45</span>
+</div>
+<div class="relative flex items-center justify-between text-body-sm">
+<span class="absolute -left-6 w-4 h-4 rounded-full bg-emerald-600 text-on-primary flex items-center justify-center text-[10px]">✓</span>
+<span class="text-on-surface-variant line-through">2. In Operating Suite (OT-1)</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">10:10</span>
+</div>
+<div class="relative flex items-center justify-between text-body-sm">
+<span class="absolute -left-6 w-4 h-4 rounded-full bg-emerald-600 text-on-primary flex items-center justify-center text-[10px]">✓</span>
+<span class="text-on-surface-variant line-through">3. Anesthesia Induction &amp; Intubation</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">10:28</span>
+</div>
+<div class="relative flex items-center justify-between text-body-sm font-bold text-primary">
+<span class="absolute -left-6 w-4 h-4 rounded-full bg-primary ring-4 ring-primary-fixed"></span>
+<span>4. Surgical Incision (Time Out Validated)</span>
+<span class="font-data-mono text-label-sm text-primary">10:45 LIVE</span>
+</div>
+<div class="relative flex items-center justify-between text-body-sm text-on-surface-variant/60">
+<span class="absolute -left-6 w-4 h-4 rounded-full bg-surface-container-high"></span>
+<span>5. Port Closure &amp; Hemostasis</span>
+<span class="font-data-mono text-label-sm">Est 11:50</span>
+</div>
+<div class="relative flex items-center justify-between text-body-sm text-on-surface-variant/60">
+<span class="absolute -left-6 w-4 h-4 rounded-full bg-surface-container-high"></span>
+<span>6. Extubation &amp; PACU Transfer</span>
+<span class="font-data-mono text-label-sm">Est 12:10</span>
+</div>
+<div class="relative flex items-center justify-between text-body-sm text-on-surface-variant/60">
+<span class="absolute -left-6 w-4 h-4 rounded-full bg-surface-container-high"></span>
+<span>7. Discharged to Inpatient Deluxe Ward</span>
+<span class="font-data-mono text-label-sm">Est 14:00</span>
+</div>
+</div>
+</div>
+<div class="p-3 bg-surface-container rounded-lg space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Package &amp; TPA Pre-Auth</span>
+<span class="font-label-sm text-label-sm bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Approved</span>
+</div>
+<div class="space-y-1 text-body-sm">
+<div class="flex justify-between">
+<span class="text-on-surface-variant">Standard Package Tariff:</span>
+<span class="font-data-mono font-medium text-on-surface">₹48,000</span>
+</div>
+<div class="flex justify-between">
+<span class="text-on-surface-variant">TPA Policy:</span>
+<span class="font-medium text-on-surface">Bajaj Allianz GIC</span>
+</div>
+<div class="flex justify-between">
+<span class="text-on-surface-variant">Pre-Auth Claim Cap:</span>
+<span class="font-data-mono font-medium text-emerald-800">₹1,80,000</span>
+</div>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant border-t border-outline-variant/30 pt-1.5">
+              Notice: Intraoperative surgical implants logged to encounter ledger in real-time; financial settlement reconciled post-op.
+            </p>
+</div>
+<div class="p-3 bg-surface-container-high/60 rounded-lg flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[18px]">lock</span>
+<span class="font-label-sm text-label-sm text-on-surface">
+              OT Nurse In-Charge &amp; Anesthetist Sign-off Enabled; Surgeon Signature Required for Incision.
+            </span>
+</div>
+<div class="flex items-center gap-2 pt-1">
+<button class="flex-1 h-9 bg-primary text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:bg-primary-container transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">edit_note</span> Update Operative Log
+            </button>
+<button class="h-9 px-3 bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded-lg shadow-sm hover:bg-surface-container-high transition-colors flex items-center justify-center" title="Print Safety Checklist">
+<span class="material-symbols-outlined text-[18px]">print</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

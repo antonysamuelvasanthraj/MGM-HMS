@@ -1,0 +1,728 @@
+[
+  {
+    "route": "accounts",
+    "title": "accounts",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/accounts.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "admissions",
+    "title": "Admissions & Bed Management",
+    "shell": "app",
+    "source": "inpatient_admissions_bed_management",
+    "bytes": 73103,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/admissions.js"
+  },
+  {
+    "route": "analytics",
+    "title": "Admin Analytics",
+    "shell": "app",
+    "source": "owner_admin_analytics",
+    "bytes": 31273,
+    "scripts": 1,
+    "status": "archived-design",
+    "controller": null
+  },
+  {
+    "route": "appointments",
+    "title": "Appointments & Doctor Scheduling",
+    "shell": "app",
+    "source": "appointments_doctor_scheduling",
+    "bytes": 73089,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/appointments.js"
+  },
+  {
+    "route": "approvals",
+    "title": "approvals",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/approvals.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "attendance",
+    "title": "Roster & Attendance",
+    "shell": "app",
+    "source": "staff_roster_duty_attendance",
+    "bytes": 38311,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/attendance.js"
+  },
+  {
+    "route": "audit",
+    "title": "audit",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/audit.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "bills",
+    "title": "Billing & Invoice Management",
+    "shell": "app",
+    "source": "hospital_billing_invoice_management",
+    "bytes": 42146,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/bills.js"
+  },
+  {
+    "route": "certificates",
+    "title": "Medical Certificates",
+    "shell": "app",
+    "source": "medical_certificates_workspace",
+    "bytes": 44073,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/certificates.js"
+  },
+  {
+    "route": "collections",
+    "title": "All Collections",
+    "shell": "app",
+    "source": "cashier_billing_desk",
+    "bytes": 33010,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/collections.js"
+  },
+  {
+    "route": "consultation",
+    "title": "Clinical Consultation",
+    "shell": "app",
+    "source": "clinical_consultation_workspace",
+    "bytes": 56854,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/consultation.js"
+  },
+  {
+    "route": "consultation-history",
+    "title": "Consultation History & Amendments",
+    "shell": "app",
+    "source": "consultation_history_amendments",
+    "bytes": 37013,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/consultation-history.js"
+  },
+  {
+    "route": "counter-reconciliation",
+    "title": "counter reconciliation",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/counter-reconciliation.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "daily-operations",
+    "title": "Daily Operations",
+    "shell": "app",
+    "source": "admin_owner_daily_operations",
+    "bytes": 39960,
+    "scripts": 1,
+    "status": "archived-design",
+    "controller": null
+  },
+  {
+    "route": "dashboard",
+    "title": "My Dashboard",
+    "shell": "app",
+    "source": "role_specific_work_dashboard",
+    "bytes": 45771,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/dashboard.js"
+  },
+  {
+    "route": "day-report",
+    "title": "day report",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/day-report.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "demo-data",
+    "title": "Demo & Synthetic Data",
+    "shell": "app",
+    "source": "demo_synthetic_data_management_utility",
+    "bytes": 38986,
+    "scripts": 1,
+    "status": "archived-design",
+    "controller": null
+  },
+  {
+    "route": "discharge",
+    "title": "Discharge Coordination",
+    "shell": "app",
+    "source": "discharge_coordination_desk",
+    "bytes": 54426,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/discharge.js"
+  },
+  {
+    "route": "display-queue",
+    "title": "Token Display",
+    "shell": "blank",
+    "source": "public_queue_token_display",
+    "bytes": 25739,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/display-queue.js"
+  },
+  {
+    "route": "display-waiting",
+    "title": "Waiting Room Display",
+    "shell": "blank",
+    "source": "public_waiting_room_token_display",
+    "bytes": 26258,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/display-waiting.js"
+  },
+  {
+    "route": "doctor-consultation",
+    "title": "Doctor OPD Consultation",
+    "shell": "app",
+    "source": "doctor_opd_consultation",
+    "bytes": 32274,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/doctor-consultation.js"
+  },
+  {
+    "route": "doctor-dashboard",
+    "title": "My Practice",
+    "shell": "app",
+    "source": "doctor_practice_dashboard",
+    "bytes": 43001,
+    "scripts": 1,
+    "status": "archived-design",
+    "controller": null
+  },
+  {
+    "route": "doctor-queue",
+    "title": "Doctor Queue",
+    "shell": "app",
+    "source": "outpatient_queue_clinical_routing",
+    "bytes": 34898,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/doctor-queue.js"
+  },
+  {
+    "route": "emergency",
+    "title": "Emergency & Casualty Desk",
+    "shell": "app",
+    "source": "emergency_casualty_desk",
+    "bytes": 38150,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/emergency.js"
+  },
+  {
+    "route": "expenses",
+    "title": "Operational Expenses",
+    "shell": "app",
+    "source": "operational_expense_register",
+    "bytes": 47994,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/expenses.js"
+  },
+  {
+    "route": "follow-up",
+    "title": "Follow-up & Teleconsultation",
+    "shell": "app",
+    "source": "follow_up_teleconsultation_workspace",
+    "bytes": 36298,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/follow-up.js"
+  },
+  {
+    "route": "grn",
+    "title": "Goods Receipt (GRN)",
+    "shell": "app",
+    "source": "goods_receipt_grn",
+    "bytes": 41155,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/grn.js"
+  },
+  {
+    "route": "icu",
+    "title": "ICU & Critical Care",
+    "shell": "app",
+    "source": "icu_critical_care_unit",
+    "bytes": 54853,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/icu.js"
+  },
+  {
+    "route": "imaging",
+    "title": "Imaging & Radiology",
+    "shell": "app",
+    "source": "imaging_radiology_pacs_usg",
+    "bytes": 31402,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/imaging.js"
+  },
+  {
+    "route": "indents",
+    "title": "indents",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/indents.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "insurance",
+    "title": "Insurance & TPA Claims",
+    "shell": "app",
+    "source": "insurance_tpa_claims_desk",
+    "bytes": 42896,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/insurance.js"
+  },
+  {
+    "route": "laboratory",
+    "title": "Laboratory & Diagnostics",
+    "shell": "app",
+    "source": "laboratory_diagnostics",
+    "bytes": 30558,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/laboratory.js"
+  },
+  {
+    "route": "ledger",
+    "title": "Accounts & General Ledger",
+    "shell": "app",
+    "source": "hospital_accounts_financial_ledger",
+    "bytes": 56022,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/ledger.js"
+  },
+  {
+    "route": "local-sync",
+    "title": "Local Server & Cloud Sync",
+    "shell": "app",
+    "source": "local_server_hybrid_cloud_sync",
+    "bytes": 59675,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/local-sync.js"
+  },
+  {
+    "route": "login",
+    "title": "Sign in",
+    "shell": "blank",
+    "source": "staff_sign_in_offline_credentials",
+    "bytes": 22326,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/login.js"
+  },
+  {
+    "route": "maternity",
+    "title": "Maternity & Obstetric Care",
+    "shell": "app",
+    "source": "maternity_obstetric_care",
+    "bytes": 30356,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/maternity.js"
+  },
+  {
+    "route": "medicines",
+    "title": "Medicine Master Catalog",
+    "shell": "app",
+    "source": "medicine_master_catalog",
+    "bytes": 58343,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/medicines.js"
+  },
+  {
+    "route": "messages",
+    "title": "messages",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/messages.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "my-access",
+    "title": "My Access & Diagnostics",
+    "shell": "app",
+    "source": "my_access_system_diagnostics",
+    "bytes": 36154,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/my-access.js"
+  },
+  {
+    "route": "nursing",
+    "title": "Ward Nursing Workspace",
+    "shell": "app",
+    "source": "ward_nursing_workspace",
+    "bytes": 55858,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/nursing.js"
+  },
+  {
+    "route": "op-fee-collection",
+    "title": "OP Fee Collection",
+    "shell": "app",
+    "source": "op_fee_collection_desk",
+    "bytes": 30087,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/op-fee-collection.js"
+  },
+  {
+    "route": "op-registration",
+    "title": "OP Registration",
+    "shell": "app",
+    "source": "op_reception_registration",
+    "bytes": 45671,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/op-registration.js"
+  },
+  {
+    "route": "orders",
+    "title": "Clinical Orders & Requisitions",
+    "shell": "app",
+    "source": "clinical_orders_requisitions",
+    "bytes": 36407,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/orders.js"
+  },
+  {
+    "route": "ot",
+    "title": "Operation Theatre Suite",
+    "shell": "app",
+    "source": "operation_theatre_suite",
+    "bytes": 32799,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/ot.js"
+  },
+  {
+    "route": "owner-overview",
+    "title": "Owner Overview",
+    "shell": "app",
+    "source": "management_overview",
+    "bytes": 37342,
+    "scripts": 0,
+    "status": "archived-design",
+    "controller": null
+  },
+  {
+    "route": "packages",
+    "title": "Health Packages & Bundles",
+    "shell": "app",
+    "source": "health_packages_bundles",
+    "bytes": 41035,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/packages.js"
+  },
+  {
+    "route": "partograph",
+    "title": "Intrapartum Partograph",
+    "shell": "app",
+    "source": "intrapartum_partograph_chart",
+    "bytes": 48571,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/partograph.js"
+  },
+  {
+    "route": "patient",
+    "title": "Patient Record",
+    "shell": "app",
+    "source": "patient_profile_encounter_timeline",
+    "bytes": 35392,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/patient.js"
+  },
+  {
+    "route": "patients",
+    "title": "Patient Search & Registration",
+    "shell": "app",
+    "source": "patient_search_registration",
+    "bytes": 57849,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/patients.js"
+  },
+  {
+    "route": "payers",
+    "title": "payers",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/payers.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "pharmacy",
+    "title": "Pharmacy Sales & Dispensing",
+    "shell": "app",
+    "source": "pharmacy_dispense_pos",
+    "bytes": 39140,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/pharmacy.js"
+  },
+  {
+    "route": "pharmacy-reports",
+    "title": "Pharmacy & Inventory Reports",
+    "shell": "app",
+    "source": "pharmacy_analytics_valuation_commercial_reports",
+    "bytes": 36845,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/pharmacy-reports.js"
+  },
+  {
+    "route": "portal",
+    "title": "Patient Portal",
+    "shell": "blank",
+    "source": "secure_patient_portal",
+    "bytes": 44897,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/portal.js"
+  },
+  {
+    "route": "quality",
+    "title": "Quality & Audit",
+    "shell": "app",
+    "source": "quality_audit_workspace",
+    "bytes": 34879,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/quality.js"
+  },
+  {
+    "route": "receipts",
+    "title": "Payments & Receipts",
+    "shell": "app",
+    "source": "hospital_accounts_payments_receipts_ledger",
+    "bytes": 44295,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/receipts.js"
+  },
+  {
+    "route": "reports",
+    "title": "Hospital Reports",
+    "shell": "app",
+    "source": "hospital_operational_financial_reports",
+    "bytes": 34827,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/reports.js"
+  },
+  {
+    "route": "returns",
+    "title": "returns",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/returns.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "service-payments",
+    "title": "service payments",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/service-payments.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "settings",
+    "title": "settings",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/settings.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "stock",
+    "title": "Stock Ledger & Batches",
+    "shell": "app",
+    "source": "stock_ledger_batches",
+    "bytes": 39996,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/stock.js"
+  },
+  {
+    "route": "stock-transfers",
+    "title": "stock transfers",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/stock-transfers.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "suppliers",
+    "title": "Suppliers & Vendors",
+    "shell": "app",
+    "source": "suppliers_vendor_accounts_directory",
+    "bytes": 46380,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/suppliers.js"
+  },
+  {
+    "route": "tariff",
+    "title": "Doctor Fees & Service Tariff",
+    "shell": "app",
+    "source": "tariff_service_fee_master",
+    "bytes": 34821,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/tariff.js"
+  },
+  {
+    "route": "templates",
+    "title": "templates",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/templates.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "users",
+    "title": "Users, Roles & Access Control",
+    "shell": "app",
+    "source": "hospital_administration_access_control",
+    "bytes": 42110,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/users.js"
+  },
+  {
+    "route": "usg-reporting",
+    "title": "USG Reporting",
+    "shell": "app",
+    "source": "ultrasound_usg_reporting_templates",
+    "bytes": 39634,
+    "scripts": 0,
+    "status": "active",
+    "controller": "client/src/views/usg-reporting.js"
+  },
+  {
+    "route": "visit",
+    "title": "visit",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/visit.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "visit-tracking",
+    "title": "Visit Tracking",
+    "shell": "app",
+    "source": "reception_visit_tracking_queue",
+    "bytes": 48473,
+    "scripts": 1,
+    "status": "active",
+    "controller": "client/src/views/visit-tracking.js"
+  },
+  {
+    "route": "vitals-queue",
+    "title": "vitals queue",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/vitals-queue.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  },
+  {
+    "route": "walkthrough",
+    "title": "System Walkthrough",
+    "shell": "app",
+    "source": "interactive_clinical_resilience_prototype_walkthrough",
+    "bytes": 72035,
+    "scripts": 1,
+    "status": "archived-design",
+    "controller": null
+  },
+  {
+    "route": "wards",
+    "title": "wards",
+    "shell": "app",
+    "source": null,
+    "controller": "client/src/views/wards.js",
+    "status": "active",
+    "design_html": null,
+    "bytes": 0,
+    "scripts": 0
+  }
+]

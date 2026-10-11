@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / Mobile / Patient Name / Encounter..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Clinical Modules</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="consultation-history" href="#"><span class="font-body-md text-body-md">Consultation History</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="follow-up-teleconsult" href="#"><span class="font-body-md text-body-md">Follow-up / Teleconsult</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-registration" href="#"><span class="font-body-md text-body-md">OP Registration</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">42</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-fee-collection" href="#"><span class="font-body-md text-body-md">OP Fee Collection</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">14 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; Billing</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">9</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-orders-requisitions" href="#"><span class="font-body-md text-body-md">Clinical Orders &amp; Requisitions</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">16</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="laboratory-diagnostics" href="#"><span class="font-body-md text-body-md">Laboratory &amp; Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">34</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="imaging-radiology" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (PACS/USG)</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">11</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">7</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ipd-bed-mgmt" href="#"><span class="font-body-md text-body-md">IPD / Bed Mgmt</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="accounts-receipts" href="#"><span class="font-body-md text-body-md">Accounts &amp; Receipts</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="token-display" href="#"><span class="font-body-md text-body-md">Token Display</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Live</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Top Level Notification & Sonography Governance Alert Banner -->
+<div class="bg-primary px-6 py-2 flex flex-wrap items-center justify-between gap-3 text-on-primary shadow-sm">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-tertiary-fixed text-[18px]">verified_user</span>
+<span class="font-label-md text-label-md tracking-wider uppercase text-tertiary-fixed">Sonography Governance Protocol</span>
+<div class="h-3 w-px bg-primary-container"></div>
+<p class="font-body-sm text-body-sm text-primary-fixed-dim">
+        Never autofill unobserved findings as confirmed normal. Each organ system requires explicit clinician observation and real-time sonographic evaluation before final impression commit.
+      </p>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 font-data-mono text-label-sm px-2 py-0.5 rounded bg-primary-container text-on-primary">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+        Mindray Resona 7: Suite 02 Linked
+      </span>
+<span class="font-data-mono text-label-sm text-primary-fixed-dim">60 FPS Video Stream</span>
+</div>
+</div>
+<!-- Primary Workspace Sub-Header & Metadata Strip -->
+<div class="bg-surface-container-lowest px-6 py-3 shadow-sm flex flex-col gap-3">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded bg-surface-container-high text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">radiology</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="font-headline-md text-headline-md text-on-surface">Ultrasound (USG) Sonography Reporting Workspace &amp; Template Engine</h1>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-semibold">HIS-RIS v4.8</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-2 mt-0.5">
+<span>Suite 02 (Mindray Resona 7)</span>
+<span>•</span>
+<span class="text-primary font-medium">Convex 3.5 MHz &amp; Linear 7.5 MHz</span>
+<span>•</span>
+<span class="font-data-mono">DICOM Node: RESONA7_OPD_02</span>
+</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-8 px-3 rounded bg-surface-container-high text-on-surface font-label-lg text-label-lg hover:bg-surface-container transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">history</span>
+          Prior Scans (2)
+        </button>
+<button class="h-8 px-3 rounded bg-surface-container-high text-on-surface font-label-lg text-label-lg hover:bg-surface-container transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">videocam</span>
+          Live Cine Grab
+        </button>
+<button class="h-8 px-3.5 rounded bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">print</span>
+          Quick Print
+        </button>
+</div>
+</div>
+<!-- Active Patient Information Strip -->
+<div class="p-3 bg-surface-container-low rounded-lg flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-wrap items-center gap-4">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold font-title-md text-title-md">
+            LN
+          </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Smt. Lakshmi Narayanan</span>
+<span class="font-data-mono text-label-sm px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface font-medium">52Y / Female</span>
+<span class="font-data-mono text-label-sm px-1.5 py-0.2 rounded bg-primary-fixed text-on-primary-fixed font-bold">B +ve</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5 text-on-surface-variant font-data-mono text-label-sm">
+<span>UHID: <strong class="text-on-surface font-semibold">SHMS-2024-09142</strong></span>
+<span>•</span>
+<span>ENC: <strong class="text-on-surface font-semibold">ENC-2024-10-0592</strong></span>
+<span>•</span>
+<span class="text-primary font-medium">OPD Room: Chamber 104</span>
+</div>
+</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/50 hidden md:block"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Requisitioned Study</span>
+<span class="font-body-md text-body-md text-primary font-bold">USG Whole Abdomen &amp; Pelvis (Routine + Stat Pouch Screen)</span>
+</div>
+<div class="h-8 w-px bg-outline-variant/50 hidden lg:block"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Referring Clinician</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">Dr. K. Venkat Rao, MD (Internal Medicine)</span>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-highest/60 px-3 py-1.5 rounded">
+<span class="material-symbols-outlined text-[16px] text-primary">clinical_notes</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Clinical Indication</span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium max-w-sm truncate" title="Acute Febrile Illness, High fever with mild epigastric discomfort, r/o hepatosplenomegaly or gallbladder wall edema">
+            Acute Febrile Illness, fever × 5d with epigastric pain; r/o hepatosplenomegaly or gallbladder wall edema.
+          </span>
+</div>
+</div>
+</div>
+</div>
+<!-- 3-Column Studio Workstation Canvas -->
+<div class="px-6 py-4 grid grid-cols-12 gap-4 items-start">
+<!-- Column 1: Left (25% ~ 3 cols) - USG Template Library & Sections Selector -->
+<div class="col-span-12 lg:col-span-3 flex flex-col gap-3">
+<!-- Search & Master Templates -->
+<div class="bg-surface-container-lowest rounded-xl p-3.5 shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Template Library</span>
+<span class="font-data-mono text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">Ctrl + J</span>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-2.5 text-[18px] text-on-surface-variant">search</span>
+<input class="w-full h-8 pl-8 pr-3 rounded bg-surface text-on-surface font-body-sm text-body-sm focus:outline-none placeholder:text-on-surface-variant/60" placeholder="Search templates (e.g. KUB, OB, Doppler)..." type="text" value="Abdomen"/>
+</div>
+<!-- Template Categories List -->
+<div class="flex flex-col gap-1 max-h-56 overflow-y-auto pr-1">
+<div class="p-2 rounded bg-primary-container text-on-primary flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">folder_special</span>
+<span class="font-label-lg text-label-lg">USG Whole Abdomen &amp; Pelvis</span>
+</div>
+<span class="font-data-mono text-label-sm bg-primary px-1.5 py-0.5 rounded text-primary-fixed font-bold">Active</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low hover:bg-surface-container text-on-surface flex items-center justify-between cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">folder</span>
+<span class="font-body-md text-body-md">USG Upper Abdomen / Hepatobiliary</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">6 Sec</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low hover:bg-surface-container text-on-surface flex items-center justify-between cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">folder</span>
+<span class="font-body-md text-body-md">USG KUB &amp; Prostate</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">4 Sec</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low hover:bg-surface-container text-on-surface flex items-center justify-between cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">folder</span>
+<span class="font-body-md text-body-md">Obstetric First Trimester (Anomaly)</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">9 Sec</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low hover:bg-surface-container text-on-surface flex items-center justify-between cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">folder</span>
+<span class="font-body-md text-body-md">Obstetric NT/NB Scan (11-13+6w)</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">7 Sec</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low hover:bg-surface-container text-on-surface flex items-center justify-between cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">folder</span>
+<span class="font-body-md text-body-md">USG Thyroid &amp; Neck Soft Tissues</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">5 Sec</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low hover:bg-surface-container text-on-surface flex items-center justify-between cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">folder</span>
+<span class="font-body-md text-body-md">Venous Doppler Lower Limb (DVT)</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant">8 Sec</span>
+</div>
+</div>
+<!-- Template Operations Buttons -->
+<div class="grid grid-cols-2 gap-1.5 pt-2">
+<button class="h-7 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">add_circle</span>
+            New Template
+          </button>
+<button class="h-7 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">edit_document</span>
+            Edit Macro
+          </button>
+<button class="h-7 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+            Duplicate
+          </button>
+<button class="h-7 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+            Preview Master
+          </button>
+</div>
+</div>
+<!-- Modular Anatomical Organ Selector -->
+<div class="bg-surface-container-lowest rounded-xl p-3.5 shadow-sm flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Modular Anatomical Blocks</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">8 of 8 selected</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Toggle sections to include or exclude from this patient's final examination record.
+        </p>
+<div class="flex flex-col gap-1.5 pt-1">
+<label class="flex items-center justify-between p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<div class="flex items-center gap-2">
+<input checked="" class="accent-primary h-4 w-4" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface">1. Liver &amp; Intrahepatic Vessels</span>
+</div>
+<span class="font-data-mono text-label-sm text-emerald-700 bg-surface-container-highest px-1.5 py-0.2 rounded font-semibold">Normal</span>
+</label>
+<label class="flex items-center justify-between p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<div class="flex items-center gap-2">
+<input checked="" class="accent-primary h-4 w-4" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface">2. Gallbladder &amp; Biliary Tree</span>
+</div>
+<span class="font-data-mono text-label-sm text-emerald-700 bg-surface-container-highest px-1.5 py-0.2 rounded font-semibold">Normal</span>
+</label>
+<label class="flex items-center justify-between p-1.5 rounded bg-secondary-container/30 cursor-pointer">
+<div class="flex items-center gap-2">
+<input checked="" class="accent-primary h-4 w-4" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface font-bold">3. Spleen &amp; Splenic Axis</span>
+</div>
+<span class="font-data-mono text-label-sm text-primary font-bold bg-primary-fixed px-1.5 py-0.2 rounded">12.6 cm Flagged</span>
+</label>
+<label class="flex items-center justify-between p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<div class="flex items-center gap-2">
+<input checked="" class="accent-primary h-4 w-4" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface">4. Pancreas &amp; Duct Caliber</span>
+</div>
+<span class="font-data-mono text-label-sm text-emerald-700 bg-surface-container-highest px-1.5 py-0.2 rounded font-semibold">Normal</span>
+</label>
+<label class="flex items-center justify-between p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<div class="flex items-center gap-2">
+<input checked="" class="accent-primary h-4 w-4" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface">5. Kidneys &amp; Retroperitoneum</span>
+</div>
+<span class="font-data-mono text-label-sm text-emerald-700 bg-surface-container-highest px-1.5 py-0.2 rounded font-semibold">Normal</span>
+</label>
+<label class="flex items-center justify-between p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<div class="flex items-center gap-2">
+<input checked="" class="accent-primary h-4 w-4" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface">6. Urinary Bladder (Pre/Post Void)</span>
+</div>
+<span class="font-data-mono text-label-sm text-emerald-700 bg-surface-container-highest px-1.5 py-0.2 rounded font-semibold">Normal</span>
+</label>
+<label class="flex items-center justify-between p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<div class="flex items-center gap-2">
+<input checked="" class="accent-primary h-4 w-4" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface">7. Pelvis &amp; Uterine / Adnexa</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container px-1.5 py-0.2 rounded font-semibold">Atrophic</span>
+</label>
+<label class="flex items-center justify-between p-1.5 rounded bg-secondary-container/30 cursor-pointer">
+<div class="flex items-center gap-2">
+<input checked="" class="accent-primary h-4 w-4" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface font-bold">8. Peritoneal Cavity / Morison's Pouch</span>
+</div>
+<span class="font-data-mono text-label-sm text-primary font-bold bg-primary-fixed px-1.5 py-0.2 rounded">Free Fluid</span>
+</label>
+</div>
+<div class="p-2.5 rounded bg-surface-container-high/60 mt-1 flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface">
+<span class="font-label-sm text-label-sm uppercase font-semibold">Macro Auto-Suggest</span>
+<span class="font-data-mono text-label-sm text-primary font-bold">AI Helper</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Type <code class="bg-surface px-1 py-0.5 rounded text-primary font-data-mono text-label-sm">#dengue</code> in impression to auto-populate dengue capillary leak diagnostic checklist.
+          </p>
+</div>
+</div>
+</div>
+<!-- Column 2: Middle (48% ~ 6 cols) - Active Structured Sonography Editor -->
+<div class="col-span-12 lg:col-span-6 flex flex-col gap-3">
+<!-- Study Header Card -->
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">edit_note</span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">Structured Sonography Findings Form</h2>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">
+              Exam Time: 24 Oct 2024, 11:30 AM IST
+            </span>
+<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-surface-container-low p-2.5 rounded-lg text-on-surface">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Ultrasound Unit</span>
+<span class="font-data-mono text-body-sm text-on-surface font-semibold">Mindray Resona 7 (OptiSound)</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Reporting Sonologist</span>
+<span class="font-body-sm text-body-sm text-on-surface font-semibold">Dr. P. Mishra, MD (Rad)</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase">Transducer Selection</span>
+<span class="font-data-mono text-body-sm text-on-surface font-semibold">SC5-1U Convex + L11-3U</span>
+</div>
+</div>
+<!-- Organ-By-Organ Input Cards -->
+<div class="flex flex-col gap-3 max-h-[700px] overflow-y-auto pr-1">
+<!-- Section 1: Liver -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1.5 transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-5 h-5 rounded-full bg-surface-container-highest text-on-surface font-data-mono text-label-sm flex items-center justify-center font-bold">1</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">LIVER</span>
+<span class="font-data-mono text-label-sm text-emerald-800 bg-surface-container-highest px-1.5 rounded">Span: 13.8 cm (Normal)</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="h-6 px-1.5 rounded bg-surface hover:bg-surface-container text-on-surface font-data-mono text-label-sm flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">straighten</span> Caliper
+                </button>
+<button class="h-6 px-1.5 rounded bg-surface hover:bg-surface-container text-on-surface font-data-mono text-label-sm flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">check</span> Unremarkable
+                </button>
+</div>
+</div>
+<textarea class="w-full p-2 text-on-surface bg-surface-container-lowest rounded font-body-md text-body-md focus:outline-none focus:bg-surface shadow-inner resize-none" rows="2">Normal in size (13.8 cm span). Normal parenchymal echogenicity. No focal solid or cystic space-occupying lesion (SOL) detected. Intrahepatic biliary radicles (IHBR) are not dilated. Portal vein caliber is normal (10 mm).</textarea>
+</div>
+<!-- Section 2: Gallbladder -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-5 h-5 rounded-full bg-surface-container-highest text-on-surface font-data-mono text-label-sm flex items-center justify-center font-bold">2</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">GALLBLADDER &amp; BILIARY TREE</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container-highest px-1.5 rounded">Wall: 2.4 mm | CBD: 4.2 mm</span>
+</div>
+<span class="font-label-sm text-label-sm text-emerald-700 font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Verified
+              </span>
+</div>
+<textarea class="w-full p-2 text-on-surface bg-surface-container-lowest rounded font-body-md text-body-md focus:outline-none focus:bg-surface shadow-inner resize-none" rows="2">Well distended with normal anechoic lumen. Normal wall thickness (2.4 mm). No calculus or sludge seen. Common Bile Duct (CBD) caliber is normal (4.2 mm). No pericholecystic fluid collection.</textarea>
+</div>
+<!-- Section 3: Spleen (Flagged finding) -->
+<div class="p-3 rounded-lg bg-secondary-container/40 flex flex-col gap-1.5 relative overflow-hidden">
+<div class="absolute top-0 right-0 h-full w-1 bg-primary"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary font-data-mono text-label-sm flex items-center justify-center font-bold">3</span>
+<span class="font-label-lg text-label-lg text-primary font-bold">SPLEEN</span>
+<span class="font-data-mono text-label-sm text-on-primary bg-primary px-2 py-0.2 rounded font-bold">Flagged: 12.6 cm Splenomegaly</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span> Clinician Attention
+              </span>
+</div>
+<textarea class="w-full p-2 text-on-surface bg-surface-container-lowest rounded font-body-md text-body-md font-medium focus:outline-none focus:bg-surface shadow-inner resize-none" rows="2">Enlarged in size, measuring 12.6 cm along its bipolar axis (upper limit of normal 11.5 cm). Splenic parenchymal echo pattern is homogeneous. Splenic vein at hilum is normal (7.1 mm caliber). No focal splenic lesion.</textarea>
+<div class="flex items-center gap-2 text-on-secondary-fixed font-data-mono text-label-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+<span>Matched finding: Secondary infectious etiology / viral reactive splenomegaly.</span>
+</div>
+</div>
+<!-- Section 4: Pancreas -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-5 h-5 rounded-full bg-surface-container-highest text-on-surface font-data-mono text-label-sm flex items-center justify-center font-bold">4</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">PANCREAS</span>
+<span class="font-data-mono text-label-sm text-emerald-800 bg-surface-container-highest px-1.5 rounded">MPD Not Dilated</span>
+</div>
+<span class="font-label-sm text-label-sm text-emerald-700 font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Verified
+              </span>
+</div>
+<textarea class="w-full p-2 text-on-surface bg-surface-container-lowest rounded font-body-md text-body-md focus:outline-none focus:bg-surface shadow-inner resize-none" rows="2">Head, body, and visualized tail region appear normal in size and echotexture. Main pancreatic duct is not dilated. Peripancreatic retroperitoneal fat planes are clear.</textarea>
+</div>
+<!-- Section 5: Kidneys -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-5 h-5 rounded-full bg-surface-container-highest text-on-surface font-data-mono text-label-sm flex items-center justify-center font-bold">5</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">KIDNEYS &amp; ADRENALS (BILATERAL)</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container-highest px-1.5 rounded">R: 10.2 cm | L: 10.6 cm</span>
+</div>
+<span class="font-label-sm text-label-sm text-emerald-700 font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Verified
+              </span>
+</div>
+<textarea class="w-full p-2 text-on-surface bg-surface-container-lowest rounded font-body-md text-body-md focus:outline-none focus:bg-surface shadow-inner resize-none" rows="3">Right Kidney measures 10.2 x 4.4 cm, cortical thickness 14 mm. Left Kidney measures 10.6 x 4.6 cm, cortical thickness 15 mm. Both kidneys show normal size, shape, and position. Corticomedullary differentiation is well preserved. No calculus, hydronephrosis, or mass lesion detected. Bilateral perinephric spaces are unremarkable.</textarea>
+</div>
+<!-- Section 6: Urinary Bladder -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-5 h-5 rounded-full bg-surface-container-highest text-on-surface font-data-mono text-label-sm flex items-center justify-center font-bold">6</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">URINARY BLADDER</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container-highest px-1.5 rounded">Pre: 280 ml | Post: 15 ml</span>
+</div>
+<span class="font-label-sm text-label-sm text-emerald-700 font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Verified
+              </span>
+</div>
+<textarea class="w-full p-2 text-on-surface bg-surface-container-lowest rounded font-body-md text-body-md focus:outline-none focus:bg-surface shadow-inner resize-none" rows="2">Adequately distended with uniform smooth wall. Lumen is clear. Pre-void volume: 280 ml. Post-void residue: 15 ml (clinically insignificant).</textarea>
+</div>
+<!-- Section 7: Pelvis / Uterus -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-5 h-5 rounded-full bg-surface-container-highest text-on-surface font-data-mono text-label-sm flex items-center justify-center font-bold">7</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">PELVIS / UTERUS &amp; ADNEXA</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant bg-surface-container-highest px-1.5 rounded">ET: 2.8 mm (Post-menopausal)</span>
+</div>
+<span class="font-label-sm text-label-sm text-emerald-700 font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Verified
+              </span>
+</div>
+<textarea class="w-full p-2 text-on-surface bg-surface-container-lowest rounded font-body-md text-body-md focus:outline-none focus:bg-surface shadow-inner resize-none" rows="2">Post-menopausal status. Atrophic uterus measuring 5.2 x 2.8 cm with thin regular endometrium (2.8 mm). Both adnexal regions clear with no focal adnexal mass.</textarea>
+</div>
+<!-- Section 8: Peritoneal Cavity (Flagged Finding) -->
+<div class="p-3 rounded-lg bg-secondary-container/40 flex flex-col gap-1.5 relative overflow-hidden">
+<div class="absolute top-0 right-0 h-full w-1 bg-primary"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary font-data-mono text-label-sm flex items-center justify-center font-bold">8</span>
+<span class="font-label-lg text-label-lg text-primary font-bold">PERITONEAL CAVITY &amp; SEROSA</span>
+<span class="font-data-mono text-label-sm text-on-primary bg-primary px-2 py-0.2 rounded font-bold">Morison's Pouch: Free Fluid</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">emergency</span> Active Leak
+              </span>
+</div>
+<textarea class="w-full p-2 text-on-surface bg-surface-container-lowest rounded font-body-md text-body-md font-medium focus:outline-none focus:bg-surface shadow-inner resize-none" rows="2">Minimal free fluid noted in the hepato-renal pouch (Morison's pouch) and pelvis. No loculated collection. No gross ascites.</textarea>
+</div>
+</div>
+<!-- Final Clinical Impression Rich Box -->
+<div class="p-3.5 rounded-xl bg-primary text-on-primary shadow-md flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-fixed text-[20px]">assignment_turned_in</span>
+<span class="font-title-md text-title-md text-on-primary font-bold">CLINICAL IMPRESSION / CONCLUSION</span>
+</div>
+<span class="font-data-mono text-label-sm bg-primary-container px-2 py-0.5 rounded text-tertiary-fixed font-bold">Final Draft Summary</span>
+</div>
+<textarea class="w-full p-3 rounded bg-primary-container text-on-primary font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-tertiary-fixed resize-none leading-relaxed" rows="5">1. Mild Splenomegaly (measuring 12.6 cm along bipolar axis).
+2. Minimal free fluid noted in Morison's pouch (hepato-renal interface) and pelvic cavity.
+3. Post-menopausal status with atrophic pelvic profile; hepatobiliary and renal systems are otherwise unremarkable.
+
+NOTE FOR ATTENDING CLINICIAN: In view of acute febrile illness with thrombocytopenia, findings are consistent with Dengue seropositive capillary leak syndrome / reactive splenomegaly. Advise close clinical and platelet monitoring.</textarea>
+</div>
+</div>
+</div>
+<!-- Column 3: Right (27% ~ 3 cols) - Live Frame Captures & Authorization Sign-off -->
+<div class="col-span-12 lg:col-span-3 flex flex-col gap-3">
+<!-- Live Ultrasound Snapshots from Machine Feed -->
+<div class="bg-surface-container-lowest rounded-xl p-3.5 shadow-sm flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">photo_camera</span>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Captured USG Frames</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container px-1.5 py-0.5 rounded text-on-surface-variant font-semibold">4 Cine Grabs</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Live frames synced via Mindray DICOM store. Click to expand cine loop overlay.
+        </p>
+<!-- 4 Grid Snapshots -->
+<div class="grid grid-cols-2 gap-2 pt-1">
+<!-- Frame 1 -->
+<div class="relative group rounded-lg overflow-hidden bg-black aspect-video cursor-pointer shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="High contrast medical B-mode grayscale ultrasound image displaying the homogeneous acoustic texture of the liver parenchyma with clear portal vein branches, deep burgundy depth markers on the side, clinical diagnostic display style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwgkHbQS2kRcoDmNIFcmpArPUQslLRuzaWrL6osmONcOpN7KWvDe7C8Btadx59fiJh8avPLu8ijQn8MThqQaQ2YExbATTHq1rhSrJnl5KpNQ3B74YAur3UXG9WffpG8FEf82DeQG14FcEwkB06h50Gephmimg7-2AW0vUP2fGhqw3Ty0oIRgolph8inWF0nzrUeQ-qcw9KLCXSmkn4JeCvzs_bCOn_rACgKbjAyzI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 p-1.5 flex flex-col justify-between">
+<span class="font-data-mono text-label-sm text-tertiary-fixed bg-black/60 px-1 rounded w-max">IMG 01 • LIVER</span>
+<span class="font-data-mono text-label-sm text-white flex items-center justify-between">
+<span>Span 13.8cm</span>
+<span class="material-symbols-outlined text-[14px]">open_in_full</span>
+</span>
+</div>
+</div>
+<!-- Frame 2: Caliper Spleen -->
+<div class="relative group rounded-lg overflow-hidden bg-black aspect-video cursor-pointer shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="B-mode ultrasound snapshot depicting the spleen with electronic caliper crosshairs measuring the longitudinal 12.6 cm axis, high visual clarity, grayscale with subtle golden measurement calipers on dark acoustic background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGg1SJSqqjInmceHo_f-kf8prLKElmgKWCi6VkaBMtMc-txQxpJQIMssPbHxDoogwYKdVZN4yFizNMd5Gy-44JNOYSjsQzYNQZIPG5rKDBBZwRo5DVJY5SbsISyQqCpCPnRIuPJV7sEuiH6Q4Pd3GPltJ2yc9a-n5Q6a091fN8G-KE_xRVPnMn3IkHHasqPRU7zV7jTlCEmfEkD14vtbxfX5cTJNNS1g9x77x6mO0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-black/30 p-1.5 flex flex-col justify-between">
+<span class="font-data-mono text-label-sm text-on-primary bg-primary px-1 rounded w-max font-bold">CALIPER 12.6cm</span>
+<span class="font-data-mono text-label-sm text-white flex items-center justify-between">
+<span>SPLEEN AXIS</span>
+<span class="material-symbols-outlined text-[14px]">warning</span>
+</span>
+</div>
+</div>
+<!-- Frame 3 -->
+<div class="relative group rounded-lg overflow-hidden bg-black aspect-video cursor-pointer shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Ultrasound diagnostic scan of distended gallbladder showing thin 2.4 mm anechoic lumen, smooth mucosal lining, high resolution sonogram capture with hospital timestamp overlay." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrksAp-26QwfSMryv9l-Qab1Nf3tmjbIhT0Bjke2DTDT6ERCqaQFkAzGBRf3cZf9INJQJgQGe80O5QIWv11z6_10iHCaubFqWNb4z-VSUM4OOolmvSVTC2fZbRU8aQtlOnUkPIkj9C79Uk3l69ZhAbp0KmavajziV9N2rUT1PlmtkS8HqtIPYRu_sktYZWZ4xRm1lhEtjpC0gxcJoTTuY41HMzHmIoCJZfeIKQ53Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 p-1.5 flex flex-col justify-between">
+<span class="font-data-mono text-label-sm text-tertiary-fixed bg-black/60 px-1 rounded w-max">IMG 03 • GB</span>
+<span class="font-data-mono text-label-sm text-white flex items-center justify-between">
+<span>Wall 2.4mm</span>
+<span class="material-symbols-outlined text-[14px]">open_in_full</span>
+</span>
+</div>
+</div>
+<!-- Frame 4: Morison's Pouch Free Fluid -->
+<div class="relative group rounded-lg overflow-hidden bg-black aspect-video cursor-pointer shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Sonographic section through Morison's pouch showing the interface between the liver and right kidney with an unmistakable thin anechoic rim of free fluid, annotated with electronic marker, high precision medical imaging." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfvgeIa4vexvziK6fyNJnQYypRLNSkV2MgZX3I0tdoHRqfwqoZwWjnmbofOFVCpoBtDjZ09mqWnkw3CC-Q1yuTw8HZ-LjzTEsXREiK6Uocwc3X0Kg2DsycRtNzHn-opeWY-eILkE4PKzTnrfUSrdtd8dEwnusppVUNHcU8_UTJa1i14Z9H8JlV9jrtjcKlmGitKA8-h1BDNqNTuFYHv_rJWWIbbrbIBghcWXmQ8zU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-black/30 p-1.5 flex flex-col justify-between">
+<span class="font-data-mono text-label-sm text-on-primary bg-primary px-1 rounded w-max font-bold">FREE FLUID</span>
+<span class="font-data-mono text-label-sm text-white flex items-center justify-between">
+<span>MORISON'S POUCH</span>
+<span class="material-symbols-outlined text-[14px]">emergency</span>
+</span>
+</div>
+</div>
+</div>
+<button class="w-full py-1.5 px-3 rounded bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5 mt-1">
+<span class="material-symbols-outlined text-[16px]">slow_motion_video</span>
+          Expand to Cine Loop Viewer (320 Frames)
+        </button>
+</div>
+<!-- Reporting Sonologist & Sign-off Panel -->
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface font-bold">Clinician Authorization</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-bold">
+            Draft Review Mode
+          </span>
+</div>
+<div class="flex items-center gap-3 p-2.5 rounded-lg bg-surface-container-low">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-title-md">
+            PM
+          </div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Dr. P. Mishra, MD</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Consultant Radiologist &amp; Sonologist</span>
+<span class="font-data-mono text-label-sm text-primary font-medium">Council Reg: TSMC-44912</span>
+</div>
+</div>
+<!-- Mandatory Clinician Affirmation Checkbox -->
+<div class="p-2.5 rounded-lg bg-surface-container-highest/60 flex items-start gap-2.5">
+<input checked="" class="mt-0.5 accent-primary h-4 w-4 shrink-0" id="affirmation-check" type="checkbox"/>
+<label class="font-body-sm text-body-sm text-on-surface cursor-pointer select-none leading-snug" for="affirmation-check">
+            I confirm that all documented findings reflect active direct real-time sonographic observation and have not been auto-filled by template defaults.
+          </label>
+</div>
+<!-- Urgent Attending Clinician Alert Trigger -->
+<div class="p-2.5 rounded-lg bg-primary-fixed/50 flex flex-col gap-1.5">
+<div class="flex items-center justify-between text-on-primary-fixed">
+<span class="font-label-sm text-label-sm uppercase font-bold flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px]">crisis_alert</span>
+              Critical Finding Alert
+            </span>
+<span class="font-data-mono text-label-sm bg-primary text-on-primary px-1.5 py-0.2 rounded">STAT</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Notify treating physician immediately regarding capillary fluid collection in Morison's pouch.
+          </p>
+<button class="w-full py-1.5 px-2.5 rounded bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">send_and_archive</span>
+            Send Urgent Alert to Dr. K. Venkat Rao
+          </button>
+</div>
+<!-- Final CTA Buttons Stack -->
+<div class="flex flex-col gap-2 pt-1">
+<button class="w-full py-2.5 px-4 rounded bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+            Sign, Authorize &amp; Finalize Report
+            <span class="font-data-mono text-label-sm bg-primary px-1.5 py-0.2 rounded text-tertiary-fixed ml-1">Ctrl+Enter</span>
+</button>
+<button class="w-full py-2 px-3 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">save</span>
+            Save as In-Progress Draft
+          </button>
+<button class="w-full py-2 px-3 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">description</span>
+            Print Bilingual Patient Report (Thermal / A4)
+          </button>
+</div>
+</div>
+<!-- PACS / Local Cache Sync Telemetry Mini-Card -->
+<div class="bg-surface-container-lowest rounded-xl p-3 shadow-sm flex items-center justify-between text-on-surface">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-emerald-600"></span>
+<div class="flex flex-col">
+<span class="font-data-mono text-label-sm font-semibold">Local LAN Write Verified</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Round-trip latency: 16ms</span>
+</div>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container-high px-2 py-0.5 rounded text-on-surface">
+          Sync: Ready
+        </span>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

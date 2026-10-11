@@ -1,0 +1,44 @@
+node_modules/
+data/
+client/app.css
+*.log
+release/
+
+# Hospital records, backups and private test evidence
+backups/
+acceptance-backups/
+acceptance-evidence/
+reports/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.local.md
+*.local.json
+MGM-HMS-DEMO-ACCESS.docx
+
+# Credentials and machine-specific configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+.aws/
+.codex/
+.agents/
+
+# Local speech runtime and downloaded model binaries
+whisper/bin/
+whisper/models/
+whisper/*.zip
+
+# Generated packages and operating-system files
+*.zip
+*.msi
+*.exe
+*.dll
+Thumbs.db
+.DS_Store

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "secondary-fixed": "#ffd9dd",
+          "surface-tint": "#a83541",
+          "on-tertiary-fixed": "#251a00",
+          "surface-container-highest": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "tertiary": "#402e00",
+          "primary-fixed": "#ffdada",
+          "on-primary-fixed": "#40000b",
+          "on-secondary-fixed-variant": "#643b41",
+          "secondary-container": "#fdc3ca",
+          "on-secondary-fixed": "#321117",
+          "surface-container-high": "#dce9ff",
+          "surface-container": "#e5eeff",
+          "surface-container-low": "#eff4ff",
+          "on-error-container": "#93000a",
+          "tertiary-fixed": "#ffdf9a",
+          "error-container": "#ffdad6",
+          "on-surface-variant": "#574142",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "inverse-on-surface": "#eaf1ff",
+          "surface-container-lowest": "#ffffff",
+          "error": "#ba1a1a",
+          "on-tertiary": "#ffffff",
+          "secondary": "#7f5258",
+          "surface-dim": "#ccdbf4",
+          "on-primary": "#ffffff",
+          "primary-fixed-dim": "#ffb3b5",
+          "background": "#f8f9ff",
+          "on-background": "#0c1c2e",
+          "secondary-fixed-dim": "#f1b8bf",
+          "tertiary-container": "#5b4400",
+          "primary": "#680118",
+          "on-error": "#ffffff",
+          "inverse-primary": "#ffb3b5",
+          "tertiary-fixed-dim": "#e6c273",
+          "primary-container": "#881d2c",
+          "surface-variant": "#d4e4fd",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-primary-container": "#ff999d",
+          "outline": "#8a7171",
+          "on-surface": "#0c1c2e",
+          "on-tertiary-container": "#d4b264",
+          "inverse-surface": "#223144",
+          "surface": "#f8f9ff",
+          "on-secondary": "#ffffff",
+          "outline-variant": "#debfbf"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-sm": "0.5rem",
+          "gutter": "1rem",
+          "space-xl": "1.5rem",
+          "space-md": "0.75rem",
+          "space-xs": "0.25rem"
+        },
+        "fontFamily": {
+          "body-sm": ["Inter"],
+          "body-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "display-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-lg": ["Inter"],
+          "title-md": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-surface-container-high"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>City Campus - Main Hospital, Hyderabad</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / Mobile / Patient Name / Encounter..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Consulting Physician</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Clinical Modules</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="consultation-history" href="#"><span class="font-body-md text-body-md">Consultation History</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="follow-up-teleconsult" href="#"><span class="font-body-md text-body-md">Follow-up / Teleconsult</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-registration" href="#"><span class="font-body-md text-body-md">OP Registration</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">42</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-fee-collection" href="#"><span class="font-body-md text-body-md">OP Fee Collection</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">14 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; Billing</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">9</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="laboratory-diagnostics" href="#"><span class="font-body-md text-body-md">Laboratory &amp; Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">34</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">7</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ipd-bed-mgmt" href="#"><span class="font-body-md text-body-md">IPD / Bed Mgmt</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="accounts-receipts" href="#"><span class="font-body-md text-body-md">Accounts &amp; Receipts</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="token-display" href="#"><span class="font-body-md text-body-md">Token Display</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Live</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full font-body-md text-on-surface">
+<!-- Sub-Header Status & Architectural Gateway Banner -->
+<div class="bg-surface-container px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-body-sm shadow-sm">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-lowest text-primary text-label-sm font-label-sm shadow-sm">
+<span class="material-symbols-outlined text-[15px] text-primary" style="font-variation-settings: 'FILL' 1;">cell_tower</span>
+<span class="font-bold tracking-wide uppercase">Teleconsult Engine</span>
+</div>
+<p class="text-on-surface-variant font-body-sm">
+<span class="font-semibold text-on-surface">Teleconsultation Video &amp; VoIP Engine:</span>
+        Integrates via hospital SIP gateway / WebRTC node (<code class="bg-surface-container-highest text-primary font-data-mono text-label-sm px-1.5 py-0.5 rounded">LAN Node: 192.168.1.10:8443</code>). Clinical review notes and contact attempts below operate local-first regardless of video bridge state.
+      </p>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-secondary-container/40 text-on-secondary-container font-data-mono text-label-sm">
+<span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+        SIP PBX: STANDBY
+      </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container-lowest text-on-surface-variant font-data-mono text-label-sm">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+        Local DB Cache Synced
+      </span>
+</div>
+</div>
+<!-- Operational Metrics & Triage Bar -->
+<div class="px-6 py-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+<!-- Card 1: Due Follow-ups Today -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex items-start justify-between relative overflow-hidden group hover:shadow-md transition-all">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Due Follow-ups Today</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg font-bold text-on-surface tracking-tight">12</span>
+<span class="text-on-surface-variant font-body-sm">Patients Scheduled</span>
+</div>
+<div class="flex items-center gap-2 mt-2 text-label-sm text-primary font-label-sm">
+<span class="flex h-1.5 w-1.5 rounded-full bg-primary"></span>
+<span>4 Pending Clinical Review</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">assignment_turned_in</span>
+</div>
+</div>
+<!-- Card 2: Overdue Alert -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex items-start justify-between relative overflow-hidden group hover:shadow-md transition-all">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-amber-700">warning</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-amber-900 font-bold">Overdue (&gt;7 Days)</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg font-bold text-amber-900 tracking-tight">5</span>
+<span class="text-amber-800 font-body-sm">Patients At Risk</span>
+</div>
+<div class="flex items-center gap-1.5 mt-2">
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">phone_missed</span>
+            Contact Retries Needed
+          </span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed/30 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[22px]">hourglass_bottom</span>
+</div>
+</div>
+<!-- Card 3: Completed Today -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex items-start justify-between relative overflow-hidden group hover:shadow-md transition-all">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-emerald-700">check_circle</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Completed Follow-ups</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg font-bold text-on-surface tracking-tight">8</span>
+<span class="text-on-surface-variant font-body-sm">Concluded Today</span>
+</div>
+<div class="flex items-center gap-2 mt-2 text-label-sm font-label-sm text-emerald-800">
+<span class="font-data-mono">67%</span> daily completion target achieved
+        </div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-emerald-700">
+<span class="material-symbols-outlined text-[22px]">fact_check</span>
+</div>
+</div>
+<!-- Card 4: Teleconsult Sessions -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex items-start justify-between relative overflow-hidden group hover:shadow-md transition-all">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-primary">videocam</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Teleconsult Video Slots</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-lg text-display-lg font-bold text-primary tracking-tight">4</span>
+<span class="text-on-surface-variant font-body-sm">Slots Booked</span>
+</div>
+<div class="flex items-center gap-1.5 mt-2 text-label-sm text-on-surface font-label-sm">
+<span class="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span>
+<span class="font-bold text-primary">1 Patient in Virtual Lobby</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-primary-fixed/40 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">video_chat</span>
+</div>
+</div>
+</div>
+<!-- Operational Filter & Clinical Viewport Tabs -->
+<div class="px-6 py-2">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-3 flex flex-wrap items-center justify-between gap-4">
+<!-- Tabs Selector -->
+<div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg">
+<button class="px-3.5 py-1.5 rounded-md bg-surface-container-lowest text-primary font-label-lg text-label-lg shadow-sm flex items-center gap-2">
+<span>Due Today</span>
+<span class="bg-primary text-on-primary font-data-mono text-label-sm px-1.5 py-0.2 rounded-full font-bold">12</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-md text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg flex items-center gap-2 transition-colors">
+<span>Overdue / Pending Contact</span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed font-data-mono text-label-sm px-1.5 py-0.2 rounded-full font-bold">5</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-md text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg flex items-center gap-2 transition-colors">
+<span>Teleconsult Scheduled</span>
+<span class="bg-surface-container-highest text-primary font-data-mono text-label-sm px-1.5 py-0.2 rounded-full font-bold">4</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-md text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg flex items-center gap-2 transition-colors">
+<span>Completed Reviews</span>
+<span class="bg-surface-container text-on-surface font-data-mono text-label-sm px-1.5 py-0.2 rounded-full">8</span>
+</button>
+</div>
+<!-- Practitioner & Clinical Specialty Context Filters -->
+<div class="flex flex-wrap items-center gap-3">
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">stethoscope</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant uppercase">Attending:</span>
+<span class="font-label-lg text-label-lg text-on-surface">Dr. K. Venkat Rao (General Med)</span>
+<button class="text-on-surface-variant hover:text-on-surface flex items-center">
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">filter_alt</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant uppercase">Outcome:</span>
+<select class="bg-transparent font-body-sm text-body-sm text-on-surface focus:outline-none cursor-pointer">
+<option>All Outcomes (Any Status)</option>
+<option>Reached &amp; Consulted</option>
+<option>Unreachable / Switched Off</option>
+<option>Rescheduled</option>
+<option>Dropped / Defaulted</option>
+</select>
+</div>
+<button class="h-8 px-3 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+          Sync Queue
+        </button>
+</div>
+</div>
+</div>
+<!-- Master-Detail Follow-Up Workspace Layout -->
+<div class="px-6 py-3 pb-8 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+<!-- LEFT COLUMN: Follow-up Queue Roster (4.5 of 12 Cols) -->
+<div class="lg:col-span-5 xl:col-span-5 flex flex-col gap-3">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Follow-up Patient Queue</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-primary font-data-mono text-label-sm font-bold">12 Total</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant text-label-sm font-label-sm">
+<span>Sort by:</span>
+<span class="text-primary font-semibold underline cursor-pointer">Clinical Priority</span>
+</div>
+</div>
+<!-- Queue Cards List -->
+<div class="flex flex-col gap-2.5">
+<!-- CARD 1: Selected / Active Card (Smt. Lakshmi Narayanan) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-md relative overflow-hidden cursor-pointer transition-all border-l-4 bg-gradient-to-r from-primary/5 via-transparent to-transparent">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-label-lg">
+                LN
+              </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">Smt. Lakshmi Narayanan</span>
+<span class="px-2 py-0.2 rounded bg-surface-container-highest text-primary font-label-sm text-label-sm font-semibold">52 Y / F</span>
+</div>
+<div class="flex items-center gap-2 font-data-mono text-body-sm text-on-surface-variant mt-0.5">
+<span class="font-semibold text-primary">UHID: SHMS-2024-09142</span>
+<span>•</span>
+<span>ENC-2024-10-0592</span>
+</div>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-surface-container-highest text-primary text-label-sm font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+              Lab Results Ready
+            </span>
+</div>
+<div class="mt-3 pt-3 bg-surface-container-low/60 rounded-lg p-2.5 flex flex-col gap-1.5">
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">event</span>
+                Scheduled: Today (27 Oct 2024)
+              </span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Day 3 Viral Pyrexia Review</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">call</span>
+                +91 98480 12345
+              </span>
+<span class="text-label-sm font-label-sm bg-surface-container-lowest px-2 py-0.5 rounded text-on-surface">
+                Mode: In-Clinic / Phone
+              </span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-label-sm font-data-mono text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">biotech</span>
+              Platelet count 1.18L (Flagged NS1+)
+            </span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold flex items-center gap-0.5">
+              Reviewing Now
+              <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</span>
+</div>
+</div>
+<!-- CARD 2: Overdue / Contact Attempt Failed (Sri Mohammed Irfan) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md relative overflow-hidden cursor-pointer transition-all">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center font-bold text-label-lg">
+                MI
+              </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">Sri Mohammed Irfan</span>
+<span class="px-2 py-0.2 rounded bg-surface-container-high text-on-surface font-label-sm text-label-sm">36 Y / M</span>
+</div>
+<div class="flex items-center gap-2 font-data-mono text-body-sm text-on-surface-variant mt-0.5">
+<span>UHID: SHMS-2024-09143</span>
+<span>•</span>
+<span>ENC-2024-10-0448</span>
+</div>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-800"></span>
+              Overdue (2 Days)
+            </span>
+</div>
+<div class="mt-2.5 text-body-sm text-on-surface-variant">
+<p><span class="font-medium text-on-surface">Follow-up Due:</span> 25 Oct 2024 • Post-Gastroenteritis Hydration Review</p>
+<p class="mt-0.5 text-amber-900 font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">phone_disabled</span>
+              Contact Attempt 1: Ringing, No Response (25 Oct, 04:30 PM)
+            </p>
+</div>
+<div class="mt-3.5 pt-2.5 flex items-center justify-between gap-2 bg-surface-container-low/40 px-2 py-1.5 rounded-lg">
+<div class="flex items-center gap-2 font-data-mono text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">call</span>
+              +91 99890 87654
+            </div>
+<div class="flex items-center gap-1.5">
+<button class="h-7 px-2.5 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface text-label-sm font-label-sm shadow-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">sms</span>
+                SMS Reminder
+              </button>
+<button class="h-7 px-2.5 rounded bg-primary text-on-primary hover:bg-primary-container text-label-sm font-label-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">call</span>
+                Log Contact
+              </button>
+</div>
+</div>
+</div>
+<!-- CARD 3: Video Teleconsult Scheduled (Deepa Krishnan) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md relative overflow-hidden cursor-pointer transition-all">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-primary flex items-center justify-center font-bold text-label-lg">
+                DK
+              </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">Deepa Krishnan</span>
+<span class="px-2 py-0.2 rounded bg-surface-container-high text-on-surface font-label-sm text-label-sm">42 Y / F</span>
+</div>
+<div class="flex items-center gap-2 font-data-mono text-body-sm text-on-surface-variant mt-0.5">
+<span>UHID: SHMS-2024-08819</span>
+<span>•</span>
+<span>ENC-2024-10-0219</span>
+</div>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-label-sm font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+              In Virtual Waiting Room
+            </span>
+</div>
+<div class="mt-2.5 text-body-sm text-on-surface-variant flex items-center justify-between">
+<span class="flex items-center gap-1 font-data-mono font-medium text-primary">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+              Slot: 12:30 PM (Today, 27 Oct)
+            </span>
+<span class="text-label-sm font-label-sm text-on-surface bg-surface-container-low px-2 py-0.5 rounded">
+              Teleconsultation (WebRTC)
+            </span>
+</div>
+<div class="mt-3 flex items-center justify-between gap-2">
+<span class="text-label-sm text-on-surface-variant">Hypothyroidism dose titration follow-up</span>
+<button class="h-8 px-3 rounded bg-primary text-on-primary hover:bg-primary-container font-label-sm text-label-sm flex items-center gap-1.5 shadow-sm transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[15px]">videocam</span>
+              Launch Video Bridge
+            </button>
+</div>
+</div>
+<!-- CARD 4: Completed Follow-up Review (Rajesh Kumar Verma) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest/80 opacity-80 hover:opacity-100 shadow-sm cursor-pointer transition-all">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center font-bold text-label-sm">
+                RV
+              </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface line-through decoration-on-surface-variant/40">Rajesh Kumar Verma</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">46 Y / M</span>
+</div>
+<span class="font-data-mono text-body-sm text-on-surface-variant">UHID: SHMS-2024-08923</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-emerald-700">done_all</span>
+              Completed 11:20 AM
+            </span>
+</div>
+<div class="mt-2 text-body-sm text-on-surface-variant flex items-center justify-between">
+<span>Hypertension follow-up: BP 122/80 mmHg. Medication tolerated.</span>
+<span class="font-label-sm text-label-sm text-primary underline">View Note</span>
+</div>
+</div>
+</div>
+<!-- Quick Roster Teleconsult Metrics Drawer Indicator -->
+<div class="p-3 rounded-xl bg-surface-container flex items-center justify-between text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">signal_cellular_alt</span>
+<span>WebRTC Turn/Stun Health: <strong>24ms ping</strong></span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container-highest px-2 py-0.5 rounded text-primary">SIP Trunks Active: 8/8</span>
+</div>
+</div>
+<!-- RIGHT COLUMN: Active Patient Follow-up Review Desk (7.5 of 12 Cols) -->
+<div class="lg:col-span-7 xl:col-span-7 flex flex-col gap-4">
+<!-- Active Patient Identity & Encounter Banner -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-md flex flex-col gap-3">
+<div class="flex flex-wrap items-start justify-between gap-3">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-headline-md shadow-sm">
+              LN
+            </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2.5">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Smt. Lakshmi Narayanan</span>
+<span class="px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-bold text-label-sm">52 Y / Female</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-primary font-bold text-label-sm">B +ve</span>
+</div>
+<div class="flex flex-wrap items-center gap-3 font-data-mono text-body-sm text-on-surface-variant mt-1">
+<span>UHID: <strong class="text-on-surface">SHMS-2024-09142</strong></span>
+<span>•</span>
+<span>Phone: <strong class="text-on-surface">+91 98480 12345</strong></span>
+<span>•</span>
+<span>Locality: Banjara Hills, Hyd</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-8 px-3 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">history</span>
+              Full EMR Chart
+            </button>
+<button class="h-8 px-3 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">call</span>
+              Direct Chamber VoIP
+            </button>
+</div>
+</div>
+<!-- Baseline / Original Encounter Snapshot -->
+<div class="bg-surface-container-low/70 rounded-lg p-3 grid grid-cols-1 md:grid-cols-4 gap-3 text-body-sm">
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm uppercase text-on-surface-variant">Original Encounter</span>
+<span class="font-data-mono font-semibold text-on-surface mt-0.5">ENC-2024-10-0592</span>
+<span class="text-on-surface-variant text-[11px]">24 Oct 2024 (OPD)</span>
+</div>
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm uppercase text-on-surface-variant">Primary Diagnosis</span>
+<span class="font-semibold text-primary mt-0.5">Acute Viral Pyrexia</span>
+<span class="text-on-surface-variant text-[11px]">Dengue under evaluation</span>
+</div>
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm uppercase text-on-surface-variant">Initial Vitals (24 Oct)</span>
+<span class="font-data-mono text-on-surface mt-0.5">BP: 128/82 | Temp: 98.4°F</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">PR: 74 bpm | SpO2: 98%</span>
+</div>
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm uppercase text-on-surface-variant">Initial Rx Issued</span>
+<span class="text-on-surface mt-0.5 truncate" title="Tab. Paracetamol 650mg TDS, Pan 40 OD, ORS">PCM 650 TDS, Pan 40, ORS</span>
+<span class="text-primary font-label-sm text-[11px]">3 Days Course Complete</span>
+</div>
+</div>
+</div>
+<!-- Diagnostic Results Section (Critical Laboratory Findings) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2 h-4 rounded-full bg-primary"></div>
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Post-Visit Laboratory Results Review</span>
+<span class="font-data-mono text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface">Sample #LAB-88102</span>
+</div>
+<span class="text-label-sm font-data-mono text-on-surface-variant">Released: 26 Oct 2024, 07:15 PM</span>
+</div>
+<!-- CBC & Serology Diagnostic Mini-Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+<!-- Test 1: Platelets (Abnormal/Critical Alert) -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1 relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Platelet Count</span>
+<span class="px-2 py-0.2 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-bold">Low (Monitored)</span>
+</div>
+<div class="flex items-baseline gap-1 mt-1">
+<span class="font-display-lg text-display-lg font-bold text-amber-900 font-data-mono">1.18</span>
+<span class="text-label-sm text-on-surface-variant">Lakhs / cu.mm</span>
+</div>
+<div class="text-[11px] text-on-surface-variant flex items-center justify-between mt-1 pt-1 bg-surface-container-lowest/70 px-1.5 py-0.5 rounded">
+<span>Ref: 1.50 - 4.50 L</span>
+<span class="text-amber-900 font-semibold font-data-mono">↓ 0.32 L</span>
+</div>
+</div>
+<!-- Test 2: WBC / TLC -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Total Leucocyte (WBC)</span>
+<span class="px-2 py-0.2 rounded-full bg-surface-container-highest text-primary text-label-sm font-medium">Mild Leukopenia</span>
+</div>
+<div class="flex items-baseline gap-1 mt-1">
+<span class="font-display-lg text-display-lg font-bold text-on-surface font-data-mono">4,200</span>
+<span class="text-label-sm text-on-surface-variant">/ cu.mm</span>
+</div>
+<div class="text-[11px] text-on-surface-variant flex items-center justify-between mt-1 pt-1 bg-surface-container-lowest/70 px-1.5 py-0.5 rounded">
+<span>Ref: 4,000 - 11,000</span>
+<span class="text-on-surface font-data-mono">Lower Baseline</span>
+</div>
+</div>
+<!-- Test 3: Dengue NS1 -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Dengue NS1 Antigen</span>
+<span class="px-2 py-0.2 rounded-full bg-primary-fixed text-on-primary-fixed text-label-sm font-bold">REACTIVE</span>
+</div>
+<div class="flex items-baseline gap-1 mt-1">
+<span class="font-headline-lg text-headline-lg font-bold text-primary font-data-mono">POSITIVE (+)</span>
+</div>
+<div class="text-[11px] text-primary flex items-center justify-between mt-1 pt-1 bg-primary-fixed/20 px-1.5 py-0.5 rounded font-medium">
+<span>Confirmatory ELISA</span>
+<span>Primary Infection</span>
+</div>
+</div>
+</div>
+<!-- Clinical Lab Acknowledgement Bar -->
+<div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">verified</span>
+<span class="text-body-sm text-on-surface font-medium">Doctor Lab Review Status: <span class="text-primary font-semibold">Pending Medical Clearance</span></span>
+</div>
+<button class="h-7 px-3 rounded bg-surface-container-highest hover:bg-primary-container hover:text-on-primary text-primary text-label-sm font-label-sm transition-colors flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">check</span>
+            Acknowledge Findings
+          </button>
+</div>
+</div>
+<!-- Follow-up Review Documentation Workspace Card -->
+<div class="p-5 rounded-xl bg-surface-container-lowest shadow-md flex flex-col gap-4">
+<!-- Contact Outcome Logging Ribbon -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-bold uppercase tracking-wider flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">contacts</span>
+              Contact Outcome Recording
+            </span>
+<span class="text-on-surface-variant text-label-sm">Mandatory for NABH audit compliance</span>
+</div>
+<!-- Radio Selector Group -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+<label class="flex items-center gap-2 p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input checked="" class="w-4 h-4 text-primary accent-primary cursor-pointer" name="contact_outcome" type="radio"/>
+<span class="text-body-sm font-medium text-on-surface">Patient Reached &amp; Consulted</span>
+</label>
+<label class="flex items-center gap-2 p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input class="w-4 h-4 text-primary accent-primary cursor-pointer" name="contact_outcome" type="radio"/>
+<span class="text-body-sm font-medium text-on-surface">Unreachable / Switched Off</span>
+</label>
+<label class="flex items-center gap-2 p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input class="w-4 h-4 text-primary accent-primary cursor-pointer" name="contact_outcome" type="radio"/>
+<span class="text-body-sm font-medium text-on-surface">Requested Reschedule</span>
+</label>
+<label class="flex items-center gap-2 p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input class="w-4 h-4 text-primary accent-primary cursor-pointer" name="contact_outcome" type="radio"/>
+<span class="text-body-sm font-medium text-on-surface">Asymptomatic / Recovered</span>
+</label>
+</div>
+<!-- Interaction Channel Selector -->
+<div class="flex items-center gap-3 pt-1">
+<span class="text-label-sm font-label-sm text-on-surface-variant uppercase">Consult Channel:</span>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded bg-primary text-on-primary text-label-sm font-label-sm font-semibold flex items-center gap-1 cursor-pointer">
+<span class="material-symbols-outlined text-[14px]">door_open</span>
+                In-Person Chamber
+              </span>
+<span class="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface text-label-sm font-label-sm flex items-center gap-1 cursor-pointer">
+<span class="material-symbols-outlined text-[14px]">call</span>
+                Telephone Call
+              </span>
+<span class="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface text-label-sm font-label-sm flex items-center gap-1 cursor-pointer">
+<span class="material-symbols-outlined text-[14px]">videocam</span>
+                WebRTC Video Bridge
+              </span>
+</div>
+</div>
+</div>
+<!-- Follow-up Review Clinical Assessment Field -->
+<div class="flex flex-col gap-1.5 pt-2">
+<div class="flex items-center justify-between">
+<label class="font-label-lg text-label-lg font-bold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[17px] text-primary">edit_note</span>
+              Follow-up Clinical Assessment &amp; Symptom Progression
+            </label>
+<div class="flex items-center gap-2">
+<span class="text-label-sm text-on-surface-variant">Voice Dictation:</span>
+<button class="h-6 px-2 rounded bg-surface-container-low hover:bg-surface-container text-primary font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">mic</span>
+                Dictate Note
+              </button>
+</div>
+</div>
+<textarea class="w-full p-3 rounded-lg bg-surface-container-low focus:bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-primary shadow-inner" placeholder="Record patient symptoms, temperature logs, warning signs evaluation, and diagnostic assessment..." rows="3">Patient reports fever subsided 24 hours ago. Mild residual weakness and generalized fatigue noted. No bleeding tendencies, petechiae, vomiting, or abdominal tenderness. Adequate oral fluid intake maintained. Platelets stable at 1.18L; stable hemodynamics.</textarea>
+</div>
+<!-- Prescription Update / Continuation Directives -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-lg text-label-lg font-bold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[17px] text-primary">medication</span>
+            Treatment Continuation &amp; Prescription Modification
+          </label>
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2 pb-2 bg-surface-container-lowest/60 p-2 rounded">
+<div class="flex items-center gap-2 text-body-sm font-semibold text-on-surface">
+<span class="material-symbols-outlined text-[16px] text-primary">check_box</span>
+<span>Tab. Paracetamol 650mg</span>
+<span class="text-label-sm text-on-surface-variant font-normal">→ Taper from TDS to SOS only (Max 2 tabs/day if body ache)</span>
+</div>
+<span class="text-label-sm bg-surface-container-highest text-primary px-2 py-0.5 rounded font-data-mono">Tapered</span>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-2 pb-2 bg-surface-container-lowest/60 p-2 rounded">
+<div class="flex items-center gap-2 text-body-sm font-semibold text-on-surface">
+<span class="material-symbols-outlined text-[16px] text-primary">check_box</span>
+<span>Oral Rehydration Salts (ORS Sachets)</span>
+<span class="text-label-sm text-on-surface-variant font-normal">→ Continue 2-3 Litres fluid intake daily for next 48 hours</span>
+</div>
+<span class="text-label-sm bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-data-mono">Maintained</span>
+</div>
+<div class="flex items-center gap-2 text-body-sm text-primary font-medium pt-1">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+<button class="hover:underline font-label-md text-label-md">Add new medicine or investigation order (e.g., Repeat Platelet Count in 48 hrs)</button>
+</div>
+</div>
+</div>
+<!-- Warning Signs & Doctor Advice Directives -->
+<div class="p-3 rounded-lg bg-tertiary-fixed/20 flex items-start gap-2.5 text-body-sm">
+<span class="material-symbols-outlined text-[18px] text-tertiary mt-0.5">info</span>
+<div class="flex-1">
+<span class="font-bold text-on-tertiary-fixed">Patient Safety &amp; Emergency Escalation Advice:</span>
+<p class="text-on-surface-variant mt-0.5">
+              Counselled patient and attendant on Dengue red flags: severe abdominal pain, persistent vomiting, mucosal bleeding, or lethargy. Advised immediate presentation to City Campus ER if warning signs arise.
+            </p>
+</div>
+</div>
+<!-- Action Bar: Finalize, Reschedule, Prescription Addendum -->
+<div class="pt-3 flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-2">
+<button class="h-9 px-3.5 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-lg text-label-lg transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[17px]">calendar_add_on</span>
+              Schedule Next Review (3 Days)
+            </button>
+<button class="h-9 px-3.5 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-lg text-label-lg transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[17px]">print</span>
+              Print Rx Addendum Slip
+            </button>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-9 px-3.5 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant font-label-md text-label-md transition-colors">
+              Save Draft
+            </button>
+<button class="h-10 px-5 rounded bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 group">
+<span class="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">verified_user</span>
+<span>Sign &amp; Complete Follow-up Review</span>
+<span class="text-primary-fixed font-data-mono text-label-sm opacity-80">(Ctrl+Enter)</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

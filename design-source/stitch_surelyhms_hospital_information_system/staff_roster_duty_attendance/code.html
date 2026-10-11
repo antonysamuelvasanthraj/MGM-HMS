@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / IPD No / Bed / Patient Name / Ward..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital SQLite Database LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: SQLite Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Cloud Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Inpatient &amp; IPD Care</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="inpatient-admissions-bed-management" href="#"><span class="font-body-md text-body-md">Inpatient Admissions &amp; Bed Management</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ward-nursing-workspace" href="#"><span class="font-body-md text-body-md">Ward Nursing Workspace</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">24 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="icu-critical-care-unit" href="#"><span class="font-body-md text-body-md">ICU Critical Care Unit</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">6 Crit</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="discharge-coordination-desk" href="#"><span class="font-body-md text-body-md">Discharge Coordination Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">8 Ready</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Acute &amp; Specialty Care</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="emergency-casualty-desk" href="#"><span class="font-body-md text-body-md">Emergency &amp; Casualty Desk</span><span class="font-data-mono text-label-sm bg-error text-on-error px-1.5 py-0.5 rounded font-bold">Red Alert</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="operation-theatre-suite" href="#"><span class="font-body-md text-body-md">Operation Theatre (OT) Suite</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Live</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="maternity-obstetric-care" href="#"><span class="font-body-md text-body-md">Maternity &amp; Obstetric Care</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="intrapartum-partograph-chart" href="#"><span class="font-body-md text-body-md">Intrapartum Partograph Chart</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Labor Watch</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Clinical &amp; Diagnostic Modules</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ultrasound-usg-reporting-templates" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (USG)</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-tertiary-fixed font-bold">Pharmacy &amp; Inventory</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1 py-0.2 rounded font-bold">STOCK</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense-pos" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense &amp; POS</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">POS</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="medicine-master-catalog" href="#"><span class="font-body-md text-body-md">Medicine Master Catalog</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="stock-ledger-batches" href="#"><span class="font-body-md text-body-md">Stock Ledger &amp; Batches</span><span class="font-data-mono text-label-sm bg-amber-600/90 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Expiring</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="goods-receipt-grn" href="#"><span class="font-body-md text-body-md">Goods Receipt (GRN)</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="suppliers-vendors" href="#"><span class="font-body-md text-body-md">Suppliers &amp; Vendors</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-inventory-reports" href="#"><span class="font-body-md text-body-md">Pharmacy &amp; Inventory Reports</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Billing, TPA &amp; Accounts</span><span class="font-data-mono text-label-sm bg-primary-container text-on-primary px-1 py-0.2 rounded font-bold">FIN</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; IP Billing</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="insurance-claims" href="#"><span class="font-body-md text-body-md">Insurance &amp; TPA Claims Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18 Open</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="tariff-service-fee-master" href="#"><span class="font-body-md text-body-md">Tariff &amp; Service Fee Master</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="health-packages-bundles" href="#"><span class="font-body-md text-body-md">Health Packages &amp; Bundles</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="finance" href="#"><span class="font-body-md text-body-md">Hospital Accounts &amp; General Ledger</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="expenses" href="#"><span class="font-body-md text-body-md">Operational Expense Management</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administrative &amp; Executive Intelligence</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="hospital-reports" href="#"><span class="font-body-md text-body-md">Hospital Operational &amp; Financial Reports</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">MIS</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-tertiary-fixed font-bold">Hospital Administration &amp; Infrastructure</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1 py-0.2 rounded font-bold">SYSTEM</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="hospital-administration-access-control" href="#"><span class="font-body-md text-body-md">Hospital Administration &amp; Access Control</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">Admin</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="staff-roster-duty-attendance" href="#"><span class="font-body-md text-body-md">Staff Roster &amp; Duty Attendance</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">Roster</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="local-server-hybrid-cloud-sync" href="#"><span class="font-body-md text-body-md">Local Server &amp; Hybrid Cloud Sync</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">LAN/Sync</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="my-access-system-diagnostics" href="#"><span class="font-body-md text-body-md">My Access &amp; System Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">WhoAmI</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 SQLite Local</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Sync Active</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full font-body-md text-on-surface">
+<!-- Sub-Header / Page Identity Bar -->
+<div class="bg-surface-container-lowest px-6 py-4 border-b border-outline-variant/30 flex flex-col gap-3">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">badge</span>
+<h1 class="font-headline-md text-headline-md text-primary font-bold tracking-tight">Staff Roster &amp; Duty Attendance</h1>
+<span class="font-data-mono text-label-sm bg-primary-fixed text-on-primary-fixed px-2 py-0.5 rounded font-bold uppercase">Form 25 Muster</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Daily shift rosters, biometric punch logs, manual attendance reconciliation &amp; statutory shift hours.</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-8 px-3 rounded bg-surface border border-outline-variant hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-tertiary-container">sync</span>
+          Biometric Device Sync [LAN]
+        </button>
+<button class="h-8 px-3 rounded bg-surface border border-outline-variant hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">download</span>
+          Export Muster Roll (Form 25)
+        </button>
+<button class="h-8 px-3 rounded bg-primary-container text-on-primary hover:bg-primary font-label-md text-label-md flex items-center gap-1.5 shadow-sm transition-colors">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+          + Manual Attendance Entry <span class="text-primary-fixed font-data-mono text-[10px] ml-0.5">[F3]</span>
+</button>
+</div>
+</div>
+<!-- Statutory Compliance Notice Strip -->
+<div class="bg-surface-container-high/60 border border-outline-variant/40 rounded px-3.5 py-2 flex items-center justify-between text-on-surface gap-3">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0">verified_user</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight">
+<strong class="text-on-surface font-semibold">Statutory Muster &amp; NABH Staffing Governance:</strong> Duty attendance verifies mandatory clinical coverage per ward bed (ICU 1:1, Inpatient 1:5, OT 1:1). Manual punches and shift overrides require documented operational justification and supervisor sign-off.
+        </p>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="font-data-mono text-label-sm bg-surface-container-lowest px-2 py-0.5 rounded border border-outline-variant/40 text-on-surface-variant">Audit Cycle: Active Shift #1</span>
+</div>
+</div>
+</div>
+<!-- Operational Filters & Metrics Strip -->
+<div class="px-6 py-3 bg-surface-container-low flex flex-col gap-3">
+<!-- Top Metric Counters (NABH High-Density Grid) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+<div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/40 flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold">Scheduled Today</span>
+<div class="flex items-baseline gap-1.5 mt-0.5">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">54</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Staff Members</span>
+</div>
+<span class="font-data-mono text-[11px] text-on-surface-variant mt-0.5">Roster load: 100% capacity</span>
+</div>
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/40 flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold">Punched In &amp; Active</span>
+<div class="flex items-baseline gap-1.5 mt-0.5">
+<span class="font-headline-lg text-headline-lg text-emerald-800 font-bold">46</span>
+<span class="font-label-md text-label-md text-emerald-700 font-medium">on Duty</span>
+</div>
+<span class="font-data-mono text-[11px] text-on-surface-variant mt-0.5">36 Biometric • 10 Reconciled</span>
+</div>
+<div class="w-10 h-10 rounded bg-emerald-50 flex items-center justify-center text-emerald-700">
+<span class="material-symbols-outlined text-[20px]">how_to_reg</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/40 flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold">Late Arrivals (&gt;15m)</span>
+<div class="flex items-baseline gap-1.5 mt-0.5">
+<span class="font-headline-lg text-headline-lg text-amber-800 font-bold">3</span>
+<span class="font-label-md text-label-md text-amber-700 font-medium">Staff</span>
+</div>
+<span class="font-data-mono text-[11px] text-amber-700 mt-0.5">Grace period applied ≤30m</span>
+</div>
+<div class="w-10 h-10 rounded bg-amber-50 flex items-center justify-center text-amber-700">
+<span class="material-symbols-outlined text-[20px]">cloud_download</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/40 flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-semibold">Critical Ward Shortage</span>
+<div class="flex items-baseline gap-1.5 mt-0.5">
+<span class="font-headline-lg text-headline-lg text-emerald-800 font-bold">0</span>
+<span class="font-label-md text-label-md text-emerald-700 font-medium">Wards Alerted</span>
+</div>
+<span class="font-data-mono text-[11px] text-emerald-700 mt-0.5">All ICU/Inpatient Ratios Met</span>
+</div>
+<div class="w-10 h-10 rounded bg-emerald-50 flex items-center justify-center text-emerald-700">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+</div>
+</div>
+<!-- Filter Control Ribbon -->
+<div class="bg-surface-container-lowest p-3 rounded border border-outline-variant/40 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+<div class="flex flex-wrap items-center gap-2">
+<!-- Date Navigator -->
+<div class="flex items-center bg-surface border border-outline-variant rounded h-8 px-1">
+<button class="p-1 hover:text-primary transition-colors" title="Previous Day">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<div class="flex items-center gap-1.5 px-2">
+<span class="material-symbols-outlined text-[15px] text-primary">calendar_today</span>
+<span class="font-data-mono text-body-sm font-semibold text-on-surface">Today: 24 Oct 2024</span>
+</div>
+<button class="p-1 hover:text-primary transition-colors" title="Next Day">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<!-- Shift Dropdown -->
+<div class="flex items-center">
+<select class="h-8 pl-2 pr-7 text-body-sm font-body-sm bg-surface text-on-surface border border-outline-variant rounded focus:outline-none focus:border-primary">
+<option selected="">All Shifts (Morning, Evening, Night, General)</option>
+<option>Morning Shift (07:00 – 15:00)</option>
+<option>Evening Shift (14:00 – 22:00)</option>
+<option>Night Shift (21:30 – 07:30)</option>
+<option>General Shift (09:00 – 17:30)</option>
+<option>24h Casualty Emergency Call</option>
+</select>
+</div>
+<!-- Department Dropdown -->
+<div class="flex items-center">
+<select class="h-8 pl-2 pr-7 text-body-sm font-body-sm bg-surface text-on-surface border border-outline-variant rounded focus:outline-none focus:border-primary">
+<option selected="">All Departments (Nursing, ICU, Medical, Pharmacy...)</option>
+<option>Nursing Staff (Ward 3B, OT, ICU, LDR)</option>
+<option>Consultants &amp; Medical Officers</option>
+<option>Pharmacy &amp; Inventory</option>
+<option>Billing &amp; Front Cashier</option>
+<option>Laboratory &amp; Diagnostics</option>
+<option>Stores &amp; Facilities</option>
+</select>
+</div>
+<!-- Status Filter -->
+<div class="flex items-center">
+<select class="h-8 pl-2 pr-7 text-body-sm font-body-sm bg-surface text-on-surface border border-outline-variant rounded focus:outline-none focus:border-primary">
+<option selected="">Status: All (Present, Late, Swapped, Absent)</option>
+<option>Biometric Verified</option>
+<option>Late Arrival (&gt;15 min)</option>
+<option>Shift Swapped / Regularized</option>
+<option>Manual Correction Pending</option>
+<option>Unexcused Absence</option>
+</select>
+</div>
+</div>
+<!-- Quick Search -->
+<div class="relative w-full sm:w-64">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-[16px] text-on-surface-variant">search</span>
+<input class="w-full h-8 pl-8 pr-3 text-body-sm font-body-sm bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search EMP ID, staff name..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Main Split Layout (70% Grid, 30% Inspection & Correction) -->
+<div class="px-6 py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+<!-- LEFT 70% (Cols 1-8): Attendance & Shift Ledger -->
+<div class="lg:col-span-8 flex flex-col bg-surface-container-lowest rounded border border-outline-variant/40 shadow-sm overflow-hidden">
+<!-- Section Header -->
+<div class="px-4 py-3 border-b border-outline-variant/30 flex items-center justify-between bg-surface">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">view_list</span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">Duty Attendance Ledger</h2>
+<span class="font-data-mono text-label-sm bg-surface-container-high px-2 py-0.5 rounded text-on-surface-variant border border-outline-variant/40">Showing 7 of 54 Records</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-label-sm text-label-sm uppercase font-semibold">
+<span class="material-symbols-outlined text-[14px]">refresh</span> Refresh Feeds
+          </button>
+</div>
+</div>
+<!-- High Density Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/40 border-b border-outline-variant/40 h-8">
+<th class="px-3 py-1.5 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Staff Member &amp; EMP ID</th>
+<th class="px-3 py-1.5 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Scheduled Shift</th>
+<th class="px-3 py-1.5 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">In-Punch &amp; Terminal</th>
+<th class="px-3 py-1.5 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Out-Punch</th>
+<th class="px-3 py-1.5 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold text-right">Logged Hours</th>
+<th class="px-3 py-1.5 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Status</th>
+<th class="px-3 py-1.5 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold text-center">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20 font-body-sm text-body-sm">
+<!-- Row 1: SN Kavitha -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-primary/10 text-primary font-bold text-label-sm flex items-center justify-center border border-primary/20 shrink-0">
+                    SK
+                  </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold leading-tight truncate">SN Kavitha</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant leading-none mt-0.5">EMP-8842 • Lead Nurse, Ward 3B</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-body-sm text-on-surface block font-medium">Morning (07:00–15:00)</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">Ward Bed Ratio 1:5 OK</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-1 font-data-mono text-on-surface font-semibold">
+<span class="material-symbols-outlined text-[13px] text-emerald-700">fingerprint</span>
+                  06:52 AM
+                </div>
+<span class="font-data-mono text-[10px] text-on-surface-variant block truncate" title="Biometric #01 - OT/ICU Gate">Dev#01 - OT Gate</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-data-mono text-on-surface-variant text-[11px] italic">-- : -- [Active]</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono">
+<span class="font-semibold text-on-surface">4h 50m</span>
+<span class="block text-[10px] text-on-surface-variant">Req: 8.0h</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  Biometric Verified
+                </span>
+</td>
+<td class="px-3 py-2.5 text-center">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors" title="Inspect Punch Logs">
+<span class="material-symbols-outlined text-[17px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 2: Dr. Arun Joshi -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-variant text-on-surface font-bold text-label-sm flex items-center justify-center border border-outline-variant/50 shrink-0">
+                    AJ
+                  </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold leading-tight truncate">Dr. Arun Joshi, MD</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant leading-none mt-0.5">EMP-0210 • Intensivist, ICU</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-body-sm text-on-surface block font-medium">12h Critical Care (08:00–20:00)</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">ICU 1:1 Protocol Active</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-1 font-data-mono text-on-surface font-semibold">
+<span class="material-symbols-outlined text-[13px] text-emerald-700">fingerprint</span>
+                  07:45 AM
+                </div>
+<span class="font-data-mono text-[10px] text-on-surface-variant block truncate">Dev#02 - ICU Port</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-data-mono text-on-surface-variant text-[11px] italic">-- : -- [Active]</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono">
+<span class="font-semibold text-on-surface">3h 57m</span>
+<span class="block text-[10px] text-on-surface-variant">Req: 12.0h</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  Biometric Verified
+                </span>
+</td>
+<td class="px-3 py-2.5 text-center">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors" title="Inspect Punch Logs">
+<span class="material-symbols-outlined text-[17px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 3: Rajesh M. (Late arrival w/ Grace) -->
+<tr class="hover:bg-surface-container-low/60 transition-colors bg-amber-50/20">
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-amber-100 text-amber-900 font-bold text-label-sm flex items-center justify-center border border-amber-300 shrink-0">
+                    RM
+                  </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold leading-tight truncate">Rajesh M., RPh</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant leading-none mt-0.5">EMP-4091 • Senior Pharmacist</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-body-sm text-on-surface block font-medium">Morning (07:00–15:00)</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">Pharmacy Dispensary #01</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-1 font-data-mono text-amber-900 font-semibold">
+<span class="material-symbols-outlined text-[13px] text-amber-700">fingerprint</span>
+                  07:18 AM
+                </div>
+<span class="font-data-mono text-[10px] text-amber-700 block font-medium">+18m Late (Grace Limit 20m)</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-data-mono text-on-surface-variant text-[11px] italic">-- : -- [Active]</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono">
+<span class="font-semibold text-on-surface">4h 24m</span>
+<span class="block text-[10px] text-amber-700">Grace Excused</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                  Late (Grace OK)
+                </span>
+</td>
+<td class="px-3 py-2.5 text-center">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors" title="Inspect Punch Logs">
+<span class="material-symbols-outlined text-[17px]">edit_note</span>
+</button>
+</td>
+</tr>
+<!-- Row 4: S. Gopinath -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-variant text-on-surface font-bold text-label-sm flex items-center justify-center border border-outline-variant/50 shrink-0">
+                    SG
+                  </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold leading-tight truncate">S. Gopinath</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant leading-none mt-0.5">EMP-9104 • Cashier Desk #02</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-body-sm text-on-surface block font-medium">Morning (07:00–15:00)</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">OPD &amp; IP Billing Desk</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-1 font-data-mono text-on-surface font-semibold">
+<span class="material-symbols-outlined text-[13px] text-emerald-700">fingerprint</span>
+                  07:02 AM
+                </div>
+<span class="font-data-mono text-[10px] text-on-surface-variant block truncate">Dev#03 - Main Gate</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-data-mono text-on-surface-variant text-[11px] italic">-- : -- [Active]</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono">
+<span class="font-semibold text-on-surface">4h 40m</span>
+<span class="block text-[10px] text-on-surface-variant">Req: 8.0h</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  Biometric Verified
+                </span>
+</td>
+<td class="px-3 py-2.5 text-center">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors" title="Inspect Punch Logs">
+<span class="material-symbols-outlined text-[17px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 5: K. Ramesh -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-variant text-on-surface font-bold text-label-sm flex items-center justify-center border border-outline-variant/50 shrink-0">
+                    KR
+                  </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold leading-tight truncate">K. Ramesh</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant leading-none mt-0.5">EMP-8102 • Stores &amp; Facilities</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-body-sm text-on-surface block font-medium">General (09:00–17:30)</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">Medical Gas &amp; Stores</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-1 font-data-mono text-on-surface font-semibold">
+<span class="material-symbols-outlined text-[13px] text-emerald-700">fingerprint</span>
+                  08:50 AM
+                </div>
+<span class="font-data-mono text-[10px] text-on-surface-variant block truncate">Dev#04 - Store Gate</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-data-mono text-on-surface-variant text-[11px] italic">-- : -- [Active]</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono">
+<span class="font-semibold text-on-surface">2h 52m</span>
+<span class="block text-[10px] text-on-surface-variant">Req: 8.5h</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  Biometric Verified
+                </span>
+</td>
+<td class="px-3 py-2.5 text-center">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors" title="Inspect Punch Logs">
+<span class="material-symbols-outlined text-[17px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 6: Dr. Radha Deshmukh -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-primary/10 text-primary font-bold text-label-sm flex items-center justify-center border border-primary/20 shrink-0">
+                    RD
+                  </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold leading-tight truncate">Dr. Radha Deshmukh, MS</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant leading-none mt-0.5">EMP-0188 • Obstetrician, LDR</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-body-sm text-on-surface block font-medium">On-Call Maternity / LDR</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">NABH Acute Coverage</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-1 font-data-mono text-on-surface font-semibold">
+<span class="material-symbols-outlined text-[13px] text-emerald-700">fingerprint</span>
+                  06:30 AM
+                </div>
+<span class="font-data-mono text-[10px] text-on-surface-variant block truncate">Dev#01 - OT Gate</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-data-mono text-on-surface-variant text-[11px] italic">-- : -- [Active]</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono">
+<span class="font-semibold text-on-surface">5h 12m</span>
+<span class="block text-[10px] text-emerald-700 font-semibold">+1h 12m Call OT</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  Biometric Verified
+                </span>
+</td>
+<td class="px-3 py-2.5 text-center">
+<button class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-primary transition-colors" title="Inspect Punch Logs">
+<span class="material-symbols-outlined text-[17px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 7: SN Sunita Rao (Selected for Shift Swap / Correction) -->
+<tr class="bg-primary/5 border-l-4 border-l-primary transition-colors">
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-error-container text-on-error-container font-bold text-label-sm flex items-center justify-center border border-error/30 shrink-0">
+                    SR
+                  </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-primary font-bold leading-tight truncate">SN Sunita Rao, RN</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant leading-none mt-0.5">EMP-8890 • Staff Nurse, ICU</span>
+</div>
+</div>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-body-sm text-on-surface block font-medium">Morning (07:00–15:00)</span>
+<span class="font-data-mono text-[10px] text-error font-semibold">Peer Swapped w/ SN Anjali</span>
+</td>
+<td class="px-3 py-2.5">
+<div class="flex items-center gap-1 font-data-mono text-error font-semibold">
+<span class="material-symbols-outlined text-[13px] text-error">close</span>
+                  -- : -- [Absent]
+                </div>
+<span class="font-data-mono text-[10px] text-on-surface-variant block">No terminal punch</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="font-data-mono text-on-surface-variant text-[11px] italic">-- : --</span>
+</td>
+<td class="px-3 py-2.5 text-right font-data-mono">
+<span class="font-semibold text-error">0h 00m</span>
+<span class="block text-[10px] text-on-surface-variant">Pending Sync</span>
+</td>
+<td class="px-3 py-2.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-900 border border-rose-300">
+<span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>
+                  Correction Pending
+                </span>
+</td>
+<td class="px-3 py-2.5 text-center">
+<button class="px-2 py-0.5 bg-primary text-on-primary rounded text-[11px] font-semibold hover:bg-primary-container transition-colors shadow-xs">
+                  Review
+                </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="px-4 py-2.5 bg-surface border-t border-outline-variant/30 flex flex-wrap items-center justify-between text-on-surface-variant font-body-sm text-body-sm gap-2">
+<span class="font-data-mono text-label-sm">NABH Clinical Roster Compliant: Ward Coverage Ratio 100% OK</span>
+<div class="flex items-center gap-3">
+<span class="font-data-mono text-label-sm">Page 1 of 8</span>
+<div class="flex items-center gap-1">
+<button class="h-6 w-6 rounded border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[14px]">first_page</span>
+</button>
+<button class="h-6 w-6 rounded border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[14px]">chevron_left</span>
+</button>
+<button class="h-6 w-6 rounded bg-primary text-on-primary font-bold font-data-mono text-label-sm flex items-center justify-center">1</button>
+<button class="h-6 w-6 rounded border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+<button class="h-6 w-6 rounded border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[14px]">last_page</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT 30% (Cols 9-12): Attendance Punch Correction & Audit Dialog -->
+<div class="lg:col-span-4 flex flex-col bg-surface-container-lowest rounded border border-primary/30 shadow-md overflow-hidden">
+<!-- Panel Header -->
+<div class="bg-primary text-on-primary px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-fixed text-[18px]">rule_folder</span>
+<div class="flex flex-col">
+<h3 class="font-label-lg text-label-lg font-bold leading-tight">Attendance Punch Correction</h3>
+<span class="font-data-mono text-[10px] text-primary-fixed-dim">NABH Statutory Audit Regularization</span>
+</div>
+</div>
+<span class="font-data-mono text-[10px] bg-primary-container px-2 py-0.5 rounded border border-tertiary-fixed/30 text-tertiary-fixed font-bold">
+          DRAFT-MOD
+        </span>
+</div>
+<!-- Employee Banner -->
+<div class="p-3.5 bg-surface border-b border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-error-container text-on-error-container font-bold text-label-md flex items-center justify-center border border-error/30">
+            SR
+          </div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">SN Sunita Rao, RN</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">EMP-8890 • Staff Nurse (ICU)</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-data-mono text-[11px] text-on-surface font-semibold block">24 Oct 2024</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">Morning Shift</span>
+</div>
+</div>
+<!-- Correction Form Body -->
+<form class="p-4 flex flex-col gap-3.5" onsubmit="event.preventDefault(); alert('Attendance regularized &amp; audited successfully!');">
+<!-- Issue Alert Banner -->
+<div class="p-2.5 rounded bg-error-container/40 border border-error/30 flex items-start gap-2 text-on-error-container">
+<span class="material-symbols-outlined text-error text-[16px] mt-0.5 shrink-0">error</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase font-bold text-error">Missed Biometric In-Punch</span>
+<p class="font-body-sm text-[11px] text-on-surface-variant leading-snug">
+              No biometric record found for scheduled 07:00 AM shift. Reported as mutual clinical shift swap with peer nurse.
+            </p>
+</div>
+</div>
+<!-- Attendance Type Selection -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md uppercase font-semibold text-on-surface-variant">Correction / Regularization Type</label>
+<select class="h-8 px-2 text-body-sm font-body-sm bg-surface text-on-surface border border-outline-variant rounded focus:outline-none focus:border-primary">
+<option selected="">Duty Shift Swapped (Peer Exchange)</option>
+<option>Manual Biometric Punch Override (Scanner Failed)</option>
+<option>Off-Day Compensatory Duty (C-OFF)</option>
+<option>Official Clinical Duty (External Patient Transport)</option>
+<option>Authorized Half-Day Emergency Medical Leave</option>
+</select>
+</div>
+<!-- Replacing Staff Selection -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md uppercase font-semibold text-on-surface-variant">Replacing / Covered Staff Member</label>
+<select class="h-8 px-2 text-body-sm font-body-sm bg-surface text-on-surface border border-outline-variant rounded focus:outline-none focus:border-primary">
+<option selected="">SN Anjali Kurien, RN (EMP-8102) [Reliever ICU]</option>
+<option>SN Bhavna Patel, RN (EMP-8344) [Float Nurse]</option>
+<option>SN Deepa Nair, RN (EMP-8991) [Ward 3A Senior]</option>
+</select>
+<span class="font-data-mono text-[10px] text-on-surface-variant">Coverage verifies Ward Bed Ratio compliance.</span>
+</div>
+<!-- Effective Duty Hours Adjustment -->
+<div class="grid grid-cols-2 gap-2">
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md uppercase font-semibold text-on-surface-variant">Effective In-Time</label>
+<div class="relative">
+<input class="w-full h-8 pl-2 pr-2 text-body-sm font-data-mono bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary text-on-surface" type="text" value="07:00 AM"/>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md uppercase font-semibold text-on-surface-variant">Effective Out-Time</label>
+<div class="relative">
+<input class="w-full h-8 pl-2 pr-2 text-body-sm font-data-mono bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary text-on-surface" type="text" value="03:00 PM"/>
+</div>
+</div>
+</div>
+<!-- Mandatory Operational Reason -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md uppercase font-semibold text-on-surface-variant">Mandatory NABH Operational Justification</label>
+<select class="h-8 px-2 text-body-sm font-body-sm bg-surface text-on-surface border border-outline-variant rounded focus:outline-none focus:border-primary">
+<option selected="">Pre-approved peer shift swap due to ward scheduling emergency</option>
+<option>Emergency clinical double-duty coverage (Trauma admission)</option>
+<option>Biometric sensor optical mismatch / Fingerprint wetness</option>
+<option>Hospital LAN router offline at OT Gate Device</option>
+</select>
+</div>
+<!-- Supporting Document Notes -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md uppercase font-semibold text-on-surface-variant">Supporting Document / Form Reference</label>
+<textarea class="h-14 p-2 text-body-sm font-body-sm bg-surface text-on-surface border border-outline-variant rounded focus:outline-none focus:border-primary placeholder:text-on-surface-variant/60" placeholder="e.g. Approved Swap Form #SWAP-892 signed by Matron In-Charge.">Pre-approved by Matron In-Charge. Form #SWAP-892 signed and placed in ICU duty desk register.</textarea>
+</div>
+<!-- Dual Authorization Sign-Off -->
+<div class="p-3 bg-surface-container-high/40 rounded border border-outline-variant/40 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface">Authorizing Supervisor</span>
+<span class="font-data-mono text-[10px] text-emerald-800 font-semibold bg-emerald-100 px-1.5 py-0.2 rounded">In-Charge PIN Required</span>
+</div>
+<p class="font-body-sm text-[11px] text-on-surface-variant leading-tight">
+            SN Kavitha, Ward In-Charge (EMP-8842)
+          </p>
+<div class="flex items-center gap-2 mt-1">
+<div class="relative flex-1">
+<input class="w-full h-8 px-2.5 text-body-sm font-data-mono bg-surface border border-outline-variant rounded focus:outline-none focus:border-primary" placeholder="Enter Supervisor PIN / Password" type="password" value="••••••••"/>
+</div>
+<span class="font-data-mono text-[10px] text-on-surface-variant shrink-0">NABH Sec. 4.2</span>
+</div>
+</div>
+<!-- Hardware LAN Info Strip -->
+<div class="bg-surface p-2 rounded border border-outline-variant/30 flex items-start gap-2">
+<span class="material-symbols-outlined text-[15px] text-primary shrink-0 mt-0.5">router</span>
+<p class="font-data-mono text-[10px] text-on-surface-variant leading-tight">
+<strong>Biometric Integration:</strong> LAN TCP/IP port 4370 syncs Essl / ZKTeco SilkBio terminals every 60s. Manual entries maintain full statutory audit log trails.
+          </p>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center justify-end gap-2 pt-1">
+<button class="h-8 px-3 rounded bg-surface border border-outline-variant hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors" type="button">
+            Cancel
+          </button>
+<button class="h-8 px-4 rounded bg-primary-container hover:bg-primary text-on-primary font-label-md text-label-md flex items-center gap-1.5 shadow-sm transition-colors" type="submit">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+            Commit Attendance Correction
+          </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Bottom Statutory & Biometric Terminal Sync Health Strip -->
+<div class="px-6 py-3 border-t border-outline-variant/30 bg-surface-container-lowest flex flex-wrap items-center justify-between text-on-surface-variant font-data-mono text-[11px] gap-2 mt-auto">
+<div class="flex items-center gap-4 flex-wrap">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+<span class="text-on-surface font-semibold">OT Biometric Terminal #01: Online</span>
+<span class="text-on-surface-variant">(192.168.1.14:4370)</span>
+</div>
+<span class="text-outline-variant">•</span>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+<span class="text-on-surface font-semibold">ICU Terminal #02: Online</span>
+<span class="text-on-surface-variant">(192.168.1.15:4370)</span>
+</div>
+<span class="text-outline-variant">•</span>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+<span class="text-on-surface font-semibold">Main Gate Terminal #03: Online</span>
+<span class="text-on-surface-variant">(192.168.1.16:4370)</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40">Next Biometric Push: 32s</span>
+<span class="text-primary font-bold">NABH HR-MIS Form 25 Ready</span>
+</div>
+</div>
+</div></main></div></body></html>

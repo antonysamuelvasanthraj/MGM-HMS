@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-tint": "#a83541",
+          "inverse-primary": "#ffb3b5",
+          "error-container": "#ffdad6",
+          "primary": "#680118",
+          "surface-container-highest": "#d4e4fd",
+          "on-primary-container": "#ff999d",
+          "on-secondary-fixed": "#321117",
+          "on-tertiary-container": "#d4b264",
+          "on-tertiary": "#ffffff",
+          "inverse-surface": "#223144",
+          "on-secondary-fixed-variant": "#643b41",
+          "surface-container-high": "#dce9ff",
+          "on-surface": "#0c1c2e",
+          "inverse-on-surface": "#eaf1ff",
+          "outline-variant": "#debfbf",
+          "tertiary-fixed": "#ffdf9a",
+          "surface-dim": "#ccdbf4",
+          "surface-container": "#e5eeff",
+          "on-secondary": "#ffffff",
+          "on-primary": "#ffffff",
+          "surface": "#f8f9ff",
+          "primary-fixed": "#ffdada",
+          "secondary-fixed": "#ffd9dd",
+          "on-error": "#ffffff",
+          "tertiary-fixed-dim": "#e6c273",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#5b4400",
+          "on-error-container": "#93000a",
+          "primary-container": "#881d2c",
+          "on-primary-fixed": "#40000b",
+          "outline": "#8a7171",
+          "error": "#ba1a1a",
+          "secondary-container": "#fdc3ca",
+          "secondary": "#7f5258",
+          "on-surface-variant": "#574142",
+          "primary-fixed-dim": "#ffb3b5",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-tertiary-fixed": "#251a00",
+          "surface-variant": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "secondary-fixed-dim": "#f1b8bf",
+          "on-background": "#0c1c2e",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "tertiary": "#402e00",
+          "surface-container-low": "#eff4ff",
+          "background": "#f8f9ff"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xs": "0.25rem",
+          "space-xl": "1.5rem",
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-md": "0.75rem",
+          "gutter": "1rem",
+          "space-sm": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg": ["Inter"],
+          "body-md": ["Inter"],
+          "title-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "body-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "display-lg": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-outline-variant/40"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>CITY CAMPUS - MAIN HOSPITAL, HYDERABAD</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / IPD No / Bed / Patient Name / Ward..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Admin</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Inpatient &amp; IPD Care</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="inpatient-admissions-bed-management" href="#"><span class="font-body-md text-body-md">Inpatient Admissions &amp; Bed Management</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ward-nursing-workspace" href="#"><span class="font-body-md text-body-md">Ward Nursing Workspace</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">24 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="icu-critical-care-unit" href="#"><span class="font-body-md text-body-md">ICU Critical Care Unit</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">6 Crit</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="discharge-coordination-desk" href="#"><span class="font-body-md text-body-md">Discharge Coordination Desk</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">8 Ready</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Acute &amp; Specialty Care</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="emergency-casualty-desk" href="#"><span class="font-body-md text-body-md">Emergency &amp; Casualty Desk</span><span class="font-data-mono text-label-sm bg-error text-on-error px-1.5 py-0.5 rounded font-bold">Red Alert</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="operation-theatre-suite" href="#"><span class="font-body-md text-body-md">Operation Theatre (OT) Suite</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">4 Live</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="maternity-obstetric-care" href="#"><span class="font-body-md text-body-md">Maternity &amp; Obstetric Care</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="intrapartum-partograph-chart" href="#"><span class="font-body-md text-body-md">Intrapartum Partograph Chart</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Labor Watch</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Clinical &amp; Diagnostic Modules</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ultrasound-usg-reporting-templates" href="#"><span class="font-body-md text-body-md">Imaging &amp; Radiology (USG)</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; IP Billing</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Hospital Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- STAT Governance Strip -->
+<div class="w-full bg-primary text-on-primary px-6 py-2.5 shadow-sm">
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center gap-3 min-w-0">
+<span class="material-symbols-outlined text-[20px] text-tertiary-fixed shrink-0" style="font-variation-settings: 'FILL' 1;">shield</span>
+<p class="font-body-sm text-body-sm leading-snug tracking-tight truncate">
+<strong class="font-label-md text-label-md tracking-wider uppercase text-tertiary-fixed mr-1.5">STAT Emergency Governance:</strong>
+          Clinical resuscitation, triage priority, and emergent surgical interventions are strictly non-contingent on advance payment, billing deposit, or completed paperwork. Intake administrative tasks proceed asynchronously.
+        </p>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="font-data-mono text-label-sm bg-primary-container px-2.5 py-1 rounded text-primary-fixed uppercase tracking-wider font-semibold">Beds Locked: 0 | Triage Override: ACTIVE</span>
+</div>
+</div>
+</div>
+<div class="p-6 flex flex-col gap-6">
+<!-- Top KPI Census Ribbon -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+<!-- Total ER Census -->
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-md text-label-md uppercase tracking-wider">Total ER Census</span>
+<span class="material-symbols-outlined text-[18px]">bed</span>
+</div>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-display-lg font-bold text-on-surface">18</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/ 24 Capacity</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 75%;"></div>
+</div>
+</div>
+<!-- Red / Immediate Priority -->
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-center justify-between text-error">
+<span class="font-label-md text-label-md uppercase tracking-wider font-bold">Red / Priority 1</span>
+<span class="h-2.5 w-2.5 rounded-full bg-error animate-ping"></span>
+</div>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-display-lg font-bold text-error">03</span>
+<span class="font-label-sm text-label-sm text-error/80">Immediate Resus</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant mt-2 font-data-mono text-label-sm">
+<span class="material-symbols-outlined text-[13px] text-error">timer</span> 0 min delay allowed
+        </div>
+</div>
+<!-- Yellow / Urgent Priority -->
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-tertiary-container">
+<span class="font-label-md text-label-md uppercase tracking-wider font-bold">Yellow / Priority 2</span>
+<span class="h-2 w-2 rounded-full bg-tertiary"></span>
+</div>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-display-lg font-bold text-on-surface">07</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Urgent Triage</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant mt-2 font-data-mono text-label-sm">
+<span class="material-symbols-outlined text-[13px]">schedule</span> Target &lt; 15 mins
+        </div>
+</div>
+<!-- Green / Standard Priority -->
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-md text-label-md uppercase tracking-wider font-bold">Green / Priority 3</span>
+<span class="h-2 w-2 rounded-full bg-secondary"></span>
+</div>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-display-lg font-bold text-on-surface">06</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Walking / Minor</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant mt-2 font-data-mono text-label-sm">
+<span class="material-symbols-outlined text-[13px]">schedule</span> Target &lt; 60 mins
+        </div>
+</div>
+<!-- Unidentified / John Doe Records -->
+<div class="bg-secondary-container/40 p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-secondary-container">
+<span class="font-label-md text-label-md uppercase tracking-wider font-bold">Unidentified Records</span>
+<span class="material-symbols-outlined text-[18px]">person_alert</span>
+</div>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-display-lg font-bold text-on-secondary-container">02</span>
+<span class="font-label-sm text-label-sm text-on-secondary-container/80">Pending Recon</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-secondary-container font-label-sm text-label-sm mt-2 font-bold">
+<span class="material-symbols-outlined text-[13px]">fingerprint</span> Dual-Sign Required
+        </div>
+</div>
+<!-- Resuscitation Bays Available -->
+<div class="bg-surface-container-lowest p-3.5 rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-md text-label-md uppercase tracking-wider">Resus Bays Free</span>
+<span class="material-symbols-outlined text-[18px]">e911_emergency</span>
+</div>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-display-lg font-bold text-error">01</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">of 4 Resus Hubs</span>
+</div>
+<div class="flex items-center gap-1 text-error mt-2 font-data-mono text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[13px]">warning</span> Bay 04 Open Only
+        </div>
+</div>
+</div>
+<!-- Rapid Intake Strip & Reconciliation Protocol Callout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+<!-- Quick Unidentified Trauma Intake -->
+<div class="lg:col-span-8 bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col justify-between gap-3">
+<div class="flex items-center justify-between pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">emergency_home</span>
+<span class="font-title-md text-title-md font-bold text-on-surface">STAT Unidentified Intake &amp; Crash Arrival</span>
+<span class="font-data-mono text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded font-bold">1-Click Temp Registration</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Next Auto UHID: <code class="font-data-mono text-on-surface font-semibold">TEMP-ER-2024-090</code></span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-5 gap-2.5">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Estimated Gender / Age</label>
+<select class="h-9 px-2 bg-surface text-on-surface font-body-sm text-body-sm rounded focus:outline-none">
+<option>Male, Approx 30-40Y</option>
+<option>Female, Approx 20-30Y</option>
+<option>Male, Elderly (~65Y+)</option>
+<option>Female, Elderly (~65Y+)</option>
+<option>Paediatric / Unknown</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Initial Triage Tier</label>
+<select class="h-9 px-2 bg-error text-on-error font-label-md text-label-md font-bold rounded focus:outline-none">
+<option selected="">Level 1 - Red (Immediate)</option>
+<option>Level 2 - Yellow (Urgent)</option>
+<option>Level 3 - Green (Standard)</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Arrival Mode</label>
+<select class="h-9 px-2 bg-surface text-on-surface font-body-sm text-body-sm rounded focus:outline-none">
+<option>108 Emergency EMS (Ambulance)</option>
+<option>Private Ambulance / Transit</option>
+<option>Police / Good Samaritan Bystander</option>
+<option>Walk-in / Walk-in Collapse</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Assign Bay</label>
+<select class="h-9 px-2 bg-surface text-on-surface font-body-sm text-body-sm rounded focus:outline-none">
+<option>Bay 04 (Resuscitation)</option>
+<option>Bay 06 (Trauma Annex)</option>
+<option>Bay 08 (Acute Medical)</option>
+</select>
+</div>
+<div class="flex flex-col justify-end">
+<button class="h-9 bg-primary text-on-primary rounded font-label-lg text-label-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">add_circle</span> Admit &amp; Print Wristband
+            </button>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-1">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-tertiary">check_circle</span>
+            Automatic STAT Trauma Panel, GCS Tracking Sheet &amp; Blood Bank Reservation queued immediately on creation.
+          </span>
+<span class="font-data-mono">Time to Bay: &lt; 45 sec</span>
+</div>
+</div>
+<!-- Identity Reconciliation Protocol Desk -->
+<div class="lg:col-span-4 bg-surface-container-high/60 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-title-md text-title-md font-bold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-secondary">merge_type</span> Identity Reconciliation Desk
+            </span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container font-bold text-on-surface-variant">2 Awaiting Merge</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Post-resuscitation identification requires dual authorization (Primary CMO Dr. Priya Sharma + Police Medico-Legal liaison or Verified Biometric ABHA match) before shifting temporary data to master records.
+          </p>
+</div>
+<div class="mt-3 flex items-center justify-between pt-2">
+<div class="flex items-center gap-1.5 font-data-mono text-label-sm text-on-surface font-medium">
+<span class="material-symbols-outlined text-[16px] text-primary">fingerprint</span> ABHA Scanner: Online
+          </div>
+<button class="bg-surface-container-lowest text-on-surface hover:bg-surface px-3 py-1.5 rounded font-label-md text-label-md flex items-center gap-1 shadow-sm">
+            Review Merge Queue <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Workspace Split: Roster (7 cols) + Action / Disposition Panel (5 cols) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Left: Active ER Worklist -->
+<div class="lg:col-span-7 flex flex-col gap-4">
+<!-- Tab Bar & Filter Controls -->
+<div class="bg-surface-container-lowest rounded-xl p-3 shadow-sm flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg">
+<button class="px-3 py-1.5 rounded font-label-md text-label-md bg-surface-container-lowest text-primary font-bold shadow-sm flex items-center gap-1.5">
+<span>All Active Beds</span>
+<span class="font-data-mono bg-primary text-on-primary rounded-full px-1.5 py-0.2 text-[10px]">18</span>
+</button>
+<button class="px-3 py-1.5 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface flex items-center gap-1">
+<span>Red Triage Only</span>
+<span class="font-data-mono bg-error/20 text-error rounded-full px-1.5 py-0.2 text-[10px] font-bold">3</span>
+</button>
+<button class="px-3 py-1.5 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface flex items-center gap-1">
+<span>Trauma Bay</span>
+</button>
+<button class="px-3 py-1.5 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface flex items-center gap-1">
+<span>Observation Unit</span>
+<span class="font-data-mono bg-surface-container-high text-on-surface-variant rounded-full px-1.5 py-0.2 text-[10px]">0</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center bg-surface px-2.5 py-1 rounded text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] mr-1.5">filter_list</span>
+<span class="font-label-sm text-label-sm">Filter: Clinician On-Duty</span>
+</div>
+<button class="h-8 w-8 rounded bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high" title="Refresh Live Worklist">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+</button>
+</div>
+</div>
+<!-- High-Density Clinical Table -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-2.5 px-3">Bay &amp; Priority</th>
+<th class="py-2.5 px-3">Patient Details</th>
+<th class="py-2.5 px-3">Presentation &amp; Vitals</th>
+<th class="py-2.5 px-3">Stat Tasks / Orders</th>
+<th class="py-2.5 px-3">Elapsed / Billing</th>
+<th class="py-2.5 px-3 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low font-body-sm text-body-sm">
+<!-- ROW 1: Active Selected John Doe (TEMP-ER-2024-089) -->
+<tr class="bg-surface-container/60 hover:bg-surface-container cursor-pointer transition-colors">
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md font-bold text-on-surface">BAY 02</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Trauma Resus</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-bold w-fit mt-0.5">
+<span class="h-1.5 w-1.5 rounded-full bg-surface animate-pulse"></span> P1 RED
+                      </span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">TEMP-ER-2024-089</span>
+<span class="material-symbols-outlined text-[14px] text-primary" title="Unidentified John Doe">help</span>
+</div>
+<span class="text-on-surface-variant font-body-sm text-body-sm">Unknown Male, ~35Y</span>
+<span class="font-data-mono text-label-sm text-primary font-semibold mt-0.5">108 EMS (Crash NH-44)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">MO: Dr. Arun Joshi</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-error font-semibold">Poly-Trauma, GCS 8/15</span>
+<div class="grid grid-cols-2 gap-x-2 gap-y-0.5 font-data-mono text-label-sm text-on-surface-variant">
+<span>BP: <strong class="text-error">82/50</strong></span>
+<span>HR: <strong class="text-error">128 bpm</strong></span>
+<span>SpO2: <strong>91% 6L</strong></span>
+<span>Pupils: <strong>Sluggish</strong></span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold w-fit">
+<span class="material-symbols-outlined text-[12px]">bloodtype</span> Crossmatch 4U PRBC
+                      </span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-label-sm text-label-sm w-fit">
+                        Stat CT Poly-Trauma
+                      </span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">ET Intubation Complete</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-data-mono text-label-md text-label-md font-bold text-on-surface">32 mins</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-semibold w-fit">
+                        Waiver Active
+                      </span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">Audit: Clinical First</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top text-right">
+<button class="px-2 py-1 bg-primary text-on-primary rounded font-label-sm text-label-sm hover:bg-primary-container transition-colors font-bold shadow-sm">
+                      Active File
+                    </button>
+</td>
+</tr>
+<!-- ROW 2: Bay 01 Resuscitation (Sepsis / Shock) -->
+<tr class="hover:bg-surface-container-low/50 cursor-pointer transition-colors">
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md font-bold text-on-surface">BAY 01</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Resuscitation</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-bold w-fit">
+                        P1 RED
+                      </span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">UHID: HYD-2024-8841</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">Smt. Lakshmi Rao, 62Y / F</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant mt-0.5">Family Walk-in (Stretcher)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">MO: Dr. Ananya Sen</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-error font-semibold">Septic Shock, Urosepsis</span>
+<div class="grid grid-cols-2 gap-x-2 gap-y-0.5 font-data-mono text-label-sm text-on-surface-variant">
+<span>BP: <strong class="text-error">78/44</strong></span>
+<span>HR: <strong>118 bpm</strong></span>
+<span>Lactate: <strong class="text-error">4.6</strong></span>
+<span>Temp: <strong>102.4°F</strong></span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm w-fit">
+                        Norad Infusion @ 0.1mcg
+                      </span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm w-fit">
+                        Blood Cultures × 2 Sent
+                      </span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-data-mono text-label-md text-label-md font-bold text-on-surface">54 mins</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-semibold w-fit">
+                        CGHS Linked
+                      </span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">Direct MICU Bed 4</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top text-right">
+<button class="px-2 py-1 bg-surface-container text-on-surface rounded font-label-sm text-label-sm hover:bg-surface-container-high transition-colors">
+                      Open
+                    </button>
+</td>
+</tr>
+<!-- ROW 3: Bay 03 Medical ER (Yellow - Chest Pain / STEMI rule-out) -->
+<tr class="hover:bg-surface-container-low/50 cursor-pointer transition-colors">
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md font-bold text-on-surface">BAY 03</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Acute Medical</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold w-fit">
+                        P2 YELLOW
+                      </span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">UHID: HYD-2024-9104</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">Shri. K. Venkat, 54Y / M</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant mt-0.5">Self Walk-in</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">MO: Dr. Arun Joshi</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Acute Retrosternal Chest Pain</span>
+<div class="grid grid-cols-2 gap-x-2 gap-y-0.5 font-data-mono text-label-sm text-on-surface-variant">
+<span>ECG: <strong>ST Depr V4-V6</strong></span>
+<span>Trop-I: <strong class="text-tertiary">0.08 ng/mL</strong></span>
+<span>BP: <strong>148/92</strong></span>
+<span>SpO2: <strong>98% RA</strong></span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm w-fit">
+                        Loading Dose Given (ASA+Clop)
+                      </span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm w-fit">
+                        Echo / Cath Lab Alerted
+                      </span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-data-mono text-label-md text-label-md font-bold text-on-surface">1h 12m</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-semibold w-fit">
+                        Ayushman / PMJAY
+                      </span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">Admit to ICCU</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top text-right">
+<button class="px-2 py-1 bg-surface-container text-on-surface rounded font-label-sm text-label-sm hover:bg-surface-container-high transition-colors">
+                      Open
+                    </button>
+</td>
+</tr>
+<!-- ROW 4: Bay 05 Minor OT (Laceration / Green Triage) -->
+<tr class="hover:bg-surface-container-low/50 cursor-pointer transition-colors">
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md font-bold text-on-surface">BAY 05</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Minor OT</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm font-bold w-fit">
+                        P3 GREEN
+                      </span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">UHID: HYD-2024-9190</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">Master Reyansh G., 8Y / M</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant mt-0.5">Brought by Mother</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">MO: Dr. Ananya Sen</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Forehead Scalp Laceration 4cm</span>
+<div class="grid grid-cols-2 gap-x-2 gap-y-0.5 font-data-mono text-label-sm text-on-surface-variant">
+<span>Conscious: <strong>Yes, Alert</strong></span>
+<span>Nausea/Vom: <strong>No</strong></span>
+<span>TT Dose: <strong>Completed</strong></span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm w-fit">
+                        Suturing Tray Ready
+                      </span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">Local Lignocaine 2% Loaded</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-data-mono text-label-md text-label-md font-bold text-on-surface">22 mins</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-semibold w-fit">
+                        Cashless OPD
+                      </span>
+<span class="font-data-mono text-[10px] text-on-surface-variant">OPD Discharge</span>
+</div>
+</td>
+<td class="py-3 px-3 align-top text-right">
+<button class="px-2 py-1 bg-surface-container text-on-surface rounded font-label-sm text-label-sm hover:bg-surface-container-high transition-colors">
+                      Open
+                    </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Observation Holding Tab (Empty State Requirement) -->
+<div class="bg-surface-container-low p-4">
+<div class="bg-surface-container-lowest rounded-lg p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">hotel_class</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">ER Short-Stay Observation Holding</span>
+<span class="font-data-mono text-label-sm bg-surface-container px-2 py-0.2 rounded text-on-surface-variant">0 Beds In-Use</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                    No holding overflow patients. 6 Observation Recliners sanitized and available for 4-hour monitored serial cardiac enzymes and toxic ingestion watch.
+                  </p>
+</div>
+</div>
+<button class="px-3 py-1.5 bg-surface text-on-surface hover:bg-surface-container rounded font-label-md text-label-md shrink-0 shadow-sm">
+                Reserve Bay
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Selected Patient Action Panel & Immediate Disposition Drawer -->
+<div class="lg:col-span-5 flex flex-col gap-4">
+<!-- Patient Context Card -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col gap-4">
+<!-- Authority / Role indicator banner -->
+<div class="bg-primary/10 rounded-lg p-2.5 flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-[18px]">clinical_notes</span>
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">
+              Emergency Resuscitation Role: Authorized for immediate clinical orders &amp; bed override; financial ledger deferred
+            </span>
+</div>
+<!-- Header & Temp Demographics -->
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">TEMP-ER-2024-089</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-error text-on-error font-bold uppercase">
+                  Level 1 Immediate
+                </span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+                Unknown Male, Est. 35Y • Bay 02 Trauma Resus • Brought by 108 EMS
+              </span>
+<span class="font-data-mono text-label-sm text-on-surface-variant mt-0.5">
+                Arrival Stamp: 24 Oct 2024, 11:10 AM IST (32 mins ago)
+              </span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-error-container/60 text-on-error-container flex flex-col items-center justify-center font-bold">
+<span class="font-label-sm text-label-sm uppercase leading-tight">Blood</span>
+<span class="font-title-md text-title-md leading-tight">O-NEG</span>
+</div>
+</div>
+<!-- Live Resuscitation Vitals Sparkline Visualizer -->
+<div class="bg-surface-container-low rounded-lg p-3 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-error">monitor_heart</span> Resuscitation Vitals Stream (T-30m)
+              </span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Live telemetry: Bay 02 Mindray</span>
+</div>
+<div class="grid grid-cols-4 gap-2 text-center my-1">
+<div class="bg-surface-container-lowest p-2 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">BP (mmHg)</span>
+<span class="font-data-mono text-title-md font-bold text-error">82/50</span>
+</div>
+<div class="bg-surface-container-lowest p-2 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Heart Rate</span>
+<span class="font-data-mono text-title-md font-bold text-error">128</span>
+</div>
+<div class="bg-surface-container-lowest p-2 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">SpO2</span>
+<span class="font-data-mono text-title-md font-bold text-on-surface">91%</span>
+</div>
+<div class="bg-surface-container-lowest p-2 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">GCS Score</span>
+<span class="font-data-mono text-title-md font-bold text-error">E2V2M4 (8)</span>
+</div>
+</div>
+<!-- Inline SVG Sparkline representation of Mean Arterial Pressure -->
+<div class="w-full h-12 bg-surface-container-lowest rounded p-1 flex items-end">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 300 40">
+<path class="text-error" d="M0,35 Q30,30 60,32 T120,28 T180,38 T240,24 T300,18" fill="none" stroke="currentColor" stroke-width="2.5"></path>
+<circle class="fill-error animate-ping" cx="300" cy="18" r="4"></circle>
+<circle class="fill-error" cx="300" cy="18" r="3"></circle>
+</svg>
+</div>
+<div class="flex justify-between font-data-mono text-label-sm text-on-surface-variant">
+<span>Arrival: MAP 54</span>
+<span>After 1L RL + Colloid: MAP 61</span>
+<span class="text-error font-semibold">Target: &gt; 65</span>
+</div>
+</div>
+<!-- Attending Clinician STAT Log -->
+<div class="flex flex-col gap-2">
+<span class="font-label-md text-label-md font-bold text-on-surface flex items-center justify-between">
+<span>Emergency MO Field Assessment</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant font-normal">Dr. Arun Joshi (11:18 AM)</span>
+</span>
+<div class="bg-surface-container-low p-3 rounded-lg font-body-sm text-body-sm text-on-surface leading-relaxed">
+              "Severe road traffic accident on bypass; deep right parietal scalp laceration with active oozing, right pupil dilated 4mm, left 2.5mm sluggish. Decreased breath sounds right hemithorax. FAST exam positive for free fluid in Morrison's pouch. Endotracheal intubation secured with 7.5mm cuffed tube. Active massive transfusion protocol initiated."
+            </div>
+</div>
+<!-- Pending Emergency Orders -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">Active STAT Clinical Directives</span>
+<button class="font-label-sm text-label-sm text-primary font-bold hover:underline">+ Add Stat Rx</button>
+</div>
+<div class="space-y-1.5">
+<div class="flex items-center justify-between bg-surface-container-low px-3 py-2 rounded">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-error">priority_high</span>
+<span class="font-body-sm text-body-sm font-medium text-on-surface">Emergency Blood Bank: 4 Units O-Neg PRBC</span>
+</div>
+<span class="font-data-mono text-label-sm text-error bg-error-container px-2 py-0.5 rounded font-bold">Uncrossmatched Dispatched</span>
+</div>
+<div class="flex items-center justify-between bg-surface-container-low px-3 py-2 rounded">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">radiology</span>
+<span class="font-body-sm text-body-sm font-medium text-on-surface">STAT Non-Contrast CT Brain + Cervical Spine</span>
+</div>
+<span class="font-data-mono text-label-sm text-on-surface bg-surface-container-high px-2 py-0.5 rounded">Gantry Cleared / Ready</span>
+</div>
+<div class="flex items-center justify-between bg-surface-container-low px-3 py-2 rounded">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">vaccines</span>
+<span class="font-body-sm text-body-sm font-medium text-on-surface">Tranexamic Acid 1g IV Infusion over 10m</span>
+</div>
+<span class="font-data-mono text-label-sm text-secondary bg-surface-container-high px-2 py-0.5 rounded font-bold">Running</span>
+</div>
+</div>
+</div>
+<!-- Emergency Disposition Transfer Selector (The 4 Distinct Pathways) -->
+<div class="flex flex-col gap-3 pt-2">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Direct Emergency Disposition Pathway</span>
+<span class="font-label-sm text-label-sm text-error font-bold uppercase tracking-wider">Financial Clearance Bypassed</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+<!-- Option 1: ICU / Emergency OT Direct Transfer -->
+<button class="p-3 rounded-lg bg-primary text-on-primary text-left hover:bg-primary-container transition-all flex flex-col justify-between shadow-sm relative group">
+<div class="flex items-start justify-between w-full">
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider text-tertiary-fixed">Immediate OT / Neuro ICU</span>
+<span class="material-symbols-outlined text-[18px]">surgical</span>
+</div>
+<p class="font-body-sm text-body-sm text-primary-fixed-dim mt-2">
+                  Zero-wait bed assignment. Trauma Surgery &amp; Anesthesia team summoned directly.
+                </p>
+<div class="mt-3 flex items-center justify-between text-tertiary-fixed font-label-sm text-label-sm font-bold">
+<span>Authorize OT Bay 3</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</button>
+<!-- Option 2: Inpatient Acute Ward Admission -->
+<button class="p-3 rounded-lg bg-surface-container-high hover:bg-surface-container text-left transition-all flex flex-col justify-between shadow-sm">
+<div class="flex items-start justify-between w-full">
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface">Admit Inpatient Ward</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">meeting_room</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">
+                  Standard acute admission once hemodynamic stabilization criteria are satisfied.
+                </p>
+<div class="mt-3 flex items-center justify-between text-primary font-label-sm text-label-sm font-bold">
+<span>Assign Ward Bed</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</div>
+</button>
+<!-- Option 3: External Tertiary Trauma Transfer -->
+<button class="p-3 rounded-lg bg-surface-container-high hover:bg-surface-container text-left transition-all flex flex-col justify-between shadow-sm">
+<div class="flex items-start justify-between w-full">
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface">Tertiary External Transfer</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">local_shipping</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">
+                  Referral to Specialized Apex Neurosurgical Center. Auto-generates Medico-Legal transfer slip.
+                </p>
+<div class="mt-3 flex items-center justify-between text-on-surface font-label-sm text-label-sm font-bold">
+<span>Dispatch ALS Ambulance</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</div>
+</button>
+<!-- Option 4: Discharge Post-Observation -->
+<button class="p-3 rounded-lg bg-surface-container-high hover:bg-surface-container text-left transition-all flex flex-col justify-between shadow-sm opacity-60 cursor-not-allowed" title="Patient clinically unfit for discharge (GCS 8)">
+<div class="flex items-start justify-between w-full">
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface">Discharge Post-Observation</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">check_circle</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">
+                  Stable out-of-danger release with outpatient follow-up instructions and prescriptions.
+                </p>
+<div class="mt-3 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm font-bold">
+<span>Locked (Vitals Unstable)</span>
+<span class="material-symbols-outlined text-[16px]">lock</span>
+</div>
+</button>
+</div>
+</div>
+<!-- Bottom Micro-actions -->
+<div class="flex items-center justify-between pt-3 text-on-surface-variant font-label-sm text-label-sm">
+<button class="flex items-center gap-1 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">print</span> Print Medico-Legal Case (MLC) Form
+            </button>
+<button class="flex items-center gap-1 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">id_card</span> Link National ABHA
+            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

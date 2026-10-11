@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "secondary-fixed": "#ffd9dd",
+          "surface-tint": "#a83541",
+          "on-tertiary-fixed": "#251a00",
+          "surface-container-highest": "#d4e4fd",
+          "surface-bright": "#f8f9ff",
+          "tertiary": "#402e00",
+          "primary-fixed": "#ffdada",
+          "on-primary-fixed": "#40000b",
+          "on-secondary-fixed-variant": "#643b41",
+          "secondary-container": "#fdc3ca",
+          "on-secondary-fixed": "#321117",
+          "surface-container-high": "#dce9ff",
+          "surface-container": "#e5eeff",
+          "surface-container-low": "#eff4ff",
+          "on-error-container": "#93000a",
+          "tertiary-fixed": "#ffdf9a",
+          "error-container": "#ffdad6",
+          "on-surface-variant": "#574142",
+          "on-secondary-container": "#7a4d54",
+          "on-primary-fixed-variant": "#881d2c",
+          "inverse-on-surface": "#eaf1ff",
+          "surface-container-lowest": "#ffffff",
+          "error": "#ba1a1a",
+          "on-tertiary": "#ffffff",
+          "secondary": "#7f5258",
+          "surface-dim": "#ccdbf4",
+          "on-primary": "#ffffff",
+          "primary-fixed-dim": "#ffb3b5",
+          "background": "#f8f9ff",
+          "on-background": "#0c1c2e",
+          "secondary-fixed-dim": "#f1b8bf",
+          "tertiary-container": "#5b4400",
+          "primary": "#680118",
+          "on-error": "#ffffff",
+          "inverse-primary": "#ffb3b5",
+          "tertiary-fixed-dim": "#e6c273",
+          "primary-container": "#881d2c",
+          "surface-variant": "#d4e4fd",
+          "on-tertiary-fixed-variant": "#5a4300",
+          "on-primary-container": "#ff999d",
+          "outline": "#8a7171",
+          "on-surface": "#0c1c2e",
+          "on-tertiary-container": "#d4b264",
+          "inverse-surface": "#223144",
+          "surface": "#f8f9ff",
+          "on-secondary": "#ffffff",
+          "outline-variant": "#debfbf"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-lg": "1rem",
+          "margin": "1.5rem",
+          "space-sm": "0.5rem",
+          "gutter": "1rem",
+          "space-xl": "1.5rem",
+          "space-md": "0.75rem",
+          "space-xs": "0.25rem"
+        },
+        "fontFamily": {
+          "body-sm": ["Inter"],
+          "body-md": ["Inter"],
+          "label-lg": ["Inter"],
+          "display-lg": ["Inter"],
+          "data-mono": ["Inter"],
+          "headline-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-lg": ["Inter"],
+          "title-md": ["Inter"],
+          "label-sm": ["Inter"]
+        },
+        "fontSize": {
+          "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+          "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+          "label-lg": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+          "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "data-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+          "headline-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "label-md": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+          "headline-md": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-lg": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "title-md": ["15px", {"lineHeight": "20px", "fontWeight": "600"}],
+          "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}]
+        }
+      }
+    }
+  }</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest border-b border-surface-container-high"><div class="h-16 w-full px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-3 shrink-0"><img alt="SurelyHMS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xxjlqfzg8loM8cU_yBfiCSkuA_8y8j7Qct_CHHntbNN7Gy84wBa5zDKeNpwB-7EFyTDBiCkXXhtkzgL2s-_3WdktzobHdmLeWHFv7YZa1r2rxld0w0dKL30HmNb2_eTCZarH3TRSs8_MR9oQw6S4e6kL_QJZoeKjeS7Jvg0H-w0VLzIT5vVdagtW-LoKLyxADxQHm2MOSup0jlZ_mKCmbw0tiwvsvvWnGPoOViaw8"/><div class="h-4 w-px bg-outline-variant"></div><span class="font-headline-md text-headline-md tracking-tight text-primary font-bold">SurelyHMS</span><span class="font-label-sm text-label-sm uppercase tracking-wider bg-surface-container-high text-on-surface px-2 py-0.5 rounded border border-outline-variant/40 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-primary">apartment</span>City Campus - Main Hospital, Hyderabad</span></div><div class="flex-1 max-w-xl mx-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span><input class="w-full h-8 pl-9 pr-20 bg-surface text-on-surface font-body-sm text-body-sm rounded border border-outline-variant focus:outline-none focus:border-primary placeholder:text-on-surface-variant/70" placeholder="Search UHID / Mobile / Patient Name / Encounter..." type="text"/><div class="absolute right-2 flex items-center gap-1.5"><span class="font-data-mono text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/50">Ctrl + K</span></div></div></div><div class="flex items-center gap-3 shrink-0"><div class="hidden xl:flex items-center gap-2 pr-2 border-r border-outline-variant/50"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span><span class="font-data-mono text-body-sm text-on-surface font-medium">24 Oct 2024, 11:42 AM IST</span></div><div class="flex items-center gap-2"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface border border-outline-variant/40" title="Local Hospital LAN"><span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span><span class="font-data-mono text-label-sm text-on-surface">192.168.1.10: Connected</span></div><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-tertiary-fixed/30 border border-tertiary-fixed-dim/60" title="Sync Queue"><span class="h-2 w-2 rounded-full bg-amber-600"></span><span class="font-data-mono text-label-sm text-on-tertiary-fixed-variant">Sync: 3 Queued</span><button class="hover:text-primary transition-colors flex items-center" title="Retry Cloud Sync"><span class="material-symbols-outlined text-[14px]">sync</span></button></div></div><div class="h-6 w-px bg-outline-variant/60"></div><div class="flex items-center gap-2 pl-1"><img alt="Dr. Priya Sharma" class="w-8 h-8 rounded-full object-cover border border-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1X__HC9C1GwigDYBqg-eQ91C6NkoLYn4NimC_xTU6UTwHEdjlQEeyIrm6OieZfpJyfHtt4PXWCI5sBTZvf0guV4_UUX0JUZNpAqiKcBTjDhq0IAavTtj0hycneho9vubYsuxLeuDyCdsNnCEz91jokwJftRSza0THmBMdMDuQF-olO7zVp7gO8z44vR97uHcaWW1018FyjRPCp_RJgJY1gXhFGrAp55uU8ZjxwLWml-"/><div class="flex flex-col text-left"><span class="font-label-lg text-label-lg leading-none text-on-surface font-bold">Dr. Priya Sharma, MD</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Chief Medical Officer / Consulting Physician</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors ml-1"><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 z-40 bg-primary text-on-primary flex flex-col justify-between border-r border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto pt-2"><div class="px-4 py-2 flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/80 font-bold">Clinical Modules</span><span class="font-data-mono text-label-sm text-primary-fixed-dim/60">HIS CORE</span></div><nav class="flex flex-col px-2 gap-0.5" data-active-classes="bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed"><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="doctor-opd" href="#"><span class="font-body-md text-body-md">My Practice / Doctor OPD</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">18 Active</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="clinical-consultation" href="#"><span class="font-body-md text-body-md">Clinical Consultation</span></a><a aria-current="page" class="flex items-center justify-between px-3 py-2 rounded transition-colors bg-primary-container text-on-primary font-bold border-l-2 border-tertiary-fixed" data-path="consultation-history" href="#"><span class="font-body-md text-body-md">Consultation History</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="follow-up-teleconsult" href="#"><span class="font-body-md text-body-md">Follow-up / Teleconsult</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-registration" href="#"><span class="font-body-md text-body-md">OP Registration</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">42</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="op-fee-collection" href="#"><span class="font-body-md text-body-md">OP Fee Collection</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">14 Due</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="cashier-billing" href="#"><span class="font-body-md text-body-md">Cashier &amp; Billing</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">9</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="nursing-vitals" href="#"><span class="font-body-md text-body-md">Nursing &amp; Vitals</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">12</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="laboratory-diagnostics" href="#"><span class="font-body-md text-body-md">Laboratory &amp; Diagnostics</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">34</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="pharmacy-dispense" href="#"><span class="font-body-md text-body-md">Pharmacy Dispense</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">7</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="ipd-bed-mgmt" href="#"><span class="font-body-md text-body-md">IPD / Bed Mgmt</span><span class="font-data-mono text-label-sm bg-primary-container/80 text-on-primary px-1.5 py-0.5 rounded font-bold">86%</span></a><div class="my-2 border-t border-primary-container/50 px-2"></div><div class="px-2 py-1"><span class="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim/70 font-bold">Administration</span></div><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="daily-operations" href="#"><span class="font-body-md text-body-md">Daily Operations</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="management-overview" href="#"><span class="font-body-md text-body-md">Management Overview</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="accounts-receipts" href="#"><span class="font-body-md text-body-md">Accounts &amp; Receipts</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-primary-fixed-dim hover:bg-primary-container hover:text-on-primary transition-colors" data-path="token-display" href="#"><span class="font-body-md text-body-md">Token Display</span><span class="font-data-mono text-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-1.5 py-0.5 rounded font-bold">Live</span></a></nav></div><div class="p-3 border-t border-primary-container/50 bg-primary-container/30"><div class="flex items-center justify-between gap-1 text-primary-fixed-dim"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-tertiary-fixed">offline_bolt</span><span class="font-data-mono text-label-sm text-primary-fixed-dim font-medium">v2.4.2 Local-First</span></div><span class="font-label-sm text-label-sm bg-primary/60 px-1 py-0.2 rounded text-primary-fixed border border-primary-fixed-dim/20">Offline Cache</span></div></div></aside><div class="pl-64 min-h-screen"><main class="w-full pt-16 bg-surface-container-low min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Sub-Header / Module Control Bar -->
+<div class="bg-surface-container-lowest px-6 py-3 shadow-sm flex flex-col gap-3">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-primary/10 rounded">
+<span class="material-symbols-outlined text-primary text-[22px]">history_edu</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="font-headline-md text-headline-md text-on-surface">Outpatient Consultation History &amp; Clinical Records</h1>
+<span class="font-data-mono text-label-sm px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-semibold">HIS-AUDIT v4.8</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Immutable legal medical record repository with append-only tamper-evident verification</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[15px] text-tertiary">lock</span>
+<span class="font-data-mono text-label-sm text-on-surface">SHA-256 Ledger: Live &amp; Attested</span>
+</div>
+<button class="bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-lg text-label-lg px-3 py-1.5 rounded flex items-center gap-1.5 shadow-sm transition-colors">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Bulk Audit Export</span>
+</button>
+</div>
+</div>
+<!-- Multi-Parameter Filter Toolbar -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-3 pt-2">
+<!-- Attending Doctor Filter -->
+<div class="md:col-span-3 flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase">Attending Clinician</label>
+<div class="relative">
+<select class="w-full h-8 pl-8 pr-8 bg-surface text-on-surface font-body-sm text-body-sm rounded shadow-sm appearance-none focus:outline-none focus:bg-surface-container-lowest cursor-pointer">
+<option selected="">Dr. K. Venkat Rao (General Medicine)</option>
+<option>All Doctors &amp; Residents</option>
+<option>Dr. Priya Sharma (Cardiology / CMO)</option>
+<option>Dr. Arun Joshi (Neurology)</option>
+<option>Dr. Subhash Bose (Orthopaedics)</option>
+</select>
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-on-surface-variant text-[16px]">stethoscope</span>
+<span class="material-symbols-outlined absolute right-2.5 top-2 text-on-surface-variant text-[16px] pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Date Range Filter -->
+<div class="md:col-span-3 flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase">Encounter Date Window</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-2.5 text-on-surface-variant text-[16px]">calendar_month</span>
+<input class="w-full h-8 pl-8 pr-7 bg-surface text-on-surface font-body-sm text-body-sm rounded shadow-sm focus:outline-none cursor-pointer" readonly="" type="text" value="Past 30 Days (24 Sep 2024 – 24 Oct 2024)"/>
+<span class="material-symbols-outlined absolute right-2 text-on-surface-variant text-[16px] pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+<!-- Patient / Encounter Search -->
+<div class="md:col-span-4 flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase">Encounter Search (Instant Lookup)</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-2.5 text-on-surface-variant text-[16px]">search</span>
+<input class="w-full h-8 pl-8 pr-16 bg-surface text-on-surface font-body-sm text-body-sm rounded shadow-sm focus:outline-none placeholder:text-on-surface-variant/60" placeholder="Search UHID, Patient Name, Mobile, or Encounter ID..." type="text" value="SHMS-2024-08923"/>
+<span class="absolute right-2 font-data-mono text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded">Ctrl+F</span>
+</div>
+</div>
+<!-- Clinical Status Quick Toggles -->
+<div class="md:col-span-2 flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase">Filter Scope</label>
+<div class="flex items-center h-8 bg-surface-container rounded p-0.5">
+<button class="flex-1 text-center font-label-sm text-label-sm rounded py-1 px-1 bg-surface-container-lowest text-primary font-bold shadow-xs">All (148)</button>
+<button class="flex-1 text-center font-label-sm text-label-sm rounded py-1 px-1 text-on-surface-variant hover:text-on-surface">Amended (6)</button>
+<button class="flex-1 text-center font-label-sm text-label-sm rounded py-1 px-1 text-on-surface-variant hover:text-on-surface">Drafts (3)</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Master-Detail Split Workspace -->
+<div class="grid grid-cols-12 gap-4 p-6 min-h-[calc(100vh-10.5rem)]">
+<!-- Left Column: Master Encounter Log (4 cols) -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-3">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Consultation Log</span>
+<span class="font-data-mono text-label-sm px-2 py-0.5 rounded-full bg-primary-container text-on-primary font-bold">4 Matches</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[15px]">sort</span>
+<span>Newest First</span>
+</div>
+</div>
+<!-- List Cards -->
+<div class="flex flex-col gap-2.5 overflow-y-auto pr-1">
+<!-- Row 1: Smt. Lakshmi Narayanan -->
+<div class="bg-surface-container-lowest rounded p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col gap-2">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Smt. Lakshmi Narayanan</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface">52 Y / F</span>
+</div>
+<span class="font-data-mono text-body-sm text-primary font-medium">UHID: SHMS-2024-09142</span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+              Signed (V1.0)
+            </span>
+</div>
+<div class="bg-surface-container-low p-2 rounded flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">receipt_long</span>ENC-2024-10-0592</span>
+<span class="font-data-mono">24 Oct, 11:46 AM</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px] text-primary">diagnosis</span>
+<span>Acute Viral Pyrexia [A90]</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm pt-0.5">
+<span class="flex items-center gap-1 text-[12px]">
+<span class="material-symbols-outlined text-[13px]">person</span>
+              Dr. K. Venkat Rao
+            </span>
+<span class="font-data-mono text-[11px] text-tertiary-container font-semibold">OPD Room #104</span>
+</div>
+</div>
+<!-- Row 2 (SELECTED ACTIVE RECORD): Rajesh Kumar Verma -->
+<div class="bg-surface-container-lowest rounded p-3.5 shadow-md ring-2 ring-primary/40 cursor-pointer flex flex-col gap-2 relative overflow-hidden">
+<div class="absolute top-0 left-0 bottom-0 w-1.5 bg-primary"></div>
+<div class="flex items-start justify-between gap-2 pl-1">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-primary font-bold">Rajesh Kumar Verma</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface">46 Y / M</span>
+</div>
+<span class="font-data-mono text-body-sm text-primary font-semibold">UHID: SHMS-2024-08923</span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+              Amended (V1.1)
+            </span>
+</div>
+<div class="bg-primary/5 p-2 rounded pl-2.5 flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1 font-bold text-on-surface"><span class="material-symbols-outlined text-[14px] text-primary">receipt_long</span>ENC-2024-10-0418</span>
+<span class="font-data-mono text-primary font-bold">24 Oct, 10:15 AM</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px] text-amber-700">emergency</span>
+<span class="font-semibold">Acute Febrile Illness w/ Severe Myalgia</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm pt-0.5 pl-1">
+<span class="flex items-center gap-1 text-[12px]">
+<span class="material-symbols-outlined text-[13px]">person</span>
+              Dr. K. Venkat Rao (General Med)
+            </span>
+<span class="font-data-mono text-[11px] bg-amber-50 text-amber-800 px-1.5 py-0.2 rounded font-bold">Lab Addendum Attached</span>
+</div>
+</div>
+<!-- Row 3: Mohammed Altaf -->
+<div class="bg-surface-container-lowest rounded p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col gap-2 opacity-90">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Mohammed Altaf</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface">36 Y / M</span>
+</div>
+<span class="font-data-mono text-body-sm text-on-surface-variant">UHID: SHMS-2024-08431</span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+              Signed (V1.0)
+            </span>
+</div>
+<div class="bg-surface-container-low p-2 rounded flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">receipt_long</span>ENC-2024-10-0388</span>
+<span class="font-data-mono">23 Oct, 04:30 PM</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px] text-primary">healing</span>
+<span>Bilateral Knee Osteoarthritis Follow-up [M17]</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm pt-0.5">
+<span class="flex items-center gap-1 text-[12px]">
+<span class="material-symbols-outlined text-[13px]">person</span>
+              Dr. Subhash Bose (Orthopaedics)
+            </span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">Physical Therapy Advised</span>
+</div>
+</div>
+<!-- Row 4: Harish Rao -->
+<div class="bg-surface-container-lowest rounded p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col gap-2 opacity-90">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface font-bold">Harish Rao</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface">54 Y / M</span>
+</div>
+<span class="font-data-mono text-body-sm text-on-surface-variant">UHID: SHMS-2024-08741</span>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+              Signed (V1.0)
+            </span>
+</div>
+<div class="bg-surface-container-low p-2 rounded flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">receipt_long</span>ENC-2024-10-0352</span>
+<span class="font-data-mono">22 Oct, 11:00 AM</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px] text-primary">monitoring</span>
+<span>Type 2 DM with Mixed Dyslipidemia [E11.9]</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm pt-0.5">
+<span class="flex items-center gap-1 text-[12px]">
+<span class="material-symbols-outlined text-[13px]">person</span>
+              Dr. K. Venkat Rao (General Med)
+            </span>
+<span class="font-data-mono text-[11px] text-emerald-700 font-semibold">HbA1c 7.8% Reviewed</span>
+</div>
+</div>
+</div>
+<!-- Quick Registry Metrics -->
+<div class="bg-surface-container-lowest p-3 rounded shadow-sm flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+<span>Legal Sign-off Compliance</span>
+</div>
+<span class="font-data-mono font-bold text-on-surface">100% Attested</span>
+</div>
+</div>
+<!-- Right Column: Detail View, Cryptographic Verification, & Amendments (8 cols) -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-4">
+<!-- Record Action Header Bar -->
+<div class="bg-surface-container-lowest p-4 rounded shadow-sm flex flex-col gap-3">
+<div class="flex flex-wrap items-center justify-between gap-3">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-headline-sm text-headline-md text-on-surface font-bold">Signed Consultation Record — ENC-2024-10-0418</h2>
+<span class="font-data-mono text-label-sm px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold">Version 1.1 (Current Active)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Amended on 24 Oct 2024, 11:20 AM IST by Dr. K. Venkat Rao (TSMC-48210)</p>
+</div>
+<!-- Actions Group -->
+<div class="flex items-center gap-2">
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md px-3 py-2 rounded flex items-center gap-1.5 transition-colors shadow-xs" onclick="window.print()" title="Print OPD Prescription &amp; Clinical Slip">
+<span class="material-symbols-outlined text-[16px]">print</span>
+<span>Print OPD Summary</span>
+</button>
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md px-3 py-2 rounded flex items-center gap-1.5 transition-colors shadow-xs" title="Export Certified Encrypted PDF">
+<span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+<span>Export Signed PDF</span>
+</button>
+<button class="bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md px-3.5 py-2 rounded flex items-center gap-1.5 shadow-sm transition-all" onclick="document.getElementById('amendment-drawer').classList.toggle('hidden')">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+<span>Create Traceable Amendment (Ctrl+E)</span>
+</button>
+</div>
+</div>
+<!-- Cryptographic Ledger Attestation Strip -->
+<div class="bg-surface-container-low p-2.5 rounded flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-emerald-700">verified</span>
+<span class="font-data-mono text-label-sm text-on-surface font-semibold">Local On-Premises Signed Commit: Verified</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant bg-surface-container-lowest px-1.5 py-0.5 rounded">SHA-256: e8b9...4f2a71d9</span>
+</div>
+<div class="flex items-center gap-3 font-data-mono text-label-sm text-on-surface-variant">
+<span>Attending: <strong>Dr. K. Venkat Rao, MD</strong></span>
+<span>Reg: <strong>TSMC-48210</strong></span>
+<span class="inline-flex items-center gap-1 text-emerald-700 font-bold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>Signed Token #9401</span>
+</div>
+</div>
+</div>
+<!-- Version Diff & Revision Rationale Banner -->
+<div class="bg-surface-container-lowest p-4 rounded shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">difference</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">Audit Trail &amp; Version Inspection</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Display Mode:</span>
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded font-bold">Split Differential</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<!-- V1.0 Original Signed Record -->
+<div class="bg-surface-container-low rounded p-3 flex flex-col gap-2">
+<div class="flex items-center justify-between pb-1">
+<span class="font-label-md text-label-md px-2 py-0.5 rounded bg-surface-container-high text-on-surface font-bold">V1.0 Original Signed Record</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">24 Oct 2024, 10:15 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Prescribed supportive hydration, Oral Paracetamol 650mg TDS, and ordered urgent STAT Platelet &amp; Dengue NS1 Serology.</p>
+<div class="flex items-center gap-1.5 text-[11px] font-data-mono text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[14px]">lock_clock</span>
+<span>Signed by Dr. K. Venkat Rao</span>
+</div>
+</div>
+<!-- V1.1 Current Active Record Addendum -->
+<div class="bg-amber-50 rounded p-3 flex flex-col gap-2 relative">
+<div class="flex items-center justify-between pb-1">
+<span class="font-label-md text-label-md px-2 py-0.5 rounded bg-amber-200 text-amber-900 font-bold">V1.1 Current Active Addendum</span>
+<span class="font-data-mono text-label-sm text-amber-900 font-bold">24 Oct 2024, 11:20 AM</span>
+</div>
+<div class="bg-surface-container-lowest p-2 rounded">
+<span class="font-label-sm text-label-sm uppercase font-bold text-amber-900">Amendment Rationale &amp; Clinical Action:</span>
+<p class="font-body-sm text-body-sm text-on-surface mt-0.5 font-medium">Added STAT Platelet transfusion protocol advice post review of urgent Lab Sample #LAB-88102 (Platelet count dropped to 42,000/cu.mm). Original diagnosis unchanged; admission advised.</p>
+</div>
+<div class="flex items-center justify-between text-[11px] font-data-mono text-amber-800 pt-1">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">verified</span>Signed by Dr. K. Venkat Rao</span>
+<span class="font-bold uppercase tracking-wider">Append-Only Audit</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Clinical Consultation Record Body -->
+<div class="bg-surface-container-lowest rounded shadow-sm p-5 flex flex-col gap-5">
+<!-- Patient Demographics & High-Risk Alert Banner -->
+<div class="p-3 bg-surface-container-low rounded flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-headline-sm">
+              RK
+            </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-md text-on-surface font-bold">Rajesh Kumar Verma</span>
+<span class="font-label-md text-label-md px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface">46 Y / Male</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container-high text-on-surface font-bold">B+ Positive</span>
+</div>
+<div class="flex items-center gap-3 font-data-mono text-body-sm text-on-surface-variant mt-0.5">
+<span>UHID: <strong>SHMS-2024-08923</strong></span>
+<span>Phone: <strong>+91 98490 23145</strong></span>
+<span>OPD Queue: <strong>#12 (Room 104)</strong></span>
+</div>
+</div>
+</div>
+<!-- Severe Allergy Alert Badge -->
+<div class="flex items-center gap-2 bg-error-container text-on-error-container px-3 py-1.5 rounded">
+<span class="material-symbols-outlined text-[20px] text-error">warning</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase font-bold text-error tracking-wider">Severe Known Allergy</span>
+<span class="font-label-md text-label-md font-bold">Penicillin / Beta-Lactams (Anaphylaxis Risk)</span>
+</div>
+</div>
+</div>
+<!-- Vital Signs Grid -->
+<div class="flex flex-col gap-2">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Recorded Vitals at Encounter (10:15 AM)</span>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+<div class="bg-surface-container-low p-2.5 rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Blood Pressure</span>
+<span class="font-data-mono text-headline-sm text-on-surface font-bold mt-0.5">118/74</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">mmHg (Sitting)</span>
+</div>
+<div class="bg-amber-50 p-2.5 rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-amber-900">Body Temp (Oral)</span>
+<span class="font-data-mono text-headline-sm text-amber-800 font-bold mt-0.5">102.4 °F</span>
+<span class="font-data-mono text-[11px] text-amber-700">Febrile Spike</span>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Pulse / Heart Rate</span>
+<span class="font-data-mono text-headline-sm text-on-surface font-bold mt-0.5">104</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">bpm (Tachycardia)</span>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">SpO2 (Room Air)</span>
+<span class="font-data-mono text-headline-sm text-on-surface font-bold mt-0.5">98%</span>
+<span class="font-data-mono text-[11px] text-emerald-700 font-medium">Adequate</span>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Resp. Rate</span>
+<span class="font-data-mono text-headline-sm text-on-surface font-bold mt-0.5">18</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">breaths/min</span>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Weight &amp; BMI</span>
+<span class="font-data-mono text-headline-sm text-on-surface font-bold mt-0.5">74.2 kg</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">BMI: 24.8 kg/m²</span>
+</div>
+</div>
+</div>
+<!-- Clinical Notes, Complaints & Diagnoses -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+<div class="md:col-span-7 flex flex-col gap-3">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Chief Complaints &amp; History of Present Illness</span>
+<p class="font-body-md text-body-md text-on-surface mt-1 bg-surface-container-low p-3 rounded leading-relaxed">
+                Patient presents with high-grade continuous fever for 4 days associated with intense retro-orbital pain, severe generalized myalgia ("break-bone pain"), chills, and persistent mild nausea. No history of cough, chest pain, or dysuria. Noticed petechial spots on both forearms this morning.
+              </p>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Physical Examination &amp; Systemic Findings</span>
+<ul class="font-body-sm text-body-sm text-on-surface mt-1 bg-surface-container-low p-3 rounded flex flex-col gap-1.5 list-disc list-inside">
+<li><strong>General:</strong> Moderate dehydration, flushed facies, bilateral conjunctival suffusion.</li>
+<li><strong>Dermatological:</strong> Tourniquet test positive; multiple pinpoint petechiae across bilateral flexor forearms.</li>
+<li><strong>Abdomen:</strong> Soft, non-tender, mild hepatomegaly palpable 1.5 cm below costal margin.</li>
+<li><strong>CVS / RS:</strong> S1 S2 heard normal, no murmurs; clear breath sounds bilaterally.</li>
+</ul>
+</div>
+</div>
+<div class="md:col-span-5 flex flex-col gap-3">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Clinical Diagnosis &amp; ICD-10 Classification</span>
+<div class="bg-surface-container-low p-3 rounded flex flex-col gap-2 mt-1">
+<div class="flex items-center justify-between bg-surface-container-lowest p-2 rounded shadow-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<span class="font-body-md text-body-md text-on-surface font-bold">Dengue Fever with Warning Signs</span>
+</div>
+<span class="font-data-mono text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded font-bold">ICD-10: A97.1</span>
+</div>
+<div class="flex items-center justify-between bg-surface-container-lowest p-2 rounded shadow-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">emergency</span>
+<span class="font-body-md text-body-md text-on-surface">Acute Thrombocytopenia</span>
+</div>
+<span class="font-data-mono text-label-sm bg-surface-container text-on-surface-variant px-2 py-0.5 rounded">ICD-10: D69.6</span>
+</div>
+</div>
+</div>
+<!-- Lab Addendum Indicator Box -->
+<div class="p-3 bg-amber-50 rounded flex flex-col gap-1.5">
+<div class="flex items-center gap-1.5 text-amber-900 font-label-sm text-label-sm uppercase font-bold">
+<span class="material-symbols-outlined text-[16px]">biotech</span>
+                STAT Lab Findings (Resulted 11:15 AM)
+              </div>
+<div class="flex items-center justify-between text-body-sm font-data-mono text-amber-950">
+<span>Platelet Count:</span>
+<span class="font-bold text-red-700">42,000 / μL (Critical Low)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-data-mono text-amber-950">
+<span>Dengue NS1 Antigen:</span>
+<span class="font-bold text-red-700">POSITIVE (Rapid + ELISA)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-data-mono text-amber-950">
+<span>Hematocrit (PCV):</span>
+<span class="font-bold">46.2% (Hemoconcentration)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Prescribed Medications Table -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Signed Prescription Orders (Rx)</span>
+<span class="font-data-mono text-label-sm text-on-surface-variant">Validated against Known Penicillin Allergy</span>
+</div>
+<div class="overflow-x-auto rounded">
+<table class="w-full text-left bg-surface-container-lowest">
+<thead class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase">
+<tr>
+<th class="px-3 py-2.5 font-bold">Item / Formulation</th>
+<th class="px-3 py-2.5 font-bold">Dosage</th>
+<th class="px-3 py-2.5 font-bold">Route</th>
+<th class="px-3 py-2.5 font-bold">Frequency</th>
+<th class="px-3 py-2.5 font-bold">Duration</th>
+<th class="px-3 py-2.5 font-bold">Specific Instructions</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md divide-y divide-surface-container">
+<tr class="hover:bg-surface-container-low/50">
+<td class="px-3 py-2.5 font-bold text-on-surface">Tab. Paracetamol (Crocin Advance)</td>
+<td class="px-3 py-2.5 font-data-mono">650 mg</td>
+<td class="px-3 py-2.5">Oral</td>
+<td class="px-3 py-2.5 font-data-mono">TDS (8 hrly)</td>
+<td class="px-3 py-2.5">5 Days</td>
+<td class="px-3 py-2.5 text-on-surface-variant">After meals. Do NOT exceed 3g/24h. No NSAIDs/Aspirin!</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50">
+<td class="px-3 py-2.5 font-bold text-on-surface">Tab. Pantoprazole</td>
+<td class="px-3 py-2.5 font-data-mono">40 mg</td>
+<td class="px-3 py-2.5">Oral</td>
+<td class="px-3 py-2.5 font-data-mono">OD (Once Daily)</td>
+<td class="px-3 py-2.5">5 Days</td>
+<td class="px-3 py-2.5 text-on-surface-variant">Empty stomach, 30 mins before morning breakfast</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50">
+<td class="px-3 py-2.5 font-bold text-on-surface">Oral Rehydration Salts (WHO-ORS)</td>
+<td class="px-3 py-2.5 font-data-mono">1 Sachet / 1L</td>
+<td class="px-3 py-2.5">Oral</td>
+<td class="px-3 py-2.5 font-data-mono">Ad Libitum</td>
+<td class="px-3 py-2.5">Continuous</td>
+<td class="px-3 py-2.5 text-on-surface-variant">Minimum 2.5–3 Litres fluid intake per 24 hours</td>
+</tr>
+<tr class="bg-amber-50/70 hover:bg-amber-50">
+<td class="px-3 py-2.5 font-bold text-amber-950 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-amber-700 text-[16px]">add_circle</span>
+<span>IV Normal Saline 0.9% (Amended Rx V1.1)</span>
+</td>
+<td class="px-3 py-2.5 font-data-mono text-amber-950">500 ml</td>
+<td class="px-3 py-2.5 text-amber-950">IV Infusion</td>
+<td class="px-3 py-2.5 font-data-mono text-amber-950">STAT</td>
+<td class="px-3 py-2.5 text-amber-950">In Daycare</td>
+<td class="px-3 py-2.5 font-semibold text-amber-900">Run over 2 hrs; prep for IPD HDU admission if Plt &lt; 40k</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Follow-Up, Triage Advice & Clinical Sign-off Seal -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2">
+<div class="md:col-span-8 flex flex-col gap-2 bg-surface-container-low p-3.5 rounded">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">Special Care Instructions &amp; Warning Signs</span>
+<p class="font-body-sm text-body-sm text-on-surface leading-relaxed">
+              Patient advised strict bed rest. Seek immediate 24x7 Emergency Room evaluation if any of the following develop: persistent vomiting, bleeding from gums or nose, black tarry stools, sudden cold clammy extremities, or extreme restlessness. Repeat Complete Blood Picture (CBC) tomorrow morning at 08:00 AM sharp.
+            </p>
+</div>
+<!-- Digital Signature Stamp -->
+<div class="md:col-span-4 bg-surface-container-low p-3.5 rounded flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Digitally Signed &amp; Sealed</span>
+<div class="font-headline-sm text-title-md text-on-surface font-bold mt-1">Dr. K. Venkat Rao</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">MD (General Medicine), FICP</div>
+<div class="font-data-mono text-[11px] text-on-surface-variant">Telangana Medical Council: Reg #TSMC-48210</div>
+</div>
+<div class="pt-2 flex items-center justify-between">
+<span class="font-data-mono text-[10px] text-on-surface-variant">Key-ID: 74-D8-91-F2</span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[13px]">done_all</span>
+                Legally Binding
+              </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Traceable Amendment Drawer / Form (Interactive Collapsible Workspace) -->
+<div class="bg-surface-container-lowest p-5 rounded shadow-md flex flex-col gap-4" id="amendment-drawer">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="p-1.5 bg-primary/10 rounded text-primary">
+<span class="material-symbols-outlined text-[20px]">history_toggle_off</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Initiate Traceable Clinical Amendment (Revision Entry)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Legal Medical Record Amendment Protocol — Append-Only Architecture</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-1 rounded" onclick="document.getElementById('amendment-drawer').classList.add('hidden')">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Statutory Compliance Rule Callout -->
+<div class="p-3 bg-surface-container-low rounded flex items-start gap-2.5">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5">gavel</span>
+<div class="text-on-surface font-body-sm text-body-sm">
+<strong>Clinical &amp; Statutory Standard (NMC / EBM Guidelines):</strong> Original signed clinical entries cannot be altered or purged. Any correction or clinical addition generates a newly timestamped revision linked irrevocably to the previous commit with clinician identity token.
+          </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+<!-- Reason Category Dropdown -->
+<div class="md:col-span-4 flex flex-col gap-1">
+<label class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant">Reason for Amendment <span class="text-primary">*</span></label>
+<select class="w-full h-9 px-3 bg-surface text-on-surface font-body-sm text-body-sm rounded shadow-sm focus:outline-none focus:bg-surface-container-lowest">
+<option selected="">Diagnostic / Lab Report Addendum</option>
+<option>Dosage / Regimen Adjustment</option>
+<option>Clinical History Clarification</option>
+<option>Typographical Transcription Correction</option>
+<option>Adverse Drug Reaction (ADR) Logging</option>
+<option>External Referral Advice Inclusion</option>
+</select>
+</div>
+<!-- Target Section -->
+<div class="md:col-span-4 flex flex-col gap-1">
+<label class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant">Affected Section <span class="text-primary">*</span></label>
+<select class="w-full h-9 px-3 bg-surface text-on-surface font-body-sm text-body-sm rounded shadow-sm focus:outline-none focus:bg-surface-container-lowest">
+<option selected="">Prescriptions &amp; Clinical Management Plan</option>
+<option>Diagnosis &amp; ICD-10 Classification</option>
+<option>Laboratory / Imaging Orders</option>
+<option>Vitals &amp; Physical Observations</option>
+<option>Patient Discharge / Follow-up Advice</option>
+</select>
+</div>
+<!-- Authorizing Credential -->
+<div class="md:col-span-4 flex flex-col gap-1">
+<label class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant">Authorizing Clinician Pin / Token</label>
+<input class="w-full h-9 px-3 bg-surface text-on-surface font-data-mono text-body-sm rounded shadow-sm focus:outline-none" placeholder="Enter PIN / Smartcard Token" type="password" value="••••••••"/>
+</div>
+</div>
+<!-- Addendum Note Field -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant">Addendum Description &amp; Detailed Clinical Rationale <span class="text-primary">*</span></label>
+<textarea class="w-full p-3 bg-surface text-on-surface font-body-sm text-body-sm rounded shadow-sm focus:outline-none placeholder:text-on-surface-variant/60" placeholder="State precise clinical justification for amendment and detailed updated instructions..." rows="3"></textarea>
+</div>
+<!-- Verification Checklist & Submit -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="w-4 h-4 accent-primary rounded cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">I affirm that this clinical amendment reflects legitimate medical developments and does not overwrite historical truth.</span>
+</label>
+<div class="flex items-center gap-2">
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md px-4 py-2 rounded transition-colors shadow-xs" onclick="document.getElementById('amendment-drawer').classList.add('hidden')">
+              Cancel
+            </button>
+<button class="bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md px-4 py-2 rounded flex items-center gap-1.5 shadow-sm transition-all" onclick="alert('Amendment V1.2 signed and committed to cryptographic ledger.'); document.getElementById('amendment-drawer').classList.add('hidden');">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span>Sign &amp; Commit Amendment V1.2</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>
