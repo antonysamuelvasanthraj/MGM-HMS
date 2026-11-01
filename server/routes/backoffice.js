@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { collectionPolicy } from '../collection-policy.js';
+import {itemMoney,isClosed} from '../accounting.js';
+import {requireSchemeAdmission} from '../scheme-scope.js';
 import {
   h, fail, all, get, one, insert, update, run, nextNo, today, where, emit, num, money,
-  setting, nowIso, dateAgo, tx,
+  setting, nowIso, dateAgo, tx, recalcBill,
 } from '../lib.js';
 import { syncClaimToBills, releaseApprovedOrders, isApprovedStage } from '../payer-cases.js';
 import { billCaseToPayer, reversePayerBilling } from '../payer-billing.js';
@@ -31,8 +33,8 @@ function saveClinicSession(req) {
   emit(req,{topics:['admin','appointments','queue'],event:'clinic.session.saved',action:'clinic.session.save',entity:'doctor_schedules',entityId:savedId,detail:{before,after:row}});
   return row;
 }
-backoffice.post('/admin/clinic-sessions',requirePerm('admin.view'),h(req=>tx(()=>saveClinicSession(req))));
-backoffice.patch('/admin/clinic-sessions/:id',requirePerm('admin.view'),h(req=>tx(()=>saveClinicSession(req))));
+backoffice.post('/admin/clinic-sessions',requirePerm('admin.write'),h(req=>tx(()=>saveClinicSession(req))));
+backoffice.patch('/admin/clinic-sessions/:id',requirePerm('admin.write'),h(req=>tx(()=>saveClinicSession(req))));
 
 const range = (req) => ({
   from: req.query.from || dateAgo(29),
@@ -168,6 +170,24 @@ backoffice.patch('/finance/expenses/:id', requirePerm('expense.write'), h((req) 
 
 /* --------------------------------------------------------------- insurance */
 
+/**
+ * Aarogyasri (government scheme) cases are package-based and need proof before the
+ * scheme approves them: the scheme card, verified eligibility (white ration card /
+ * Aadhaar), the package / procedure and the scheme's pre-auth number. While the
+ * 'scheme_checklist_required' setting is on, a case cannot move to an approved stage
+ * until all four are recorded.
+ */
+export function schemeChecklist(c) {
+  const items = [
+    ['scheme_card', 'Scheme card no.', !!String(c.scheme_card_no || c.policy_no || '').trim()],
+    ['eligibility', 'Eligibility proof verified', !!c.eligibility_verified],
+    ['package', 'Package / procedure', !!c.package_id],
+    ['preauth', 'Scheme pre-auth no.', !!String(c.preauth_no || '').trim()],
+  ].map(([key, label, done]) => ({ key, label, done }));
+  return { items, complete: items.every((i) => i.done), missing: items.filter((i) => !i.done).map((i) => i.label) };
+}
+const isScheme = (t) => t === 'aarogyasri' || t === 'scheme';
+
 backoffice.get('/insurance/claims', requirePerm('insurance.view'), h((req) => {
   const extra = [], args = [];
   if (req.query.status && req.query.status !== 'all') { extra.push('c.status = ?'); args.push(req.query.status); }
@@ -189,6 +209,7 @@ backoffice.get('/insurance/claims', requirePerm('insurance.view'), h((req) => {
     const policies = all("SELECT * FROM bills WHERE claim_id=? AND status<>'cancelled'", r.id).map(collectionPolicy);
     r.patient_due = money(policies.reduce((n, b) => n + b.patient_due, 0));
     r.payer_outstanding = money(policies.reduce((n, b) => n + b.payer_pending + b.payer_receivable, 0));
+    if (isScheme(r.payer_type)) r.checklist = schemeChecklist(r);
   }
   return {
     rows,
@@ -219,6 +240,7 @@ backoffice.post('/insurance/claims', requirePerm('insurance.write'), h((req) => 
   if(!get('SELECT id FROM patients WHERE id=?',num(b.patient_id)))fail(400,'patient_required');
   if(b.payer_id){const payer=get('SELECT * FROM payers WHERE id=? AND active=1',num(b.payer_id));if(!payer)fail(400,'payer_invalid');b.payer_type=payer.payer_type==='tpa'?'insurance':payer.payer_type;b.tpa=payer.name;}
   if (b.package_id) b.package_id = resolveCasePackage(b.package_id, b.payer_id);
+  requireSchemeAdmission(b.payer_type,num(b.patient_id),b.encounter_id,b.admission_id);
   if(b.package_id){const pkg=get('SELECT * FROM packages WHERE id=? AND active=1',num(b.package_id));if(!pkg || (pkg.payer_id && pkg.payer_id!==num(b.payer_id)))fail(400,'package_payer_mismatch');}
   if (b.payer_id) { const py = get('SELECT name FROM payers WHERE id=?', num(b.payer_id)); if (py) b.tpa = py.name; }
   if (b.package_id && !(num(b.estimate, 0) > 0)) { const pk = get('SELECT price FROM packages WHERE id=?', num(b.package_id)); if (pk) b.estimate = pk.price; }
@@ -244,17 +266,40 @@ backoffice.get('/insurance/claims/:id/collection-summary', requirePerm('insuranc
  return {claim:c,bills,patient_due:money(bills.reduce((n,b)=>n+b.patient_due,0)),payer_outstanding:money(bills.reduce((n,b)=>n+b.payer_pending+b.payer_receivable,0))};
 }));
 
+/** TPA may raise a new non-stock excluded service; issued medicines use existing line allocations. */
+backoffice.post('/insurance/claims/:id/patient-charges',requirePerm('insurance.write'),h(req=>tx(()=>{
+ const c=get('SELECT * FROM insurance_claims WHERE id=?',+req.params.id)||fail(404,'claim_not_found');
+ if(['settled','rejected','cancelled'].includes(c.status))fail(409,'claim_closed');
+ if(isClosed(today()))fail(409,'books_closed_today');
+ const key=String(req.body?.request_key||'');
+ if(!/^[a-zA-Z0-9_-]{16,100}$/.test(key))fail(400,'request_key_required');
+ const previous=get("SELECT * FROM bills WHERE source='tpa_excluded' AND source_id=? AND notes=?",c.id,key);
+ if(previous)return previous;
+ const reason=String(req.body.reason||'').trim();if(reason.length<5)fail(400,'reason_required');
+ const service=get("SELECT * FROM services WHERE id=? AND active=1",num(req.body.service_id))||fail(400,'service_required');
+ if(!['consultation','procedure','other'].includes(service.category))fail(400,'use_originating_department_bill',{hint:'For medicines, lab or imaging, bill through that department and allocate the existing charge as patient-pay.'});
+ const qty=Number(req.body.qty??1);if(!Number.isFinite(qty)||qty<=0||qty>1000)fail(400,'qty_invalid');
+ if(!(service.price>0))fail(400,'service_unpriced');
+ const encounter=c.encounter_id|| (c.admission_id?get('SELECT encounter_id FROM admissions WHERE id=?',c.admission_id)?.encounter_id:null);
+ const bid=insert('bills',{bill_no:nextNo('bill'),patient_id:c.patient_id,encounter_id:encounter,bill_type:'OP',payer_type:c.payer_type==='scheme'?'aarogyasri':c.payer_type,claim_id:c.id,status:'unpaid',created_by:req.user.id,notes:key,source:'tpa_excluded',source_id:c.id});
+ insert('bill_items',{bill_id:bid,service_id:service.id,description:service.name,category:service.category,qty,rate:service.price,gst_pct:service.gst_pct||0,amount:money(qty*service.price),patient_pays:1,patient_pay_amount:null,created_by:req.user.id});
+ recalcBill(bid);
+ const bill=get('SELECT * FROM bills WHERE id=?',bid);
+ emit(req,{topics:['insurance','billing','patients'],event:'bill.created',data:{id:bid,patient_id:c.patient_id},action:'claim.patient_charge',entity:'bills',entityId:bid,detail:{before:null,after:bill,reason,claim_id:c.id,service_id:service.id}});
+ return bill;
+})));
+
 backoffice.get('/insurance/claims/:id/lines', requirePerm('insurance.view'), h((req) => {
   const c = get('SELECT * FROM insurance_claims WHERE id=?', +req.params.id) || fail(404, 'claim_not_found');
-  return all(`SELECT bi.id, bi.description, bi.category, bi.qty, bi.rate, bi.amount, bi.patient_pays, bi.patient_pay_amount, b.bill_no, b.bill_type, b.balance bill_balance
-    FROM bill_items bi JOIN bills b ON b.id=bi.bill_id WHERE b.claim_id=? AND b.status<>'cancelled' AND bi.amount>0 ORDER BY b.id, bi.id`, c.id);
+  return all(`SELECT bi.id, bi.description, bi.category, bi.qty, bi.rate, bi.amount,bi.gst_pct,bi.tax_inclusive, bi.patient_pays, bi.patient_pay_amount, b.bill_no, b.bill_type, b.balance bill_balance
+    FROM bill_items bi JOIN bills b ON b.id=bi.bill_id WHERE b.claim_id=? AND b.status<>'cancelled' AND bi.amount>0 AND bi.waiver_of IS NULL AND NOT EXISTS(SELECT 1 FROM bill_items w WHERE w.waiver_of=bi.id) ORDER BY b.id, bi.id`, c.id).map(l=>({...l,amount:itemMoney(l).total}));
 }));
 
 /** Mark which lines the patient pays (package exclusions, items the payer does not cover). Applies to amounts not yet moved to the payer. */
 backoffice.put('/insurance/claims/:id/exclusions', requirePerm('insurance.write'), h((req) => tx(() => {
   const c = get('SELECT * FROM insurance_claims WHERE id=?', +req.params.id) || fail(404, 'claim_not_found');
   const ids = new Set((req.body?.item_ids || []).map(Number));
-  const lines = all("SELECT bi.id, bi.patient_pays, bi.patient_pay_amount,bi.amount,bi.description FROM bill_items bi JOIN bills b ON b.id=bi.bill_id WHERE b.claim_id=? AND b.status<>'cancelled' AND bi.amount>0", c.id);
+  const lines = all("SELECT bi.* FROM bill_items bi JOIN bills b ON b.id=bi.bill_id WHERE b.claim_id=? AND b.status<>'cancelled' AND bi.amount>0 AND bi.waiver_of IS NULL AND NOT EXISTS(SELECT 1 FROM bill_items w WHERE w.waiver_of=bi.id)", c.id).map(l=>({...l,amount:itemMoney(l).total}));
   const allocations=req.body?.allocations;
   if(allocations&&!Array.isArray(allocations))fail(400,'allocations_invalid');
   if(allocations&&!String(req.body.reason||'').trim())fail(400,'reason_required');
@@ -278,7 +323,18 @@ backoffice.put('/insurance/claims/:id/exclusions', requirePerm('insurance.write'
 backoffice.patch('/insurance/claims/:id', requirePerm('insurance.write'), h((req) => tx(() => {
   const id = +req.params.id;
   const patch = {};
-  for (const k of ['status', 'estimate', 'approved', 'settled', 'disallowed', 'stage_note', 'tpa', 'policy_no', 'claim_type', 'payer_type', 'payer_id', 'package_id', 'copay_amount']) if (k in req.body) patch[k] = req.body[k];
+  for (const k of ['status', 'estimate', 'approved', 'settled', 'disallowed', 'stage_note', 'tpa', 'policy_no', 'claim_type', 'payer_type', 'payer_id', 'package_id', 'copay_amount',
+    'scheme_card_no', 'eligibility_proof', 'eligibility_verified', 'preauth_no',
+    'deductible_amount', 'copay_pct', 'room_rent_limit', 'proportional_deduction', 'sub_limits', 'policy_notes']) if (k in req.body) patch[k] = req.body[k];
+  for (const k of ['deductible_amount', 'room_rent_limit']) if (k in patch) { if (!Number.isFinite(+patch[k]) || +patch[k] < 0) fail(400, k + '_invalid'); patch[k] = money(+patch[k]); }
+  if ('copay_pct' in patch) { if (!Number.isFinite(+patch.copay_pct) || +patch.copay_pct < 0 || +patch.copay_pct > 100) fail(400, 'copay_pct_invalid'); patch.copay_pct = +patch.copay_pct; }
+  if ('proportional_deduction' in patch) patch.proportional_deduction = [false, 0, '0', 'false'].includes(patch.proportional_deduction) ? 0 : 1;
+  if ('sub_limits' in patch) {
+    const sl = typeof patch.sub_limits === 'string' ? (() => { try { return JSON.parse(patch.sub_limits || '{}'); } catch { return null; } })() : patch.sub_limits;
+    if (!sl || typeof sl !== 'object' || Array.isArray(sl) || Object.entries(sl).some(([k, v]) => !/^[a-z_]+$/.test(k) || !(+v >= 0))) fail(400, 'sub_limits_invalid');
+    patch.sub_limits = JSON.stringify(Object.fromEntries(Object.entries(sl).map(([k, v]) => [k, money(+v)])));
+  }
+  if ('eligibility_verified' in patch) patch.eligibility_verified = [true, 1, '1', 'on', 'true'].includes(patch.eligibility_verified) ? 1 : 0;
   if ('copay_amount' in patch) { if (!Number.isFinite(+patch.copay_amount) || +patch.copay_amount<0) fail(400,'copay_invalid'); patch.copay_amount=money(+patch.copay_amount); }
   for (const k of ['payer_id', 'package_id']) if (k in patch) patch[k] = patch[k] ? num(patch[k]) : null;
   // choosing a payer from the master sets the payer name; choosing its package fills an empty estimate
@@ -294,6 +350,13 @@ backoffice.patch('/insurance/claims/:id', requirePerm('insurance.write'), h((req
     patch.status = 'preauth_approved';
     patch.stage_note = patch.stage_note || `Approved amount ₹${money(num(patch.approved))} entered — stage moved to pre-auth approved`;
   }
+  // scheme case: the checklist must be complete before it is approved
+  const nextStatus = patch.status ?? before.status;
+  if (isScheme(patch.payer_type ?? before.payer_type) && isApprovedStage(nextStatus) && !isApprovedStage(before.status)
+      && get("SELECT value FROM settings WHERE key='scheme_checklist_required'")?.value !== '0') {
+    const ck = schemeChecklist({ ...before, ...patch });
+    if (!ck.complete) fail(409, 'scheme_checklist_incomplete', { missing: ck.missing });
+  }
   if(('settled' in patch&&money(num(patch.settled))!==money(before.settled))||('disallowed' in patch&&money(num(patch.disallowed))!==money(before.disallowed)))fail(409,'record_actual_payer_receipt');
   if(patch.status==='settled'&&before.status!=='settled')fail(409,'settlement_requires_recorded_payments');
   if (patch.payer_id) {
@@ -303,10 +366,11 @@ backoffice.patch('/insurance/claims/:id', requirePerm('insurance.write'), h((req
     patch.tpa=payer.name;
   }
   if (patch.package_id) patch.package_id = resolveCasePackage(patch.package_id, 'payer_id' in patch ? patch.payer_id : before.payer_id);
+  if(patch.payer_type!==undefined)requireSchemeAdmission(patch.payer_type,before.patient_id,before.encounter_id,before.admission_id);
   if (patch.package_id && !(num(req.body.estimate, 0) > 0)) patch.estimate = get('SELECT price FROM packages WHERE id=?', patch.package_id)?.price ?? patch.estimate;
   const pkgId='package_id' in patch?patch.package_id:before.package_id;
   if(pkgId){const pkg=get('SELECT * FROM packages WHERE id=? AND active=1',pkgId);if(!pkg|| (pkg.payer_id && pkg.payer_id!==(+patch.payer_id || before.payer_id)))fail(400,'package_payer_mismatch'); if((patch.copay_amount ?? before.copay_amount)>pkg.price)fail(400,'copay_exceeds_package');}
-  const changedTerms=['payer_id','package_id','approved','copay_amount'].some(k=>k in patch && String(patch[k] ?? '')!==String(before[k] ?? ''));
+  const changedTerms=['payer_id','package_id','approved','copay_amount','deductible_amount','copay_pct','room_rent_limit','proportional_deduction','sub_limits'].some(k=>k in patch && String(patch[k] ?? '')!==String(before[k] ?? ''));
   if(changedTerms){
     if(get("SELECT 1 FROM bill_settlements WHERE claim_id=? AND status<>'cancelled' AND settled_amount>0.005",id))fail(409,'payer_terms_already_collected');
     reversePayerBilling(req,id,'Payer terms updated');

@@ -1,3 +1,6 @@
+import {openSchemePatientPayment} from '../scheme-patient-pay.js';
+import {printLetterhead} from '../ui.js';
+import {pharmacyInvoice} from '../pharmacy-invoice.js';
 /**
  * Billing & invoice management.
  *
@@ -6,10 +9,10 @@
  */
 import {
   page, eyebrow, liveChip, kpiRow, tableCard, filterBar, wireFilters, live, mountPage, card,
-  apiError, busy, api, qs, state, can, navigate, downloadCSV, patientPicker, compactMoney,
+  apiError, busy, api, qs, state, can, setting, navigate, downloadCSV, patientPicker, compactMoney,
   $, $$, esc, bind, toast, modal, drawer, confirmDialog, renderRows, pill, money,
   fmtDate, fmtDateTime, kpi, emptyState, todayISO, printDocument, billStatus, remindBill,
- modeLabel,
+ modeLabel, headCount,
 } from './_kit.js';
 import { openCollect, printReceipt } from './op-registration.js';
 import { showBillingContext } from '../billing-context.js';
@@ -18,11 +21,16 @@ let f = { date: '', type: 'all', status: 'all', q: '' };
 let cache = [];
 
 export async function mount(ctx) {
+  f={date:todayISO(),type:'all',status:'all',q:''};
+  if (['OP','IP','PHARM','LAB','IMAGING','PKG','ER'].includes(ctx.query.type)) f.type=ctx.query.type;
   const root = mountPage(ctx, layout());
+  let overview=false;
+  if(ctx.query.type==='PHARM')root.querySelectorAll('[data-new],[data-op-procedure],[data-new-op],[data-new-ip],[data-bill-view="ip"],[data-bill-view="pharmacy"],a[href="/collections"]').forEach(button=>button.remove());
   wireFilters(root, (v) => { f = { ...f, ...v }; load(); });
 
   async function load() {
-    const d = await api.get(`/bills${qs({ ...f, limit: 300 })}`);
+    if(ctx.query.type==='PHARM')f.type='PHARM';
+    const d = await api.get(`${overview?'/pharmacy-bills-overview':'/bills'}${qs({ ...f, limit: 300 })}`);
     cache = d.rows;
     const s = d.summary;
     $('[data-kpis]', root).innerHTML = [
@@ -31,8 +39,9 @@ export async function mount(ctx) {
       { label: 'Collected', value: compactMoney(s.paid), icon: 'paid', tone: 'success', sub: 'Against these bills' },
       { label: 'Outstanding', value: compactMoney(s.balance), icon: 'schedule', tone: s.balance > 0 ? 'warning' : 'success', sub: 'Patient dues and pending payer charges' },
     ].map(kpi).join('');
-    renderRows($('[data-rows]', root), d.rows, rowHTML, { empty: 'No bills match this filter.' });
+    renderRows($('[data-rows]', root), d.rows, rowHTML, { empty: f.date===todayISO()?'No bills created today. Open Current IPD running bills to see active inpatient accounts.':'No bills match this filter.' });
     $('[data-count]', root).textContent = `${d.rows.length} bill(s)`;
+    headCount(root, `${compactMoney(s.balance)} outstanding`);
   }
 
   bind(root, 'click', '[data-remind]', (e, b) => remindBill(+b.dataset.remind));
@@ -42,7 +51,16 @@ export async function mount(ctx) {
     if (b.dataset.act === 'collect') openCollect(null, load, { billId: id });
     if (b.dataset.act === 'print') printBill(id);
   });
+  bind(root,'click','[data-new-op]',async()=>{const {openBillingRegistration}=await import('./op-registration.js');await openBillingRegistration(load);});
   bind(root, 'click', '[data-new]', () => newBill(load, ctx.query.new === 'op'));
+  bind(root,'click','[data-op-procedure]',()=>newBill(load,true));
+  bind(root,'click','[data-new-ip]',async()=>{const {admitPatient}=await import('./admissions.js');await admitPatient(load);});
+  bind(root,'click','[data-bill-view]',(_event,button)=>{
+    const view=button.dataset.billView;overview=view==='pharmacy';
+    f={date:view==='today'?todayISO():'',type:view==='ip'?'IP':view==='pharmacy'?'PHARM':'all',status:'all',q:'',active_ip:view==='ip'?'1':''};
+    for(const field of root.querySelectorAll('[data-f]'))field.value=f[field.dataset.f] || (['type','status'].includes(field.dataset.f)?'all':'');
+    load();
+  });
   if (ctx.query.new === 'op' && can('billing.create')) newBill(load, true);
   bind(root, 'click', '[data-export]', () => downloadCSV(`bills-${f.date || 'all'}.csv`, cache.map((b) => ({
     bill: b.bill_no, date: b.bill_date, type: b.bill_type, uhid: b.uhid, patient: b.patient_name,
@@ -58,11 +76,14 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Charge management', 'receipt_long')} ${liveChip()}`,
     title: 'Billing & Invoice Management',
-    subtitle: 'Create and review charges here. Receiving money happens at a collection desk — never raise a second consultation bill for a visit that already has one.',
+    subtitle: 'Raise and review bills. Collect against a bill here.',
     actions: `${can('op.collect') || can('finance.view') || can('admin.view') ? `<a href="/collections" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">point_of_sale</span> Collections</a>` : ''}
       <button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
-      ${can('op.collect') || can('admin.view') ? `<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> New bill</button>` : ''}`,
+      ${can('op.register')&&setting('workflow_doctor','portal')!=='manual'?'<button class="btn-secondary" data-new-op>OP visit / consultation fee</button>':''}
+      ${can('ipd.admit')?'<button class="btn-secondary" data-new-ip>New IPD admission / bill</button>':''}
+      ${can('op.collect') || can('admin.view') ? `<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> New bill</button><button class="btn-secondary" data-op-procedure>OP procedure</button>` : ''}`,
     body: `
+      <div class="flex flex-wrap gap-2"><button class="btn-secondary" data-bill-view="today">Today’s bills</button><button class="btn-secondary" data-bill-view="ip">Current IPD running bills</button><button class="btn-secondary" data-bill-view="pharmacy">Pharmacy bills — view only</button><button class="btn-secondary" data-bill-view="all">All bills / history</button></div>
       ${kpiRow([], 4)}
       ${filterBar([
         { type: 'search', key: 'q', label: 'Find', placeholder: 'Bill number, patient, UHID or mobile' },
@@ -73,6 +94,8 @@ function layout() {
         { type: 'select', key: 'status', label: 'Status', value: f.status, options: [
           { value: 'all', label: 'All' }, { value: 'outstanding', label: 'Outstanding' }, { value: 'unpaid', label: 'Unpaid' },
           { value: 'partial', label: 'Part paid' }, { value: 'paid', label: 'Paid' }, { value: 'cancelled', label: 'Cancelled' }] },
+        { type: 'select', key: 'payer_mismatch', label: 'Payer check', value: f.payer_mismatch || '', options: [
+          { value: '', label: 'All bills' }, { value: '1', label: 'Self-pay, but payer on patient record' }] },
       ])}
       ${tableCard({
         title: 'Bills', actions: `<span class="font-data-mono text-body-sm text-on-surface-variant" data-count></span>`,
@@ -103,24 +126,31 @@ function rowHTML(b) {
     <td class="num ${b.balance > 0 ? 'text-danger font-semibold' : 'text-on-surface-variant'}">${b.balance > 0 ? money(b.balance) : '—'}</td>
     <td>${billStatus(b)}</td>
     <td class="text-right whitespace-nowrap">
-      ${(b.patient_due ?? b.balance) > 0 && b.status !== 'cancelled' && can('payment.collect') ? `<button class="btn-primary btn-xs" data-act="collect">${b.payer_pending > 0 ? 'Patient share' : 'Collect'}</button>` : ''}
+      ${!b.view_only && (b.patient_due ?? b.balance) > 0 && b.status !== 'cancelled' && can('payment.collect') ? `<button class="btn-primary btn-xs" data-act="collect">${b.payer_pending > 0 ? 'Patient share' : 'Collect'}</button>` : ''}
       ${b.payer_pending > 0 ? '<span class="pill-neutral">Payer pending</span>' : ''}
-      ${b.balance > 0 && !b.payer_pending && b.status !== 'cancelled' && (can('payment.collect') || can('finance.view') || can('admin.view')) ? `<button class="btn-ghost btn-xs" data-remind="${b.id}" title="Send a due reminder">Remind</button>` : ''}
-      <button class="btn-secondary btn-xs" data-act="open">Open</button>
-      <button class="btn-ghost btn-xs" data-act="print" title="Print"><span class="material-symbols-outlined text-[15px]">print</span></button>
+      ${!b.view_only && b.balance > 0 && !b.payer_pending && b.status !== 'cancelled' && (can('payment.collect') || can('finance.view') || can('admin.view')) ? `<button class="btn-ghost btn-xs" data-remind="${b.id}" title="Send a due reminder">Remind</button>` : ''}
+      ${b.view_only?'<span class="pill-neutral">View only · collect at pharmacy</span>':'<button class="btn-secondary btn-xs" data-act="open">Open</button>'}
+      ${b.view_only?'':'<button class="btn-ghost btn-xs" data-act="print" title="Print"><span class="material-symbols-outlined text-[15px]">print</span></button>'}
     </td>`;
 }
 
-async function openBill(id, after) {
+export async function openBill(id, after) {
   const b = await api.get(`/bills/${id}`);
+  const grouped=new Map();
+  for(const item of b.items){const key=item.admission_charge_id?`plan:${item.admission_charge_id}:${item.rate}`:`item:${item.id}`;if(!grouped.has(key))grouped.set(key,{name:item.admission_charge_id?item.description.replace(/\s+—\s+day\s+\d+.*$/i,''):item.description,unit:item.charge_unit || 'once',qty:0,rate:item.rate,discount:0,amount:0});const row=grouped.get(key);row.qty+=Number(item.qty || 0);row.discount+=Number(item.discount || 0);row.amount+=Number(item.amount || 0);}
   drawer({
-    title: b.bill_no, subtitle: `${esc(b.patient_name)} · ${esc(b.uhid)} · ${fmtDateTime(b.created_at)}`, width: 'max-w-3xl',
-    body: `<div class="p-5 space-y-4">
+    title: b.bill_no, subtitle: `${esc(b.patient_name)} · ${esc(b.uhid)} · ${fmtDateTime(b.created_at)}`, width: 'bill-detail-panel',
+    body: `<div class="p-5 space-y-4 bill-detail-content">
       <div class="flex flex-wrap items-center gap-2">${billStatus(b)}<span class="pill-neutral">${esc(b.bill_type)}</span>
         ${b.encounter_no ? `<a href="/visit/${b.encounter_id}" class="btn-ghost btn-xs">Visit ${esc(b.encounter_no)}</a>` : ''}
         <a href="/patient/${b.patient_id}" class="btn-ghost btn-xs">Patient record</a></div>
       <p class="text-body-md">Billing doctor: <b>${esc(b.doctor_name || 'Unassigned')}</b></p>
-      <table class="tbl"><thead><tr><th>Particulars</th><th>Category</th><th class="text-right">Qty</th>
+      <div class="bill-totals-strip"><div><span>Total charges</span><b>${money(b.total,2)}</b></div><div><span>Received</span><b>${money(b.paid,2)}</b></div><div><span>${b.balance<0?'Advance held':'Balance due'}</span><b>${money(Math.abs(b.balance),2)}</b></div></div>
+      ${b.package_usage?`<div class="card p-3"><b>Package: ${esc(b.package_usage.package.name)}</b><p>Agreed price ${money(b.package_usage.price,2)} · Extras ${money(b.package_usage.excess+b.package_usage.excluded,2)} · Estimated package total ${money(b.package_usage.patient_owes,2)}</p><p class="text-body-sm">The ledger below shows actual charges. Covered charges are adjusted at discharge; collect an agreed deposit during the stay.</p></div>`:''}
+      ${b.items.some(i => i.batch_id) && can('reports.pharmacy') ? `<a class="btn-secondary" href="/reports?report=pharmacy_sales_gst_profit&amp;patient=${encodeURIComponent(b.uhid || b.patient_name)}">Pharmacy GST, batch costs & profit report</a>` : ''}
+      <section><h3 class="panel-title mb-2">Charges by service</h3><div class="bill-ledger-scroll"><table class="tbl bill-summary"><thead><tr><th>Service / equipment</th><th>Unit</th><th class="num">Net qty</th><th class="num">Rate</th><th class="num">Discount</th><th class="num">Amount</th></tr></thead><tbody>${[...grouped.values()].map(row=>`<tr><td>${esc(row.name)}</td><td>${esc(({day:'Day',hour:'Hour',once:'Visit / item'})[row.unit] || row.unit)}</td><td class="num">${row.qty}</td><td class="num">${money(row.rate,2)}</td><td class="num">${row.discount?money(row.discount,2):'—'}</td><td class="num font-semibold">${money(row.amount,2)}</td></tr>`).join('')}</tbody></table></div></section>
+      <details class="bill-line-details"><summary>Day-wise ledger & line actions (${b.items.length} entries)</summary><div class="bill-ledger-scroll">
+      <table class="tbl bill-ledger"><thead><tr><th>Particulars</th><th>Category</th><th class="text-right">Qty</th>
         <th class="text-right">Rate</th><th class="text-right">Discount</th><th class="text-right">Amount</th>
         ${can('billing.create') && b.status !== 'cancelled' ? '<th style="width:44px"></th>' : ''}</tr></thead>
         <tbody>${b.items.map((i) => `<tr>
@@ -130,8 +160,8 @@ async function openBill(id, after) {
           <td class="num font-semibold">${money(i.amount, 2)}</td>
           ${can('billing.create') && b.status !== 'cancelled' ? `<td class="text-right whitespace-nowrap">
             ${['procedure', 'emergency'].includes(i.category) && i.amount > 0 && !i.waiver_of ? `<button class="btn-ghost btn-xs" data-cons="${i.id}" title="Consumables used in this procedure">Consumables</button>` : ''}
-            ${['procedure', 'consultation', 'emergency', 'ot'].includes(i.category) && i.amount > 0 && !i.waiver_of ? `<button class="btn-ghost btn-xs" data-vd="${i.id}" title="Credit this line to a visiting doctor">Visiting dr</button>` : ''}
-            <button class="btn-ghost btn-xs" data-del="${i.id}"><span class="material-symbols-outlined text-[15px]">delete</span></button></td>` : ''}
+            ${['procedure', 'consultation', 'surgery', 'anaesthesia', 'professional'].includes(i.category) && !i.batch_id && i.amount > 0 && !i.waiver_of ? `<button class="btn-ghost btn-xs" data-vd="${i.id}" title="Assign this clinical fee to a treating doctor">Treating dr</button>` : ''}
+            ${i.admission_charge_id?'<span class="text-body-sm">Charge plan</span>':`<button class="btn-ghost btn-xs" data-del="${i.id}"><span class="material-symbols-outlined text-[15px]">delete</span></button>`}</td>` : ''}
         </tr>`).join('')}</tbody>
         <tfoot>
           <tr><td colspan="5" class="text-right text-on-surface-variant py-1.5">Gross</td><td class="num">${money(b.gross, 2)}</td></tr>
@@ -142,7 +172,8 @@ async function openBill(id, after) {
           <tr><td colspan="5" class="text-right text-success py-1.5">Received</td><td class="num text-success">${money(b.paid, 2)}</td></tr>
           <tr><td colspan="5" class="text-right font-title-md py-1.5">Balance</td>
             <td class="num font-headline-md ${b.balance > 0 ? 'text-danger' : 'text-success'}">${money(b.balance, 2)}</td></tr>
-        </tfoot></table>
+        </tfoot></table></div></details>
+      ${b.notes ? card({ title: 'Bill / pharmacy notes', body: `<p class="text-body-md whitespace-pre-wrap">${esc(b.notes)}</p>` }) : ''}
       ${b.payments.length ? card({ title: 'Receipts', pad: false, body: `<table class="tbl">
         <tbody>${b.payments.map((p) => `<tr>
           <td><div class="font-data-mono text-body-sm">${esc(p.receipt_no)}</div>
@@ -155,20 +186,24 @@ async function openBill(id, after) {
     </div>`,
     footer: `<button class="btn-secondary" data-close>Close</button>
       <button class="btn-secondary" data-print>Print bill</button>
+      ${b.admission&&can('ipd.view')?'<button class="btn-secondary" data-ip-plan>Hourly / daily charges & package</button>':''}
       ${can('billing.create') && b.status !== 'cancelled' ? `<button class="btn-secondary" data-add-item>Add charge</button>
-        <button class="btn-secondary" data-discount>Discount</button><button class="btn-secondary" data-doctor>Change doctor</button>` : ''}
+        ${b.bill_type !== 'PHARM' ? '<button class="btn-secondary" data-discount>Discount</button>' : ''}<button class="btn-secondary" data-doctor>Change doctor</button>` : ''}
       ${can('billing.cancel') && b.status !== 'cancelled' ? `<button class="btn-danger" data-cancel>Cancel bill</button>` : ''}
       ${b.payer_pending > 0 ? `<span class="pill-neutral">Payer pending ${money(b.payer_pending)}</span>` : ''}
-      ${(b.patient_due ?? b.balance) > 0 && b.status !== 'cancelled' && can('payment.collect') ? `<button class="btn-primary" data-pay>Collect ${b.payer_pending > 0 ? 'patient share ' : ''}${money(b.patient_due ?? b.balance)}</button>` : ''}`,
+      ${(b.patient_due ?? b.balance) > 0 && b.status !== 'cancelled' && can('payment.collect') ? `<button class="btn-primary" data-pay>${b.package_usage&&b.admission?.status!=='discharged'?'Collect deposit':`Collect ${b.payer_pending > 0 ? 'patient share ' : ''}${money(b.patient_due ?? b.balance)}`}</button>` : ''}`,
     onMount(root, close) {
+      const extraActions=[root.querySelector('[data-doctor]'),root.querySelector('[data-cancel]')].filter(Boolean);
+      if(extraActions.length){const menu=document.createElement('details');menu.className='bill-more-actions';menu.innerHTML='<summary class="btn-secondary">More actions</summary><div></div>';for(const button of extraActions)menu.lastElementChild.append(button);const footer=root.querySelector('aside').lastElementChild;footer.insertBefore(menu,root.querySelector('[data-pay]'));}
       root.querySelector('[data-print]').onclick = () => printBill(id);
+      root.querySelector('[data-ip-plan]')?.addEventListener('click',async()=>{const {openAdmission}=await import('./admissions.js');close();await openAdmission(b.admission.id,after);});
       root.querySelectorAll('[data-vd]').forEach((x) => (x.onclick = async () => {
         const line = b.items.find((i) => i.id === +x.dataset.vd);
         const docs = await api.get('/visiting-doctors?active=1').catch(() => []);
         if (!docs.length) { toast('No visiting doctors yet — add them under Finance → Visiting Doctors', 'warning'); return; }
         modal({ title: 'Visiting doctor for this line', subtitle: line.description, size: 'sm', stack: true,
           body: `<label class="field-label">Doctor</label><select class="field" data-doc><option value="">— none (hospital) —</option>${docs.map((d) => `<option value="${d.id}" ${d.id === line.visiting_doctor_id ? 'selected' : ''}>${esc(d.name)}${d.speciality ? ` · ${esc(d.speciality)}` : ''}</option>`).join('')}</select>
-            <label class="field-label mt-3">Role</label><select class="field" data-role>${['surgeon', 'anaesthetist', 'consultant', 'assistant'].map((r) => `<option ${r === (line.visiting_role || 'consultant') ? 'selected' : ''}>${r}</option>`).join('')}</select>
+            <label class="field-label mt-3">Role</label><select class="field" data-role>${['surgeon', 'anaesthetist', 'consultant', 'assistant', 'session', 'day'].map((r) => `<option ${r === (line.visiting_role || 'consultant') ? 'selected' : ''}>${r}</option>`).join('')}</select>
             <p class="text-body-sm text-on-surface-variant mt-2">Their share is earned only on what this bill collects.</p>`,
           footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-ok>Save</button>',
           onMount(r2, close2) { r2.querySelector('[data-ok]').onclick = async () => {
@@ -227,6 +262,7 @@ function addCharge(billId, after) {
         <div><label class="field-label">Quantity</label><input class="field" type="number" data-qty value="1"></div>
         <div><label class="field-label">Rate</label><input class="field" type="number" step="0.01" data-rate value="0"></div>
         <div><label class="field-label">Discount</label><input class="field" type="number" step="0.01" data-disc value="0"></div>
+        <div class="col-span-3"><label class="field-label">Discount reason (required for a discount)</label><input class="field" data-discount-reason></div>
       </div>
     </div>`,
     footer: `<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-ok>Add charge</button>`,
@@ -248,6 +284,7 @@ function addCharge(billId, after) {
             qty: +root.querySelector('[data-qty]').value,
             rate: +root.querySelector('[data-rate]').value,
             discount: +root.querySelector('[data-disc]').value,
+            discount_reason: root.querySelector('[data-discount-reason]').value,
           });
           close(); toast('Charge added', 'success'); after();
         } catch (e) { apiError(e); busy(actionButton, false); }
@@ -279,21 +316,32 @@ function setDiscount(b, after) {
   });
 }
 
-async function newBill(after, opd = false) {
+export const canRaiseReceptionBill=()=>can('billing.create') && (
+  can('admin.view') || can('finance.view') || can('insurance.view') || can('dash.owner') ||
+  !(['pharmacy','pharmacy_admin','store'].includes(state.user?.role) || (can('pharmacy.dispense') && !can('op.collect')))
+);
+
+export async function newBill(after, opd = false, {patientId=null,encounterId=null,inlineHost=null}={}) {
+  if(!canRaiseReceptionBill()){toast('Reception billing access is required to raise this bill.','warning');return;}
   let packages;
   try { packages = (await api.get('/packages')).filter(p => p.active); }
   catch (e) { apiError(e, 'Could not load packages'); return; }
+  let initialPatient=null;
+  if(patientId){try{initialPatient=await api.get(`/patients/${patientId}`);}catch(error){apiError(error,'Could not load the selected patient');return;}}
+  let activeAdmission=null;
+  if(initialPatient&&can('ipd.view')){const data=await api.get(`/ipd/admissions${qs({q:initialPatient.uhid})}`);activeAdmission=data.rows.find(admission=>admission.patient_id===initialPatient.id&&admission.status!=='discharged') || null;}
+  const ipRequestKey=`ip-charge-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   let picked = null;
   const items = [];
-  const servicesFor = type => state.meta.services.filter(s => type === 'LAB' ? s.category === 'lab' : type === 'IMAGING' ? s.category === 'imaging' : !opd || (['procedure','other'].includes(s.category) && s.billing_unit !== 'day'));
+  const servicesFor = type => state.meta.services.filter(s => !['pharmacy','medicine','drug'].includes(s.category)).filter(s => type!=='IP'||!['day','hour'].includes(s.billing_unit)).filter(s => type === 'LAB' ? s.category === 'lab' : type === 'IMAGING' ? s.category === 'imaging' : !opd || (['procedure','other'].includes(s.category) && s.billing_unit !== 'day'));
   let visits = [];
-  modal({
-    title: opd ? 'OPD procedures & basic charges' : 'Create a bill', subtitle: 'Outpatient procedures do not require admission. Select the OP visit to attribute revenue to its doctor.', size: 'lg',
+  modal({ inlineHost,
+    title: opd ? 'OPD procedures & basic charges' : 'Services & payment', subtitle: 'Add consultation, procedures, lab tests, imaging or a package for the selected patient.', size: 'lg',
     body: `<form data-nb class="space-y-3"><div data-billing-context></div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="md:col-span-2"><label class="field-label">Patient *</label><div data-picker></div></div>
         <div><label class="field-label">Bill type</label><select class="field" name="bill_type">
-          <option value="OP">Outpatient</option><option value="LAB">Laboratory</option>
+          <option value="OP">Outpatient</option>${activeAdmission?'<option value="IP">IPD — add to running bill</option>':''}<option value="LAB">Laboratory</option>
           <option value="IMAGING">Imaging</option><option value="PKG">Package</option></select></div>
       </div>
       <div><label class="field-label">Patient visit (optional)</label><select class="field" name="encounter_id"><option value="">Choose the patient first</option></select><p class="text-body-sm text-on-surface-variant mt-1">Choose a visit for clinical context. The billing doctor is selected below.</p></div>
@@ -307,13 +355,15 @@ async function newBill(after, opd = false) {
       </div>
       <div class="border border-outline-variant rounded-lg overflow-hidden" data-services>
         <table class="tbl"><thead><tr><th>Service</th><th style="width:80px">Qty</th>
-          <th style="width:110px">Rate</th><th style="width:110px">Discount</th><th style="width:110px" class="text-right">Amount</th>
+          <th style="width:110px">Rate</th><th style="width:110px">Service discount (₹)</th><th style="width:110px" class="text-right">Amount</th>
           <th style="width:44px"></th></tr></thead><tbody data-lines></tbody></table>
         <div class="p-2 border-t border-outline-variant"><button type="button" class="btn-secondary btn-sm" data-add>
           <span class="material-symbols-outlined text-[15px]">add</span> Add line</button></div>
       </div>
       <div class="flex items-center justify-end gap-4">
-        <span class="text-body-lg">Total <strong class="font-headline-md text-primary" data-t>₹0.00</strong></span>
+        <div><label class="field-label">Overall bill discount (₹)</label><input class="field field-sm" name="overall_discount" type="number" min="0" step="0.01" value="0"></div>
+        <div><label class="field-label">Reason for discounts</label><input class="field field-sm" data-new-discount-reason placeholder="Required for service or overall discount"></div>
+        <span class="text-body-lg"><span data-total-label>Total</span> <strong class="font-headline-md text-primary" data-t>₹0.00</strong></span>
       </div>
       <label class="flex items-center gap-2 text-body-lg font-semibold cursor-pointer">
         <input type="checkbox" name="collect" checked> Collect payment / record settlement now
@@ -417,6 +467,14 @@ async function newBill(after, opd = false) {
     footer: `<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Create bill</button>`,
     onMount(root, close) {
       const form = root.querySelector('[data-nb]');
+      const billingContextOptions={editable:true,onLoaded:context=>{
+        if(!picked)return;
+        picked.payer_type=context.payer_type;
+        if(context.payer_type!=='self'){
+          form.collect.checked=false;
+          root.querySelector('[data-pay]').classList.add('hidden');
+        }
+      }};
       let currentBillTotal = 0;
 
       const calcPaymentSummary = () => {
@@ -473,7 +531,8 @@ async function newBill(after, opd = false) {
         const pkgAmt = !payer && p ? p.price : 0;
         if (form.bill_type.value === 'PKG') {
           root.querySelector('[data-t]').textContent = money(pkgAmt, 2);
-          syncBillTotalToPayment(pkgAmt);
+          syncBillTotalToPayment(Math.max(0,pkgAmt-Number(form.overall_discount.value || 0)));
+          root.querySelector('[data-t]').textContent=money(currentBillTotal,2);
         }
       };
 
@@ -482,6 +541,7 @@ async function newBill(after, opd = false) {
         const choices = packages.filter(p => !!p.payer_id === payer);
         form.package_id.innerHTML = '<option value="">'+(choices.length ? 'Choose package…' : 'No active packages in this category')+'</option>' + choices.map(p => `<option value="${p.id}">${esc(p.name)} · ${esc(p.payer_name || 'Hospital')} · ${money(p.price)}</option>`).join('');
         packageDetail();
+        if(form.bill_type.value==='IP'){form.collect.checked=false;form.collect.disabled=true;root.querySelector('[data-pay]').classList.add('hidden');}
       };
 
       root.querySelector('[data-package-kind]').onchange = packageChoices;
@@ -491,39 +551,69 @@ async function newBill(after, opd = false) {
 
       form.bill_type.onchange = () => {
         const pkg = form.bill_type.value === 'PKG';
-        root.querySelector('[role="dialog"] h2').textContent = {LAB:'Laboratory bill',IMAGING:'Imaging bill',PKG:'Package bill',OP:opd?'OPD procedures & basic charges':'Create a bill'}[form.bill_type.value];
+        const heading=root.querySelector('[role="dialog"] h2,[data-inline-workflow] h2');
+        if(heading)heading.textContent = {LAB:'Laboratory bill',IMAGING:'Imaging bill',PKG:'Package bill',OP:opd?'OPD procedures & basic charges':'Services & payment'}[form.bill_type.value];
+        if(form.bill_type.value==='IP'&&heading)heading.textContent=`IPD charges · ${activeAdmission.ip_no}`;
         root.querySelector('[data-packages]').classList.toggle('hidden', !pkg);
         root.querySelector('[data-services]').classList.toggle('hidden', pkg);
         form.collect.disabled = pkg && root.querySelector('[data-package-kind]').value === 'payer';
+        if(form.bill_type.value==='IP'){form.collect.checked=false;form.collect.disabled=true;root.querySelector('[data-pay]').classList.add('hidden');}
+        form.encounter_id.disabled=form.bill_type.value==='IP';
+        if(activeAdmission&&form.bill_type.value==='OP'&&String(form.encounter_id.value)===String(activeAdmission.encounter_id)){
+          const outpatient=visits.find(visit=>visit.kind==='OP'&&!['closed','cancelled'].includes(visit.stage)) || visits.find(visit=>visit.kind==='OP');
+          form.encounter_id.value=outpatient?.id || '';
+          form.doctor_id.value=outpatient?.doctor_id || '';
+          showBillingContext(root.querySelector('[data-billing-context]'),picked.id,form.encounter_id.value,billingContextOptions);
+        }
+        form.doctor_id.disabled=form.bill_type.value==='IP';
+        root.querySelector('[data-total-label]').textContent=form.bill_type.value==='IP'?'New charges':'Total';
+        if(activeAdmission&&form.bill_type.value==='IP'){form.encounter_id.value=activeAdmission.encounter_id;showBillingContext(root.querySelector('[data-billing-context]'),picked.id,activeAdmission.encounter_id,billingContextOptions);}
+        root.querySelector('[data-save]').textContent=form.bill_type.value==='IP'?'Add charges to IP bill':'Create bill';
         packageDetail();
+        if(form.bill_type.value==='IP'){form.collect.checked=false;form.collect.disabled=true;root.querySelector('[data-pay]').classList.add('hidden');}
         body.replaceChildren(); if (!pkg) addLine(); if (!pkg) total();
       };
       packageChoices();
 
-      patientPicker(root.querySelector('[data-picker]'), async (p) => {
+      const selectPatient=async (p) => {
         picked = p;
-        showBillingContext(root.querySelector('[data-billing-context]'),p.id);
+        if(can('ipd.view')){
+          const data=await api.get(`/ipd/admissions${qs({q:p.uhid})}`);
+          if(picked.id!==p.id)return;
+          activeAdmission=data.rows.find(admission=>admission.patient_id===p.id&&admission.status!=='discharged') || null;
+          const option=form.bill_type.querySelector('option[value="IP"]');
+          if(activeAdmission&&!option)form.bill_type.add(new Option('IPD — add to running bill','IP'));
+          if(!activeAdmission&&option){option.remove();form.bill_type.value='OP';form.encounter_id.disabled=false;form.doctor_id.disabled=false;form.collect.disabled=false;}
+        }
+        showBillingContext(root.querySelector('[data-billing-context]'),p.id,null,billingContextOptions);
         form.encounter_id.innerHTML = '<option value="">Loading visits…</option>';
         try {
           const rows = await api.get('/encounters?patient_id=' + p.id);
           if (picked.id !== p.id) return;
-          visits = rows.filter(e => e.kind === 'OP' && e.stage !== 'cancelled');
+          visits = rows.filter(e => (e.kind === 'OP'||e.kind==='IP') && e.stage !== 'cancelled');
           form.encounter_id.innerHTML = '<option value="">Standalone bill — no visit link</option>' + visits.map(e => `<option value="${e.id}">${esc(e.encounter_no)} · ${fmtDate(e.visit_date)}</option>`).join('');
-          if (visits.length) { form.encounter_id.value = visits[0].id; form.doctor_id.value = visits[0].doctor_id || ''; }
-          showBillingContext(root.querySelector('[data-billing-context]'),p.id,form.encounter_id.value);
+          const preferred=visits.find(visit=>String(visit.id)===String(encounterId)) || visits.find(visit=>!['closed','cancelled'].includes(visit.stage)) || visits[0];
+          if (preferred) { form.encounter_id.value = preferred.id; form.doctor_id.value = preferred.doctor_id || ''; }
+          if(activeAdmission){form.bill_type.value='IP';form.bill_type.onchange();form.doctor_id.value=activeAdmission.consultant_id || '';}
+          showBillingContext(root.querySelector('[data-billing-context]'),p.id,form.encounter_id.value,billingContextOptions);
         } catch (err) { apiError(err, 'Could not load patient visits'); }
-      }, { autofocus: true });
+      };
+      const picker=patientPicker(root.querySelector('[data-picker]'),selectPatient,{autofocus:!initialPatient});
+      if(initialPatient){picker.input.value=`${initialPatient.name} — ${initialPatient.uhid}`;selectPatient(initialPatient);}
 
-      form.encounter_id.onchange = () => { const visit = visits.find(v => String(v.id) === form.encounter_id.value); if (visit) form.doctor_id.value = visit.doctor_id || ''; if(picked)showBillingContext(root.querySelector('[data-billing-context]'),picked.id,form.encounter_id.value); };
+      form.encounter_id.onchange = () => { const visit = visits.find(v => String(v.id) === form.encounter_id.value); if (visit) form.doctor_id.value = visit.doctor_id || ''; if(picked)showBillingContext(root.querySelector('[data-billing-context]'),picked.id,form.encounter_id.value,billingContextOptions); };
       const body = root.querySelector('[data-lines]');
       const total = () => {
         let t = 0;
         [...body.children].forEach((tr) => {
           const q = +tr.querySelector('[data-q]').value || 0, r = +tr.querySelector('[data-r]').value || 0, d = +tr.querySelector('[data-d]').value || 0;
-          const amt = q * r - d;
+          const base=Number((q*r-d).toFixed(2));
+          const service=state.meta.services.find(service=>String(service.id)===tr.querySelector('[data-s]').value);
+          const amt = base+Number((base*Number(service?.gst_pct || 0)/100).toFixed(2));
           tr.querySelector('[data-a]').textContent = money(amt, 2);
           t += amt;
         });
+        t=Math.max(0,t-Number(form.overall_discount.value || 0));
         root.querySelector('[data-t]').textContent = money(t, 2);
         syncBillTotalToPayment(t);
       };
@@ -542,6 +632,7 @@ async function newBill(after, opd = false) {
           tr.querySelector('[data-r]').value = e.target.selectedOptions[0].dataset.p || 0; total();
         };
       };
+      form.overall_discount.oninput=()=>form.bill_type.value==='PKG'?packageDetail():total();
       root.querySelector('[data-add]').onclick = addLine;
       body.addEventListener('input', total);
       body.addEventListener('click', (e) => { if (e.target.closest('[data-rm]')) { e.target.closest('tr').remove(); total(); } });
@@ -638,12 +729,16 @@ async function newBill(after, opd = false) {
         try {
           const payload = {
             patient_id: picked.id,
+            admission_id:form.bill_type.value==='IP'?activeAdmission?.id:undefined,
+            request_key:form.bill_type.value==='IP'?ipRequestKey:undefined,
             encounter_id: +form.encounter_id.value || null,
             doctor_id: +form.doctor_id.value || null,
             bill_type: form.bill_type.value,
             package_id: pkg?.id,
             items: lines,
+            discount:Number(form.overall_discount.value || 0),
             collect: form.collect.checked,
+            discount_reason: root.querySelector('[data-new-discount-reason]')?.value || '',
           };
 
           if (form.collect.checked) {
@@ -689,7 +784,7 @@ async function newBill(after, opd = false) {
 
           const b = await api.post('/bills', payload);
           close();
-          toast(`${b.bill_no} created · ${money(b.total)}`, 'success');
+          toast(`${b.bill_no} ${form.bill_type.value==='IP'?'updated':'created'} · ${money(b.total)}`, 'success');
           after();
         } catch (e) { apiError(e, 'Could not create the bill'); busy(actionButton, false); }
       };
@@ -700,19 +795,18 @@ async function newBill(after, opd = false) {
 export async function printBill(id) {
   const b = await api.get(`/bills/${id}`);
   const s = state.meta.settings;
+  if(b.bill_type==='PHARM')return printDocument(`${b.bill_no} — ${b.patient_name}`,pharmacyInvoice(b));
+  // a line discount gets its own column, so the printed rate − discount = amount adds up
+  const disc = b.items.some((i) => Number(i.discount) > 0);
+  const span = disc ? 4 : 3;
   printDocument(`${b.bill_no} — ${b.patient_name}`, `
     <div style="max-width:740px;margin:0 auto;font-family:Inter,Segoe UI,sans-serif;color:#172B4D">
-      <div style="display:flex;justify-content:space-between;border-bottom:2px solid #881D2C;padding-bottom:8px">
-        <div><div style="font-size:18px;font-weight:700;color:#881D2C">${esc(s.hospital_name)}</div>
-          <div style="font-size:11px;color:#526176">${esc(s.address || '')}<br>GSTIN ${esc(s.gstin || '')} · ${esc(s.phone || '')}</div></div>
-        <div style="text-align:right"><div style="font-size:13px;font-weight:700;letter-spacing:.08em">TAX INVOICE</div>
-          <div style="font-size:12px;font-family:monospace">${esc(b.bill_no)}</div>
-          <div style="font-size:11px;color:#526176">${esc(b.created_at)}</div></div>
-      </div>
+      ${printLetterhead(b.admission&&b.admission.status!=='discharged'?'IPD RUNNING STATEMENT — PROVISIONAL':'TAX INVOICE',b.bill_no)}
+      ${b.package_usage?`<p style="font-size:11px">Package ${esc(b.package_usage.package.name)} · Agreed price ${money(b.package_usage.price,2)} · Extras ${money(b.package_usage.excess+b.package_usage.excluded,2)} · Estimated package total ${money(b.package_usage.patient_owes,2)}. Covered charges are reconciled at discharge.</p>`:''}
       <table style="width:100%;font-size:12px;margin-top:10px">
         <tr><td style="color:#526176;width:80px">Patient</td><td><b>${esc(b.patient_name)}</b> · ${b.age_years ?? ''}y ${esc(b.gender || '')}</td>
             <td style="color:#526176;width:70px">UHID</td><td style="font-family:monospace">${esc(b.uhid)}</td></tr>
-        <tr><td style="color:#526176">Doctor</td><td>${esc(b.doctor_name || '—')}</td>
+        <tr><td style="color:#526176">${b.referred_by ? 'Referred by' : 'Doctor'}</td><td>${esc(b.referred_by || b.doctor_name || '—')}${b.rx_note ? `<div style="font-size:10px;color:#526176">${esc(b.rx_note)}</div>` : ''}</td>
             <td style="color:#526176">Type</td><td>${esc(b.bill_type)}</td></tr><tr><td>Payer</td><td>${esc(b.payer_type||'self')}</td><td>Status</td><td>${esc(b.status)}</td></tr>
       </table>
       <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:14px">
@@ -720,28 +814,31 @@ export async function printBill(id) {
           <th style="text-align:left;padding:7px;border-bottom:1px solid #D8DFE8">Particulars</th>
           <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:50px">Qty</th>
           <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:80px">Rate</th>
+          ${disc ? '<th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:80px">Discount</th>' : ''}
           <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:90px">Amount</th></tr></thead>
         <tbody>${b.items.map((i) => `<tr>
-          <td style="padding:7px;border-bottom:1px solid #EEF2F7">${esc(i.description)}</td>
+          <td style="padding:7px;border-bottom:1px solid #EEF2F7">${esc(i.description)}${i.batch_id ? `<div style="font-size:10px;color:#526176">${esc(i.generic || '')} · Batch ${esc(i.batch_no || '')} · Exp ${esc(i.expiry || '')}<br>MRP ₹${Number(i.mrp || 0).toFixed(2)} · Selling ₹${Number(i.rate).toFixed(2)} · GST ${Number(i.gst_pct || 0)}% (included) · HSN ${esc(i.hsn || '')}</div>` : ''}${i.visiting_doctor_name ? `<div style="font-size:10px">${esc(i.visiting_doctor_name)} · ${esc(i.visiting_role || '')}</div>` : ''}</td>
           <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7">${i.qty}</td>
           <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.rate).toFixed(2)}</td>
+          ${disc ? `<td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.discount) > 0 ? '− ' + Number(i.discount).toFixed(2) : ''}</td>` : ''}
           <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.amount).toFixed(2)}</td></tr>`).join('')}
         </tbody>
         <tfoot>
-          <tr><td colspan="3" style="text-align:right;padding:5px 7px;color:#526176">Gross</td>
+          <tr><td colspan="${span}" style="text-align:right;padding:5px 7px;color:#526176">Gross</td>
               <td style="text-align:right;padding:5px 7px;font-family:monospace">${Number(b.gross).toFixed(2)}</td></tr>
-          ${b.discount ? `<tr><td colspan="3" style="text-align:right;padding:5px 7px;color:#526176">Discount</td>
+          ${b.discount ? `<tr><td colspan="${span}" style="text-align:right;padding:5px 7px;color:#526176">Bill discount${b.discount_reason ? ` (${esc(b.discount_reason)})` : ''}</td>
               <td style="text-align:right;padding:5px 7px;font-family:monospace">− ${Number(b.discount).toFixed(2)}</td></tr>` : ''}
-          ${b.tax ? `<tr><td colspan="3" style="text-align:right;padding:5px 7px;color:#526176">Tax</td>
+          ${b.tax ? `<tr><td colspan="${span}" style="text-align:right;padding:5px 7px;color:#526176">Tax</td>
               <td style="text-align:right;padding:5px 7px;font-family:monospace">${Number(b.tax).toFixed(2)}</td></tr>` : ''}
-          <tr><td colspan="3" style="text-align:right;padding:7px;font-weight:700">Total</td>
+          <tr><td colspan="${span}" style="text-align:right;padding:7px;font-weight:700">Total</td>
               <td style="text-align:right;padding:7px;font-weight:700;font-family:monospace">${Number(b.total).toFixed(2)}</td></tr>
-          <tr><td colspan="3" style="text-align:right;padding:5px 7px;color:#166534">Received</td>
+          <tr><td colspan="${span}" style="text-align:right;padding:5px 7px;color:#166534">Received</td>
               <td style="text-align:right;padding:5px 7px;font-family:monospace;color:#166534">${Number(b.paid).toFixed(2)}</td></tr>
-          <tr><td colspan="3" style="text-align:right;padding:5px 7px;font-weight:700">Balance</td>
+          <tr><td colspan="${span}" style="text-align:right;padding:5px 7px;font-weight:700">Balance</td>
               <td style="text-align:right;padding:5px 7px;font-weight:700;font-family:monospace">${Number(b.balance).toFixed(2)}</td></tr>
         </tfoot></table>
       <div style="margin-top:36px;display:flex;justify-content:space-between;font-size:11px;color:#526176">
+        ${b.notes ? `<p>${esc(b.notes)}</p>` : ''}
         <div>Computer generated invoice.</div><div style="text-align:center">_______________________<br>Authorised signatory</div></div>
     </div>`);
 }

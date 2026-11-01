@@ -93,6 +93,13 @@ assert.equal(errors.length, 0);
 for (const file of fs.readdirSync('client/src/views')) {
   if (['_kit.js', 'login.js'].includes(file)) continue;
   const source = fs.readFileSync(`client/src/views/${file}`, 'utf8');
+  if(file==='billing-desk.js') {
+    for(const delegate of ['bills','pharmacy']) assert.match(fs.readFileSync(`client/src/views/${delegate}.js`,'utf8'), /\blive\(|subscribe\(/, `${delegate} must keep delegated billing live`);
+    assert.match(source, /return mount\(/);
+    assert.match(source, /view\.mount\(/);
+    assert.match(source, /dispose\?\.\(\)/);
+    continue;
+  }
   assert.match(source, /\blive\(|subscribe\(|export \{ mount \}|navigate\('\/accounts/, `${file} lacks live wiring`);
 }
 const listeners = new Map();

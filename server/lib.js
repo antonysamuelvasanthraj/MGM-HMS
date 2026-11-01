@@ -28,6 +28,8 @@ export function requireOrderClearance(order) {
   if (encounter?.kind === 'EMG' || encounter?.priority === 'emergency') return;
   // Inpatient services go on the running IP bill and are settled at discharge.
   if (encounter?.kind === 'IP') return;
+  // Release rule (Settings → Investigation release): OP tests may start before payment; reception bills and collects afterwards.
+  if (setting('release_op_rule') === 'immediate' && order.status !== 'awaiting_payment') return;
   const bills = all(`SELECT b.* FROM bills b JOIN bill_items i ON i.bill_id=b.id WHERE i.order_id=?`, order.id);
   if (bills.some(b => b.status === 'cancelled' || (b.balance > 0 && b.authorization_status !== 'approved' && !isApprovedStage(b.claim_status))) ||
       (!bills.length && order.status === 'awaiting_payment')) fail(409, 'payment_or_authorization_required');
@@ -211,7 +213,7 @@ export function callGate(enc) {
       && !one(`SELECT count(*) FROM bills WHERE encounter_id=? AND bill_type IN ('OP','IP') AND status<>'cancelled' AND authorization_status='approved'`, enc.id)) {
     reasons.push('Payment pending');
   }
-  if (gateVit) {
+  if (gateVit && !enc.direct_to_doctor) {
     const v = one('SELECT count(*) FROM vitals WHERE encounter_id=?', enc.id);
     if (!v) reasons.push('Vitals not recorded');
   }
@@ -225,6 +227,27 @@ export function setting(key, fallback = null) {
   settingsCache.set(key, v);
   return v;
 }
+/** Settings that hold credentials: only an administrator with write rights ever sees their value. */
+/**
+ * Who asked for an order — the person to call about it. Needs aliases o (orders), u (ordered_by
+ * user) and e (encounters). An outside doctor's paper slip beats the desk that typed it in.
+ */
+export const REQUESTED_BY_SQL = `coalesce(nullif(o.referred_by,''), CASE WHEN u.role='doctor' THEN u.name END,
+  (SELECT dn.name FROM users dn WHERE dn.id=e.doctor_id), nullif(e.referred_by,''), u.name)`;
+
+export const SECRET_SETTING = (k) => k === 'sms_gateway_header' || /secret|token|password|api_?key/i.test(k);
+export const SECRET_MASK = '••••••••';
+/**
+ * Settings as a screen or printout may see them. Gateway keys and secrets are masked unless the user
+ * may change them; the gateway address is for administrators only.
+ */
+export function visibleSettings(user, can) {
+  const admin = can(user, 'admin.view'), writer = can(user, 'admin.write');
+  return Object.fromEntries(all('SELECT key,value FROM settings')
+    .filter((r) => !r.key.startsWith('sms_gateway') || admin)
+    .map((r) => [r.key, SECRET_SETTING(r.key) && !writer ? (r.value ? SECRET_MASK : '') : r.value]));
+}
+
 export function setSetting(key, value) {
   if (get('SELECT 1 FROM settings WHERE key=?', key)) run('UPDATE settings SET value=? WHERE key=?', String(value), key);
   else insert('settings', { key, value: String(value) });

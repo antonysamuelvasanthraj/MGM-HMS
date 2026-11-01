@@ -17,7 +17,7 @@ export async function mount(ctx) {
   const canIssue = can('pharmacy.dispense');
   const root = mountPage(ctx, page({
     wide: true, eyebrow: `${eyebrow('IPD · Pharmacy', 'inventory')} ${liveChip()}`, title: 'Ward Stock & Indents',
-    subtitle: 'Track emergency rack usage and patient replacements, or request medicines issued directly to an inpatient.',
+    subtitle: 'Emergency rack replacements and medicine requests for inpatients.',
     actions: canRequest ? '<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span>Direct inpatient request</button>' : '',
     body: `<div class="card p-3"><strong>Emergency rack usage & replacement</strong><p class="text-body-sm">Used batch → pharmacy replacement bill → physical receipt into the ward.</p></div><div data-replacement-panel class="space-y-4"></div><h2 class="text-title-lg">Direct inpatient medicine requests</h2><div class="card p-3 flex flex-wrap items-end gap-2"><div><label class="field-label">Status</label>
       <select class="field field-sm !h-9" data-status>${STATUS.map(([v, l]) => `<option value="${v}" ${v === f.status ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>

@@ -10,6 +10,7 @@
  * instead of a bare "Unpaid".
  */
 import { all, get, insert, update, run, nextNo, nowIso } from './db.js';
+import {requireSchemeAdmission} from './scheme-scope.js';
 
 export const PAYER_TYPES = ['insurance', 'aarogyasri', 'corporate', 'trust'];
 /**
@@ -92,10 +93,11 @@ export function ensurePayerCase(admission) {
 }
 
 /** Called whenever a bill changes (from recalcBill): make sure a payer bill sits on a case. */
-export function linkBillCase(billId) {
+export function linkBillCase(billId,{historical=false}={}) {
   const b = get('SELECT id, patient_id, encounter_id, payer_type, claim_id, claim_status, status FROM bills WHERE id=?', billId);
   if (!b) return null;
   const cat = norm(b.payer_type);
+  if(!historical&&!b.claim_id)requireSchemeAdmission(cat,b.patient_id,b.encounter_id);
   if (!PAYER_TYPES.includes(cat)) {
     if (b.claim_id) update('bills', b.id, { claim_id: null, claim_status: null });
     if (cat === CREDIT) approveCreditDue(b.id);
@@ -157,7 +159,7 @@ export function backfillPayerCases() {
   }
   backfillPayerCases.approved = approvedNow;
   for (const a of all(`SELECT * FROM admissions WHERE financial_category NOT IN ('self','') AND status<>'requested'`)) ensurePayerCase(a);
-  for (const b of all(`SELECT id FROM bills WHERE payer_type NOT IN ('self','') AND status<>'cancelled' AND claim_id IS NULL`)) linkBillCase(b.id);
+  for (const b of all(`SELECT id FROM bills WHERE payer_type NOT IN ('self','') AND status<>'cancelled' AND claim_id IS NULL`)) linkBillCase(b.id,{historical:true});
   for (const c of all('SELECT id FROM insurance_claims')) syncClaimToBills(c.id);
   return get('SELECT count(*) n FROM insurance_claims').n - before;
 }

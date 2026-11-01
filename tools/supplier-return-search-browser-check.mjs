@@ -1,0 +1,15 @@
+import {DatabaseSync} from 'node:sqlite';
+const db=new DatabaseSync('data/surelyhms.db',{readOnly:true});
+const session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
+db.close();
+const targets=await fetch('http://127.0.0.1:9559/json').then(r=>r.json());
+const target=targets.find(t=>t.type==='page' && t.url.startsWith('http://localhost:4300'));
+const ws=new WebSocket(target.webSocketDebuggerUrl);
+await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+let seq=0;const pending=new Map();
+ws.addEventListener('message',event=>{const d=JSON.parse(event.data);if(pending.has(d.id)){pending.get(d.id)(d);pending.delete(d.id);}});
+const send=(method,params={})=>new Promise(resolve=>{const id=++seq;pending.set(id,resolve);ws.send(JSON.stringify({id,method,params}));});
+await send('Runtime.evaluate',{expression:`localStorage.setItem('surely_token',${JSON.stringify(session.token)})`});
+await send('Page.reload',{ignoreCache:true});
+await new Promise(resolve=>setTimeout(resolve,1500));
+const result=await send('Runtime.evaluate',{expression:`(async()=>{const {mount}=await import('/src/views/returns.js');await mount({host:document.getElementById('view'),params:[],query:{}});await new Promise(r=>setTimeout(r,500));document.querySelector('[data-new-pur]').click();await new Promise(r=>setTimeout(r,500));const search=document.querySelector('[data-batch-search]'),select=document.querySelector('[data-batch]');const total=select.options.length;const name=select.options[0].text.split(' · ')[0];search.value=name;search.dispatchEvent(new Event('input'));const filtered=[...select.options].every(o=>o.text.includes(name));search.value='no-such-batch-xyz';search.dispatchEvent(new Event('input'));const emptyBlocked=document.querySelector('[data-save]').disabled;search.value='';search.dispatchEvent(new Event('input'));const restored=select.options.length===total;document.querySelector('[role=dialog] [data-close]').click();return {total,filtered,emptyBlocked,restored};})()`,awaitPromise:true,returnByValue:true});const v=result.result?.result?.value;console.log(v);ws.close();if(!v?.filtered||!v.emptyBlocked||!v.restored)throw Error('Search failed');

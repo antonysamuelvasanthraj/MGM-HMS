@@ -55,7 +55,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Operation theatre', 'surgical')} ${liveChip()}`,
     title: 'Operation Theatre Suite',
-    subtitle: 'Request → booking → pre-operative checks and consent → procedure → recovery, with the linked charges following the case.',
+    subtitle: 'Theatre bookings, checklists and surgeries.',
     actions: can('ot.schedule') ? `<button class="btn-primary" data-new>
       <span class="material-symbols-outlined text-[18px]">add</span> Book a case</button>` : '',
     body: `
@@ -159,7 +159,7 @@ async function bookCase(after) {
   let picked = null;
   const visiting = await api.get('/visiting-doctors?active=1').catch(() => []);
   modal({
-    title: 'Book a theatre case', size: 'md',
+    title: 'Book a theatre case', size: 'lg',
     body: `<form data-bf class="space-y-3">
       <div><label class="field-label">Patient *</label><div data-picker></div></div>
       <div><label class="field-label">Procedure *</label><input class="field" name="procedure" required list="ot-procs">
@@ -186,7 +186,8 @@ async function bookCase(after) {
         ${(() => { const svcs = (state.meta?.services || []).filter((s) => ['procedure', 'ot', 'surgery', 'anaesthesia'].includes(s.category) && s.price > 0);
           return svcs.length ? `<div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2">${svcs.map((s) => `<label class="flex items-center gap-2 text-body-md"><input type="checkbox" data-svc="${s.id}"> <span class="flex-1">${esc(s.name)}</span><span class="font-data-mono text-body-sm">${money(s.price)}</span></label>`).join('')}</div>`
             : '<p class="text-body-sm text-warning mb-2">No surgery / OT / anaesthesia services are priced in Fees &amp; Tariffs yet — add them there, or enter the charges below.</p>'; })()}
-        ${[1, 2, 3].map((i) => `<div class="grid grid-cols-[1fr_120px] gap-2 mb-1.5"><input class="field field-sm" data-cdesc="${i}" placeholder="${['Surgeon fee', 'Anaesthetist fee', 'OT charges / implant'][i - 1]}"><input class="field field-sm" type="number" min="0" data-camt="${i}" placeholder="₹"></div>`).join('')}
+        ${[1,2,3,4,5,6,7,8].map(i=>`<div class="grid grid-cols-2 gap-2 mb-2"><input class="field field-sm" data-cdesc="${i}" placeholder="${['Surgeon fee','Anaesthetist fee','OT room fee','Assistant doctor fee','Nursing fee','Equipment fee','Session / daily clinical fee','Other hospital charge'][i-1]}"><input class="field field-sm" type="number" min="0" step="0.01" data-camt="${i}" placeholder="₹"><select class="field field-sm" data-crole="${i}">${[['','Hospital charge'],['surgeon','Surgeon'],['anaesthetist','Anaesthetist'],['assistant','Assistant'],['consultant','Consultant'],['session','Session'],['day','Day']].map(([v,label])=>`<option value="${v}" ${v===({1:'surgeon',2:'anaesthetist',4:'assistant',7:'session'}[i]||'')?'selected':''}>${label}</option>`).join('')}</select><select class="field field-sm" data-cdoctor="${i}"><option value="">${i===1?'Use primary surgeon':i===2?'Use primary anaesthetist':'Hospital / in-house staff'}</option>${visiting.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('')}</select></div>`).join('')}
+        <p class="text-body-sm text-on-surface-variant">Issue medicines and consumables through the linked stock workflow. Lab orders and medicines join the running IP bill separately. Enter each professional and hospital fee once.</p>
       </fieldset>
     </form>`,
     footer: `<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Book case</button>`,
@@ -202,9 +203,16 @@ async function bookCase(after) {
           const b = Object.fromEntries(new FormData(form));
           b.scheduled_at = b.scheduled_at.replace('T', ' ');
           if (!b.surgeon_id && !b.visiting_surgeon_id) { toast('Choose the surgeon (staff or visiting)', 'warning'); busy(actionButton, false); return; }
-          const roles = { 1: 'surgeon', 2: 'anaesthetist' };
+          const chargeRows = [1,2,3,4,5,6,7,8].map(i=>({description:root.querySelector(`[data-cdesc="${i}"]`).value.trim(),rate:+root.querySelector(`[data-camt="${i}"]`).value||0,role:root.querySelector(`[data-crole="${i}"]`).value,visiting_doctor_id:+root.querySelector(`[data-cdoctor="${i}"]`).value||null,category:{3:'ot',5:'nursing',6:'equipment',8:'other'}[i]||'professional'}));
+          const halfFilled = chargeRows.filter(x => (x.description && !(x.rate > 0)) || (!x.description && x.rate > 0));
+          if (halfFilled.length) {
+            toast(`Each charge row needs both a description and an amount — ${halfFilled.length} row(s) are half-filled and would be dropped`, 'warning', { timeout: 8000 });
+            busy(actionButton, false); return;
+          }
+          const roleless = chargeRows.filter((x) => x.description && x.rate > 0 && x.visiting_doctor_id && !x.role);
+          if (roleless.length) { toast(`Choose the role (surgeon, assistant …) for the visiting doctor on: ${roleless.map((x) => x.description).join(', ')}`, 'warning', { timeout: 8000 }); busy(actionButton, false); return; }
           const charges = [...root.querySelectorAll('[data-svc]:checked')].map((x) => ({ service_id: +x.dataset.svc }))
-            .concat([1, 2, 3].map((i) => ({ description: root.querySelector(`[data-cdesc="${i}"]`).value.trim(), rate: +root.querySelector(`[data-camt="${i}"]`).value || 0, ...(roles[i] ? { role: roles[i] } : {}) })).filter((x) => x.description && x.rate > 0));
+            .concat(chargeRows.filter(x=>x.description&&x.rate>0));
           const c = await api.post('/ipd/ot', { patient_id: picked.id, ...b, charges });
           close(); toast(`${c.booking_no} booked in ${c.theatre}`, 'success'); after(String(c.scheduled_at || b.scheduled_at).slice(0, 10));
         } catch (e) { apiError(e, 'Could not book the case'); busy(actionButton, false); }

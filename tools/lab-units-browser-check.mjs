@@ -1,0 +1,16 @@
+import {DatabaseSync} from 'node:sqlite';
+const db=new DatabaseSync('data/surelyhms.db',{readOnly:true});
+const session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
+db.close();
+const targets=await fetch('http://127.0.0.1:9559/json').then(r=>r.json());
+const target=targets.find(t=>t.type==='page' && t.url.startsWith('http://localhost:4300'));
+const ws=new WebSocket(target.webSocketDebuggerUrl);
+await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+let seq=0;const pending=new Map();
+ws.addEventListener('message',event=>{const d=JSON.parse(event.data);if(pending.has(d.id)){pending.get(d.id)(d);pending.delete(d.id);}});
+const send=(method,params={})=>new Promise(resolve=>{const id=++seq;pending.set(id,resolve);ws.send(JSON.stringify({id,method,params}));});
+await send('Runtime.evaluate',{expression:`localStorage.setItem('surely_token',${JSON.stringify(session.token)})`});
+await send('Page.reload',{ignoreCache:true});
+await new Promise(resolve=>setTimeout(resolve,1500));
+const fixture=new DatabaseSync('data/surelyhms.db',{readOnly:true});const rbs=fixture.prepare('SELECT id FROM orders WHERE service_id=4 ORDER BY id DESC LIMIT 1').get();fixture.close();
+const result=await send('Runtime.evaluate',{expression:`(async()=>{try{const api=await import('/src/api.js');api.setToken(localStorage.getItem('surely_token'));const {openLabTemplates}=await import('/src/lab-templates.js');await openLabTemplates();await new Promise(r=>setTimeout(r,600));document.querySelector('[data-add-test]').click();await new Promise(r=>setTimeout(r,600));const select=document.querySelector('[data-unit-select]');const count=select.options.length;select.value='mg/dL';select.dispatchEvent(new Event('change',{bubbles:true}));const selected=document.querySelector('[data-unit-value]').value;select.value='__custom__';select.dispatchEvent(new Event('change',{bubbles:true}));const customVisible=!document.querySelector('[data-unit-value]').hidden;const {printReport}=await import('/src/views/laboratory.js');await printReport(${rbs.id});await new Promise(r=>setTimeout(r,500));const text=document.querySelector('[data-print-preview]')?.contentDocument?.body.innerText;return {unitOptions:count,selected,customVisible,printedInstructions:text?.includes('Interpret a random glucose result with symptoms'),printReady:document.querySelector('[data-print-document]')?.disabled===false};}catch(e){return {error:e.message,stack:e.stack};}})()`,awaitPromise:true,returnByValue:true});console.log(JSON.stringify(result.result));const value=result.result?.result?.value;if(value?.selected!=='mg/dL' || !value.customVisible || !value.printedInstructions || !value.printReady)throw Error('Lab UI check failed');ws.close();

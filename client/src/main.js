@@ -1,11 +1,18 @@
+/* theme first, before anything paints: calm blue unless Settings chose MGM maroon */
+try { document.documentElement.dataset.theme = localStorage.getItem('hms_theme') || 'calm'; } catch { document.documentElement.dataset.theme = 'calm'; }
+document.querySelector('meta[name="theme-color"]')?.setAttribute('content', document.documentElement.dataset.theme === 'maroon' ? '#39171D' : '#062F5C');
 import { api, token, setToken } from './api.js';
 import { state, loadSession, loadMeta, refreshBadges, signIn, signOut, can, setting } from './store.js';
-import { $, $$, toast, esc, initials, debounce, fmtTime, modal } from './ui.js';
+import { $, $$, toast, esc, initials, debounce, fmtTime, modal, labelFields } from './ui.js';
 import { connect, on, onState as onWsState, subscribe } from './ws.js';
 import { renderSidebar, initSidebarChrome } from './shell/sidebar.js';
 import { startRouter, navigate, render } from './router.js';
+import { watchAppUpdates } from './app-updates.js';
+import { installInputBehavior } from './input-behavior.js';
 
 boot();
+watchAppUpdates();
+installInputBehavior();
 
 async function boot() {
   if (!token()) return showSignIn();
@@ -32,28 +39,28 @@ async function showSignIn() {
     <div class="min-h-full grid lg:grid-cols-[1.15fr_1fr]">
       <!-- Left branding panel -->
       <div class="hidden lg:flex flex-col justify-between p-12 text-white/90 relative overflow-hidden"
-           style="background:linear-gradient(145deg,#200A0F 0%,#3D1219 35%,#5C1B26 70%,#881D2C 100%)">
+           style="background:var(--login-bg)">
         <!-- pattern overlay -->
         <div class="absolute inset-0 opacity-[0.04]" style="background-image:radial-gradient(circle at 25% 55%, white 1px, transparent 1px),radial-gradient(circle at 75% 20%, white 1px, transparent 1px),radial-gradient(circle at 45% 85%, white 1px, transparent 1px),radial-gradient(circle at 85% 70%, white 1px, transparent 1px); background-size:70px 70px, 45px 45px, 55px 55px, 40px 40px;"></div>
         <!-- glow orbs -->
-        <div class="absolute top-0 right-0 w-[480px] h-[480px] rounded-full opacity-[0.08]" style="background:radial-gradient(circle,#C3A256 0%,transparent 65%); transform:translate(35%,-35%);"></div>
-        <div class="absolute bottom-0 left-0 w-72 h-72 rounded-full opacity-[0.06]" style="background:radial-gradient(circle,#C3A256 0%,transparent 65%); transform:translate(-35%,35%);"></div>
+        <div class="absolute top-0 right-0 w-[480px] h-[480px] rounded-full opacity-[0.08]" style="background:radial-gradient(circle,rgb(var(--c-accent)) 0%,transparent 65%); transform:translate(35%,-35%);"></div>
+        <div class="absolute bottom-0 left-0 w-72 h-72 rounded-full opacity-[0.06]" style="background:radial-gradient(circle,rgb(var(--c-accent)) 0%,transparent 65%); transform:translate(-35%,35%);"></div>
         <div class="absolute top-1/2 left-1/2 w-96 h-96 rounded-full opacity-[0.04]" style="background:radial-gradient(circle,#ffffff 0%,transparent 65%); transform:translate(-50%,-50%);"></div>
 
         <div class="relative">
           <div class="flex items-center gap-3">
-            <div class="rounded-xl flex items-center justify-center" style="background:rgba(195,162,86,0.15); border:1px solid rgba(195,162,86,0.3);">
+            <div class="rounded-xl flex items-center justify-center" style="background:rgb(var(--c-accent) / 0.15); border:1px solid rgb(var(--c-accent) / 0.3);">
               <img src="/assets/mgm-hospital-logo.png" style="width:190px;height:auto;background:white;border-radius:8px;padding:4px" alt="MGM Superspeciality Hospitals">
             </div>
             <div>
               <div class="font-headline-lg text-headline-lg text-white tracking-tight">MGM HMS</div>
-              <div class="font-label-sm text-label-sm uppercase tracking-widest" style="color:#C3A256; opacity:0.85">Srikalahasthi, Andhra Pradesh</div>
+              <div class="font-label-sm text-label-sm uppercase tracking-widest" style="color:rgb(var(--c-accent)); opacity:0.85">Srikalahasthi, Andhra Pradesh</div>
             </div>
           </div>
         </div>
 
         <div class="relative max-w-lg">
-          <h1 class="text-[38px] leading-[1.1] font-bold text-white tracking-tight">100 beds.<br><span style="color:#E8C876">Care for every speciality.</span></h1>
+          <h1 class="text-[38px] leading-[1.1] font-bold text-white tracking-tight">100 beds.<br><span style="color:var(--login-hi)">Care for every speciality.</span></h1>
           <p class="mt-4 text-body-lg text-white/60 leading-relaxed">Our mission is to bring healthcare of International standards within the reach of every individual. We are committed to excellence in education, research and healthcare for the benefit of humanity.</p>
           <div class="grid grid-cols-2 gap-3 mt-8">
             ${[
@@ -63,7 +70,7 @@ async function showSignIn() {
               ['dns', 'Runs on Your Server', 'No internet dependency required'],
             ].map(([i, t, s]) => `
               <div class="p-3.5 rounded-xl flex flex-col gap-1.5" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.07); backdrop-filter:blur(4px);">
-                <span class="material-symbols-outlined text-[20px]" style="color:#C3A256">${i}</span>
+                <span class="material-symbols-outlined text-[20px]" style="color:rgb(var(--c-accent))">${i}</span>
                 <div class="font-label-lg text-label-lg text-white">${t}</div>
                 <div class="text-body-sm text-white/45">${s}</div>
               </div>`).join('')}
@@ -81,7 +88,7 @@ async function showSignIn() {
       <div class="grid place-items-center p-6 overflow-y-auto" style="background:linear-gradient(160deg,#FAFBFC 0%,#F2F4F7 100%)">
         <div class="w-full max-w-[380px]">
           <div class="lg:hidden flex items-center gap-2.5 mb-8">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgba(136,29,44,0.1);border:1px solid rgba(136,29,44,0.2)">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgb(var(--c-primary) / 0.1);border:1px solid rgb(var(--c-primary) / 0.2)">
               <img src="/assets/mgm-hospital-logo.png" style="width:36px;height:26px;object-fit:contain;background:white" alt="MGM Hospitals">
             </div>
             <div>
@@ -273,7 +280,7 @@ function initTopbar() {
 
   /* --- sync chip --- */
   $('#sync-chip').onclick = () => navigate('/local-sync');
-  $('#conn-chip').onclick = () => toast(`Realtime: ${document.getElementById('conn-text').textContent}. ${state.badges ? '' : ''}`, 'info');
+  $('#conn-chip').onclick = () => toast(`${document.getElementById('conn-text').textContent} — screens update by themselves while this is green.`, 'info');
 
   /* --- global search --- */
   const input = $('#global-search');
@@ -309,7 +316,16 @@ function initTopbar() {
   input.addEventListener('input', run);
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { panel.classList.add('hidden'); input.blur(); }
-    if (e.key === 'Enter') { const f = panel.querySelector('[data-goto]'); if (f) f.click(); }
+    if (e.key === 'Enter') {
+      const code = input.value.trim();
+      // a scanner types the whole code and Enter: open the sample / patient / admission / bill it names
+      if (/^[A-Za-z0-9-]{5,}$/.test(code)) {
+        api.get(`/scan/${encodeURIComponent(code)}`).then((hit) => { panel.classList.add('hidden'); input.value = ''; navigate(hit.route); })
+          .catch(() => { const f = panel.querySelector('[data-goto]'); if (f) f.click(); });
+        return;
+      }
+      const f = panel.querySelector('[data-goto]'); if (f) f.click();
+    }
   });
   panel.addEventListener('click', (e) => {
     const b = e.target.closest('[data-goto]');
@@ -332,7 +348,7 @@ function wireRealtime() {
   onWsState((s) => {
     const dot = $('#conn-dot'), text = $('#conn-text');
     if (!dot) return;
-    const map = { live: ['#16A34A', `live · ${s.clients}`], connecting: ['#D97706', 'linking'], offline: ['#B91C1C', 'offline'] };
+    const map = { live: ['#16A34A', `Live · ${s.clients} online`], connecting: ['#D97706', 'Connecting…'], offline: ['#B91C1C', 'Offline'] };
     const [colour, label] = map[s.status] || map.offline;
     dot.style.background = colour;
     dot.style.animation = s.status === 'live' ? '' : 'none';
@@ -340,6 +356,17 @@ function wireRealtime() {
   });
 
   subscribe(['dashboard', 'system']);
+  on('settings.changed',async()=>{
+    try {
+      await loadMeta(true);
+      renderSidebar();
+      $('#rail-campus').textContent=setting('campus','Multi-Speciality Hospital');
+    } catch { /* The normal reconnect refresh retries metadata. */ }
+  });
+  on('roles.changed',async data=>{
+    if(data?.role!==state.user?.role)return;
+    try{await loadSession();await loadMeta(true);renderSidebar();}catch{/* Authentication failures use the normal session handler. */}
+  });
 
   on('notify', (d) => {
     if (d.role && d.role !== state.user.role) return;
@@ -353,10 +380,18 @@ function wireRealtime() {
       'claim.created', 'claim.updated', 'staff-work.changed', 'quality.created', 'quality.updated', 'ot.created', 'ot.updated', 'maternity.updated', 'sync.updated'],
     throttle(refreshBadgesAndRail, 3000));
 
+  // name every form field after its visible label, on every screen and dialog as it is drawn
+  {
+    let pending = 0;
+    const run = () => { pending = 0; for (const id of ['view', 'modal-root']) { const el = document.getElementById(id); if (el) labelFields(el); } document.querySelectorAll('[role=dialog]').forEach(labelFields); };
+    new MutationObserver(() => { if (!pending) pending = requestAnimationFrame(run); }).observe(document.body, { childList: true, subtree: true });
+  }
+
   on('lab.critical', (d) => {
     if (!d?.critical) return;
     toast(`${d.order?.label || 'Lab result'} — ${d.critical} critical value(s)`, 'danger',
-      { title: 'Critical result', timeout: 12000, action: { label: 'Open laboratory', run: () => navigate('/laboratory') } });
+      { title: 'Critical result', timeout: 12000, action: can('lab.result') || can('patient.clinical')
+        ? { label: 'Record the call', run: () => navigate('/critical-results') } : { label: 'Open laboratory', run: () => navigate('/laboratory') } });
   });
 
   on('emergency.created', (d) => {
@@ -380,6 +415,8 @@ async function refreshBadgesAndRail() {
     const n = (h.sync_queued || 0) + (h.sync_failed || 0);
     $('#sync-text').textContent = n;
     $('#sync-chip').classList.toggle('border-warning', n > 0);
+    // shown only while something is waiting to sync — an empty queue is not news
+    $('#sync-chip').classList.toggle('sm:flex', n > 0);
   } catch {}
 }
 

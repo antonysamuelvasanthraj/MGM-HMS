@@ -1,0 +1,15 @@
+import {DatabaseSync} from 'node:sqlite';
+const db=new DatabaseSync('data/surelyhms.db',{readOnly:true});
+const session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
+db.close();
+const targets=await fetch('http://127.0.0.1:9559/json').then(r=>r.json());
+const target=targets.find(t=>t.type==='page' && t.url.startsWith('http://localhost:4300'));
+const ws=new WebSocket(target.webSocketDebuggerUrl);
+await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+let seq=0;const pending=new Map();
+ws.addEventListener('message',event=>{const d=JSON.parse(event.data);if(pending.has(d.id)){pending.get(d.id)(d);pending.delete(d.id);}});
+const send=(method,params={})=>new Promise(resolve=>{const id=++seq;pending.set(id,resolve);ws.send(JSON.stringify({id,method,params}));});
+await send('Runtime.evaluate',{expression:`localStorage.setItem('surely_token',${JSON.stringify(session.token)})`});
+await send('Page.reload',{ignoreCache:true});
+await new Promise(resolve=>setTimeout(resolve,1500));
+const result=await send('Runtime.evaluate',{expression:`(async()=>{const {mount}=await import('/src/views/tariff.js');await mount({host:document.getElementById('view'),params:[],query:{}});await new Promise(r=>setTimeout(r,800));document.querySelector('[data-new-svc]').click();await new Promise(r=>setTimeout(r,300));const category=document.querySelector('[name=category]');category.value='lab';category.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,800));const select=document.querySelector('[data-unit-select]');select.value='mg/dL';select.dispatchEvent(new Event('change',{bubbles:true}));const selected=document.querySelector('[data-new-param-unit]').value;select.value='__custom__';select.dispatchEvent(new Event('change',{bubbles:true}));const customVisible=!document.querySelector('[data-new-param-unit]').hidden;return {options:select.options.length,selected,customVisible};})()`,awaitPromise:true,returnByValue:true});const value=result.result?.result?.value;console.log(value);ws.close();if(value?.selected!=='mg/dL'||!value.customVisible||value.options<40)throw Error('Lab unit dropdown check failed');

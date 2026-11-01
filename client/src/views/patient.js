@@ -6,10 +6,17 @@ import {
   fmtDate, fmtDateTime, fmtTime, ago, spinner, emptyState, kpi, renderRows, billStatus, payerFieldsHTML, wirePayerFields,
  modeLabel,
 } from './_kit.js';
+import {collectBill} from '../collect.js';
 import { openDischargeSummary } from '../discharge-summary.js';
 import {showBillingContext} from '../billing-context.js';
-import {printBill} from './bills.js';
+import { openPayerChange, canChangePayer } from '../payer-change.js';
+import {printBill,newBill,canRaiseReceptionBill,openBill} from './bills.js';
 import {printPatientPrescription,printStay} from '../patient-print.js';
+import { referralHTML, wireReferrals } from '../referrals.js';
+import { mountAttachments } from '../attachments.js';
+import { printWristband, printFileSticker } from '../labels.js';
+import { printsBarcodeLabels } from '../store.js';
+import { openPaperForms } from '../paper-forms.js';
 
 let tab = 'timeline';
 
@@ -20,31 +27,52 @@ export async function mount(ctx) {
   let data;
 
   async function load() {
+    if(root.querySelector('[data-inline-workflow]'))return;
     data = await api.get(`/patients/${id}/timeline`);
     document.getElementById('page-title').textContent = data.patient.name;
     root.innerHTML = view(data);
     if(data.access?.financial)await showBillingContext(root.querySelector('[data-billing-summary]'),id);
     paintTab(root, data);
+    if (can('patient.clinical') || can('patient.edit')) await mountAttachments(root.querySelector('[data-outside-files]'), 'patient', id, {canEdit: true});
     if(data.ward_replacements?.length)root.insertAdjacentHTML('beforeend',card({title:'Emergency rack usage & replacements',body:T(data.ward_replacements,'<tr><th>Slip / store</th><th>Used batches</th><th>Replacement batches / bills</th><th>Status</th></tr>',r=>`<tr><td>${esc(r.replacement_no)} · ${esc(r.location)}</td><td>${esc(r.used||'')}</td><td>${esc(r.replacement||'Pending replacement')}</td><td>${esc(r.status.replaceAll('_',' '))}</td></tr>`,'No ward usage')}));
   }
 
-  bind(root, 'click', '[data-tab]', (e, b) => { tab = b.dataset.tab; paintTab(root, data); });
+  bind(root, 'click', '[data-tab]', (e, b) => { tab = b.dataset.tab; paintTab(root, data);root.querySelector('[data-panel]')?.scrollIntoView({behavior:'smooth',block:'start'}); });
+  bind(root,'click','[data-running-ip-bill]',(_event,button)=>openBill(+button.dataset.runningIpBill,load).catch(apiError));
   bind(root, 'click', '[data-open-visit]', (e, b) => navigate(`/visit/${b.dataset.openVisit}`));
   bind(root, 'click', '[data-add-allergy]', () => addAllergy(id, load));
-  bind(root, 'click', '[data-new-visit]', () => navigate(`/op-registration?patient=${id}`));
+  bind(root, 'click', '[data-wristband]', () => printWristband(id).catch(apiError));
+  bind(root, 'click', '[data-sticker]', () => printFileSticker(id).catch(apiError));
+  bind(root, 'click', '[data-paper-forms]', () => openPaperForms({ id, name: data?.patient?.name || '' }).catch(apiError));
+  async function workflow(open) {
+    const host=root.querySelector('[data-patient-workflow]');
+    if(host.childElementCount){toast('Finish or cancel the current registration before starting another.','info');host.scrollIntoView({behavior:'smooth'});return;}
+    host.innerHTML=spinner('Opening form');
+    try{await open(host);}catch(error){host.replaceChildren();apiError(error);}
+  }
+  bind(root, 'click', '[data-new-visit]', () => workflow(async host=>{
+    const {openPatientRegistration}=await import('./op-registration.js');await openPatientRegistration(host,data.patient,load);
+  }));
+  bind(root,'click','[data-new-patient-bill]',()=>workflow(host=>newBill(load,false,{patientId:+id,inlineHost:host})));
+  bind(root,'click','[data-admit-patient]',async()=>{
+    try { const {admitPatient}=await import('./admissions.js');await workflow(host=>admitPatient(load,null,{patientId:+id,inlineHost:host})); }
+    catch(error){apiError(error);}
+  });
   bind(root, 'click', '[data-edit]', () => editPatient(data.patient, load));
   bind(root, 'click', '[data-portal]', () => portalAccess(data.patient));
   bind(root, 'click', '[data-counsel]', async (e, b) => { const { openSession } = await import('./counselling.js'); openSession(+b.dataset.counsel, load); });
   bind(root, 'click', '[data-summary]', (e, b) => openDischargeSummary(+b.dataset.summary, load));
+  bind(root,'click','[data-patient-collect]',(_e,b)=>collectBill(+b.dataset.patientCollect,load));
   bind(root, 'click', '[data-print-bill]', (e,b)=>printBill(+b.dataset.printBill));
   bind(root, 'click', '[data-print-rx]', (e,b)=>printPatientPrescription(id,+b.dataset.printRx));
   bind(root, 'click', '[data-print-stay]', (e,b)=>printStay(+b.dataset.printStay,!!data.access?.clinical||(can('ipd.discharge')&&data.admissions.some(a=>a.id===+b.dataset.printStay&&a.summary_status==='final'))));
 
-  return live({ topics: [`patient:${id}`, 'patients'], events: ['patient.updated', 'encounter.created', 'payment.received', 'consultation.saved', 'lab.verified'], load });
+  return live({ topics: [`patient:${id}`, 'patients'], events: ['patient.updated', 'encounter.created', 'admission.created', 'admission.updated', 'admission.discharged', 'payment.received', 'consultation.saved', 'lab.verified'], load });
 }
 
 function view(d) {
   const p = d.patient;
+  const running=d.bills.find(bill=>bill.bill_type==='IP'&&bill.status!=='cancelled'&&d.admissions.some(admission=>admission.status!=='discharged'&&admission.encounter_id===bill.encounter_id));
   const permitted=k=>({counsel:d.access?.counselling,clinical:d.access?.clinical,orders:d.access?.orders,rx:d.access?.prescriptions,vitals:d.access?.vitals,money:d.access?.financial,ipd:d.access?.admissions,docs:d.access?.certificates||d.access?.claims}[k]??true);
   if(!permitted(tab))tab='timeline';
   return page({
@@ -53,14 +81,25 @@ function view(d) {
     title: p.name,
     subtitle: `${d.encounters.length} encounter(s) · ${d.admissions.length} admission(s) · ${d.orders.length} service order(s)`,
     actions: `${can('patient.edit') ? `<button class="btn-secondary" data-edit><span class="material-symbols-outlined text-[18px]">edit</span> Edit</button>` : ''}
+      ${printsBarcodeLabels() ? '<button class="btn-ghost" data-wristband title="Print the patient wristband"><span class="material-symbols-outlined text-[18px]">badge</span> Wristband</button>' : ''}<button class="btn-ghost" data-sticker title="Print file stickers">Stickers</button><button class="btn-ghost" data-paper-forms title="Print blank nursing / ICU / OT / consent forms and record the signed copy"><span class="material-symbols-outlined text-[18px]">description</span> Paper forms</button>
       ${d.access?.financial&&d.bills.length?`<button class="btn-secondary" data-print-bill="${d.bills[0].id}">Print latest bill</button>`:''}
       ${d.access?.prescriptions&&d.prescriptions.length?`<button class="btn-secondary" data-print-rx="${d.prescriptions[0].id}">Print latest prescription</button>`:''}
       ${can('patient.edit') || can('op.register') ? `<button class="btn-secondary" data-portal><span class="material-symbols-outlined text-[18px]">phonelink_lock</span> Patient portal</button>` : ''}
-      ${can('op.register') ? `<button class="btn-primary" data-new-visit><span class="material-symbols-outlined text-[18px]">how_to_reg</span> New visit</button>` : ''}`,
+      `,
     body: `
       ${patientBanner(p, { actions: can('patient.clinical') ? `<button class="btn-secondary btn-sm" data-add-allergy>
         <span class="material-symbols-outlined text-[15px]">add</span> Allergy</button>` : '' })}
+      <section class="card p-4"><h2 class="panel-title">Registration & billing</h2><p class="text-body-sm mt-1">Complete this patient’s OP registration, IPD admission and billing here.</p><div class="flex flex-wrap gap-2 mt-3">
+        ${can('op.register')?'<button class="btn-primary" data-new-visit>New OP visit / follow-up</button>':''}
+        ${can('ipd.admit')&&!d.admissions.some(a=>a.status!=='discharged')?'<button class="btn-secondary" data-admit-patient>Admit to IPD</button>':''}
+        ${d.access?.financial&&canRaiseReceptionBill()?'<button class="btn-secondary" data-new-patient-bill>Raise new bill</button>':''}
+        ${d.access?.admissions&&d.admissions.some(a=>a.status!=='discharged')?'<button class="btn-secondary" data-tab="ipd">View current IPD admission</button>':''}
+        ${d.access?.financial&&running?`<button class="btn-secondary" data-running-ip-bill="${running.id}">Current IPD bill / deposit</button>`:''}
+        ${d.access?.financial?'<button class="btn-secondary" data-tab="money">Bills & pharmacy dues</button>':''}
+      </div></section><div data-patient-workflow></div>
       ${d.access?.financial?'<div data-billing-summary></div>':''}
+      ${(d.pharmacy_pending_bills || []).length?`<div class="card p-3"><button class="btn-secondary" data-tab="money">Pharmacy pending: ${money(d.pharmacy_pending_bills.reduce((sum,b)=>sum+(b.patient_due??b.balance),0))} · View bills</button><p class="text-body-sm mt-2">Read-only at reception. Pharmacy payments are collected at the pharmacy counter.</p></div>`:''}
+      ${can('patient.clinical') || can('patient.edit') ? card({title:'Outside prescriptions, reports and discharge records',body:'<div data-outside-files></div>'}) : ''}
       <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         ${[{ label: 'Total visits', value: d.encounters.length, icon: 'timeline' },
            { label: 'Admissions', value: d.admissions.length, icon: 'hotel' },
@@ -176,14 +215,15 @@ const vitals = (d) => T(d.vitals,
   'No vitals recorded');
 
 const moneyTab = (d) => `
+  ${d.access?.financial?card({title:'Pharmacy bills — view only',body:`<p class="text-body-sm mb-2">These bills must be settled at the pharmacy counter.</p>${T(d.pharmacy_bills || [],'<th>Pharmacy bill</th><th>Date</th><th>Status</th><th>Total</th><th>Paid</th><th>Patient due</th><th>Payer outstanding</th>',b=>`<tr><td>${esc(b.bill_no)}</td><td>${fmtDate(b.bill_date)}</td><td>${billStatus(b)}</td><td class="num">${money(b.total,2)}</td><td class="num">${money(b.paid,2)}</td><td class="num text-danger">${money(b.patient_due??b.balance,2)}</td><td class="num">${money((b.payer_pending||0)+(b.payer_receivable||0),2)}</td></tr>`,'No pharmacy bills for this patient')}`}):''}
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    ${card({ title: 'Bills', pad: false, body: T(d.bills,
-      `<th>Bill</th><th>Type</th><th>Status</th><th class="text-right">Total</th><th class="text-right">Balance</th><th>Print</th>`,
+    ${card({ title: 'Bills', actions:canRaiseReceptionBill()?'<button class="btn-primary btn-sm" data-new-patient-bill>Raise new bill</button>':'',pad: false, body: T(d.bills,
+      `<th>Bill</th><th>Type</th><th>Status</th><th class="text-right">Total</th><th class="text-right">Patient due</th><th class="text-right">Payer outstanding</th><th>Action</th>`,
       (b) => `<tr><td><div class="font-data-mono text-body-sm">${esc(b.bill_no)}</div>
           <div class="text-label-sm text-on-surface-variant">${fmtDate(b.bill_date)}</div></td>
         <td>${esc(b.bill_type)}</td><td>${billStatus(b)}</td>
         <td class="num">${money(b.total)}</td>
-        <td class="num ${b.balance > 0 ? 'text-danger font-semibold' : ''}">${money(b.balance)}</td><td><button class="btn-secondary btn-xs" data-print-bill="${b.id}">Print bill</button></td></tr>`,
+        <td class="num ${b.balance > 0 ? 'text-danger font-semibold' : ''}">${money(b.patient_due??b.balance)}</td><td class="num">${money((b.payer_pending||0)+(b.payer_receivable||0))}</td><td>${can('payment.collect')&&(b.patient_due??b.balance)>0.005&&(b.bill_type!=='PHARM'||can('pharmacy.dispense'))?`<button class="btn-primary btn-xs" data-patient-collect="${b.id}">Collect patient due</button>`:''} <button class="btn-secondary btn-xs" data-print-bill="${b.id}">Print bill</button></td></tr>`,
       'No bills') })}
     ${card({ title: 'Receipts', pad: false, body: T(d.payments,
       `<th>Receipt</th><th>Mode</th><th class="text-right">Amount</th><th>Received by</th>`,
@@ -253,7 +293,7 @@ async function portalAccess(p) {
   try { a = await api.get(`/patients/${p.id}/portal-access`); } catch (e) { apiError(e); return; }
   const url = `${location.origin}/my-health`;
   modal({
-    title: 'Patient portal', subtitle: `${p.name} · ${p.uhid}`, size: 'sm',
+    title: 'Patient portal', subtitle: `${esc(p.name)} · ${esc(p.uhid)}`, size: 'sm',
     body: `<div data-pbody class="space-y-3 text-body-md">
       <p>${a.active ? `Access is <b>active</b> — issued ${fmtDateTime(a.issued_at)}${a.issued_by_name ? ` by ${esc(a.issued_by_name)}` : ''}.${a.last_login_at ? ` Last sign-in ${fmtDateTime(a.last_login_at)}.` : ' Not used yet.'}${a.locked ? ' <span class="pill-danger">Locked after wrong attempts</span>' : ''}`
         : 'The patient has no portal access yet.'}</p>
@@ -312,13 +352,14 @@ function editPatient(p, after) {
     body: `<form data-ef class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div class="md:col-span-2"><label class="field-label">Name</label><input class="field" name="name" value="${esc(p.name)}"></div>
       <div><label class="field-label">Age</label><input class="field" name="age_years" type="number" value="${p.age_years ?? ''}"></div>
-      <div><label class="field-label">Mobile</label><input class="field" name="mobile" value="${esc(p.mobile || '')}"></div>
+      <div><label class="field-label">Mobile</label><input class="field" name="mobile" value="${esc(p.mobile || '')}" inputmode="tel" pattern="(\+?91[ \-]?|0)?[6-9][0-9]{4}[ \-]?[0-9]{5}" title="10-digit mobile number, e.g. 98765 43210"></div>
       <div><label class="field-label">Alternate mobile</label><input class="field" name="alt_mobile" value="${esc(p.alt_mobile || '')}"></div>
       <div><label class="field-label">Blood group</label><select class="field" name="blood_group">
         ${['', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map((b) => `<option ${b === p.blood_group ? 'selected' : ''}>${b}</option>`).join('')}</select></div>
       <div class="md:col-span-2"><label class="field-label">Address</label><input class="field" name="address" value="${esc(p.address || '')}"></div>
       <div><label class="field-label">City</label><input class="field" name="city" value="${esc(p.city || '')}"></div>
       ${payerFieldsHTML(p)}
+      ${referralHTML(p)}
       <div><label class="field-label">ABHA</label><input class="field" name="abha" value="${esc(p.abha || '')}"></div>
       <div><label class="field-label">Next of kin</label><input class="field" name="kin_name" value="${esc(p.kin_name || '')}"></div>
       <div><label class="field-label">Relationship</label><input class="field" name="kin_relation" value="${esc(p.kin_relation || '')}"></div>
@@ -327,14 +368,33 @@ function editPatient(p, after) {
     footer: `<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Save changes</button>`,
     onMount(root, close) {
       wirePayerFields(root);
+      wireReferrals(root);
       root.querySelector('[data-save]').onclick = async (ev) => {
         const actionButton = ev.currentTarget;
         busy(actionButton, true);
         try {
-          await api.patch(`/patients/${p.id}`, Object.fromEntries(new FormData(root.querySelector('[data-ef]'))));
+          const form = root.querySelector('[data-ef]');
+          if (!form.reportValidity()) { busy(actionButton, false); return; }
+          const saved = await api.patch(`/patients/${p.id}`, {...Object.fromEntries(new FormData(form)), pregnant: form.pregnant.checked ? 1 : 0});
           close(); toast('Patient record updated', 'success'); after();
+          const open = saved?.payer_open_visits || [];
+          if (open.length) payerFollowUp(open, saved.payer_type, after);
         } catch (e) { apiError(e); busy(actionButton, false); }
       };
+    },
+  });
+}
+
+/** The record's payer now applies to new visits; open visits keep theirs until changed here (money guarded). */
+function payerFollowUp(open, category, after) {
+  modal({
+    title: 'Open visits still on the old payer', size: 'sm',
+    body: `<p class="text-body-md">The new payer applies to <strong>new</strong> visits. ${open.length === 1 ? 'This open visit keeps' : 'These open visits keep'} the old payer until you change ${open.length === 1 ? 'it' : 'them'}:</p>
+      <ul class="mt-2 space-y-1.5">${open.map((v) => `<li class="flex items-center justify-between gap-2 rounded border border-outline-variant p-2"><span><span class="font-data-mono">${esc(v.ip_no || v.encounter_no)}</span> · ${v.admission_id ? 'Admission' : esc(v.kind)} · ${esc(v.visit_date || '')}</span>
+        ${canChangePayer(!!v.admission_id) ? `<button class="btn-secondary btn-xs" data-apply="${v.encounter_id}">Change payer</button>` : '<span class="text-body-sm text-on-surface-variant">Ask the billing desk</span>'}</li>`).join('')}</ul>`,
+    footer: '<button class="btn-secondary" data-close>Later</button>',
+    onMount(root, close) {
+      root.querySelectorAll('[data-apply]').forEach((b) => { b.onclick = () => { close(); openPayerChange(+b.dataset.apply, after, { category }); }; });
     },
   });
 }

@@ -136,14 +136,19 @@ export function addCharge(admission, { service_id, description, rate, unit, star
   if (service_id && !svc) throw Object.assign(new Error('service_not_found'), { http: 404 });
   const r = rate !== undefined && rate !== '' ? +rate : svc ? priceFor(svc, admission.patient_id) : undefined;
   if (!Number.isFinite(r) || r < 0) throw Object.assign(new Error('rate_invalid'), { http: 400 });
-  if (svc && all("SELECT 1 FROM admission_charges WHERE admission_id=? AND service_id=? AND status='active'", admission.id, svc.id).length) {
+  const chargeUnit=unit || svc?.billing_unit || 'day';
+  if(!['day','hour','once'].includes(chargeUnit))throw Object.assign(new Error('charge_unit_invalid'),{http:400});
+  let start=started_at?String(started_at).replace('T',' '):nowIso();
+  if(start.length===16)start+=':00';
+  if(!Number.isFinite(t(start))||stamp(t(start))!==start||t(start)<t(admission.admitted_at))throw Object.assign(new Error('charge_start_invalid'),{http:400});
+  if (svc && all("SELECT 1 FROM admission_charges WHERE admission_id=? AND service_id=? AND status='active' AND unit<>'once'", admission.id, svc.id).length) {
     throw Object.assign(new Error('charge_already_active'), { http: 409 });
   }
   return insert('admission_charges', {
     admission_id: admission.id, service_id: svc?.id || null, kind: 'service',
     category: svc?.category === 'consultation' ? 'consultation' : svc?.category || 'ipd',
-    unit: unit || svc?.billing_unit || 'day', description: description || svc?.name || 'Charge', rate: r,
-    started_at: started_at || nowIso(), added_by: userId,
+    unit: chargeUnit, description: description || svc?.name || 'Charge', rate: r,
+    started_at: start, added_by: userId,
   });
 }
 

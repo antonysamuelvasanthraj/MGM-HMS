@@ -12,10 +12,10 @@ export async function mount(ctx) {
   const tabs = [['sales', 'Patient returns', 'pharmacy.view'], ['purchase', 'Supplier returns', 'purchase.view']].filter(([, , perm]) => can(perm));
   const f = { tab: tabs.some(([key]) => key === ctx.query.tab) ? ctx.query.tab : tabs[0]?.[0] };
   const root = mountPage(ctx, page({
-    wide: true, eyebrow: eyebrow('Pharmacy', 'assignment_return'), title: 'Returns',
+    wide: true, eyebrow: eyebrow('Pharmacy', 'assignment_return'), title: 'Pharmacy Returns & Stock Control',
     subtitle: 'Patient returns and returns to suppliers, each with a reason and a full stock and accounts trail.',
     actions: `${can('pharmacy.dispense') ? '<button class="btn-secondary" data-new-sale>Patient return</button>' : ''}${can('purchase.write') ? '<button class="btn-secondary" data-new-pur>Return to supplier</button>' : ''}`,
-    body: `<div class="inline-flex p-0.5 rounded bg-surface-container" role="tablist">${tabs.map(([v, l]) => `<button data-tab="${v}" role="tab" class="px-3 h-8 rounded font-label-md text-label-md">${l}</button>`).join('')}</div>
+    body: `${can('inventory.view') ? card({ title: 'Inventory & stock adjustment', body: `<p class="mb-3">Review batch quantities, enter physical counts, and preview stock differences and their cost impact. Posted adjustments appear in stock movement history.</p><div class="flex flex-wrap gap-2">${can('inventory.write') ? '<a class="btn-primary" href="/stock?adjust=1">Manual stock adjustment</a>' : ''}<a class="btn-secondary" href="/stock">Stock adjustment history & inventory</a></div>` }) : ''}<div class="inline-flex p-0.5 rounded bg-surface-container" role="tablist">${tabs.map(([v, l]) => `<button data-tab="${v}" role="tab" class="px-3 h-8 rounded font-label-md text-label-md">${l}</button>`).join('')}</div>
       <div data-list></div>`,
   }));
 
@@ -101,11 +101,27 @@ async function purchaseReturn(after) {
   const batches = rows.filter((b) => b.qty > 0);
   modal({
     title: 'Return to supplier', size: 'md', subtitle: 'Only Central-store stock can go back to a supplier.',
-    body: `<label class="field-label">Batch</label><select class="field" data-batch>${batches.map((b) => `<option value="${b.id}">${esc(b.medicine_name)} · ${esc(b.batch_no)} · exp ${esc(b.expiry.slice(0, 7))} · ${b.qty} in stock · ${esc(b.supplier_name || '')}</option>`).join('')}</select>
+    body: `<label class="field-label" for="supplier-return-search">Search batches</label><input id="supplier-return-search" class="field mb-3" type="search" data-batch-search placeholder="Search medicine, batch, supplier or expiry" autocomplete="off">
+      <label class="field-label">Batch</label><select class="field" data-batch>${batches.map((b) => `<option value="${b.id}">${esc(b.medicine_name)} · ${esc(b.batch_no)} · exp ${esc(b.expiry.slice(0, 7))} · ${b.qty} in stock · ${esc(b.supplier_name || '')}</option>`).join('')}</select><p class="text-body-sm mt-1" data-batch-count aria-live="polite"></p>
       <div class="grid grid-cols-2 gap-3 mt-3"><div><label class="field-label">Quantity (units)</label><input class="field text-right" type="number" min="1" data-qty></div>
       <div><label class="field-label">Reason</label><select class="field" data-reason><option>Expired</option><option>Near expiry</option><option>Damaged</option><option>Wrong item supplied</option><option>Quality complaint</option></select></div></div>`,
     footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Return</button>',
     onMount(el, close) {
+      const select = el.querySelector('[data-batch]');
+      const options = [...select.options].map(option => ({value:option.value,text:option.text}));
+      const filter = () => {
+        const selected = select.value;
+        const words = el.querySelector('[data-batch-search]').value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+        const matches = options.filter(option => words.every(word => option.text.toLocaleLowerCase().includes(word)));
+        select.replaceChildren(...matches.map(option => new Option(option.text,option.value)));
+        if(matches.some(option=>option.value===selected))select.value=selected;
+        if(!matches.length)select.add(new Option('No matching batches',''));
+        select.disabled=!matches.length;
+        el.querySelector('[data-save]').disabled=!matches.length;
+        el.querySelector('[data-batch-count]').textContent=`${matches.length} of ${options.length} batches`;
+      };
+      el.querySelector('[data-batch-search]').addEventListener('input',filter);
+      filter();
       el.querySelector('[data-save]').onclick = async (e) => {
         const btn = e.currentTarget; busy(btn, true);
         try {

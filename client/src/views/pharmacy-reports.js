@@ -53,9 +53,14 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Commercial reporting', 'analytics')} ${liveChip()}`,
     title: 'Pharmacy & Inventory Reports',
-    subtitle: 'Revenue, margin, fast movers, supplier spend and the value tied up in stock that is about to expire.',
-    actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>`,
+    subtitle: 'Sales, margin, fast movers and stock near expiry.',
+    actions: `<a class="btn-secondary" href="/reports?report=pharmacy_patient_register">Patient / batch sales register</a><button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>`,
     body: `
+      ${card({ title: 'Stock books', subtitle: 'Batch, product, company, sales and GRN registers — each opens with search, Excel and Print/PDF',
+        body: `<div class="flex flex-wrap gap-3">${[
+          ['pharmacy_stock_batches', 'Stock — batch-wise'], ['pharmacy_product_master', 'Product master'], ['pharmacy_company_summary', 'Stock by company'],
+          ['pharmacy_sales_gst_profit', 'Sales — GST & profit'], ['grn_line_costing', 'GRN line costing'],
+        ].map(([id, l]) => `<a class="btn-secondary" href="/reports?report=${id}">${l}</a>`).join('')}</div>` })}
       ${card({title:'Pharmacy audit reports',subtitle:'Separate registers with search, Excel/CSV and Print/PDF',body:'<div class="flex flex-wrap gap-3"><a class="btn-secondary" href="/reports?report=ward_indent_audit">Direct indent audit</a><a class="btn-secondary" href="/reports?report=ward_replacement_audit">Ward replacement audit</a><a class="btn-secondary" href="/reports?report=pharmacy_expiry_removals">Expiry removal audit</a><a class="btn-secondary" href="/reports?report=pharmacy_stock_losses">All stock losses</a><a class="btn-secondary" href="/reports?report=emergency_store_batches">ER / ICU / OT batches & expiry</a></div>'})}
       ${filterBar([
         { type: 'date', key: 'from', label: 'From', value: f.from, width: 'w-[150px]' },

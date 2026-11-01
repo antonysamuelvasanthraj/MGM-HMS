@@ -6,7 +6,7 @@
  */
 import {
   page, eyebrow, liveChip, card, kpiRow, tableCard, filterBar, wireFilters, live, mountPage,
-  doctorOptions, apiError, busy, api, qs, state, can, navigate,
+  doctorOptions, apiError, busy, api, qs, state, can, navigate, setting,
   $, $$, esc, bind, toast, modal, drawer, renderRows, pill, money, fmtTime, todayISO, ago, kpi,
   patientBanner, emptyState, vitalAlerts,
 } from './_kit.js';
@@ -49,8 +49,8 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Nursing station', 'vital_signs')} ${liveChip()}`,
     title: 'Vitals Queue',
-    subtitle: 'Record observations before the patient enters the doctor’s ready queue. Vitals do not depend on payment — take them, and the desk can settle the fee in parallel.',
-    actions: `<a href="/doctor-queue" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">groups</span> Doctor queue</a>`,
+    subtitle: 'Patients waiting for vitals.',
+    actions: setting('workflow_doctor', 'portal') === 'manual' ? '' : `<a href="/doctor-queue" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">groups</span> Doctor queue</a>`,
     body: `
       ${kpiRow([], 4)}
       ${filterBar([

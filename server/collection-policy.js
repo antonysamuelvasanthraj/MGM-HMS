@@ -1,4 +1,6 @@
 import { all, get } from './db.js';
+import { effectiveCopay } from './payer-policy.js';
+import {billExclusions} from './payer-lines.js';
 
 const deferred = ['insurance', 'aarogyasri', 'corporate', 'trust'];
 const round = v => Math.round(Math.max(0, Number(v) || 0) * 100) / 100;
@@ -13,9 +15,10 @@ export function collectionPolicy(bill) {
   if (!deferred.includes(bill.payer_type)) return finish({ patient_due: balance, payer_pending: 0, deferred_collection: ['credit', 'due', 'free'].includes(bill.payer_type) });
   const claim = bill.claim_id ? get('SELECT * FROM insurance_claims WHERE id=?', bill.claim_id) : null;
   const rows = claim ? all("SELECT * FROM bills WHERE claim_id=? AND status<>'cancelled' ORDER BY bill_type='IP', id", claim.id) : [bill];
-  let copay = round(claim?.copay_amount);
+  const caseCopay = round(effectiveCopay(claim));
+  let copay = caseCopay;
   // Money above exclusions already paid on any case bill meets the single case co-pay.
-  const exclusions = b => round(get('SELECT coalesce(sum(coalesce(patient_pay_amount,amount)),0) v FROM bill_items WHERE bill_id=? AND patient_pays=1 AND amount>0', b.id)?.v);
+  const exclusions = b => billExclusions(b.id);
   copay = round(copay - rows.reduce((sum, b) => sum + Math.max(0, b.paid - exclusions(b)), 0));
   let patientDue = 0;
   for (const b of rows) {
@@ -24,7 +27,7 @@ export function collectionPolicy(bill) {
     copay = round(copay - share);
     if (b.id === bill.id) {
       const transferred = round(get("SELECT coalesce(sum(transferred_to_patient),0) v FROM bill_settlements WHERE bill_id=? AND status<>'cancelled'", b.id)?.v);
-      patientDue = Math.min(balance, round(exclusionDue + share + Math.max(0, transferred - Math.max(0, b.paid - exclusions(b) - round(claim?.copay_amount)))));
+      patientDue = Math.min(balance, round(exclusionDue + share + Math.max(0, transferred - Math.max(0, b.paid - exclusions(b) - caseCopay))));
     }
   }
   return finish({ patient_due: patientDue, payer_pending: round(balance - patientDue), deferred_collection: true });

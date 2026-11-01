@@ -32,6 +32,8 @@ async function call(path,body,method=body===undefined?'GET':'POST',status=200){
  const value=await res.json();assert.equal(res.status,status,`${method} ${path}: ${JSON.stringify(value)}`);assertions++;return value;
 }
 const login=await call('/auth/login',{username:'admin',password:'surely'});token=login.token;
+// payer money maths below; the Aarogyasri checklist and payer-change approval are covered by tools/payer-change-test.mjs
+await call('/settings',{scheme_checklist_required:'0'},'PATCH');
 let lists=0;
 for(const file of fs.readdirSync('server/routes')){
  const prefix=({patients:'/patients',pharmacy:'/pharmacy',inventory:'/pharmacy','ward-replacements':'/pharmacy',ipd:'/ipd'})[file.replace('.js','')]||'';
@@ -41,11 +43,17 @@ for(const file of fs.readdirSync('server/routes')){
 }
 const meta=await call('/meta');const doctor=meta.doctors.find(d=>d.role==='doctor');
 const p=await call('/patients',{name:'QA Workflow Patient '+Date.now(),gender:'Female',age_years:29,mobile:'9000000000'});
+// one person, one UHID: the same name and mobile (typed differently) is offered back, not created again
+{const again=await call('/patients',{name:p.name,gender:'Female',age_years:29,mobile:'+91 90000 00000'},'POST',409);
+ assert.equal(again.error,'possible_duplicate');assert.ok(again.matches.some(m=>m.id===p.id),'the existing UHID is offered');}
 assert.equal((await call(`/patients/${p.id}/billing-context`)).care_type,'NONE');
 assert.equal((await call(`/patients/${p.id}/billing-context`)).payer_type,'self');
 const appt=await call('/appointments',{patient_id:p.id,doctor_id:doctor.id,slot_start:'2026-09-23 15:00:00'});
 assert.equal((await call('/appointments/'+appt.id)).patient_id,p.id);
 const reg=await call('/encounters',{patient_id:p.id,doctor_id:doctor.id,appointment_id:appt.id});const eid=reg.encounter.id;
+// a visit the doctor has not seen yet is not a prescription for a Schedule H medicine
+{const sched=(await call('/pharmacy/medicines?q=&location=OP')).rows?.find?.(m=>['H','H1','X'].includes(m.schedule)&&m.stock>0);
+ if(sched)await call('/pharmacy/dispense',{patient_id:p.id,encounter_id:eid,items:[{medicine_id:sched.id,qty:1}],collect:false},'POST',400);}
 assert.equal((await call(`/patients/${p.id}/billing-context?encounter_id=${eid}`)).care_type,'OP');
 await call(`/patients/${p.id}/billing-context?encounter_id=99999999`,undefined,'GET',404);
 assert.equal((await call('/appointments/'+appt.id)).status,'converted');
@@ -61,7 +69,7 @@ const amended=await call('/consultations',{encounter_id:eid,diagnosis:'Corrected
 assert.equal(amended.consultation.status,'amended');
 await call('/consultations',{encounter_id:eid,diagnosis:'Untracked second change',status:'draft'},'POST',409);
 const labService=meta.services.find(s=>s.category==='lab');
-const order=await call('/orders',{encounter_id:eid,items:[{service_id:labService.id}]});const oid=order.orders[0].id;
+const order=await call('/orders',{encounter_id:eid,confirm_duplicate:true,items:[{service_id:labService.id}]});const oid=order.orders[0].id;
 await call('/payments',{bill_id:order.bill.id,amount:order.bill.total,mode:'cash'});
 await call(`/lab/orders/${oid}/collect`,{});
 await call(`/lab/orders/${oid}/results`,{results:[{name:'QA observation',value:'Normal'}]});
@@ -106,16 +114,25 @@ await call(`/ipd/emergency/${er.id}/close`,{outcome:'referred'},'POST',400);
 const erList=(await call('/ipd/emergency?all=1')).rows.find(x=>x.id===er.id);assert.equal(erList.bill_balance,erBasic.price);
 const stock=await call('/pharmacy/stock');const batch=(stock.rows||stock.batches||[]).find(b=>b.qty>5&&b.expiry>'2026-09-23'&&b.location==='OP');
 if(!batch) throw new Error('No sellable test batch');
-const sale=await call('/pharmacy/dispense',{patient_id:p.id,items:[{medicine_id:batch.medicine_id,batch_id:batch.id,qty:1}],mode:'cash'});
+// a Schedule H / H1 / X medicine is sold only against a prescription (Drugs & Cosmetics Rules)
+{const sched=(await call('/pharmacy/medicines?q=&location=OP')).rows?.find?.(m=>['H','H1','X'].includes(m.schedule)&&m.stock>0);
+ if(sched)await call('/pharmacy/dispense',{patient_id:p.id,items:[{medicine_id:sched.id,qty:1}],mode:'cash'},'POST',400);}
+const sale=await call('/pharmacy/dispense',{patient_id:p.id,rx_note:'QA paper Rx',items:[{medicine_id:batch.medicine_id,batch_id:batch.id,qty:1}],mode:'cash'});
 assert.equal(sale.bill.balance,0);
 const updated=await call('/pharmacy/stock');assert.equal(updated.rows.find(b=>b.id===batch.id).qty,batch.qty-1);
 
 const imagingService=meta.services.find(s=>s.category==='imaging');
-const imaging=await call('/orders',{encounter_id:eid,items:[{service_id:imagingService.id}]});
+const imaging=await call('/orders',{encounter_id:eid,confirm_duplicate:true,items:[{service_id:imagingService.id}]});
+const adminBeforeImaging=token;
+await call('/admin/users',{username:'qa-radiologist',name:'QA Radiologist',role:'imaging_admin',password:'surely'});
+token=(await call('/auth/login',{username:'qa-radiologist',password:'surely'})).token;
 await call('/imaging/orders/'+imaging.orders[0].id+'/report',{findings:'x',impression:'y',status:'final'},'POST',409);
+token=adminBeforeImaging;
 const imgHalf=Math.round(imaging.bill.total/2*100)/100;
 await call('/bills/'+imaging.bill.id+'/settle',{request_key:'qa-img-'+Date.now()+'-abcdef',lines:[{mode:'upi',amount:imgHalf,reference:'UPI123'},{mode:'debit_card',amount:imaging.bill.total-imgHalf,reference:'CARD9'}]});
+token=(await call('/auth/login',{username:'qa-radiologist',password:'surely'})).token;
 await call('/imaging/orders/'+imaging.orders[0].id+'/report',{findings:'QA finding',impression:'QA impression',status:'final'});
+token=adminBeforeImaging;
 const ot=await call('/ipd/ot',{patient_id:p.id,theatre:'OT 1',procedure:'QA procedure',surgeon_id:doctor.id,scheduled_at:'2026-09-23 16:00:00'});
 await call('/ipd/ot/'+ot.id,{status:'completed'},'PATCH');
 await call('/ipd/nursing/notes',{admission_id:admission.id,body:'QA nursing note'});
@@ -163,7 +180,9 @@ const convAdmission=await call('/ipd/admissions',{patient_id:convPatient.id,enco
 await call(`/bills/${convAdmission.ip_bill_id}/items`,{description:'QA admitted treatment',qty:1,rate:1000});
 await call('/payments',{bill_id:convAdmission.ip_bill_id,amount:100,mode:'cash'});
 const realTpa=await call('/payers',{code:'QA-TPA-KIND-'+Date.now(),name:'QA actual TPA '+Date.now(),payer_type:'tpa'});
-await call(`/ipd/admissions/${convAdmission.id}/payer`,{financial_category:'insurance',payer_id:realTpa.id,reason:'Policy provided after admission'},'PATCH');
+// money already received: the desk must say what happens to it (keep as patient share / refund)
+await call(`/ipd/admissions/${convAdmission.id}/payer`,{financial_category:'insurance',payer_id:realTpa.id,reason:'Policy provided after admission'},'PATCH',409);
+await call(`/ipd/admissions/${convAdmission.id}/payer`,{financial_category:'insurance',payer_id:realTpa.id,reason:'Policy provided after admission',money_action:'keep'},'PATCH');
 const converted=await call(`/ipd/admissions/${convAdmission.id}`);assert.equal(converted.financial_category,'insurance');
 const convertedBill=await call(`/bills/${convAdmission.ip_bill_id}`);assert.equal(convertedBill.paid,100,'cash receipt survives payer conversion');assert.ok(convertedBill.claim_id,'running bill linked to case');
 await call('/bills',{patient_id:p.id,bill_type:'LAB',items:[{service_id:meta.services.find(s=>s.category==='procedure').id,qty:1,rate:100}]},'POST',400);
@@ -185,7 +204,7 @@ assert.equal(tpaPkg.payer_id,tpa.id);assert.equal(tpaPkg.items.length,1);
 const p3=await call('/patients',{name:'QA TPA Patient '+Date.now(),gender:'Female',age_years:30,mobile:'9000000003',payer_type:'insurance',payer_id:tpa.id,policy_no:'POL-1'});
 assert.equal(p3.payer_name||(await call('/patients/'+p3.id)).payer_name,tpa.name);
 const reg3=await call('/encounters',{patient_id:p3.id,doctor_id:doctor.id});
-const o3=await call('/orders',{encounter_id:reg3.encounter.id,items:[{service_id:labService.id}]});
+const o3=await call('/orders',{encounter_id:reg3.encounter.id,confirm_duplicate:true,items:[{service_id:labService.id}]});
 assert.equal((await call('/bills/'+o3.bill.id)).items.find(i=>i.service_id===labService.id).rate,99,'payer agreed rate used');
 const c3=(await call('/insurance/claims')).rows.find(c=>c.patient_id===p3.id);assert.ok(c3,'payer bill opened a case');assert.equal(c3.payer_id,tpa.id);
 const c3b=await call('/insurance/claims/'+c3.id,{package_id:tpaPkg.id,estimate:0},'PATCH');assert.equal(c3b.estimate,25000,'package fills the estimate');
@@ -197,13 +216,13 @@ await call(`/lab/orders/${o3id}/collect`,{},'POST',409);
 const appr=await call('/insurance/claims/'+c3.id,{status:'preauth_approved',approved:25000},'PATCH');assert.equal(appr.released_orders,1,'approval releases the held order');assert.ok(appr.bills_moved>=1,'approval bills the open balance to the payer');
 {const wl=await call('/lab/worklist?status=all');const row=(wl.rows||wl).find(r=>r.id===o3id);assert.equal(row.status,'ordered');assert.equal(row.clearance,'covered');}
 await call(`/lab/orders/${o3id}/collect`,{});
-const o3b=await call('/orders',{encounter_id:reg3.encounter.id,items:[{service_id:labService.id}]});
+const o3b=await call('/orders',{encounter_id:reg3.encounter.id,confirm_duplicate:true,items:[{service_id:labService.id}]});
 assert.equal((await call('/lab/orders/'+o3b.orders[0].id)).status,'ordered','a new order on an approved case goes straight to the lab');
 {const b3=await call('/bills/'+o3.bill.id);assert.equal(b3.balance,0);assert.equal(b3.paid,0,'billed to the payer is not money collected');assert.ok(b3.covered_amount>0,'payer receivable');
  const b3b=await call('/bills/'+o3b.bill.id);assert.equal(b3b.balance,0,'a new bill on an approved case goes to the payer too');}
 // a doctor (not only admin) ordering for a patient on an approved case: the case, not the doctor, authorises the payer billing
 {const adminTok2=token;token=(await call('/auth/login',{username:'doctor',password:'surely'})).token;
- const od=await call('/orders',{encounter_id:reg3.encounter.id,items:[{service_id:labService.id}]});
+ const od=await call('/orders',{encounter_id:reg3.encounter.id,confirm_duplicate:true,items:[{service_id:labService.id}]});
  token=adminTok2;assert.equal((await call('/bills/'+od.bill.id)).balance,0,'doctor order on an approved case is billed to the payer');}
 // case moved back to query: unpaid payer entries return to the patient's balance
 {const back=await call('/insurance/claims/'+c3.id,{status:'query',stage_note:'QA query'},'PATCH');assert.ok(back.reversed>=1,'payer entries reversed');
@@ -218,7 +237,7 @@ assert.equal((await call('/lab/orders/'+o3b.orders[0].id)).status,'ordered','a n
  const small=await call('/payer-packages',{code:'QA-PK50-'+Date.now(),name:'QA small package',payer_id:tpa.id,price:50});
  const p6=await call('/patients',{name:'QA Package Patient '+Date.now(),gender:'Female',age_years:41,mobile:'9000000006',payer_type:'insurance',payer_id:tpa.id});
  const r6=await call('/encounters',{patient_id:p6.id,doctor_id:doctor.id});
- const o6=await call('/orders',{encounter_id:r6.encounter.id,items:[{service_id:labService.id}]});
+ const o6=await call('/orders',{encounter_id:r6.encounter.id,confirm_duplicate:true,items:[{service_id:labService.id}]});
  const c6=(await call('/insurance/claims')).rows.find(c=>c.patient_id===p6.id);
  const lines6=await call('/insurance/claims/'+c6.id+'/lines');const consultLine=lines6.find(l=>l.bill_type==='OP');
  if(consultLine) await call('/insurance/claims/'+c6.id+'/exclusions',{item_ids:[consultLine.id]},'PUT');
@@ -247,7 +266,7 @@ assert.equal((await call('/lab/orders/'+o3b.orders[0].id)).status,'ordered','a n
 // credit = the patient pays later: an approved due, never a payer case; nothing is held
 {const pc=await call('/patients',{name:'QA Credit Patient '+Date.now(),gender:'Male',age_years:50,mobile:'9000000004',payer_type:'credit'});
  const rc=await call('/encounters',{patient_id:pc.id,doctor_id:doctor.id});
- const oc=await call('/orders',{encounter_id:rc.encounter.id,items:[{service_id:labService.id}]});
+ const oc=await call('/orders',{encounter_id:rc.encounter.id,confirm_duplicate:true,items:[{service_id:labService.id}]});
  const bc=await call('/bills/'+oc.bill.id);assert.equal(bc.claim_id,null,'credit never opens a payer case');assert.equal(bc.authorization_status,'approved','credit bill is an approved due');
  assert.ok(bc.balance>0,'credit amount stays owed by the patient');assert.equal(oc.orders[0].status,'ordered','credit patient lab work is not held');
  assert.ok(!(await call('/insurance/claims')).rows.some(c=>c.patient_id===pc.id),'credit patient is not on the payer desk');
@@ -264,7 +283,7 @@ assert.equal((await call('/lab/orders/'+o3b.orders[0].id)).status,'ordered','a n
   await call('/settings',{sms_gateway_url:''},'PATCH');}}
 {const bk=await call('/system/backups');assert.ok(bk.count>=1,'daily backup made at start-up');}
 const reg2=await call('/encounters',{patient_id:p2.id,doctor_id:doctor.id});
-const o2=await call('/orders',{encounter_id:reg2.encounter.id,items:[{service_id:labService.id}]});
+const o2=await call('/orders',{encounter_id:reg2.encounter.id,confirm_duplicate:true,items:[{service_id:labService.id}]});
 const half=Math.round(o2.bill.total/2*100)/100;
 // A scheme cash share must be explicitly recorded, rather than collecting pending payer charges.
 await call('/insurance/claims/'+o2.bill.claim_id,{copay_amount:reg2.bill.balance + o2.bill.total-half},'PATCH');
@@ -295,7 +314,7 @@ await call('/ipd/admissions/'+adm2.id,{financial_category:'corporate'},'PATCH');
 const ind=await call('/pharmacy/indents',{admission_id:adm2.id,lines:[{medicine_id:med.id,qty:4}]});
 const disp=await call('/pharmacy/indents/'+ind.id+'/dispense',{});assert.equal(disp.bill.bill_type,'IP');
 const opBatch=(await call('/pharmacy/stock?location=OP')).rows.find(b=>b.qty>3);
-const sale2=await call('/pharmacy/dispense',{patient_id:p.id,items:[{medicine_id:opBatch.medicine_id,qty:2}],mode:'cash'});
+const sale2=await call('/pharmacy/dispense',{patient_id:p.id,rx_note:'QA paper Rx',items:[{medicine_id:opBatch.medicine_id,qty:2}],mode:'cash'});
 const ret=await call('/pharmacy/sales-returns',{bill_item_id:sale2.bill.items[0].id,qty:1,reason:'Not needed',refund_mode:'cash'});assert.ok(ret.refund);
 const grn=await call('/pharmacy/purchases',{supplier_id:supplier.id,invoice_no:'QA-INV-2',gst_mode:'inter',items:[{medicine_id:med.id,batch_no:'QA-IG',expiry:'2029-01-31',qty:2,free_qty:1,rate:100,mrp:180,gst_pct:12,pack_size:1,units_per_pack:10}]});
 assert.equal(grn.igst,24);assert.equal(grn.cgst,0);
@@ -344,7 +363,7 @@ const c2=await call('/accounts/day-close');
 await call('/accounts/day-close',{cash_counted:c2.cash_expected,declared:{upi:c2.hospital.expected.upi+5}},'POST',400);
 const closed2=await call('/accounts/day-close',{cash_counted:c2.cash_expected,declared:{upi:c2.hospital.expected.upi+5},notes:'QA UPI short'});assert.equal(closed2.approval_status,'pending');
 const adminTok=token;token=(await call('/auth/login',{username:'reception',password:'surely'})).token;
-await call('/bills/'+sale2.bill.id,{discount:1,discount_reason:'late'},'PATCH',409);
+await call('/bills/'+sale2.bill.id,{discount:1,discount_reason:'late'},'PATCH',403); // Reception cannot modify pharmacy bills, even on a closed day.
 token=adminTok;
 await call('/accounts/day-close/'+c2.date+'/approve',{});
 await call('/accounts/day-close/'+c2.date+'/reopen',{reason:'QA reopen 2'});
@@ -373,7 +392,7 @@ try {
 assert.ok(rxSaved.items[0].medicine_id,'typed drug linked to master');assert.equal(rxSaved.items[0].qty,6);
 // images attach to an imaging order
 const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
-const img2=await call('/orders',{encounter_id:eid,items:[{service_id:imagingService.id}]});
+const img2=await call('/orders',{encounter_id:eid,confirm_duplicate:true,items:[{service_id:imagingService.id}]});
 const att=await call('/attachments/order/'+img2.orders[0].id,{files:[{name:'scan.png',type:'image/png',data:png}],note:'Outside CT'});
 assert.equal(att.length,1);
 const fileRes=await fetch(`http://localhost:${port}/api/attachments/file/${att[0].id}?t=${token}`);assert.equal(fileRes.status,200);assertions++;
@@ -587,7 +606,7 @@ for (const [category, series] of [['insurance','TPA'],['aarogyasri','AAR'],['cor
  const receivable=(await call('/accounts/receivables?mode='+category)).rows.find(x=>x.bill_id===pb.id);assert.ok(receivable);
  await call('/accounts/receivables/'+receivable.id+'/receive',{amount:80,mode:'bank_transfer',reference:'QA-'+category});
  assert.equal((await call('/bills/'+pb.id)).paid,20,'Payer receipts must not become patient cash');
- const payerSale=await call('/pharmacy/dispense',{patient_id:pp.id,location:'OP',collect:true,mode:'cash',items:[{medicine_id:payerMedicine.id,qty:1}]});
+ const payerSale=await call('/pharmacy/dispense',{patient_id:pp.id,location:'OP',rx_note:'QA paper Rx',collect:true,mode:'cash',items:[{medicine_id:payerMedicine.id,qty:1}]});
  assert.equal(payerSale.payment,null);assert.equal(payerSale.bill.paid,0);assert.equal(payerSale.bill.patient_id,pp.id);assert.ok(payerSale.bill.claim_id);
 }
 const creditPatient=await call('/patients',{name:'QA deferred credit',gender:'Male',age_years:30,payer_type:'credit'});
@@ -609,18 +628,19 @@ await call('/pharmacy/stock/adjust',{batch_id:priceBatch.batch_id,qty:-1,move_ty
 const losses=await call('/reports/run/pharmacy_stock_losses?period=all');assert.ok(losses.rows.some(r=>r.batch_no===priceBatch.batch_no&&r.loss_value>0));
 const lowParam=await call('/lab/params',{service_id:labService.id,name:'QA Lower-only range',ref_low:10,ref_high:''});
 const hiParam=await call('/lab/params',{service_id:labService.id,name:'QA Upper-only range',ref_low:'',ref_high:10});
-const rangeOrder=await call('/orders',{encounter_id:eid,items:[{service_id:labService.id}]});
+const rangeOrder=await call('/orders',{encounter_id:eid,confirm_duplicate:true,items:[{service_id:labService.id}]});
 await call('/payments',{bill_id:rangeOrder.bill.id,amount:rangeOrder.bill.total,mode:'cash'});
 const rangeId=rangeOrder.orders[0].id;await call('/lab/orders/'+rangeId+'/collect',{});
 await call('/lab/orders/'+rangeId+'/results',{results:[{param_id:lowParam.id,value:'8'},{param_id:hiParam.id,value:'12'}]});
 const rangeResults=(await call('/lab/orders/'+rangeId)).results;assert.equal(rangeResults[0].flag,'low');assert.equal(rangeResults[1].flag,'high');
 const teamPeople=await call('/staff-work/people');const taskPharmacist=teamPeople.rows.find(u=>u.role==='pharmacy');assert.ok(taskPharmacist);
 const chatMessage=await call('/staff-work/chat',{body:'QA retained original'});
-await call('/staff-work/chat/'+chatMessage.id,{body:'QA retained edit',version:chatMessage.version},'PATCH');
-assert.equal((await call('/staff-work/chat/'+chatMessage.id+'/history'))[0].body,'QA retained original');
+await call('/staff-work/chat/'+chatMessage.id,{body:'QA retained edit',version:chatMessage.version},'PATCH',409);
+assert.ok(Array.isArray(await call('/staff-work/chat/'+chatMessage.id+'/history')));
+assert.equal((await call('/staff-work/chat')).find(m=>m.id===chatMessage.id).body,'QA retained original');
 await call('/staff-work/chat/'+chatMessage.id,{body:'Stale edit',version:chatMessage.version},'PATCH',409);
 const taskRecord=await call('/staff-work/tasks',{title:'QA stock review',assigned_to:taskPharmacist.id});
-await as('reception');await call('/staff-work/chat/'+chatMessage.id,{body:'Wrong author',version:2},'PATCH',403);
+await as('reception');await call('/staff-work/chat/'+chatMessage.id,{body:'Wrong author',version:2},'PATCH',409);
 await call('/staff-work/tasks',{title:'Forbidden task',assigned_to:taskPharmacist.id},'POST',403);
 await call('/staff-work/tasks/'+taskRecord.id,{status:'completed',progress_note:'Unrelated user'},'PATCH',403);
 await as('pharmacy');await call('/staff-work/tasks/'+taskRecord.id,{status:'completed',progress_note:'Checked stock'},'PATCH');
@@ -693,12 +713,12 @@ await as('admin');
  const u1=await call('/ipd/emergency',{complaint:'RTA, unconscious',triage:'1',gender:'Male',age_years:30,bp_sys:90,bp_dia:60,spo2:88,mlc:1,mlc_no:'QA-MLC-1',brought_by:'108 crew'});
  assert.ok(u1.patient_id&&u1.encounter_id,'temporary record and encounter at registration');
  {const ev=await call('/encounters/'+u1.encounter_id);assert.equal(ev.patient.temporary,1);assert.ok(ev.vitals&&ev.vitals.spo2===88,'triage vitals recorded');}
- const uo=await call('/orders',{encounter_id:u1.encounter_id,items:[{service_id:labService.id}]});
+ const uo=await call('/orders',{encounter_id:u1.encounter_id,confirm_duplicate:true,items:[{service_id:labService.id}]});
  assert.equal(uo.orders[0].status,'ordered','emergency work is never held for payment');assert.equal(uo.bill.bill_type,'ER','emergency orders go on the ER bill');
  await call(`/ipd/emergency/${u1.id}/link-patient`,{details:{name:'QA Identified Patient',gender:'Male',age_years:31,mobile:'9000000103'}});
  {const ev=await call('/encounters/'+u1.encounter_id);assert.equal(ev.patient.temporary,0);assert.equal(ev.patient.name,'QA Identified Patient');}
  const u2=await call('/ipd/emergency',{complaint:'Collapse',triage:'2'});
- await call('/orders',{encounter_id:u2.encounter_id,items:[{service_id:labService.id}]});
+ await call('/orders',{encounter_id:u2.encounter_id,confirm_duplicate:true,items:[{service_id:labService.id}]});
  await call(`/ipd/emergency/${u2.id}/link-patient`,{patient_id:pg.id});
  {const ev=await call('/encounters/'+u2.encounter_id);assert.equal(ev.patient_id,pg.id,'records moved to the existing UHID');assert.ok(ev.orders.every(o=>o.patient_id===pg.id));}
  // admission: only a free bed, one admission at a time, attendant / MLC kept, inpatient work on the running IP bill
@@ -707,7 +727,7 @@ await as('admin');
  const ua=await call('/ipd/admissions',{patient_id:u1.patient_id,bed_id:free[0].id,consultant_id:doctor.id,emergency_id:u1.id,attendant_name:'QA Brother',attendant_mobile:'9000000104'});
  assert.equal(ua.mlc,1,'MLC carried from the ER case');assert.equal(ua.mlc_no,'QA-MLC-1');assert.equal(ua.admission_type,'emergency');assert.equal(ua.attendant_name,'QA Brother');
  await call('/ipd/admissions',{patient_id:u1.patient_id,bed_id:free[1].id,consultant_id:doctor.id},'POST',409);
- const ipo=await call('/orders',{encounter_id:ua.encounter_id,items:[{service_id:labService.id}]});
+ const ipo=await call('/orders',{encounter_id:ua.encounter_id,confirm_duplicate:true,items:[{service_id:labService.id}]});
  assert.equal(ipo.orders[0].status,'ordered','inpatient work is not held for payment');assert.equal(ipo.bill.bill_type,'IP','inpatient orders go on the IP bill');
  // the doctor's inpatient prescription feeds the drug chart; a held dose needs a reason; a dose is recorded once
  await call('/prescriptions',{encounter_id:ua.encounter_id,items:[{drug:'QA Ceftriaxone 1 g',route:'IV',frequency:'STAT',duration_days:1}],replace:true});
@@ -736,11 +756,11 @@ await as('admin');
  const op=await call('/patients',{name:'QA Package OP '+ts,gender:'Male',age_years:40,mobile:'9000000201'});
  const opv=await call('/encounters',{patient_id:op.id,doctor_id:doctor.id,collect:false});
  const pkgBill=await call('/bills',{patient_id:op.id,encounter_id:opv.encounter.id,bill_type:'PKG',package_id:opPkg.id});assert.equal(pkgBill.total,300);
- const o1=await call('/orders',{encounter_id:opv.encounter.id,items:[{service_id:labService.id}]});
+ const o1=await call('/orders',{encounter_id:opv.encounter.id,confirm_duplicate:true,items:[{service_id:labService.id}]});
  const labRate=(await call('/bills/'+o1.bill.id)).items.find(i=>i.service_id===labService.id).amount;   // the tariff may have changed earlier in this run
  assert.equal((await call('/bills/'+o1.bill.id)).balance,0,'the included test is covered by the package');
  assert.equal((await call('/lab/worklist?status=all')).rows.find(x=>x.id===o1.orders[0].id).status,'ordered','covered work is released at once');
- const o2=await call('/orders',{encounter_id:opv.encounter.id,items:[{service_id:labService.id}]});
+ const o2=await call('/orders',{encounter_id:opv.encounter.id,confirm_duplicate:true,items:[{service_id:labService.id}]});
  assert.ok((await call('/bills/'+o2.bill.id)).balance>0,'beyond the allowance the patient pays');
  const ou=await call('/package-usage?encounter_id='+opv.encounter.id);
  assert.equal(ou.covered,labRate);assert.ok(ou.lines.some(l=>l.category==='lab'&&l.excess===labRate),'the second test is extra');assert.ok(ou.lines.some(l=>l.category==='consultation'&&l.excess>0),'the consultation is not in a lab package');assert.equal(ou.patient_owes,r2(300+ou.excess+ou.excluded));
@@ -757,7 +777,7 @@ await as('admin');
  const ipa=await call('/ipd/admissions',{patient_id:ipPt.id,bed_id:freeBed.id,consultant_id:doctor.id});
  await call(`/ipd/admissions/${ipa.id}/package`,{package_id:ipPkg.id});
  await call(`/ipd/admissions/${ipa.id}/package`,{package_id:ipPkg.id},'POST',409);
- const lo=await call('/orders',{encounter_id:ipa.encounter_id,items:[{service_id:labService.id}]});assert.equal(lo.bill.bill_type,'IP');
+ const lo=await call('/orders',{encounter_id:ipa.encounter_id,confirm_duplicate:true,items:[{service_id:labService.id}]});assert.equal(lo.bill.bill_type,'IP');
  const iu=await call('/package-usage?admission_id='+ipa.id);
  assert.ok(iu.covered>0,'bed day covered');assert.equal(iu.excess,labRate,'lab is not in this package: the patient pays it');
  await call(`/ipd/admissions/${ipa.id}`,{status:'clinically_cleared'},'PATCH');
@@ -795,7 +815,7 @@ await as('admin');
  const c2=await call('/consumptions',{source_type:'bill_item',source_id:line.id,location:'OP',items:[{medicine_id:cm.medicine_id,qty:2}]});
  assert.equal(c2.total_charged,0,'included consumables are not charged twice');assert.equal(await stockQ(),q0-2);
  // the pharmacy already charged this item to the visit: flagged before it is charged again
- await call('/pharmacy/dispense',{patient_id:pp.id,encounter_id:pv.encounter.id,items:[{medicine_id:cm.medicine_id,qty:1}],collect:false});
+ await call('/pharmacy/dispense',{patient_id:pp.id,encounter_id:pv.encounter.id,items:[{medicine_id:cm.medicine_id,qty:1}],rx_note:'QA paper Rx',collect:false});
  const er=await call('/ipd/emergency',{patient_id:pp.id,triage:'3',complaint:'QA cut'});
  await call(`/procedure-kits/${proc.id}`,{items:[],consumables_included:false},'PUT');
  const vb=await call('/bills',{patient_id:pp.id,encounter_id:pv.encounter.id,bill_type:'OP',items:[{service_id:proc.id}]});
@@ -839,9 +859,12 @@ await as('admin');
  l=await L();assert.equal(l.payable,0);assert.equal(l.reconciled,true,'payable ledger reconciles to the books');
  // a desk-assigned consultant line
  const oth=vbill.items.find(i=>/OT charges/.test(i.description));
- await call(`/bills/${vbill.id}/items/${oth.id}/visiting`,{visiting_doctor_id:vd.id,role:'assistant'},'PATCH');
+ await call(`/bills/${vbill.id}/items/${oth.id}/visiting`,{visiting_doctor_id:vd.id,role:'assistant'},'PATCH',400);
+ const assistantBill=await call('/bills',{patient_id:vp.id,items:[{description:'Assistant professional fee',category:'professional',qty:1,rate:5000}]});
+ const assistantLine=assistantBill.items[0];
+ await call(`/bills/${assistantBill.id}/items/${assistantLine.id}/visiting`,{visiting_doctor_id:vd.id,role:'assistant'},'PATCH');
  assert.equal((await L()).lines.length,2,'a bill line can be credited to a visiting doctor');
- await call(`/bills/${vbill.id}/items/${oth.id}/visiting`,{visiting_doctor_id:null},'PATCH');
+ await call(`/bills/${assistantBill.id}/items/${assistantLine.id}/visiting`,{visiting_doctor_id:null},'PATCH');
  assert.equal((await L()).lines.length,1);
  const rep=await call('/reports/run/visiting_doctor_share');assert.ok(rep.rows.find(r=>r.name===vd.name),'visiting doctor share report');
  assert.equal((await call('/accounts/integrity')).ok,true,'books balance with visiting doctor entries');
@@ -1017,10 +1040,17 @@ await as('admin');
  // a stock transfer is approved by someone other than the person who asked for it
  await call('/admin/users',{username:'qa-pharmhead-'+ts,name:'QA Pharmacy Head',role:'pharmacy_admin',password:'surely'});
  const meds2=await call('/pharmacy/medicines?location=IP');const m2=meds2.rows.find(m=>m.central_stock>5);
+ // two-person rule switched on (Settings → Pharmacy & stock): the requester cannot approve
+ await call('/settings',{transfer_self_approve:'0'},'PATCH');
  await as('qa-pharmhead-'+ts);
  const own=await call('/pharmacy/transfers',{source:'Central',destination:'IP',lines:[{medicine_id:m2.id,qty:1}],reason:'QA self approval'});
  const selfApprove=await call(`/pharmacy/transfers/${own.id}/approve`,{},'POST',403);assert.equal(selfApprove.error,'cannot_approve_own_request');
  await as('qa-owner');await call(`/pharmacy/transfers/${own.id}/approve`,{});   // the owner approves without stock-edit rights
+ // switched off (the default for a one-person pharmacy): the requester approves their own request, audited
+ await as('admin');await call('/settings',{transfer_self_approve:'1'},'PATCH');
+ await as('qa-pharmhead-'+ts);
+ const own2=await call('/pharmacy/transfers',{source:'Central',destination:'IP',lines:[{medicine_id:m2.id,qty:1}],reason:'QA one-person pharmacy'});
+ assert.equal((await call(`/pharmacy/transfers/${own2.id}/approve`,{})).status,'approved');
  // a day marked present by hand: the first punch is the arrival, the second the departure
  await as('admin');
  const clerk=await call('/admin/users',{username:'qa-clerk-'+ts,name:'QA Clerk',role:'reception',password:'surely'});

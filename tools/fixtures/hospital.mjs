@@ -25,6 +25,8 @@ const D = (offsetDays = 0) => {
 
 try {
   assert.equal(seed(), true, 'test database starts empty');
+  // Generic allocation fixtures exercise OP payer maths; dedicated admission tests enable the IPD-only scheme rule.
+  db.prepare("UPDATE settings SET value='0' WHERE key='aarogyasri_ipd_only'").run();
   assert.deepEqual(all('SELECT username, role FROM users'), [{ username: 'admin', role: 'admin' }]);
   for (const table of ['patients', 'suppliers', 'medicines', 'medicine_batches', 'stock_moves',
     'doctor_schedules', 'templates', 'encounters', 'bills', 'payments', 'journal_vouchers']) {

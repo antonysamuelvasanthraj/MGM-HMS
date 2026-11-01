@@ -26,7 +26,7 @@ export async function mount(ctx) {
   const f = { desk: ctx.query.desk === 'pharmacy' || !canRecep ? 'pharmacy' : 'reception', date: todayISO(), user_id: '', tab: can('finance.view') ? 'handover' : 'summary' };
   const root = mountPage(ctx, page({
     wide: true, eyebrow: `${eyebrow('Collections', 'summarize')} ${liveChip()}`, title: 'Daily collection & handover',
-    subtitle: 'What your counter collected today, and handing that money to the next person at the end of your shift.',
+    subtitle: 'What your counter collected today, and the hand-over at shift end.',
     body: `<div class="card p-3 flex flex-wrap items-end gap-2 print:hidden" data-controls></div>
       <div class="inline-flex flex-wrap p-0.5 rounded bg-surface-container print:hidden" role="tablist" data-tabs></div>
       <div data-body class="space-y-4"></div>`,

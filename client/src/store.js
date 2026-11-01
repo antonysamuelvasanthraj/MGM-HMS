@@ -35,10 +35,20 @@ export async function loadSession() {
 
 export async function loadMeta(force = false) {
   if (state.meta && !force && !metaDirty) return state.meta;
-  if (metaRequest) return metaRequest;
+  // A save may finish while an older metadata read is still in flight.
+  // Forced refresh must fetch after that read rather than reuse stale settings.
+  if (metaRequest) {
+    if (!force) return metaRequest;
+    await metaRequest;
+    return loadMeta(true);
+  }
   const version = metaVersion;
   metaRequest = api.get('/meta').then(meta => {
     state.meta = meta;
+    // the hospital's chosen look (Settings → Appearance), remembered for the next start
+    const theme = meta?.settings?.ui_theme === 'maroon' ? 'maroon' : 'calm';
+    if (typeof document !== 'undefined') document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem('hms_theme', theme); } catch { /* private window, or not a browser */ }
     metaDirty = metaVersion !== version;
     emit();
     return meta;
@@ -73,6 +83,8 @@ export const departments = () => state.meta?.departments || [];
 export const counters = () => state.meta?.counters || [];
 export const services = (cat) => (state.meta?.services || []).filter((s) => !cat || s.category === cat);
 export const setting = (k, d = '') => state.meta?.settings?.[k] ?? d;
+/** Barcode wristbands and sample tube labels belong to Paperless / Hybrid working; Paper mode writes them by hand. */
+export const printsBarcodeLabels = () => setting('hospital_mode', 'paperless') !== 'paper';
 export const doctorById = (id) => doctors().find((d) => d.id === +id);
 export const deptById = (id) => departments().find((d) => d.id === +id);
 export const staffById = (id) => (state.meta?.staff || []).find((s) => s.id === +id);

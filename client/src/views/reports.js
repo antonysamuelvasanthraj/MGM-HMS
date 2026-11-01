@@ -5,7 +5,7 @@
  * figures, then a chart, then a searchable, sortable, paged detail table.
  */
 import {
-  page, eyebrow, card, live, mountPage, api, qs, esc, money, fmtDate, toast, downloadCSV, setting, apiError,
+  page, eyebrow, card, live, mountPage, api, qs, esc, money, fmtDate, toast, downloadCSV, setting, apiError, printDocument,
 } from './_kit.js';
 import { chart } from '../charts.js';
 
@@ -28,7 +28,7 @@ export async function mount(ctx) {
     wide: true,
     eyebrow: eyebrow('Reports', 'summarize'),
     title: 'Report centre',
-    subtitle: 'Revenue is what was billed, collection is money received, receivables are what is still owed — each report says which it shows.',
+    subtitle: 'Reports for every department — view, print or export.',
     body: `<div class="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-4 items-start">
       <nav class="card p-2 lg:sticky lg:top-4 print:hidden lg:max-h-[calc(100vh-2rem)] overflow-auto" aria-label="Reports">
         <input type="search" class="field field-sm !h-9 mb-1" placeholder="Find a report…" data-find aria-label="Find a report">
@@ -59,6 +59,10 @@ export async function mount(ctx) {
       ${has('category') ? sel('category', 'Patient category', CATS) : ''}
       ${has('mode') ? sel('mode', 'Payment mode', MODES) : ''}
       ${has('doctor') ? sel('doctor_id', 'Doctor', [['', 'All doctors'], ...cat.doctors.map((d) => [d.id, d.name])]) : ''}
+      ${has('patient') ? `<div><label class="field-label">Patient / UHID</label><input class="field field-sm" data-k="patient" value="${esc(f.patient || '')}"></div>` : ''}
+      ${has('medicine') ? `<div><label class="field-label">Medicine / generic</label><input class="field field-sm" data-k="medicine" value="${esc(f.medicine || '')}"></div>` : ''}
+      ${has('manufacturer') ? `<div><label class="field-label">Manufacturer</label><input class="field field-sm" data-k="manufacturer" value="${esc(f.manufacturer || '')}"></div>` : ''}
+      ${has('encounter_type') ? sel('encounter_type','OP / IP',[['','All'],['OP','OP'],['IP','IP']]) : ''}
       ${has('account') ? sel('account_id', 'Account', [['', 'Choose account'], ...cat.accounts.map((a) => [a.id, `${a.code} · ${a.name}`])]) : ''}
       <div class="flex-1"></div>
       <button class="btn-secondary btn-sm" data-xls><span class="material-symbols-outlined text-[16px]">table_view</span>Excel</button>
@@ -80,7 +84,8 @@ export async function mount(ctx) {
       const r = cat.reports.find((x) => x.id === f.id);
       const preset = r.filters.includes('asof') ? 'custom' : f.preset;
       const nextResult = await api.get(`/reports/run/${f.id}${qs({ preset, from: preset === 'custom' ? (f.from || f.to) : undefined, to: preset === 'custom' ? f.to : undefined,
-        segment: f.segment, category: f.category, mode: f.mode, doctor_id: f.doctor_id, account_id: f.account_id })}`);
+        segment: f.segment, category: f.category, mode: f.mode, doctor_id: f.doctor_id, account_id: f.account_id,
+        patient:f.patient, medicine:f.medicine, manufacturer:f.manufacturer, encounter_type:f.encounter_type })}`);
       if (disposed || version !== generation) return;
       result = nextResult;
     } catch (err) { if (disposed || version !== generation) return; apiError(err, 'Report failed'); if (!context.live) out.innerHTML = ''; return; }
@@ -135,16 +140,21 @@ export async function mount(ctx) {
     }
   });
 
-  root.addEventListener('click', (e) => {
+  root.addEventListener('click', async (e) => {
     const th = e.target.closest('[data-sort]');
     if (th) { view.dir = view.sort === th.dataset.sort ? -view.dir : 1; view.sort = th.dataset.sort; drawTable(); return; }
     const pg = e.target.closest('[data-pg]');
     if (pg) { view.page += +pg.dataset.pg; drawTable(); return; }
     const b = e.target.closest('[data-report]');
     if (b) { f.id = b.dataset.report; run(); return; }
-    if (e.target.closest('[data-csv]') && result) downloadCSV(`${result.id}_${result.from}_${result.to}.csv`, plainRows(result));
-    if (e.target.closest('[data-xls]') && result) exportExcel(result);
-    if (e.target.closest('[data-pdf]') && result) printReport(result);
+    const format=e.target.closest('[data-csv]')?'csv':e.target.closest('[data-xls]')?'excel':e.target.closest('[data-pdf]')?'pdf':null;
+    if(format && result){
+      try{await api.post(`/reports/export/${result.id}`,{format,query:{...f,preset:'custom',from:result.from,to:result.to}});
+        if(format==='csv')downloadCSV(`${result.id}_${result.from}_${result.to}.csv`,plainRows(result));
+        if(format==='excel')exportExcel(result);
+        if(format==='pdf')printReport(result);
+      }catch(error){apiError(error,'Could not authorise the report export');}
+    }
   });
   root.addEventListener('change', (e) => {
     const k = e.target.dataset.k;
@@ -237,15 +247,13 @@ ${(r.kpis || []).map((k) => `<Row><Cell ss:StyleID="b"><Data ss:Type="String">${
 }
 
 function printReport(r) {
-  const w = window.open('', '_blank', 'width=1000,height=900');
-  if (!w) { toast('Allow pop-ups to print', 'warning'); return; }
   const rows = r.rows.map((row) => `<tr${row.bold ? ' style="font-weight:600;background:#F5F7FA"' : ''}>${r.columns.map((c) => `<td${isNum(c) ? ' style="text-align:right"' : ''}>${cell(c, row[c.key]).replace(/<[^>]+>/g, '')}</td>`).join('')}</tr>`).join('');
   const totals = Object.keys(r.totals || {}).length && r.rows.length
     ? `<tr style="font-weight:700;border-top:2px solid #172B4D">${r.columns.map((c, i) => `<td${isNum(c) ? ' style="text-align:right"' : ''}>${i === 0 ? 'Total' : r.totals[c.key] !== undefined ? cell(c, r.totals[c.key]).replace(/<[^>]+>/g, '') : ''}</td>`).join('')}</tr>` : '';
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(r.title)}</title><style>
+  printDocument(r.title,`<style>
     body{font:12px/1.4 Inter,system-ui,sans-serif;color:#172B4D;padding:20px} h1{font-size:17px;margin:0} .sub{color:#526176;margin:2px 0 14px}
     table{width:100%;border-collapse:collapse} th,td{padding:5px 8px;border-bottom:1px solid #D8DFE8;text-align:left} th{background:#F5F7FA;font-size:11px;text-transform:uppercase}
-    @page{margin:12mm} thead{display:table-header-group}</style></head><body>
+    @page{margin:12mm} thead{display:table-header-group} ${r.columns.length>10?'table{table-layout:fixed;font-size:8px}th{font-size:8px}th,td{padding:3px;overflow-wrap:anywhere}':''}</style>
     <div style="display:flex;justify-content:space-between;border-bottom:2px solid #881D2C;padding-bottom:8px;margin-bottom:10px">
       <div><h1>${esc(setting('hospital_name', ''))}</h1><div class="sub" style="margin:0">${esc(r.title)}</div></div>
       <div style="text-align:right" class="sub">${esc(r.from)} to ${esc(r.to)}<br>Printed ${esc(new Date().toLocaleString('en-IN'))}</div></div>
@@ -253,7 +261,5 @@ function printReport(r) {
     ${(r.kpis || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">${r.kpis.map((k) => `<div style="border:1px solid #D8DFE8;border-radius:6px;padding:6px 10px">
       <div style="font-size:10px;text-transform:uppercase;color:#526176">${esc(k.label)}</div><b>${kpiValue(k)}</b></div>`).join('')}</div>` : ''}
     <table><thead><tr>${r.columns.map((c) => `<th${isNum(c) ? ' style="text-align:right"' : ''}>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${rows}${totals}</tbody></table>
-    </body></html>`);
-  w.document.close();
-  w.onload = () => setTimeout(() => { w.focus(); w.print(); }, 250);
+    `,{width:1100,paper:r.columns.length>10?'A4 landscape':'A4'});
 }

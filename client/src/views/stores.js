@@ -271,7 +271,7 @@ async function issueRequest(r, after) {
   try { list = await api.get('/stores/items?all=1'); } catch (e) { apiError(e); return; }
   const avail = (id, st) => list.find((i) => i.id === id)?.stock.find((s) => s.store === st)?.qty || 0;
   modal({
-    title: `Issue ${r.request_no}`, subtitle: `${r.department_name}${r.purpose ? ` · ${r.purpose}` : ''}`, size: 'lg',
+    title: `Issue ${r.request_no}`, subtitle: `${esc(r.department_name)}${r.purpose ? ` · ${r.purpose}` : ''}`, size: 'lg',
     body: `<form data-f class="space-y-3"><div class="grid grid-cols-2 gap-3"><div><label class="field-label">From store</label>${storeSelect('store', r.store)}</div>
         <div><label class="field-label">Handed to</label><input class="field" name="issued_to" placeholder="Name of the person collecting"></div></div>
       <table class="tbl"><thead><tr><th>Item</th><th class="text-right">Pending</th><th class="text-right">In this store</th><th>Issue now</th></tr></thead><tbody data-ilines></tbody></table></form>`,
@@ -300,7 +300,7 @@ async function issueRequest(r, after) {
 /** Direct issue (no request): from the scan page. */
 export function directIssue(it, after = () => {}) {
   modal({
-    title: `Issue ${it.name}`, subtitle: `${it.code} · a direct issue needs a reason`, size: 'md',
+    title: `Issue ${it.name}`, subtitle: `${esc(it.code)} · a direct issue needs a reason`, size: 'md',
     body: `<form data-f class="grid grid-cols-2 gap-3"><div><label class="field-label">From store</label>${storeSelect('store', it.stock?.[0]?.store || 'MAIN')}</div>
       <div><label class="field-label">Quantity *</label><input class="field" type="number" name="qty" min="0.001" step="any" value="1" required></div>
       <div class="col-span-2"><label class="field-label">To department *</label>${deptSelect(null)}</div>
@@ -322,7 +322,7 @@ export function directIssue(it, after = () => {}) {
 
 export function countItem(it, after = () => {}) {
   modal({
-    title: `Count ${it.name}`, subtitle: `${it.code} · differences are written off (or found) at average cost`, size: 'sm',
+    title: `Count ${it.name}`, subtitle: `${esc(it.code)} · differences are written off (or found) at average cost`, size: 'sm',
     body: `<form data-f class="space-y-3"><div><label class="field-label">Store</label>${storeSelect('store', it.stock?.[0]?.store || 'MAIN')}</div>
       <div><label class="field-label">Counted quantity *</label><input class="field" type="number" name="counted" min="0" step="any" required></div>
       <div><label class="field-label">Reason *</label><input class="field" name="reason" required placeholder="Monthly count / damaged / found"></div>

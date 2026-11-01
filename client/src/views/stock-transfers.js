@@ -6,10 +6,10 @@
  */
 import {
   page, eyebrow, liveChip, card, live, mountPage, api, qs, can, esc, bind, pill, modal, drawer, toast, busy, apiError,
-  confirmDialog, fmtDate, fmtDateTime, kpi, state,
+  confirmDialog, fmtDate, fmtDateTime, kpi, state, setting,
 } from './_kit.js';
 
-const LOCS = ['Central', 'OP', 'IP', 'ICU', 'ER', 'OT', 'Ward'];
+const LOCS = ['Central', 'OP', 'IP', 'ICU', 'ER', 'OT', 'Ward', 'LAB'];
 const STATUS = [['', 'All'], ['requested', 'Requested'], ['approved', 'Approved'], ['issued', 'Issued'], ['partially_received', 'Partly received'], ['received', 'Received'], ['rejected', 'Rejected'], ['cancelled', 'Cancelled']];
 const statusPill = (s) => ({ requested: pill('pending', 'Requested'), approved: pill('approved'), issued: pill('in_progress', 'Issued — in transit'),
   partially_received: pill('partial', 'Partly received'), received: pill('received'), rejected: pill('rejected'), cancelled: pill('cancelled') })[s] || pill(s);
@@ -18,9 +18,9 @@ export async function mount(ctx) {
   const f = { status: '', location: '' };
   const root = mountPage(ctx, page({
     wide: true, eyebrow: `${eyebrow('Pharmacy', 'swap_horiz')} ${liveChip()}`, title: 'Stock transfers',
-    subtitle: 'All purchases land in Central. Sub-stores are stocked only by transfer, so every unit can be traced batch by batch.',
-    actions: can('inventory.write') ? '<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span>New transfer</button>' : '',
-    body: `<div data-loc class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3"></div>
+    subtitle: 'GRN stock arrives in Central. Transfer and receive into OP or IP before dispensing there.',
+    actions: can('inventory.write') ? '<a class="btn-secondary" href="/stock-adjustment">Stock adjustment</a><button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span>New transfer</button>' : '',
+    body: `<div class="card p-3 mb-3 text-body-sm"><b>Stock route:</b> GRN → Central → Request → Approve → Issue → Receive in OP / IP → Pharmacy billing. Issued stock is in transit; it becomes available for sale only after Receive.</div><div data-loc class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3"></div>
       <div class="card p-3 flex flex-wrap items-end gap-2">
         <div><label class="field-label">Status</label><select class="field field-sm !h-9" data-k="status">${STATUS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
         <div><label class="field-label">Location</label><select class="field field-sm !h-9" data-k="location"><option value="">All</option>${LOCS.map((l) => `<option>${l}</option>`).join('')}</select></div>
@@ -30,7 +30,7 @@ export async function mount(ctx) {
   async function load() {
     const [rows, locs] = await Promise.all([api.get(`/pharmacy/transfers${qs(f)}`), api.get('/pharmacy/locations')]);
     root.querySelector('[data-loc]').innerHTML = locs.stock.map((l) => kpi({ label: l.location, value: Number(l.units || 0).toLocaleString('en-IN'),
-      sub: `${l.batches} batches · ₹${Number(l.value || 0).toLocaleString('en-IN')}`, icon: l.location === 'Central' ? 'warehouse' : 'storefront', tone: l.location === 'Central' ? 'info' : 'neutral' })).join('');
+      sub: `${Number(l.usable_units || 0)} usable · ${Number(l.expired_units || 0)} expired · ${l.batches} batches`, icon: l.location === 'Central' ? 'warehouse' : 'storefront', tone: l.location === 'Central' ? 'info' : 'neutral' })).join('');
     root.querySelector('[data-list]').innerHTML = card({
       title: `${rows.length} transfers`, pad: false,
       body: `<div class="overflow-auto max-h-[62vh]"><table class="tbl"><thead><tr><th>Transfer</th><th>Route</th><th class="num">Lines</th><th class="num">Requested</th><th class="num">Issued</th><th class="num">Received</th><th>Status</th><th>Requested</th></tr></thead><tbody>
@@ -97,14 +97,14 @@ async function openTransfer(id, after) {
   const incharge = can('inventory.approve');
   if ((w || incharge) && t.status === 'requested') actions.push(`${incharge ? '<button class="btn-secondary" data-act="reject">Reject</button>' : ''}${w ? `<button class="btn-secondary" data-act="cancel">Cancel</button>
     <button class="btn-secondary" data-act="emergency" title="Issue now without the in-charge; they approve it later">Emergency issue</button>` : ''}
-    ${incharge && t.requested_by !== state.user?.id ? '<button class="btn-primary" data-act="approve">Approve</button>' : incharge ? '<span class="text-body-sm text-on-surface-variant">You raised this request — another in-charge, the manager or the owner approves it.</span>' : ''}`);
+    ${incharge && (t.requested_by !== state.user?.id || state.user?.role === 'admin' || setting('transfer_self_approve', '1') === '1') ? '<button class="btn-primary" data-act="approve">Approve</button>' : incharge ? '<span class="text-body-sm text-on-surface-variant">You raised this request — another in-charge, the manager or the owner approves it.</span>' : ''}`);
   if (t.emergency && !t.ratified_by && incharge) actions.push('<button class="btn-primary" data-act="ratify">Approve emergency move</button>');
   if (w && t.status === 'approved') actions.push('<button class="btn-secondary" data-act="cancel">Cancel</button><button class="btn-primary" data-act="issue">Issue stock</button>');
   if (w && ['issued', 'partially_received'].includes(t.status)) actions.push(`${t.status === 'partially_received' ? '<button class="btn-secondary" data-act="close">Close short</button>' : ''}<button class="btn-primary" data-act="receive">Receive</button>`);
   const editable = t.status === 'requested', receiving = ['issued', 'partially_received'].includes(t.status);
   drawer({
     title: t.transfer_no, subtitle: `${esc(t.source)} → ${esc(t.destination)} · ${fmtDate(t.requested_at)}`, width: 'max-w-3xl',
-    body: `<div class="p-5 space-y-4">
+    body: `<div class="p-5 space-y-4"><div class="p-3 rounded bg-surface-container-low text-body-sm"><b>Next step:</b> ${esc(({requested:'In-charge: approve the requested stock.',approved:'Central / source store: issue the approved stock.',issued:'Destination store: receive the physically delivered units.',partially_received:'Receive the remaining units, or close short with a reason.',received:'Complete. The destination can now dispense these medicines.'})[t.status]||'Review the history below.')}</div>
       <div class="flex flex-wrap gap-2 items-center">${statusPill(t.status)}${t.emergency ? (t.ratified_by ? `<span class="pill-success">Emergency · approved by ${esc(t.ratified_by_name || '')}</span>` : '<span class="pill-danger pill-dot">Emergency move · awaiting in-charge approval</span>') : ''}${t.reason ? `<span class="text-body-md text-on-surface-variant">${esc(t.reason)}</span>` : ''}${t.status === 'requested' && !can('inventory.approve') ? '<span class="text-body-sm text-on-surface-variant">Waiting for the store in-charge to approve. If it cannot wait, use Emergency issue.</span>' : ''}</div>
       <table class="tbl"><thead><tr><th>Medicine</th><th class="num">Requested</th><th class="num">Approved</th><th class="num">Issued</th><th class="num">Received</th><th class="num">At source</th></tr></thead><tbody>
       ${t.lines.map((l) => `<tr><td>${esc(l.medicine_name)} <span class="text-on-surface-variant text-body-sm">${esc(l.dispensing_unit || '')}</span>

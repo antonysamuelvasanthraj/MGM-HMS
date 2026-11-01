@@ -7,6 +7,9 @@ import { requireAuth, requirePerm, can } from '../auth.js';
 import { collectionPolicy } from '../collection-policy.js';
 import { admissionForUser } from '../admission-access.js';
 import { billScope } from './billing.js';
+import { referralFields } from './referrals.js';
+import { openVisitsForPayer } from '../payer-convert.js';
+import {visitBillingCategory} from '../payer-context.js';
 
 /** A payer picked from the master sets the patient's payer name and category; self pay clears it. */
 function payerFields(b) {
@@ -29,6 +32,7 @@ patients.get('/', requirePerm('patient.view'), h((req) => {
   if (req.query.gender) { extra.push('gender = ?'); args.push(req.query.gender); }
   if (req.query.payer) { extra.push('payer_type = ?'); args.push(req.query.payer); }
   if (req.query.created === 'today') extra.push(`date(created_at) = date('now','localtime')`);
+  if(req.query.activity==='today')extra.push(`(date(p.created_at)=date('now','localtime') OR EXISTS(SELECT 1 FROM encounters e WHERE e.patient_id=p.id AND e.visit_date=date('now','localtime')) OR EXISTS(SELECT 1 FROM bills b WHERE b.patient_id=p.id AND b.bill_date=date('now','localtime')) OR EXISTS(SELECT 1 FROM admissions a WHERE a.patient_id=p.id AND a.status<>'discharged'))`);
   const sql = `SELECT p.*,
       (SELECT max(visit_date) FROM encounters e WHERE e.patient_id=p.id) AS last_visit,
       (SELECT count(*) FROM encounters e WHERE e.patient_id=p.id) AS visit_count,
@@ -53,6 +57,11 @@ patients.get('/:id/billing-context', requirePerm('patient.view'), h((req) => {
  const e=req.query.encounter_id?get('SELECT id,kind,encounter_no FROM encounters WHERE id=? AND patient_id=?',+req.query.encounter_id,p.id):a?get('SELECT id,kind,encounter_no FROM encounters WHERE id=?',a.encounter_id):get("SELECT id,kind,encounter_no FROM encounters WHERE patient_id=? AND date(visit_date)=date('now','localtime') AND stage<>'cancelled' ORDER BY id DESC LIMIT 1",p.id);
  if(req.query.encounter_id&&!e)fail(404,'visit_not_found');
  const c=req.query.encounter_id?e:a||e||p,claim=e?get("SELECT payer_type,payer_id FROM insurance_claims WHERE patient_id=? AND encounter_id=? AND status<>'rejected' ORDER BY id DESC LIMIT 1",p.id,e.id):null;
+ // The admission the shown visit belongs to. Reading only `a` meant that asking for an explicit
+ // encounter — which the collection window always does — skipped the admission and fell through to the
+ // patient's registration category, so an inpatient moved to credit still read "Self-pay" beside their
+ // own credit bill.
+ const adm=c===a?a:(e?get("SELECT id,financial_category FROM admissions WHERE encounter_id=? AND status<>'discharged' ORDER BY id DESC LIMIT 1",e.id):null);
  const py=(claim?.payer_id||p.payer_id)?get('SELECT name FROM payers WHERE id=?',claim?.payer_id||p.payer_id):null;
  const bills=all("SELECT * FROM bills WHERE patient_id=? AND status<>'cancelled'",p.id).map(b=>({...b,...collectionPolicy(b)}));
  const summary={billed:0,patient_due:0,payer_due:0,patient_received:0,payer_received:0,waived:0};
@@ -60,7 +69,7 @@ patients.get('/:id/billing-context', requirePerm('patient.view'), h((req) => {
  summary.payer_received=one("SELECT coalesce(sum(s.settled_amount),0) FROM bill_settlements s JOIN bills b ON b.id=s.bill_id WHERE b.patient_id=? AND b.status<>'cancelled' AND s.status<>'cancelled' AND s.mode NOT IN ('free','due')",p.id)||0;
  const currentClaim=e?get("SELECT c.id,c.status approval_status,pk.name package_name FROM insurance_claims c LEFT JOIN packages pk ON pk.id=c.package_id WHERE c.patient_id=? AND c.encounter_id=? AND c.status<>'rejected' ORDER BY c.id DESC LIMIT 1",p.id,e.id):null;
  const assigned=e?get("SELECT pk.name package_name FROM package_assignments pa JOIN packages pk ON pk.id=pa.package_id WHERE pa.encounter_id=? AND pa.status='active' ORDER BY pa.id DESC LIMIT 1",e.id):null;
- const result={patient_id:p.id,care_type:c===a?'IP':e?.kind||'NONE',visit_no:c===a?a.ip_no:e?.encounter_no||null,payer_type:claim?.payer_type||(c===a?a.financial_category:null)||p.payer_type||'self',payer_name:py?.name||p.payer_name||null,outstanding:p.outstanding||0,...summary,package_name:currentClaim?.package_name||assigned?.package_name||null,approval_status:currentClaim?.approval_status||'not_applicable',treatment_status:e?get('SELECT stage FROM encounters WHERE id=?',e.id)?.stage:'no_active_visit'}; if(billScope(req.user)===null)for(const key of [...Object.keys(summary),'outstanding'])delete result[key];return result;
+ const result={patient_id:p.id,encounter_id:e?.id || null,payer_id:claim?.payer_id || p.payer_id || null,care_type:c===a?'IP':e?.kind||'NONE',visit_no:c===a?a.ip_no:e?.encounter_no||null,payer_type:visitBillingCategory(p.id,e?.id || null),payer_name:py?.name||p.payer_name||null,outstanding:p.outstanding||0,...summary,package_name:currentClaim?.package_name||assigned?.package_name||null,approval_status:currentClaim?.approval_status||'not_applicable',treatment_status:e?get('SELECT stage FROM encounters WHERE id=?',e.id)?.stage:'no_active_visit'}; if(billScope(req.user)===null)for(const key of [...Object.keys(summary),'outstanding'])delete result[key];return result;
 }));
 
 patients.get('/:id', requirePerm('patient.view'), h((req) => {
@@ -92,9 +101,9 @@ patients.get('/:id/timeline', requirePerm('patient.view'), h((req) => {
                        FROM admissions a LEFT JOIN beds b ON b.id=a.bed_id
                        LEFT JOIN wards w ON w.id=b.ward_id LEFT JOIN users u ON u.id=a.consultant_id
                       WHERE a.patient_id=? ORDER BY a.admitted_at DESC`, id),
-    bills: all(`SELECT * FROM bills WHERE patient_id=? ORDER BY id DESC LIMIT 60`, id).map(b => ({...b,...collectionPolicy(b)})),
+    bills: all(`SELECT * FROM bills WHERE patient_id=? ORDER BY bill_date DESC,created_at DESC,id DESC LIMIT 60`, id).map(b => ({...b,...collectionPolicy(b)})),
     payments: all(`SELECT p.*, u.name AS received_by_name FROM payments p LEFT JOIN users u ON u.id=p.received_by
-                    WHERE p.patient_id=? ORDER BY p.id DESC LIMIT 60`, id),
+                    WHERE p.patient_id=? ORDER BY p.pay_date DESC,p.created_at DESC,p.id DESC LIMIT 60`, id),
     orders: all(`SELECT o.*, u.name AS ordered_by_name FROM orders o LEFT JOIN users u ON u.id=o.ordered_by
                   WHERE o.patient_id=? ORDER BY o.id DESC LIMIT 80`, id),
     consultations: all(`SELECT c.*, u.name AS doctor_name FROM consultations c LEFT JOIN users u ON u.id=c.doctor_id
@@ -112,6 +121,9 @@ patients.get('/:id/timeline', requirePerm('patient.view'), h((req) => {
           LEFT JOIN users r ON r.id=c.reviewed_by WHERE c.patient_id=? ORDER BY c.id DESC`, id) : [],
   };
   result.access=access;
+  result.pharmacy_pending_bills=access.financial ? all("SELECT id,bill_no,bill_date,total,paid,balance,status,payer_type,claim_id FROM bills WHERE patient_id=? AND bill_type='PHARM' AND status IN ('unpaid','partial') AND balance>0.005 ORDER BY bill_date DESC,id DESC",id).map(b=>({...b,...collectionPolicy(b)})) : [];
+  result.pharmacy_pending_bills=result.pharmacy_pending_bills.filter(b=>b.patient_due>0.005);
+  result.pharmacy_bills=access.financial ? all("SELECT id,bill_no,bill_date,total,paid,balance,status,payer_type,claim_id FROM bills WHERE patient_id=? AND bill_type='PHARM' ORDER BY bill_date DESC,id DESC",id).map(b=>({...b,...collectionPolicy(b)})) : [];
   if(!clinical){result.consultations=[];for(const encounter of encounters)delete encounter.diagnosis;}
   if(!access.financial){result.bills=[];result.payments=[];delete result.patient.outstanding;}
   else if(scope){
@@ -130,20 +142,50 @@ patients.get('/:id/timeline', requirePerm('patient.view'), h((req) => {
 }));
 
 /** Duplicate guard — reception must reuse a UHID rather than mint a new one. */
+/** The 10 digits of a mobile however it was typed (+91, 0, spaces, dashes), for comparing. */
+const mobileKey = (m) => String(m || '').replace(/\D/g, '').slice(-10);
+/** Records that are probably this person: same mobile and same first name. */
+function likelySame(name, mobile) {
+  const key = mobileKey(mobile), first = String(name || '').trim().split(/\s+/)[0]?.toLowerCase();
+  if (key.length !== 10 || !first) return [];
+  return all(`SELECT id, uhid, name, gender, age_years, mobile FROM patients WHERE merged_into IS NULL AND substr(replace(replace(replace(mobile,' ',''),'-',''),'+',''), -10)=?`, key)
+    .filter((p) => String(p.name || '').trim().split(/\s+/)[0]?.toLowerCase() === first);
+}
+
 patients.get('/check/duplicate', requirePerm('patient.view'), h((req) => {
-  const { name = '', mobile = '', age } = req.query;
+  const { name = '' } = req.query, mobile = mobileKey(req.query.mobile), age = req.query.age;
   const rows = all(
     `SELECT id, uhid, name, gender, age_years, mobile, city,
             (SELECT max(visit_date) FROM encounters e WHERE e.patient_id=patients.id) last_visit
        FROM patients
-      WHERE (mobile <> '' AND mobile = ?) OR (name LIKE ? AND abs(coalesce(age_years,0) - ?) <= 3)
-      LIMIT 10`, mobile, `%${name}%`, num(age, 0));
+      WHERE merged_into IS NULL AND ((? <> '' AND substr(replace(replace(replace(mobile,' ',''),'-',''),'+',''), -10) = ?) OR (? <> '' AND name LIKE ? AND (? = 0 OR abs(coalesce(age_years,0) - ?) <= 3)))
+      LIMIT 10`, mobile, mobile, name.trim(), `%${name.trim()}%`, num(age, 0), num(age, 0));
   return { matches: rows };
 }));
 
+/**
+ * Contact and identity fields as the hospital can use them: an Indian mobile stored as 10 digits
+ * (+91 / 0 / spaces / dashes removed), age 0–120, 6-digit PIN, 14-digit ABHA, a plausible email.
+ * Blank optional fields stay blank — an unknown emergency patient may have none.
+ */
+export function cleanPatientFields(b) {
+  for (const k of ['mobile', 'alt_mobile', 'kin_mobile']) if (k in b && b[k] !== null && String(b[k]).trim() !== '') {
+    const digits = String(b[k]).replace(/[\s().-]/g, '').replace(/^\+?91(?=\d{10}$)/, '').replace(/^0(?=\d{10}$)/, '');
+    if (!/^[6-9]\d{9}$/.test(digits)) fail(400, k + '_invalid', { hint: '10-digit Indian mobile number' });
+    b[k] = digits;
+  }
+  if ('age_years' in b && b.age_years !== null && b.age_years !== '' && !(Number(b.age_years) >= 0 && Number(b.age_years) <= 120)) fail(400, 'age_invalid');
+  if ('pincode' in b && String(b.pincode || '').trim() && !/^\d{6}$/.test(String(b.pincode).trim())) fail(400, 'pincode_invalid');
+  if ('abha' in b && String(b.abha || '').trim()) { const a = String(b.abha).replace(/[\s-]/g, ''); if (!/^\d{14}$/.test(a)) fail(400, 'abha_invalid'); b.abha = a; }
+  if ('email' in b && String(b.email || '').trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.email).trim())) fail(400, 'email_invalid');
+  return b;
+}
+
 patients.post('/', requirePerm('patient.create'), h((req) => {
-  const b = req.body || {};
+  const b = cleanPatientFields(req.body || {});
   if (!b.name) fail(400, 'name_required');
+  // one person, one UHID for life: the same mobile and first name is almost always a returning patient
+  if (!b.confirm_new_patient) { const same = likelySame(b.name, b.mobile); if (same.length) fail(409, 'possible_duplicate', { matches: same }); }
   if (!b.gender) fail(400, 'gender_required');
   const uhid = b.uhid || nextNo('uhid');
   const id = insert('patients', {
@@ -158,6 +200,7 @@ patients.post('/', requirePerm('patient.create'), h((req) => {
     ...payerFields(b), policy_no: b.policy_no,
     vip: b.vip ? 1 : 0, notes: b.notes,
     created_by: req.user.id,
+    ...referralFields(b), pregnant: b.pregnant === true || b.pregnant === 1 || b.pregnant === '1' ? 1 : 0,
   });
   if (Array.isArray(b.allergies)) {
     for (const a of b.allergies) insert('allergies', {
@@ -180,6 +223,12 @@ patients.patch('/:id', requirePerm('patient.edit'), h((req) => {
     'pincode', 'aadhaar_last4', 'abha', 'kin_name', 'kin_relation', 'kin_mobile',
     'payer_type', 'payer_name', 'policy_no', 'vip', 'notes'];
   const patch = {};
+  Object.assign(patch, referralFields(req.body || {}));
+  if ('pregnant' in (req.body || {})) {
+    if (!can(req.user, 'patient.clinical') && !can(req.user, 'patient.edit')) fail(403, 'forbidden');
+    patch.pregnant = req.body.pregnant === true || req.body.pregnant === 1 || req.body.pregnant === '1' ? 1 : 0;
+  }
+  cleanPatientFields(req.body || {});
   for (const k of allowed) if (k in (req.body || {})) patch[k] = req.body[k];
   if ('payer_id' in (req.body || {}) || 'payer_type' in (req.body || {})) {
     const current = get('SELECT payer_type, payer_name, payer_id FROM patients WHERE id=?', id);
@@ -193,6 +242,9 @@ patients.patch('/:id', requirePerm('patient.edit'), h((req) => {
   update('patients', id, patch);
   const p = patientCard(id);
   const changed = Object.keys(patch).filter((k) => k !== 'updated_at' && String(old[k] ?? '') !== String(patch[k] ?? ''));
+  // The record's payer applies to new visits. Open visits keep theirs until changed with "Change payer"
+  // (which guards money already received) — say so instead of leaving the old payer silently.
+  if (changed.some((k) => ['payer_type', 'payer_id'].includes(k))) p.payer_open_visits = openVisitsForPayer(id);
   emit(req, {
     topics: ['patients', `patient:${id}`], event: 'patient.updated', data: { id },
     action: 'patient.update', entity: 'patients', entityId: id,

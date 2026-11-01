@@ -8,7 +8,7 @@
  */
 import { Router } from 'express';
 import {
-  h, fail, all, get, one, insert, update, run, tx, emit, nowIso, nextNo, num, money, today, recalcBill,
+  h, fail, all, get, one, insert, update, run, tx, emit, nowIso, nextNo, num, money, today, recalcBill, setting,
 } from '../lib.js';
 import { requireAuth, requirePerm, can } from '../auth.js';
 import { postPurchaseReturn, postSupplierPayment, postVoucher, reverseSource } from '../accounting.js';
@@ -16,7 +16,7 @@ import { refund } from '../payments.js';
 import { dispense } from './pharmacy.js';
 
 export const inventory = Router();
-export const LOCATIONS = ['Central', 'OP', 'IP', 'ICU', 'ER', 'OT', 'Ward'];
+export const LOCATIONS = ['Central', 'OP', 'IP', 'ICU', 'ER', 'OT', 'Ward', 'LAB'];
 const topics = ['inventory', 'pharmacy', 'dashboard'];
 
 const qtyOk = (v) => Number.isFinite(v) && v > 0;
@@ -48,7 +48,9 @@ inventory.get('/locations', requirePerm('inventory.view'), h(() => ({
     location,
     ...get(`SELECT count(*) batches, coalesce(sum(qty),0) units, round(coalesce(sum(qty*purchase_rate),0),2) value,
                    round(coalesce(sum(qty*mrp),0),2) mrp_value,
-                   sum(CASE WHEN expiry <= date('now','localtime','+90 day') THEN 1 ELSE 0 END) expiring
+                   sum(CASE WHEN expiry <= date('now','localtime','+90 day') THEN 1 ELSE 0 END) expiring,
+                   coalesce(sum(CASE WHEN expiry > date('now','localtime') THEN qty ELSE 0 END),0) usable_units,
+                   coalesce(sum(CASE WHEN expiry <= date('now','localtime') THEN qty ELSE 0 END),0) expired_units
               FROM medicine_batches WHERE location=? AND qty>0`, location),
   })),
 })));
@@ -167,7 +169,7 @@ inventory.post('/transfers/:id/:action(approve|issue|receive|close|reject|cancel
   if (action === 'approve') {
     if (t.status !== 'requested') fail(409, 'transfer_transition_invalid');
     // two people per transfer: whoever asked for the stock does not also approve it (the owner / manager / another in-charge does)
-    if (t.requested_by === req.user.id && req.user.role !== 'admin') fail(403, 'cannot_approve_own_request');
+    if (t.requested_by === req.user.id && req.user.role !== 'admin' && setting('transfer_self_approve', '1') !== '1') fail(403, 'cannot_approve_own_request');
     const given = new Map((body.lines || []).map((l) => [+l.id, Number(l.qty_approved)]));
     for (const l of lines) {
       const q = given.has(l.id) ? given.get(l.id) : l.qty_requested;
@@ -427,7 +429,7 @@ inventory.get('/payables', requireAuth, h((req) => {
   for (const s of suppliers) {
     const grns = all(`SELECT p.id, p.grn_no, p.invoice_no, p.invoice_date, date(p.received_at) received_on, p.total, p.paid,
         round(p.total - p.paid, 2) open, coalesce(p.due_date, date(p.received_at, '+' || ? || ' day')) due_date
-        FROM purchases p WHERE p.supplier_id=? AND p.total - p.paid > 0.005 ORDER BY p.id`, s.credit_days, s.id);
+        FROM purchases p WHERE p.supplier_id=? AND p.status<>'corrected' AND p.total - p.paid > 0.005 ORDER BY p.id`, s.credit_days, s.id);
     const b = { current: 0, d30: 0, d60: 0, d90: 0, over90: 0 };
     for (const g of grns) {
       const age = Math.floor((new Date(asOf) - new Date(g.received_on)) / 86400000);
@@ -461,8 +463,9 @@ inventory.post('/supplier-payments', requirePerm('finance.payables'), h((req) =>
     paid_on: b.paid_on || today(), notes: b.notes, created_by: req.user.id });
   // Allocate to the named GRN, else oldest first.
   let left = amount;
-  const grns = b.purchase_id ? all('SELECT * FROM purchases WHERE id=? AND supplier_id=?', num(b.purchase_id), s.id)
-    : all('SELECT * FROM purchases WHERE supplier_id=? AND total - paid > 0.005 ORDER BY id', s.id);
+  if (b.purchase_id && !get("SELECT id FROM purchases WHERE id=? AND supplier_id=? AND status<>'corrected'", num(b.purchase_id), s.id)) fail(409, 'grn_not_payable');
+  const grns = b.purchase_id ? all("SELECT * FROM purchases WHERE id=? AND supplier_id=? AND status<>'corrected'", num(b.purchase_id), s.id)
+    : all("SELECT * FROM purchases WHERE supplier_id=? AND status<>'corrected' AND total - paid > 0.005 ORDER BY id", s.id);
   for (const g of grns) {
     if (left <= 0) break;
     const take = Math.min(left, money(g.total - g.paid));

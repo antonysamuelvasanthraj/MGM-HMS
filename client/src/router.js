@@ -5,7 +5,7 @@
  * exports remain available as references and are never executed at runtime.
  */
 import { $, esc, spinner } from './ui.js';
-import { state, loadMeta, can } from './store.js';
+import { state, loadMeta, can, setting } from './store.js';
 import { NAV, titleFor, sectionFor } from './shell/nav.js';
 import { markActive } from './shell/sidebar.js';
 import { resetTopics, announce } from './ws.js';
@@ -61,6 +61,10 @@ export async function render(path) {
 
   const host = $('#view');
   const entries = NAV.flatMap(group => group.items).filter(item => item.route.split('?')[0] === ctx.route);
+  if(entries.length&&entries.every(item=>item.manual&&setting(item.manual[0])===item.manual[1])){
+    host.innerHTML='<div class="card p-6"><h2 class="text-headline-md">Paper mode</h2><p class="mt-2">This digital queue is turned off in Paper mode. Register visits and manage billing from the patient record.</p><a class="btn-primary mt-4" href="/patients">Open patients</a></div>';
+    return;
+  }
   if (entries.length && !entries.some(item => !item.perm || (Array.isArray(item.perm) ? item.perm.some(can) : can(item.perm)))) {
     host.innerHTML = `<div class="card p-6"><h2 class="text-headline-md">Access restricted</h2><p class="mt-2 text-on-surface-variant">Your role does not have access to this screen.</p><a href="/dashboard" class="btn-primary mt-4">Go to my dashboard</a></div>`;
     return;
@@ -75,11 +79,14 @@ export async function render(path) {
   } catch (e) {
     if (my !== navToken) return;
     console.error(`[view ${ctx.name}]`, e);
-    host.innerHTML = notFound(ctx.name);
+    host.innerHTML = `<div class="p-6"><h2 class="text-headline-md">Could not load ${esc(title)}</h2>
+      <p class="mt-2 text-on-surface-variant">The screen files could not be loaded. Reload to get the latest version.</p>
+      <button class="btn-primary mt-4" data-reload-screen>Reload screen</button></div>`;
+    host.querySelector('[data-reload-screen]').onclick = () => window.location.reload();
     return;
   }
   if (my !== navToken) return;
-  host.innerHTML = '<div class="view-root"></div>';
+  host.innerHTML = '<div class="view-root view-enter"></div>';
   host.scrollTop = 0;
   window.scrollTo(0, 0);
   announce(ctx.route);

@@ -90,7 +90,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Infrastructure', 'dns')} ${liveChip()}`,
     title: 'Local Server & Cloud Sync',
-    subtitle: 'Local records are saved on this server. Cloud delivery is not connected in this working model; queued records have not been backed up remotely.',
+    subtitle: 'Records waiting to sync to the cloud.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export queue</button>
       <span class="pill-warning">Cloud not connected</span>`,
     body: `

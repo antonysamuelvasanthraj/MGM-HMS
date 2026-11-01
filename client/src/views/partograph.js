@@ -124,8 +124,8 @@ function svgChart(entries, hours, start) {
     <path d="${lineAt(4)}" stroke="#B91C1C" stroke-width="1.6" fill="none"/>
     <text x="${W - padR - 4}" y="${yCx(9.4)}" text-anchor="end" font-size="10" fill="#92400E">Alert line</text>
     <text x="${W - padR - 4}" y="${yCx(8.6)}" text-anchor="end" font-size="10" fill="#B91C1C">Action line</text>
-    ${path ? `<path d="${path}" stroke="#881D2C" stroke-width="2.2" fill="none" stroke-linejoin="round"/>` : ''}
-    ${cervix.map((e) => `<circle cx="${x(e.recorded_at)}" cy="${yCx(e.cervix_cm)}" r="4" fill="#881D2C">
+    ${path ? `<path d="${path}" style="stroke:rgb(var(--c-primary))" stroke-width="2.2" fill="none" stroke-linejoin="round"/>` : ''}
+    ${cervix.map((e) => `<circle cx="${x(e.recorded_at)}" cy="${yCx(e.cervix_cm)}" r="4" style="fill:rgb(var(--c-primary))">
       <title>${fmtTime(e.recorded_at)} — ${e.cervix_cm} cm</title></circle>`).join('')}
     <text x="10" y="${padT + 10}" font-size="10" fill="#526176" transform="rotate(-90 10 ${padT + 60})">Cervix (cm)</text>
 
@@ -141,7 +141,7 @@ function svgChart(entries, hours, start) {
       ${entries.filter((e) => e.contractions_10min).map((e) => {
         const h = e.contractions_10min * 4;
         return `<rect x="${x(e.recorded_at) - 4}" y="${96 - h}" width="8" height="${h}"
-          fill="${e.contraction_strength === 'strong' ? '#881D2C' : e.contraction_strength === 'moderate' ? '#A8555F' : '#D4A2A9'}">
+          style="fill:${e.contraction_strength === 'strong' ? 'rgb(var(--c-primary))' : e.contraction_strength === 'moderate' ? 'rgb(var(--c-primary) / .6)' : 'rgb(var(--c-primary) / .3)'}">
           <title>${fmtTime(e.recorded_at)} — ${e.contractions_10min}/10 min (${e.contraction_strength || ''})</title></rect>`;
       }).join('')}
     </g>

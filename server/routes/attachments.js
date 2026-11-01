@@ -14,10 +14,29 @@ import { requireAuth, can } from '../auth.js';
 export const attachments = Router();
 const ROOT = path.join(DATA_DIR, 'uploads');
 const TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'application/pdf': 'pdf', 'image/bmp': 'bmp' };
+/**
+ * Moving pictures from the CT scanner — a cine loop exported as video rather
+ * than a still. These never go through the JSON route below: base64 inflates a
+ * file by a third and the whole thing would sit in memory twice before it
+ * reached the disk, which a hospital server running the live app cannot afford.
+ * They stream to disk instead, through the upload endpoint further down.
+ */
+const VIDEO_TYPES = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov', 'video/x-msvideo': 'avi', 'video/mpeg': 'mpeg' };
 const MAX = 15 * 1024 * 1024;
+const MAX_VIDEO = 300 * 1024 * 1024;
 
 /** Which records accept files, and who may read / add them. */
 const ENTITIES = {
+  patient: { view: (u) => can(u, 'patient.clinical') || can(u, 'patient.edit'),
+    write: (u) => can(u, 'patient.clinical') || can(u, 'patient.edit'), exists: (id) => get('SELECT id FROM patients WHERE id=? AND merged_into IS NULL', id) },
+  // scanned paper clinical document (nursing / ICU / OT chart, consent …) recorded on Paper forms
+  clinical_document: { view: (u) => can(u, 'patient.clinical') || can(u, 'nursing.view') || can(u, 'ipd.view'),
+    write: (u) => can(u, 'patient.clinical') || can(u, 'nursing.write') || can(u, 'ipd.manage'),
+    exists: (id) => get('SELECT id FROM clinical_documents WHERE id=?', id) },
+  // scanned paper for a visit: the doctor's prescription, consultation sheet, consent, chart pages
+  encounter: { view: (u) => can(u, 'patient.clinical') || can(u, 'billing.create') || can(u, 'op.register') || can(u, 'lab.view') || can(u, 'imaging.view'),
+    write: (u) => can(u, 'patient.clinical') || can(u, 'billing.create') || can(u, 'op.register') || can(u, 'lab.collect') || can(u, 'imaging.schedule'),
+    exists: (id) => get('SELECT id FROM encounters WHERE id=?', id) },
   order: { view: (u) => can(u, 'imaging.view') || can(u, 'lab.view') || can(u, 'patient.clinical'),
     write: (u) => can(u, 'imaging.report') || can(u, 'lab.result'), exists: (id) => get('SELECT id, category, status FROM orders WHERE id=?', id) },
 };
@@ -70,10 +89,60 @@ attachments.post('/attachments/:entity/:id', requireAuth, h((req) => {
     saved.push(aid);
   }
   emit(req, { topics: ['imaging', 'lab', 'clinical'], event: 'attachments.changed', data: { entity: req.params.entity, id },
-    action: 'attachment.add', entity: req.params.entity === 'order' ? 'orders' : req.params.entity, entityId: id,
+    action: 'attachment.add', entity: req.params.entity === 'order' ? 'orders' : req.params.entity === 'encounter' ? 'encounters' : req.params.entity, entityId: id,
     detail: { after: { files: files.map((f) => f.name), note: req.body.note } } });
   return list(req.params.entity, id);
 }));
+
+/**
+ * Upload one large file by streaming it: the body is the file itself, its name
+ * and type arrive as headers. Written to a temporary name and renamed only once
+ * the stream closes cleanly, so an interrupted upload never leaves a half file
+ * presented as a report. Memory stays flat whatever the size, which is the
+ * whole point — a CT cine loop does not fit the base64 route above.
+ */
+attachments.post('/attachments/:entity/:id/stream', requireAuth, (req, res) => {
+  const e = ENTITIES[req.params.entity], id = +req.params.id;
+  const type = String(req.headers['x-file-type'] || '');
+  const ext = VIDEO_TYPES[type];
+  const name = String(req.headers['x-file-name'] || '').slice(0, 180) || `clip.${ext || 'bin'}`;
+  if (!e) return res.status(404).json({ error: 'unknown_record_type' });
+  if (!e.write(req.user)) return res.status(403).json({ error: 'forbidden' });
+  if (!e.exists(id)) return res.status(404).json({ error: 'record_not_found' });
+  if (!ext) return res.status(400).json({ error: 'file_type_not_allowed', allowed: 'MP4, WEBM, MOV, AVI, MPEG' });
+
+  const dir = path.join(ROOT, req.params.entity, String(id));
+  fs.mkdirSync(dir, { recursive: true });
+  const stored = `${crypto.randomBytes(12).toString('hex')}.${ext}`;
+  const partial = path.join(dir, `${stored}.part`);
+  const out = fs.createWriteStream(partial);
+  let size = 0, failed = false;
+  const abort = (status, error) => {
+    if (failed) return;
+    failed = true;
+    out.destroy();
+    fs.rm(partial, { force: true }, () => {});
+    res.status(status).json({ error });
+  };
+  req.on('data', (chunk) => {
+    size += chunk.length;
+    if (size > MAX_VIDEO) abort(413, 'file_too_large');
+  });
+  req.on('aborted', () => abort(400, 'upload_aborted'));
+  out.on('error', () => abort(500, 'write_failed'));
+  req.pipe(out);
+  out.on('close', () => {
+    if (failed) return;
+    if (!size) return abort(400, 'empty_file');
+    fs.renameSync(partial, path.join(dir, stored));
+    const aid = insert('attachments', { entity: req.params.entity, entity_id: id, file_name: name, mime: type, size,
+      path: path.join(req.params.entity, String(id), stored), note: req.headers['x-file-note'] ? String(req.headers['x-file-note']).slice(0, 300) : null, uploaded_by: req.user.id });
+    emit(req, { topics: ['imaging', 'lab', 'clinical'], event: 'attachments.changed', data: { entity: req.params.entity, id },
+      action: 'attachment.add', entity: req.params.entity === 'order' ? 'orders' : req.params.entity === 'encounter' ? 'encounters' : req.params.entity, entityId: id,
+      detail: { after: { file: name, size, mime: type } } });
+    res.json(list(req.params.entity, id));
+  });
+});
 
 /** Remove a file (kept on disk; hidden from the record) — only before the report is signed. */
 attachments.post('/attachments/file/:aid/remove', requireAuth, h((req) => {

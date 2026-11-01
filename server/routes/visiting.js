@@ -12,18 +12,20 @@ import { Router } from 'express';
 import { requireAuth, can } from '../auth.js';
 import { h, fail, all, get, one, insert, update, run, num, money, nowIso, today, tx, emit } from '../lib.js';
 import { postVoucher, MONEY_MODES } from '../accounting.js';
+import { feeSnapshot, PROFESSIONAL_CATEGORIES } from '../doctor-fees.js';
+import { eligibleDiscount } from '../discount-policy.js';
 
 export const visiting = Router();
 const r2 = (v) => Math.round((+v + Number.EPSILON) * 100) / 100;
 const canView = (u) => can(u, 'finance.view') || can(u, 'admin.view') || can(u, 'billing.view') || can(u, 'ot.schedule');
-const canEdit = (u) => can(u, 'admin.view') || can(u, 'finance.write');
+const canEdit = (u) => can(u, 'admin.write') || can(u, 'finance.write');
 const canPay = (u) => can(u, 'finance.write') || can(u, 'admin.write');
-const FIELDS = ['name', 'speciality', 'qualification', 'reg_no', 'mobile', 'email', 'pan', 'bank_details', 'share_type', 'share_value', 'tds_pct', 'active', 'notes'];
+const FIELDS = ['name', 'speciality', 'qualification', 'reg_no', 'mobile', 'email', 'pan', 'bank_details', 'share_type', 'share_value', 'tds_pct', 'active', 'notes', 'hospital', 'doctor_type', 'schedule', 'consultation_fee', 'procedure_fee', 'session_fee', 'day_fee', 'settlement_terms', 'agreement_reference'];
 
 /** Share of one line under the doctor's rules (before collection). */
 function lineShare(doc, line) {
   const rate = line.service_id ? get('SELECT * FROM visiting_doctor_rates WHERE doctor_id=? AND service_id=?', doc.id, line.service_id) : null;
-  const type = rate?.share_type || doc.share_type, value = Number(rate?.share_value ?? doc.share_value) || 0;
+  const type = line.visiting_fee_type || rate?.share_type || doc.share_type, value = Number(line.visiting_fee_value ?? rate?.share_value ?? doc.share_value) || 0;
   return { type, value, full: r2(type === 'fixed' ? value * Math.max(1, line.qty || 1) : (line.base * value) / 100) };
 }
 
@@ -41,20 +43,26 @@ function collectedFraction(bill) {
 export function doctorLedger(docId) {
   const doc = get('SELECT * FROM visiting_doctors WHERE id=?', docId);
   if (!doc) return null;
-  const lines = all(`SELECT i.id, i.bill_id, i.service_id, i.description, i.qty, i.amount, i.visiting_role, b.bill_no, b.bill_date, b.status bill_status, p.name patient, p.uhid,
+  const lines = all(`SELECT i.id, i.bill_id, i.service_id, i.description, i.qty, i.amount, i.visiting_role, i.visiting_fee_type, i.visiting_fee_value, i.visiting_agreement, i.created_at service_date,
+      b.bill_no, b.bill_date, b.bill_type, b.status bill_status, p.id patient_id, p.name patient, p.uhid,
+      (SELECT ip_no FROM admissions WHERE encounter_id=b.encounter_id ORDER BY id DESC LIMIT 1) ip_no,
       (SELECT coalesce(sum(-w.amount),0) FROM bill_items w WHERE w.waiver_of=i.id) waived
     FROM bill_items i JOIN bills b ON b.id=i.bill_id JOIN patients p ON p.id=b.patient_id
     WHERE i.visiting_doctor_id=? AND i.waiver_of IS NULL AND i.amount>0 ORDER BY b.bill_date DESC, i.id DESC`, doc.id).map((l) => {
     const bill = get('SELECT * FROM bills WHERE id=?', l.bill_id);
-    const base = l.bill_status === 'cancelled' ? 0 : r2(l.amount - l.waived);
+    const eligible = eligibleDiscount(all('SELECT * FROM bill_items WHERE bill_id=?', l.bill_id), bill);
+    const billDiscount = eligible > 0 ? r2(bill.discount * Math.max(0,l.amount-l.waived)/eligible) : 0;
+    const base = l.bill_status === 'cancelled' ? 0 : r2(Math.max(0,l.amount - l.waived - billDiscount));
     const s = lineShare(doc, { ...l, base });
     const fraction = l.bill_status === 'cancelled' ? 0 : collectedFraction(bill);
     return { ...l, base, rule: s.type === 'fixed' ? `₹${s.value} per case` : `${s.value}%`, share_full: base > 0 ? s.full : 0, collected_pct: Math.round(fraction * 100), earned: base > 0 ? r2(s.full * fraction) : 0 };
   });
-  const earned = r2(lines.reduce((s, l) => s + l.earned, 0));
+  const adjustments = all('SELECT a.*,u.name approved_by_name FROM visiting_fee_adjustments a JOIN users u ON u.id=a.approved_by WHERE a.doctor_id=? ORDER BY a.id DESC',doc.id);
+  const adjustment_total = r2(adjustments.reduce((s,a)=>s+a.amount,0));
+  const earned = r2(lines.reduce((s, l) => s + l.earned, 0)+adjustment_total);
   const accrued = r2(one('SELECT coalesce(sum(accrual),0) FROM visiting_statements WHERE doctor_id=?', doc.id) || 0);
   const paid = r2(one("SELECT coalesce(sum(gross),0) FROM visiting_payouts WHERE doctor_id=? AND status='paid'", doc.id) || 0);
-  return { doctor: doc, lines, earned, accrued, not_yet_accrued: r2(earned - accrued), paid, payable: r2(accrued - paid),
+  return { doctor: doc, lines, earned, accrued, adjustments, adjustment_total, not_yet_accrued: r2(earned - accrued), paid, payable: r2(accrued - paid),
     statements: all('SELECT s.*, u.name by_name FROM visiting_statements s LEFT JOIN users u ON u.id=s.created_by WHERE s.doctor_id=? ORDER BY s.id DESC', doc.id),
     payouts: all('SELECT p.*, u.name by_name FROM visiting_payouts p LEFT JOIN users u ON u.id=p.paid_by WHERE p.doctor_id=? ORDER BY p.id DESC', doc.id) };
 }
@@ -67,6 +75,8 @@ function clean(b, partial) {
   if ('share_value' in row) { row.share_value = Number(row.share_value); if (!(row.share_value >= 0) || (row.share_type === 'percent' && row.share_value > 100)) fail(400, 'share_value_invalid'); }
   if ('tds_pct' in row) { row.tds_pct = Number(row.tds_pct || 0); if (!(row.tds_pct >= 0 && row.tds_pct <= 30)) fail(400, 'tds_invalid'); }
   if ('active' in row) row.active = row.active ? 1 : 0;
+  if ('doctor_type' in row && !['inhouse','visiting','external'].includes(row.doctor_type)) fail(400, 'doctor_type_invalid');
+  for (const k of ['consultation_fee','procedure_fee','session_fee','day_fee']) if (k in row) { row[k] = Number(row[k] || 0); if (!Number.isFinite(row[k]) || row[k] < 0) fail(400, 'fee_invalid'); }
   return row;
 }
 function saveRates(id, rates) {
@@ -75,6 +85,8 @@ function saveRates(id, rates) {
   for (const r of rates) {
     if (!get('SELECT 1 FROM services WHERE id=?', num(r.service_id))) fail(400, 'service_not_found');
     if (!['percent', 'fixed'].includes(r.share_type)) fail(400, 'share_type_invalid');
+    if (!Number.isFinite(Number(r.share_value)) || Number(r.share_value) < 0 || (r.share_type === 'percent' && Number(r.share_value) > 100)) fail(400, 'share_value_invalid');
+    if (!PROFESSIONAL_CATEGORIES.includes(get('SELECT category FROM services WHERE id=?', num(r.service_id)).category)) fail(400, 'professional_service_required');
     insert('visiting_doctor_rates', { doctor_id: id, service_id: num(r.service_id), share_type: r.share_type, share_value: Number(r.share_value) || 0 });
   }
 }
@@ -102,6 +114,7 @@ visiting.patch('/visiting-doctors/:id', requireAuth, h((req) => tx(() => {
   if (!canEdit(req.user)) fail(403, 'forbidden', { need: 'admin.view' });
   const before = get('SELECT * FROM visiting_doctors WHERE id=?', +req.params.id) || fail(404, 'visiting_doctor_not_found');
   const row = clean(req.body || {}, true);
+  if ((row.share_type || before.share_type) === 'percent' && Number(row.share_value ?? before.share_value) > 100) fail(400, 'share_value_invalid');
   if (Object.keys(row).length) update('visiting_doctors', before.id, row);
   saveRates(before.id, req.body?.rates);
   emit(req, { topics: ['admin', 'finance'], event: 'master.created', data: { id: before.id }, action: 'visiting_doctor.update', entity: 'visiting_doctors', entityId: before.id,
@@ -123,17 +136,31 @@ visiting.patch('/bills/:id/items/:itemId/visiting', requireAuth, h((req) => {
   if (!can(req.user, 'billing.create') && !canEdit(req.user)) fail(403, 'forbidden', { need: 'billing.create' });
   const it = get('SELECT * FROM bill_items WHERE id=? AND bill_id=?', +req.params.itemId, +req.params.id) || fail(404, 'item_not_found');
   if (it.amount <= 0 || it.waiver_of) fail(409, 'line_not_attributable');
+  if (it.batch_id || !PROFESSIONAL_CATEGORIES.includes(it.category)) fail(400, 'professional_service_required');
   const docId = req.body?.visiting_doctor_id ? num(req.body.visiting_doctor_id) : null;
   if (docId && !get('SELECT 1 FROM visiting_doctors WHERE id=? AND active=1', docId)) fail(400, 'visiting_doctor_not_found');
-  update('bill_items', it.id, { visiting_doctor_id: docId, visiting_role: docId ? (req.body?.role || it.visiting_role || 'consultant') : null });
+  const role = req.body?.role || it.visiting_role || 'consultant';
+  if (!['consultant','surgeon','assistant','anaesthetist','procedure','session','day'].includes(role)) fail(400, 'clinical_role_required');
+  if (it.visiting_doctor_id && one('SELECT count(*) FROM visiting_statements WHERE doctor_id=?', it.visiting_doctor_id) && !canPay(req.user)) fail(409, 'finance_approval_required_for_accrued_attribution');
+  update('bill_items', it.id, { visiting_doctor_id: docId, visiting_role: docId ? role : null, ...feeSnapshot(docId, it.service_id, req.user.id, role) });
   emit(req, { topics: ['billing', 'finance'], event: 'bill.updated', data: { id: it.bill_id }, action: 'bill.item.visiting', entity: 'bill_items', entityId: it.id,
     detail: { before: { visiting_doctor_id: it.visiting_doctor_id }, after: { visiting_doctor_id: docId }, reason: req.body?.reason || 'Visiting doctor attribution' } });
   return get('SELECT * FROM bill_items WHERE id=?', it.id);
 }));
 
 /** Statement: accrue the share earned on collections that is not yet in the books (negative when refunds clawed it back). */
+visiting.post('/visiting-doctors/:id/adjustments',requireAuth,h(req=>{
+  if(!canPay(req.user))fail(403,'forbidden',{need:'finance.write'});
+  if(!get('SELECT id FROM visiting_doctors WHERE id=?',+req.params.id))fail(404,'visiting_doctor_not_found');
+  const amount=Number(req.body?.amount),reason=String(req.body?.reason||'').trim();
+  if(!Number.isFinite(amount)||Math.abs(amount)<0.01||!reason)fail(400,'adjustment_amount_and_reason_required');
+  const id=insert('visiting_fee_adjustments',{doctor_id:+req.params.id,amount:money(amount),reason,reference:req.body?.reference||null,approved_by:req.user.id});
+  emit(req,{topics:['finance','accounts'],event:'visiting.adjusted',action:'visiting.adjustment.approve',entity:'visiting_fee_adjustments',entityId:id,detail:{amount,reason,doctor_id:+req.params.id}});
+  return get('SELECT * FROM visiting_fee_adjustments WHERE id=?',id);
+}));
+
 visiting.post('/visiting-doctors/:id/statements', requireAuth, h((req) => tx(() => {
-  if (!canPay(req.user) && !can(req.user, 'finance.view')) fail(403, 'forbidden', { need: 'finance.write' });
+  if (!canPay(req.user)) fail(403, 'forbidden', { need: 'finance.write' });
   const l = doctorLedger(+req.params.id) || fail(404, 'visiting_doctor_not_found');
   const delta = l.not_yet_accrued;
   if (Math.abs(delta) < 0.01) fail(409, 'nothing_new_to_accrue');

@@ -9,11 +9,14 @@ import {
   billSettlements, collectionReceipt, CATEGORIES, PAYERS, MODE_LABEL,
 } from '../payments.js';
 
-import { accrueAdmission } from '../ipd-charges.js';
-import { isClosed } from '../accounting.js';
+import { accrueAdmission, ipBill } from '../ipd-charges.js';
+import { isClosed, itemMoney } from '../accounting.js';
 import { billNewToPayer } from '../payer-billing.js';
 import { activeAssignment, applyPackage, assignPackage, packageUsage } from '../packages.js';
 import { collectionPolicy } from '../collection-policy.js';
+import { approveDiscount, eligibleDiscount, pharmacyLine } from '../discount-policy.js';
+import { routeBillDiagnostics } from '../bill-diagnostics.js';
+import {visitBillingCategory} from '../payer-context.js';
 
 /**
  * Once a day is closed its bills and receipts are locked. Only an
@@ -64,12 +67,19 @@ function accrueFor(billId) {
  * every other bill (OP, lab, imaging, IP, ER) at reception.
  */
 function counterFor(req, bill) {
-  if (!bill || can(req.user, 'admin.view') || req.user.role === 'cashier') return;
+  if (!bill || can(req.user, 'admin.view')) return;
   const pharmacyDesk = ['pharmacy', 'store', 'pharmacy_admin'].includes(req.user.role);
   if (bill.bill_type === 'PHARM' && !pharmacyDesk) fail(403, 'pharmacy_bill_settled_at_pharmacy');
   if (bill.bill_type !== 'PHARM' && pharmacyDesk) fail(403, 'bill_settled_at_reception');
 }
 const TOPICS = ['billing', 'dashboard', 'queue', 'lab', 'imaging', 'accounts'];
+
+// Read-only visibility never grants a front-office desk authority over pharmacy money.
+billing.use('/bills/:id',requireAuth,(req,res,next)=>{
+  if(['GET','HEAD','OPTIONS'].includes(req.method))return next();
+  try{counterFor(req,get('SELECT * FROM bills WHERE id=?',+req.params.id));next();}
+  catch(error){if(error.http)return res.status(error.http).json({error:error.message,...error.extra});next(error);}
+});
 
 /**
  * Settle a bill with split lines of any mode - the single payment endpoint
@@ -87,7 +97,8 @@ billing.post('/bills/:id/settle', requirePerm('payment.collect'), h((req) => {
     topics: [...TOPICS, 'display', `patient:${view.patient_id}`, view.encounter_id ? `encounter:${view.encounter_id}` : 'billing'],
     event: 'payment.received', data: { ...r, bill: view },
     action: 'payment.settle', entity: 'bills', entityId: view.id,
-    detail: { before: pickBill(before), after: pickBill(view), lines: r.summary, category: b.category, reason: b.notes },
+    detail: { before: pickBill(before), after: pickBill(view), lines: r.summary, category: b.category, reason: b.notes,
+      ...(r.admission_category ? { admission_category: r.admission_category } : {}) },
   });
   return { ...r, bill: view };
 }));
@@ -95,6 +106,7 @@ billing.post('/bills/:id/settle', requirePerm('payment.collect'), h((req) => {
 /** Kept for older screens: money-only split, mapped onto the same engine. */
 billing.post('/payments/split', requirePerm('payment.collect'), h((req) => {
   const b = req.body || {};
+  counterFor(req,get('SELECT * FROM bills WHERE id=?',+b.bill_id));
   const r = settleBill(req, { bill_id: +b.bill_id, category: b.category, notes: b.notes,
     request_key: b.request_key || `split-${b.bill_id}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
     lines: (b.components || []).map((c) => ({ mode: c.mode, amount: c.amount, reference: c.reference, transaction_id: c.transaction_id })) });
@@ -132,7 +144,7 @@ const pickBill = (b) => b && ({ bill_no: b.bill_no, status: b.status, payer_type
 function billView(id) {
   const b = get(
     `SELECT b.*, p.uhid, p.name patient_name, p.gender, p.age_years, p.mobile, p.payer_name,
-            e.encounter_no, e.token_no, e.visit_date, e.kind AS encounter_kind,
+            e.encounter_no, e.token_no, e.visit_date, e.kind AS encounter_kind, e.stage AS encounter_stage, e.direct_to_doctor,
             u.name created_by_name, c.name counter_name,
             d.name doctor_name
        FROM bills b JOIN patients p ON p.id=b.patient_id
@@ -142,11 +154,18 @@ function billView(id) {
        LEFT JOIN counters c ON c.id=b.counter_id
       WHERE b.id=?`, id);
   if (!b) return null;
-  b.items = all('SELECT i.*, vd.name visiting_doctor_name FROM bill_items i LEFT JOIN visiting_doctors vd ON vd.id=i.visiting_doctor_id WHERE i.bill_id=? ORDER BY i.id', id);
+  b.items = all('SELECT i.*, vd.name visiting_doctor_name, mb.batch_no, mb.expiry, mb.mrp, m.generic, m.hsn FROM bill_items i LEFT JOIN visiting_doctors vd ON vd.id=i.visiting_doctor_id LEFT JOIN medicine_batches mb ON mb.id=i.batch_id LEFT JOIN medicines m ON m.id=mb.medicine_id WHERE i.bill_id=? ORDER BY i.id', id);
+  for(const item of b.items){const amounts=itemMoney(item);const cgst=money(amounts.tax/2);item.print_money={...amounts,cgst,sgst:money(amounts.tax-cgst),igst:0};if(item.admission_charge_id)item.charge_unit=get('SELECT unit FROM admission_charges WHERE id=?',item.admission_charge_id)?.unit;}
+  b.referred_by = get(`SELECT o.referred_by FROM bill_items bi JOIN orders o ON o.id=bi.order_id WHERE bi.bill_id=? AND o.referred_by IS NOT NULL ORDER BY bi.id LIMIT 1`, id)?.referred_by || null;
   b.payments = all(`SELECT pm.*, u.name received_by_name FROM payments pm
                       LEFT JOIN users u ON u.id=pm.received_by
                      WHERE pm.bill_id=? ORDER BY pm.id`, id);
   b.settlements = billSettlements(id);
+  if(b.bill_type==='IP'){
+    b.admission=get('SELECT id,ip_no,status FROM admissions WHERE encounter_id=?',b.encounter_id);
+    const assignment=b.admission?activeAssignment({admissionId:b.admission.id}):null;
+    if(assignment)b.package_usage=packageUsage(assignment);
+  }
   Object.assign(b, collectionPolicy(b));
   return b;
 }
@@ -166,6 +185,7 @@ billing.get('/service-queue', requirePerm('payment.collect'), h((req) => {
     LEFT JOIN users u ON u.id=o.ordered_by
     LEFT JOIN bill_items bi ON bi.order_id=o.id LEFT JOIN bills b ON b.id=bi.bill_id AND b.status<>'cancelled'
     WHERE o.category IN ('lab','imaging','procedure') AND o.status NOT IN ('cancelled','verified')
+      ${req.query.today==='1'?"AND date(o.ordered_at)=date('now','localtime')":''}
       AND ${req.query.show === 'cleared' ? "date(o.ordered_at)=date('now','localtime') AND o.status<>'awaiting_payment'" : "o.status='awaiting_payment'"}
     ORDER BY o.priority='stat' DESC, o.id LIMIT 300`);
   // one row per bill, listing its services
@@ -180,6 +200,10 @@ billing.get('/service-queue', requirePerm('payment.collect'), h((req) => {
 
 billing.get('/bills', requirePerm('billing.view'), h((req) => {
   const extra = [], args = [];
+  if(req.query.active_ip==='1'){
+    extra.push("b.bill_type='IP' AND b.status<>'cancelled' AND EXISTS(SELECT 1 FROM admissions a WHERE a.encounter_id=b.encounter_id AND a.status<>'discharged')");
+    for(const admission of all("SELECT id FROM admissions WHERE status<>'discharged'"))accrueAdmission(admission.id);
+  }
   if (req.query.date) { extra.push('b.bill_date = ?'); args.push(req.query.date); }
   if (req.query.from) { extra.push('b.bill_date >= ?'); args.push(req.query.from); }
   if (req.query.to) { extra.push('b.bill_date <= ?'); args.push(req.query.to); }
@@ -189,6 +213,8 @@ billing.get('/bills', requirePerm('billing.view'), h((req) => {
     else { extra.push('b.status = ?'); args.push(req.query.status); }
   }
   if (req.query.patient_id) { extra.push('b.patient_id = ?'); args.push(+req.query.patient_id); }
+  // missed conversions: the patient record names a payer but the open bill is still self-pay
+  if (req.query.payer_mismatch) extra.push("coalesce(b.payer_type,'self')='self' AND coalesce(p.payer_type,'self') NOT IN ('self','credit') AND b.status IN ('unpaid','partial')");
   if (req.query.counter_id) { extra.push('b.counter_id = ?'); args.push(+req.query.counter_id); }
   if (req.query.q) {
     extra.push('(b.bill_no LIKE ? OR p.name LIKE ? OR p.uhid LIKE ? OR p.mobile LIKE ?)');
@@ -209,6 +235,15 @@ billing.get('/bills', requirePerm('billing.view'), h((req) => {
   const agg = get(`SELECT count(*) n, coalesce(sum(total),0) total, coalesce(sum(paid),0) paid,
                           coalesce(sum(balance),0) balance FROM bills b JOIN patients p ON p.id=b.patient_id ${w}`, ...args);
   return { rows: rows.map(b => ({ ...b, ...collectionPolicy(b) })), summary: agg };
+}));
+
+billing.get('/pharmacy-bills-overview',requirePerm('billing.view'),h(req=>{
+  if(billScope(req.user)===null)fail(403,'forbidden');
+  const extra=["b.bill_type='PHARM'"],args=[];
+  if(req.query.date){extra.push('b.bill_date=?');args.push(req.query.date);}
+  if(req.query.q){extra.push('(p.name LIKE ? OR p.uhid LIKE ? OR b.bill_no LIKE ?)');const q=`%${req.query.q}%`;args.push(q,q,q);}
+  const from=`FROM bills b JOIN patients p ON p.id=b.patient_id WHERE ${extra.join(' AND ')}`;
+  return {rows:all(`SELECT b.id,b.bill_no,b.bill_date,b.bill_type,b.gross,b.discount,b.total,b.paid,b.balance,b.status,p.name patient_name,p.uhid ${from} ORDER BY b.id DESC LIMIT 300`,...args).map(row=>({...row,view_only:true})),summary:get(`SELECT count(*) n,coalesce(sum(b.total),0) total,coalesce(sum(b.paid),0) paid,coalesce(sum(b.balance),0) balance ${from}`,...args)};
 }));
 
 billing.get('/bills/:id', requireAuth, h((req) => {
@@ -236,6 +271,8 @@ billing.post('/bills/:id/items/:itemId/waive', requireAuth, h((req) => {
   const before = get('SELECT * FROM bills WHERE id=?', bid);
   if (!before || before.status === 'cancelled') fail(409, 'bill_unavailable');
   const lock = closedDayGuard(req, billDay(before), reason);
+  if (pharmacyLine(item, before)) fail(400, 'pharmacy_discounts_disabled_use_sales_return');
+  if (before.discount > eligibleDiscount(all('SELECT * FROM bill_items WHERE bill_id=? AND id<>?', bid, item.id), before) + 0.005) fail(409, 'reduce_discount_before_waiving_charge');
   tx(() => {
     insert('bill_items', { bill_id: bid, service_id: item.service_id, description: `Waived — ${item.description}`, category: item.category,
       revenue_head: item.revenue_head, qty: -item.qty, rate: item.rate, gst_pct: item.gst_pct, tax_inclusive: item.tax_inclusive,
@@ -248,13 +285,80 @@ billing.post('/bills/:id/items/:itemId/waive', requireAuth, h((req) => {
   return view;
 }));
 
+/**
+ * Discount on one bill line (set, raise or lower it). Needs discount rights and a reason; the
+ * approver is named in the reason and the audit entry. Pharmacy lines stay protected (use a
+ * sales return). A discount that would push the bill below what is already paid is refused —
+ * that money goes back through a refund instead.
+ */
+billing.patch('/bills/:id/items/:itemId/discount', requireAuth, h((req) => {
+  const bid = +req.params.id;
+  const before = get('SELECT * FROM bills WHERE id=?', bid);
+  if (!before || before.status === 'cancelled') fail(409, 'bill_unavailable');
+  const item = get('SELECT * FROM bill_items WHERE id=? AND bill_id=?', +req.params.itemId, bid);
+  if (!item || item.amount < 0 || item.waiver_of) fail(404, 'item_not_discountable');
+  const gross = money(item.qty * item.rate);
+  const pct = req.body?.discount_pct;
+  const wanted = pct !== undefined && pct !== '' && pct !== null ? money(gross * Math.min(100, Math.max(0, num(pct))) / 100) : money(num(req.body?.discount, 0));
+  const approver = String(req.body?.approved_by || '').trim();
+  const reason = [String(req.body?.reason || '').trim(), approver && `approved by ${approver}`].filter(Boolean).join(' — ');
+  const discount = wanted > 0 ? approveDiscount(req, wanted, reason, gross, pharmacyLine(item, before)) : 0;
+  if (!(wanted > 0) && !can(req.user, 'billing.discount') && !can(req.user, 'payment.authorize')) fail(403, 'forbidden', { need: 'billing.discount' });
+  const increase = money(discount - (item.discount || 0));
+  if (increase > money(before.balance) + 0.005) fail(409, 'discount_exceeds_balance', { max: money((item.discount || 0) + Math.max(0, before.balance)) });
+  const lock = closedDayGuard(req, billDay(before), reason || 'Line discount changed');
+  tx(() => {
+    update('bill_items', item.id, { discount, amount: money(gross - discount) });
+    recalcBill(bid);
+  });
+  const view = billView(bid);
+  emit(req, { topics: TOPICS, event: 'bill.updated', data: view, action: 'bill.item.discount', entity: 'bills', entityId: bid,
+    detail: { before: { ...pickBill(before), item: item.description, line_discount: item.discount || 0 }, after: { ...pickBill(view), line_discount: discount }, reason: reason || 'Line discount removed', ...lock } });
+  return view;
+}));
+
+/**
+ * Apply a self-pay package to an OP / day-care bill from the payment window: the package price is
+ * added and the services it covers are adjusted off (package adjustment), exactly as for an admission.
+ */
+billing.post('/bills/:id/package', requireAuth, h((req) => tx(() => {
+  if (!can(req.user, 'payment.authorize') && !can(req.user, 'billing.discount') && !can(req.user, 'ipd.manage')) fail(403, 'forbidden', { need: 'payment.authorize' });
+  const bill = get('SELECT * FROM bills WHERE id=?', +req.params.id);
+  if (!bill || bill.status === 'cancelled') fail(409, 'bill_unavailable');
+  if (bill.bill_type === 'IP') fail(400, 'use_admission_package');
+  if (!['self', 'credit', ''].includes(bill.payer_type || 'self')) fail(409, 'payer_package_requires_case');
+  const pkg = get('SELECT * FROM packages WHERE id=? AND active=1 AND payer_id IS NULL', num(req.body?.package_id)) || fail(400, 'package_unavailable');
+  if (!(pkg.price > 0)) fail(400, 'package_price_not_set');
+  const pa = assignPackage(req, { packageId: pkg.id, patientId: bill.patient_id, encounterId: bill.encounter_id || null, billId: bill.id, notes: req.body?.notes || null });
+  insert('bill_items', { bill_id: bill.id, description: `Package — ${pkg.name}`, category: 'package', revenue_head: 'PACKAGE', qty: 1, rate: pkg.price, amount: pkg.price,
+    created_by: req.user.id, created_at: nowIso() });
+  update('bills', bill.id, { package_id: pkg.id });
+  recalcBill(bill.id);
+  const usage = applyPackage(req, activeAssignment({ encounterId: bill.encounter_id }) || pa);
+  const view = billView(bill.id);
+  emit(req, { topics: TOPICS, event: 'bill.updated', data: view, action: 'package.assign', entity: 'package_assignments', entityId: pa.id,
+    detail: { before: pickBill(bill), after: { ...pickBill(view), package: pkg.name, price: pkg.price }, reason: req.body?.notes || 'Package chosen at payment' } });
+  return { bill: view, usage };
+})));
+
 billing.post('/bills', requirePerm('billing.create'), h((req) => {
   const b = req.body || {};
   // a desk raises only its own kind of bill: pharmacy raises pharmacy bills (through dispensing), reception the rest
   const scope = billScope(req.user);
   if (scope === "b.bill_type='PHARM'" && (b.bill_type || 'OP') !== 'PHARM') fail(403, 'bill_raised_at_reception');
+  if (scope === "b.bill_type<>'PHARM'" && b.bill_type === 'PHARM') fail(403, 'bill_raised_at_pharmacy');
   const patient = get('SELECT * FROM patients WHERE id=?', num(b.patient_id));
   if (!patient) fail(400, 'patient_required');
+  const admission=b.admission_id?get("SELECT * FROM admissions WHERE id=? AND patient_id=? AND status<>'discharged'",num(b.admission_id),patient.id):null;
+  if(b.admission_id){
+    if(!admission||b.bill_type!=='IP')fail(400,'active_ip_admission_required');
+    if(!can(req.user,'ipd.view'))fail(403,'forbidden');
+    if(!String(b.request_key || '').trim())fail(400,'request_key_required');
+    const previous=get("SELECT entity_id FROM audit_log WHERE action='bill.ip_charges' AND json_extract(detail,'$.ip_request_key')=?",String(b.request_key));
+    if(previous){const view=billView(previous.entity_id);if(view?.patient_id!==patient.id)fail(409,'request_key_conflict');return view;}
+    b.encounter_id=admission.encounter_id;
+    if(b.collect)fail(400,'collect_ip_deposit_against_running_bill');
+  }
   const billingDoctor = b.doctor_id ? get("SELECT id FROM users WHERE id=? AND role='doctor' AND active=1", num(b.doctor_id)) : null;
   if (b.doctor_id && !billingDoctor) fail(400, 'active_doctor_required');
   let items = Array.isArray(b.items) ? b.items : [];
@@ -274,10 +378,12 @@ billing.post('/bills', requirePerm('billing.create'), h((req) => {
   }
   return tx(() => {
     if (b.package_id && b.encounter_id && get("SELECT id FROM bills WHERE encounter_id=? AND package_id IS NOT NULL AND status<>'cancelled'",num(b.encounter_id))) fail(409,'visit_already_has_package');
-    const bid = insert('bills', {
+    const existing=admission?ipBill(admission):null;
+    if(existing&&existing.status==='cancelled')fail(409,'bill_unavailable');
+    const bid = existing?.id || insert('bills', {
       bill_no: nextNo('bill'), patient_id: patient.id, encounter_id: b.encounter_id || null,
       bill_type: b.bill_type || 'OP', status: 'unpaid',
-      payer_type: b.payer_type || patient.payer_type,
+      payer_type: b.payer_type || visitBillingCategory(patient.id,b.encounter_id || null),
       discount: money(num(b.discount, 0)), discount_reason: b.discount_reason,
       counter_id: req.user.counter_id || b.counter_id || null,
       created_by: req.user.id, notes: b.notes,
@@ -290,17 +396,26 @@ billing.post('/bills', requirePerm('billing.create'), h((req) => {
       if (svc && ((b.bill_type==='LAB' && svc.category!=='lab') || (b.bill_type==='IMAGING' && svc.category!=='imaging'))) fail(400,'service_bill_type_mismatch');
       const qty = num(it.qty, 1);
       const rate = money(it.rate !== undefined ? num(it.rate) : priceFor(svc, patient.id));
-      const disc = money(num(it.discount, 0));
+      if (!Number.isFinite(qty) || qty <= 0 || !Number.isFinite(rate) || rate < 0) fail(400, 'item_price_invalid');
+      const category = svc?.category || it.category || 'other';
+      const disc = approveDiscount(req, it.discount ?? 0, it.discount_reason || b.discount_reason, qty * rate, pharmacyLine({ ...it, category }, b));
       insert('bill_items', {
         bill_id: bid, service_id: svc?.id || null, order_id: it.order_id || null,
         description: it.description || svc?.name || 'Service',
-        category: it.category || svc?.category || 'other',
+        category,
         qty, rate, discount: disc, gst_pct: num(it.gst_pct, svc?.gst_pct || 0),
         amount: money(qty * rate - disc),
       });
       if (it.order_id) update('orders', num(it.order_id), { billed: 1 });
     }
+    approveDiscount(req, b.discount ?? 0, b.discount_reason, eligibleDiscount(all('SELECT * FROM bill_items WHERE bill_id=?', bid), b), b.bill_type === 'PHARM');
+    if(existing&&Number(b.discount)>0){
+      const discount=money(existing.discount+Number(b.discount));
+      approveDiscount(req,discount,b.discount_reason,eligibleDiscount(all('SELECT * FROM bill_items WHERE bill_id=?',bid),existing));
+      update('bills',bid,{discount,discount_reason:b.discount_reason});
+    }
     const bill = recalcBill(bid);
+    routeBillDiagnostics(req,bid);
     if (b.package_id) assignPackage(req, { packageId: num(b.package_id), patientId: patient.id, encounterId: b.encounter_id ? num(b.encounter_id) : null, billId: bid });
     if (b.collect && Array.isArray(b.lines) && b.lines.length > 0) {
       const reqKey = b.request_key || `bill-${bid}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -316,20 +431,22 @@ billing.post('/bills', requirePerm('billing.create'), h((req) => {
       if (payAmt > 0) {
         takePayment(req, { bill_id: bid, amount: payAmt, mode: b.mode, reference: b.reference });
       }
-    } else {
+    } else if(!admission) {
       billNewToPayer(req, [bid]);
     }
     // charges on a visit that has a package: what the package covers is adjusted off straight away
     if (b.encounter_id) applyPackage(req, activeAssignment({ encounterId: num(b.encounter_id) }));
     const view = billView(bid);
     emit(req, {
-      topics: [...TOPICS, `patient:${patient.id}`], event: 'bill.created', data: view,
-      action: 'bill.create', entity: 'bills', entityId: bid,
-      detail: { bill_no: view.bill_no, total: view.total, ...(b.package_id ? {package_id:num(b.package_id)} : {}) },
+      topics: [...TOPICS, `patient:${patient.id}`], event: admission?'bill.updated':'bill.created', data: view,
+      action: admission?'bill.ip_charges':'bill.create', entity: 'bills', entityId: bid,
+      detail: { bill_no: view.bill_no, total: view.total, ...(admission?{ip_request_key:String(b.request_key),admission_id:admission.id,before:pickBill(existing),after:pickBill(view)}:{}), ...(b.package_id ? {package_id:num(b.package_id)} : {}) },
     });
     return view;
   });
 }));
+
+billing.post('/bills/:id/route-diagnostics',requirePerm('billing.create'),h(req=>tx(()=>routeBillDiagnostics(req,+req.params.id))));
 
 billing.patch('/bills/:id/doctor', requirePerm('billing.create'), h(req => {
   const before = get('SELECT * FROM bills WHERE id=?', +req.params.id);
@@ -346,7 +463,7 @@ billing.patch('/bills/:id/doctor', requirePerm('billing.create'), h(req => {
   return view;
 }));
 
-billing.post('/bills/:id/items', requirePerm('billing.create'), h((req) => {
+billing.post('/bills/:id/items', requirePerm('billing.create'), h((req) => tx(() => {
   const bid = +req.params.id;
   const before = get('SELECT * FROM bills WHERE id=?', bid);
   if (!before || before.status === 'cancelled') fail(409, 'bill_unavailable');
@@ -354,25 +471,31 @@ billing.post('/bills/:id/items', requirePerm('billing.create'), h((req) => {
   const svc = it.service_id ? get('SELECT * FROM services WHERE id=?', num(it.service_id)) : null;
   const qty = num(it.qty, 1);
   const rate = money(it.rate !== undefined ? num(it.rate) : priceFor(svc, before.patient_id));
+  if (it.service_id && !svc) fail(400, 'service_unavailable');
+  if (!Number.isFinite(qty) || qty <= 0 || !Number.isFinite(rate) || rate < 0) fail(400, 'item_price_invalid');
+  const category = svc?.category || it.category || 'other';
+  const discount = approveDiscount(req, it.discount ?? 0, it.discount_reason, qty * rate, pharmacyLine({ ...it, category }, before));
   insert('bill_items', {
     bill_id: bid, service_id: svc?.id || null, order_id: it.order_id || null,
-    description: it.description || svc?.name, category: it.category || svc?.category || 'other',
-    qty, rate, discount: money(num(it.discount, 0)), gst_pct: num(it.gst_pct, svc?.gst_pct || 0),
-    amount: money(qty * rate - num(it.discount, 0)), created_by: req.user.id, created_at: nowIso(),
+    description: it.description || svc?.name, category,
+    qty, rate, discount, gst_pct: num(it.gst_pct, svc?.gst_pct || 0),
+    amount: money(qty * rate - discount), created_by: req.user.id, created_at: nowIso(),
   });
   recalcBill(bid);
+  routeBillDiagnostics(req,bid);
   const view = billView(bid);
   emit(req, { topics: TOPICS, event: 'bill.updated', data: view,
     action: 'bill.item.add', entity: 'bills', entityId: bid,
     detail: { before: pickBill(before), after: pickBill(view), item: it } });
   return view;
-}));
+})));
 
-billing.delete('/bills/:id/items/:itemId', requirePerm('billing.create'), h((req) => {
+billing.delete('/bills/:id/items/:itemId', requirePerm('billing.create'), h((req) => tx(() => {
   const bid = +req.params.id;
   const before = get('SELECT * FROM bills WHERE id=?', bid);
   const item = get('SELECT * FROM bill_items WHERE id=? AND bill_id=?', +req.params.itemId, bid);
   if (!item) fail(404, 'item_not_found');
+  if(item.admission_charge_id)fail(409,'recurring_charge_use_stop_or_waiver');
   if(get('SELECT id FROM ward_replacement_supply WHERE bill_item_id=?',item.id))fail(409,'replacement_requires_ward_review');
   if (before.paid > 0 || before.covered_amount > 0) fail(409, 'bill_has_collections_use_credit_note');
   const lock = closedDayGuard(req, billDay(before), req.query.reason || req.body?.reason);
@@ -381,14 +504,19 @@ billing.delete('/bills/:id/items/:itemId', requirePerm('billing.create'), h((req
   }
   const reason = String(req.query.reason || req.body?.reason || '').trim();
   if (!reason) fail(400, 'reason_required');
+  if (before.discount > eligibleDiscount(all('SELECT * FROM bill_items WHERE bill_id=? AND id<>?', bid, item.id), before) + 0.005) fail(409, 'reduce_discount_before_removing_charge');
   run('DELETE FROM bill_items WHERE id=? AND bill_id=?', item.id, bid);
+  if(item.order_id) {
+    const linked=get("SELECT bi.id FROM bill_items bi JOIN bills b ON b.id=bi.bill_id WHERE bi.order_id=? AND b.status<>'cancelled' LIMIT 1",item.order_id);
+    update('orders',item.order_id,{billed:linked?1:0,bill_item_id:linked?.id || null});
+  }
   recalcBill(bid);
   const view = billView(bid);
-  emit(req, { topics: TOPICS, event: 'bill.updated', data: view,
+  emit(req, { topics: [...TOPICS,'lab','imaging','clinical'], event: 'bill.updated', data: view,
     action: 'bill.item.remove', entity: 'bills', entityId: bid,
     detail: { before: { ...pickBill(before), item }, after: pickBill(view), reason, ...lock } });
   return view;
-}));
+})));
 
 billing.patch('/bills/:id', requirePerm('billing.create'), h((req) => {
   const id = +req.params.id;
@@ -398,7 +526,8 @@ billing.patch('/bills/:id', requirePerm('billing.create'), h((req) => {
   if (!before || before.status === 'cancelled') fail(409, 'bill_unavailable');
   const lock = 'discount' in patch || 'payer_type' in patch ? closedDayGuard(req, billDay(before), patch.discount_reason || req.body.reason) : {};
   if ('discount' in patch) {
-    patch.discount = money(num(patch.discount, 0));
+    patch.discount = approveDiscount(req, patch.discount, patch.discount_reason || before.discount_reason,
+      eligibleDiscount(all('SELECT * FROM bill_items WHERE bill_id=?', id), before), before.bill_type === 'PHARM');
     if (patch.discount < 0) fail(400, 'discount_invalid');
     if (patch.discount > 0 && !String(patch.discount_reason || before.discount_reason || '').trim()) fail(400, 'discount_reason_required');
     if (!can(req.user, 'billing.discount') && !can(req.user, 'payment.authorize')) fail(403, 'forbidden', { need: 'billing.discount' });
@@ -499,7 +628,7 @@ billing.get('/payments/:id/receipt', requireAuth, h((req) => receiptView(+req.pa
 function receiptView(id) {
   const p = get(
     `SELECT pm.*, pt.uhid, pt.name patient_name, pt.gender, pt.age_years, pt.mobile, pt.address,
-            b.bill_no, b.total bill_total, b.balance bill_balance, b.bill_type,
+            b.bill_no, b.total bill_total, b.balance bill_balance, b.bill_type, b.discount bill_discount, b.discount_reason,
             u.name received_by_name, c.name counter_name, e.encounter_no, e.token_no,
             d.name doctor_name
        FROM payments pm JOIN patients pt ON pt.id=pm.patient_id
@@ -511,11 +640,17 @@ function receiptView(id) {
       WHERE pm.id=?`, id);
   if (!p) fail(404, 'receipt_not_found');
   p.items = p.bill_id ? all('SELECT * FROM bill_items WHERE bill_id=?', p.bill_id) : [];
-  p.settings = Object.fromEntries(all('SELECT key,value FROM settings').map((r) => [r.key, r.value]));
+  // what else settled the bill: package / free adjustments and payer amounts, and money taken before this receipt
+  p.adjustments = p.bill_id ? all("SELECT mode, amount, payer_name, reason FROM bill_settlements WHERE bill_id=? AND status<>'cancelled' AND mode NOT IN ('due','credit')", p.bill_id) : [];
+  p.paid_before = p.bill_id ? get('SELECT coalesce(sum(amount),0) v FROM payments WHERE bill_id=? AND cancelled=0 AND id<?', p.bill_id, p.id).v : 0;
+  // receipt header only — never gateway secrets
+  p.settings = Object.fromEntries(all("SELECT key,value FROM settings WHERE key IN ('hospital_name','address','phone','gstin','hospital_short','campus')").map((r) => [r.key, r.value]));
   return p;
 }
 
 billing.post('/payments/:id/cancel', requirePerm('payment.cancel'), h((req) => {
+  const payment=get('SELECT bill_id FROM payments WHERE id=?',+req.params.id);
+  if(payment?.bill_id)counterFor(req,get('SELECT * FROM bills WHERE id=?',payment.bill_id));
   const lock = closedDayGuard(req, get('SELECT pay_date FROM payments WHERE id=?', +req.params.id)?.pay_date, req.body?.reason);
   const r = cancelPayment(req, +req.params.id, req.body?.reason);
   emit(req, { topics: TOPICS, event: 'payment.cancelled', data: { id: r.payment.id, bill_id: r.payment.bill_id },
@@ -749,6 +884,10 @@ billing.get('/services', requireAuth, h((req) => {
 }));
 
 function validateTariff(b) {
+  for (const k of ['description', 'lab_section']) if (k in b) {
+    if (typeof b[k] !== 'string' || b[k].length > (k === 'description' ? 5000 : 100)) fail(400, k + '_invalid');
+    b[k] = b[k].trim();
+  }
   for (const k of ['price', 'gst_pct', 'tat_minutes']) if (k in b && b[k] !== null && b[k] !== undefined) {
     const v = Number(b[k]);
     if (b[k] === '' || !Number.isFinite(v) || v < 0 || (k === 'gst_pct' && v > 100) || (k === 'tat_minutes' && !Number.isInteger(v))) fail(400, k + '_invalid');
@@ -758,20 +897,57 @@ function validateTariff(b) {
   if ('billing_unit' in b && !['day','hour','once'].includes(b.billing_unit)) fail(400, 'billing_unit_invalid');
   if ('ward_kinds' in b && String(b.ward_kinds || '').split(',').filter(Boolean).some((k) => !['general','semi_private','private','special','deluxe','icu','nicu','picu','hdu','labour','postop','er_obs','ot'].includes(k))) fail(400, 'ward_kinds_invalid');
   for (const k of ['name','code']) if (k in b && !String(b[k] ?? '').trim()) fail(400, k + '_required');
+  // MRI is not offered by this hospital; old MRI services stay inactive for the record
+  if (/\bMRI\b/i.test(`${b.name || ''} ${b.code || ''}`) && (b.category === 'imaging' || b.active === true || b.active === 1 || b.active === '1')) fail(400, 'mri_not_offered');
   if (b.department_id && !get('SELECT id FROM departments WHERE id=?', b.department_id)) fail(400, 'department_invalid');
 }
 
-billing.post('/services', requirePerm('admin.view'), h((req) => {
+billing.post('/services', requireAuth, h((req) => {
   const b = req.body;
+  if (!can(req.user, 'admin.view')) {
+    if (req.user.role !== 'lab_admin' || !can(req.user, 'staff.manage') || !can(req.user, 'lab.verify')) fail(403, 'forbidden');
+    if (b.category !== 'lab' || (b.billing_unit && b.billing_unit !== 'once') || b.ipd_default || b.ward_kinds) fail(403, 'lab_services_only');
+    if (b.department_id && !get("SELECT id FROM departments WHERE id=? AND code='LAB' AND active=1", b.department_id)) fail(403, 'lab_department_required');
+  }
   validateTariff(b);
+  if (get('SELECT id FROM services WHERE code=?', b.code)) fail(409, 'service_code_exists');
+  // Result fields created with the test: `parameters` (a whole profile) or the older single `initial_parameter`.
+  const rawParams = Array.isArray(b.parameters) ? b.parameters : b.initial_parameter ? [b.initial_parameter] : [];
+  const params = [];
+  if (rawParams.length) {
+    if (!can(req.user, 'admin.write') && !(can(req.user, 'staff.manage') && can(req.user, 'lab.verify'))) fail(403, 'lab_incharge_required');
+    if (b.category !== 'lab') fail(400, 'lab_service_required');
+    if (rawParams.length > 80) fail(400, 'too_many_parameters');
+    const names = new Set();
+    for (const p of rawParams) {
+      if (!p || typeof p !== 'object' || !String(p.name || '').trim() || !['numeric', 'text'].includes(p.result_type || 'numeric')) fail(400, 'parameter_invalid');
+      const name = String(p.name).trim().slice(0, 120);
+      if (names.has(name.toLowerCase())) fail(400, 'parameter_duplicate');
+      names.add(name.toLowerCase());
+      const row = { name, result_type: p.result_type || 'numeric', unit: String(p.unit || '').trim().slice(0, 40), ref_text: String(p.ref_text || '').trim().slice(0, 300),
+        method: String(p.method || '').trim().slice(0, 120), seq: params.length + 1 };
+      for (const k of ['ref_low', 'ref_high', 'crit_low', 'crit_high']) if (p[k] !== undefined && p[k] !== null && p[k] !== '') {
+        if (!Number.isFinite(Number(p[k]))) fail(400, 'range_invalid');
+        row[k] = Number(p[k]);
+      }
+      if (row.ref_low != null && row.ref_high != null && row.ref_low > row.ref_high) fail(400, 'range_invalid');
+      params.push(row);
+    }
+  }
+  for (const k of ['report_comment', 'report_comment_title']) if (k in b && (typeof b[k] !== 'string' || b[k].length > (k === 'report_comment' ? 10000 : 80))) fail(400, k + '_invalid');
+  return tx(() => {
   const id = insert('services', {
     code: b.code, name: b.name, category: b.category, department_id: b.department_id || null,
     price: money(num(b.price)), gst_pct: num(b.gst_pct, 0), tat_minutes: num(b.tat_minutes, null),
     sample_type: b.sample_type, billing_unit: b.billing_unit || 'once', ipd_default: b.ipd_default ? 1 : 0, ward_kinds: b.ward_kinds || null,
+    description: b.description ?? '', lab_section: b.lab_section ?? '',
+    report_comment: String(b.report_comment ?? '').trim(), report_comment_title: String(b.report_comment_title ?? '').trim() || 'Interpretation',
   });
-  emit(req, { topics: ['admin'], event: 'service.created', data: get('SELECT * FROM services WHERE id=?', id),
-    action: 'service.create', entity: 'services', entityId: id, detail: b });
+  for (const p of params) insert('lab_params', { ...p, service_id: id });
+  emit(req, { topics: ['admin', 'lab'], event: 'service.created', data: get('SELECT * FROM services WHERE id=?', id),
+    action: 'service.create', entity: 'services', entityId: id, detail: { after: { ...b, parameters: params.length } } });
   return get('SELECT * FROM services WHERE id=?', id);
+  });
 }));
 
 billing.patch('/services/:id', requirePerm('admin.view'), h((req) => {
@@ -779,8 +955,9 @@ billing.patch('/services/:id', requirePerm('admin.view'), h((req) => {
   const before = get('SELECT * FROM services WHERE id=?', id);
   if (!before) fail(404, 'service_not_found');
   validateTariff(req.body);
+  if ('active' in req.body && [true, 1, '1'].includes(req.body.active) && before.category === 'imaging' && /\bMRI\b/i.test(`${before.name} ${before.code}`)) fail(400, 'mri_not_offered');
   const patch = {};
-  for (const k of ['name', 'price', 'gst_pct', 'active', 'tat_minutes', 'sample_type', 'category', 'department_id', 'billing_unit', 'ipd_default', 'ward_kinds']) if (k in req.body) patch[k] = req.body[k] === '' && k === 'ward_kinds' ? null : req.body[k];
+  for (const k of ['name', 'price', 'gst_pct', 'active', 'tat_minutes', 'sample_type', 'category', 'department_id', 'billing_unit', 'ipd_default', 'ward_kinds', 'description', 'lab_section']) if (k in req.body) patch[k] = req.body[k] === '' && k === 'ward_kinds' ? null : req.body[k];
   patch.updated_at = nowIso();
   update('services', id, patch);
   const row = get('SELECT * FROM services WHERE id=?', id);

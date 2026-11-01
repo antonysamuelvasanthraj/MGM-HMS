@@ -18,7 +18,7 @@ let showAll = false;
 export async function mount(ctx) {
   const root = mountPage(ctx, page({
     wide: true, eyebrow: `${eyebrow('Payer desk', 'handshake')} ${liveChip()}`, title: 'Payers & TPAs',
-    subtitle: 'Maintain insurers, TPAs, Aarogyasri schemes, company credit accounts and trusts, with their agreed packages and rates. Company/trust dues belong to the payer; patient credit remains a patient due.',
+    subtitle: 'Insurers, TPAs, schemes, companies and trusts, with their agreed rates.',
     actions: `<button class="btn-secondary" data-all>${showAll ? 'Active only' : 'Include inactive'}</button>
       ${canEdit() ? '<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> Add payer / TPA</button>' : ''}`,
     body: '<div data-kpis class="grid grid-cols-2 md:grid-cols-4 gap-3"></div><div data-list></div>',

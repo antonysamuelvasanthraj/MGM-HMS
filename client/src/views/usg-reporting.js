@@ -15,10 +15,11 @@ export async function mount(ctx) {
   wireFilters(root, (v) => { f = { ...f, ...v }; load(); });
 
   async function load() {
-    const [w, templates] = await Promise.all([
+    const [w, availableTemplates] = await Promise.all([
       api.get(`/imaging/worklist${qs({ ...f, modality: 'USG' })}`),
-      api.get('/templates?kind=usg').catch(() => []),
+      api.get('/templates'),
     ]);
+    const templates = availableTemplates.filter(t => t.kind === 'usg' || (t.kind === 'imaging' && /ultrasound|usg|obstetric|anomaly|growth|nt scan|doppler/i.test(t.name)));
     cache = w.rows;
     $('[data-kpis]', root).innerHTML = [
       { label: 'Ultrasound worklist', value: w.rows.length, icon: 'pregnant_woman', sub: 'Filtered to USG' },
@@ -54,7 +55,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Ultrasound', 'pregnant_woman')} ${liveChip()}`,
     title: 'USG Reporting',
-    subtitle: 'Structured ultrasound reporting with reusable templates; a signed report is released to the referring doctor immediately.',
+    subtitle: 'Write and sign ultrasound reports.',
     actions: `${can('template.write') ? '<a href="/templates" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">article</span> Manage templates</a>' : ''}
       <a href="/imaging" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">radiology</span> All imaging</a>`,
     body: `
@@ -90,7 +91,7 @@ function rowHTML(r) {
     <td class="font-data-mono text-body-sm">${esc(r.room || '—')}</td>
     <td>${pill(r.status)}</td>
     <td class="text-right whitespace-nowrap">
-      ${r.status !== 'verified' && can('imaging.report') ? `<button class="btn-primary btn-xs" data-act="report">${r.status === 'reported' ? 'Edit / sign' : 'Report'}</button>` : ''}
-      ${r.status === 'verified' ? `<button class="btn-secondary btn-xs" data-act="print">Report</button>` : ''}
+      ${r.status !== 'verified' && can('imaging.report') ? `<button class="btn-primary btn-xs" data-act="report">${r.status === 'reported' ? (r.can_sign ? 'Edit / sign' : 'Edit draft') : 'Report'}</button>` : ''}
+      ${r.status === 'verified' ? `<button class="btn-secondary btn-xs" data-act="print">Report</button>${r.can_sign ? '<button class="btn-primary btn-xs" data-act="report">Amend</button>' : ''}` : ''}
     </td>`;
 }

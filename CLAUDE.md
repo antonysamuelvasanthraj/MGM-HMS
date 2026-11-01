@@ -27,6 +27,13 @@ anyone (or anything) editing the code.
 - **Stock enters only through a GRN into Central**, and reaches other locations
   only by `stock_transfers`. Quantities are in dispensing units.
 - **Audit with before/after.** Pass `detail: { before, after, reason }` to `emit()`.
+- **Hospital operating mode** (`server/operating-mode.js`) drives `workflow_*`; only `hospital_mode.manage`
+  changes it (`/admin/operating-mode`). Read paper/portal with `paperAllowed()` / `digitalAllowed()`.
+- **Order axes:** `order_source`, `order_dest`, `auth_status`, `result_stage` sit beside `orders.status`;
+  triggers in `migrations-upgrade.js` keep them current. Money status is always read from the bill.
+- **Outsourced work never adds a patient charge.** Centre bills post through `postOutsourceInvoice()`;
+  outside reports are accepted by version and always shown as the centre's report.
+- **MRI is not offered** — no active MRI service, rate or reactivation.
 - **Counselling transcription is local.** whisper.cpp lives in `whisper/` (or `WHISPER_DIR`):
   `bin/Release/whisper-cli.exe` + `models/ggml-small.bin`. Audio stays in `data/counselling`, never static.
 - Times are local wall-clock everywhere: `localStamp()` in JS,

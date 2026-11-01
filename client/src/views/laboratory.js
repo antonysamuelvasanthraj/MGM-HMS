@@ -1,3 +1,6 @@
+import { printedReference } from '../lab-print.js';
+import { openLabManual } from '../lab-manual.js';
+import { printLetterhead } from '../ui.js';
 /**
  * Laboratory & Diagnostics.
  *
@@ -7,17 +10,34 @@
  */
 import {
   page, eyebrow, liveChip, card, kpiRow, tableCard, filterBar, wireFilters, live, mountPage,
-  apiError, busy, api, qs, state, can, navigate, downloadCSV,
+  apiError, busy, api, qs, state, can, navigate, downloadCSV, setting,
   $, $$, esc, bind, toast, modal, drawer, confirmDialog, renderRows, pill, priorityPill, flagPill,
   money, fmtDate, fmtDateTime, fmtTime, ago, mins, kpi, spinner, emptyState, printDocument, todayISO,
-  clearancePill,
+  clearancePill, headCount,
 } from './_kit.js';
 
+import { canEditLabTemplates, openLabTemplates } from '../lab-templates.js';
+import { departmentEntersTests, openDiagnosticsBilling } from '../reception-diagnostics.js';
+import { mountAttachments } from '../attachments.js';
+import { recordReportDialog } from '../outsource.js';
+import { printTubeLabel } from '../labels.js';
+import { printsBarcodeLabels } from '../store.js';
 let f = { status: 'open', priority: '', q: '', date: '' };
+/** Settings → Investigation release → Straight away: tests start before reception collects. */
+const startNow = () => setting('release_op_rule', 'payment') === 'immediate';
 let cache = [];
 
 export async function mount(ctx) {
+  // Template editing is restricted to the lab in-charge and administrators.
   const root = mountPage(ctx, layout());
+  bind(root,'click','[data-lab-manual]',openLabManual);
+  bind(root, 'click', '[data-lab-templates]', () => openLabTemplates());
+  bind(root,'click','[data-completed-reports]',()=>{
+    f.status='verified';
+    $$('[data-f="status"]',root).forEach(select=>{select.value='verified';});
+    load();
+  });
+  bind(root, 'click', '[data-paper-request]', () => openDiagnosticsBilling(() => load(), { department: 'lab' }));
   const linkedOrder = +(ctx.query.order || (ctx.params[0]==='order' ? ctx.params[1] : 0));
   if(linkedOrder>0)openResultEntry(linkedOrder,()=>{},true);
   wireFilters(root, (v) => { f = { ...f, ...v }; load(); });
@@ -28,13 +48,14 @@ export async function mount(ctx) {
     ]);
     cache = rows;
     $('[data-kpis]', root).innerHTML = [
-      { label: 'Open workload', value: counts.total, icon: 'science', sub: `${counts.stat} STAT · ${counts.awaiting_payment} awaiting payment` },
+      { label: 'Open workload', value: rows.filter(r => !['verified', 'cancelled'].includes(r.status)).length, icon: 'science', sub: `${rows.filter(r => r.priority === 'stat' && !['verified', 'cancelled'].includes(r.status)).length} STAT · ${counts.awaiting_payment} awaiting payment` },
       { label: 'Awaiting verification', value: counts.reported, icon: 'fact_check', tone: counts.reported ? 'warning' : 'success', sub: 'Results entered, not authorised' },
       { label: 'Critical values', value: counts.critical, icon: 'e911_emergency', tone: counts.critical ? 'danger' : 'success', sub: 'Flagged to the treating doctor' },
       { label: 'Average TAT (7 days)', value: mins(stats.avg_tat), icon: 'timer', tone: counts.tat_breached ? 'warning' : 'info', sub: `${counts.tat_breached} breaching now` },
     ].map(kpi).join('');
     renderRows($('[data-rows]', root), rows, rowHTML, { empty: 'The laboratory worklist is clear.' });
     $('[data-count]', root).textContent = `${rows.length} order(s)`;
+    headCount(root, `${rows.filter((r) => !['verified', 'cancelled'].includes(r.status)).length} open · ${counts.reported} to verify`);
     $('[data-stages]', root).innerHTML = stageStrip(counts);
   }
 
@@ -42,18 +63,28 @@ export async function mount(ctx) {
     const id = b.closest('tr').dataset.id;
     const act = b.dataset.act;
     if (act === 'collect') {
-      try { await api.post(`/lab/orders/${id}/collect`, {}); toast('Sample marked collected', 'success'); load(); }
-      catch (err) { apiError(err, 'Cannot collect this sample yet'); }
+      try {
+        const r = await api.post(`/lab/orders/${id}/collect`, {});
+        toast(`Sample ${r.sample_id || ''} collected${r.accession_no ? ` · ${r.accession_no}` : ''}${r.consumables_short?.length ? ` — not in LAB store: ${r.consumables_short.map((x) => x.name).join(', ')}` : ''}`, r.consumables_short?.length ? 'warning' : 'success');
+        load(); if (printsBarcodeLabels()) printTubeLabel(id).catch(() => {});
+      } catch (err) { apiError(err, 'Cannot collect this sample yet'); }
+    }
+    if (act === 'label') printTubeLabel(id).catch((err) => apiError(err));
+    if (act === 'visitreport') printVisitReports(+b.dataset.enc).catch((err) => apiError(err, 'Could not print the visit report'));
+    if (act === 'recollect') {
+      const r = await confirmDialog({ title: 'Collect the sample again?', message: 'The order goes back to "to collect" with a new sample number. The reason is kept in the audit trail.', confirmLabel: 'Recollect', requireReason: true, reasonLabel: 'Why (haemolysed, clotted, wrong tube, insufficient …)' });
+      if (!r) return;
+      try { await api.post(`/lab/orders/${id}/recollect`, { reason: r.reason }); toast('Sent back for recollection', 'info'); load(); } catch (err) { apiError(err); }
     }
     if (act === 'start') { await api.patch(`/orders/${id}`, { status: 'in_progress' }); load(); }
     if (act === 'enter') openResultEntry(id, load);
     if (act === 'verify') {
       const r = await confirmDialog({ title: 'Authorise this report?', message: 'Verification releases the report to the treating doctor and the patient record.', confirmLabel: 'Verify & release' });
       if (!r) return;
-      try { await api.post(`/lab/orders/${id}/verify`, {}); toast('Report verified and released', 'success'); load(); }
+      try { await api.post(`/lab/orders/${id}/verify`, {}); toast('Report verified and released', 'success'); load(); openResultEntry(id,load,true); }
       catch (err) { apiError(err, 'Could not verify'); }
     }
-    if (act === 'report') printReport(id);
+    if (act === 'report') await printReport(id);
     if (act === 'view') openResultEntry(id, load, true);
   });
   bind(root, 'click', '[data-stage-filter]', (e, b) => {
@@ -74,8 +105,8 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Laboratory', 'science')} ${liveChip()}`,
     title: 'Laboratory & Diagnostics',
-    subtitle: 'Billing status is visible but never blocks clinical visibility — a held order shows exactly why it is waiting.',
-    actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export worklist</button>`,
+    subtitle: 'Test orders from doctors, reception and paper requests, with their status.',
+    actions: `<button class="btn-secondary" data-lab-manual>Lab manual & specimen guide</button><button class="btn-primary" data-completed-reports>Completed reports / Print</button>${departmentEntersTests() ? '<button class="btn-secondary" data-paper-request title="A patient brought a paper test request straight here"><span class="material-symbols-outlined text-[18px]">note_add</span> Paper request</button>' : ''}${canEditLabTemplates() ? '<button class="btn-secondary" data-lab-templates>Manage templates</button>' : ''}<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export worklist</button>`,
     body: `
       ${kpiRow([], 4)}
       ${card({ title: 'Workflow', body: `<div data-stages></div>` })}
@@ -133,13 +164,16 @@ function rowHTML(r) {
     <td><div class="font-data-mono text-body-sm ${r.tat_breached ? 'text-danger font-bold' : ''}">${mins(r.age_minutes)}</div>
       <div class="text-label-sm text-on-surface-variant">target ${r.tat_minutes ? mins(r.tat_minutes) : '—'}</div></td>
     <td class="text-right whitespace-nowrap">
-      ${['unpaid', 'part_paid'].includes(r.clearance) && !['verified'].includes(r.status) ? `<span class="text-body-sm text-danger">Send to reception</span>` : ''}
-      ${r.status === 'ordered' && can('lab.collect') && !['unpaid', 'part_paid'].includes(r.clearance) ? `<button class="btn-primary btn-xs" data-act="collect">Collect</button>` : ''}
+      ${['unpaid', 'part_paid'].includes(r.clearance) && !['verified'].includes(r.status) ? `<span class="text-body-sm ${startNow() ? 'text-on-surface-variant' : 'text-danger'}">${startNow() ? 'Patient pays at reception' : 'Send to reception'}</span>` : ''}
+      ${r.status === 'ordered' && can('lab.collect') && (startNow() || !['unpaid', 'part_paid'].includes(r.clearance)) ? `<button class="btn-primary btn-xs" data-act="collect">Collect</button>` : ''}
+      ${['reported', 'verified', 'completed'].includes(r.status) && r.encounter_id ? `<button class="btn-ghost btn-xs" data-act="visitreport" data-enc="${r.encounter_id}" title="Print every reported test of this visit on one report, by category"><span class="material-symbols-outlined text-[15px]">print</span> Visit report</button>` : ''}
+      ${['ordered', 'collected', 'in_progress'].includes(r.status) && can('lab.collect') && printsBarcodeLabels() ? `<button class="btn-ghost btn-xs" data-act="label" title="Print the tube label"><span class="material-symbols-outlined text-[15px]">barcode</span></button>` : ''}
+      ${['collected', 'in_progress'].includes(r.status) && can('lab.collect') ? `<button class="btn-ghost btn-xs" data-act="recollect" title="Sample rejected — collect again">Recollect</button>` : ''}
       ${r.status === 'collected' && can('lab.result') ? `<button class="btn-secondary btn-xs" data-act="start">Start</button>` : ''}
       ${['collected', 'in_progress'].includes(r.status) && can('lab.result') ? `<button class="btn-primary btn-xs" data-act="enter">Enter results</button>` : ''}
       ${r.status === 'reported' && can('lab.verify') ? `<button class="btn-primary btn-xs" data-act="verify">Verify</button>` : ''}
       ${r.status === 'reported' ? `<button class="btn-secondary btn-xs" data-act="enter">Edit</button>` : ''}
-      ${r.status === 'verified' ? `<button class="btn-secondary btn-xs" data-act="report">Report</button>
+      ${r.status === 'verified' ? `<button class="btn-primary btn-xs" data-act="report">Report / Print</button>
         <button class="btn-ghost btn-xs" data-act="view"><span class="material-symbols-outlined text-[15px]">visibility</span></button>` : ''}
     </td>`;
 }
@@ -161,7 +195,7 @@ function openResultEntry(orderId, after, readOnly = false) {
       body: `
         <div class="flex flex-wrap items-center gap-2 mb-3">
           ${pill(o.status)} ${priorityPill(o.priority)}
-          <span class="text-body-sm text-on-surface-variant">Ordered by ${esc(o.ordered_by_name || '—')} · ${fmtDateTime(o.ordered_at)}</span>
+          <span class="text-body-sm text-on-surface-variant">Requested by ${esc(o.requested_by_name || o.ordered_by_name || '—')}${o.requested_by_name && o.requested_by_name !== o.ordered_by_name && o.ordered_by_name ? ` · entered by ${esc(o.ordered_by_name)}` : ''} · ${fmtDateTime(o.ordered_at)}</span>
         </div>
         ${(o.patient?.allergies || []).length ? `<div class="mb-3 p-2 rounded bg-danger-bg text-danger text-body-md">
           Allergies: ${o.patient.allergies.map((a) => esc(a.substance)).join(', ')}</div>` : ''}
@@ -174,7 +208,7 @@ function openResultEntry(orderId, after, readOnly = false) {
             return `<tr data-p="${p.id ?? ''}" data-name="${esc(p.name)}">
               <td class="font-label-lg text-label-lg">${esc(p.name)}</td>
               <td><input class="field field-sm min-w-[5.5rem]" data-v value="${esc(r.value ?? '')}" ${readOnly ? 'readonly' : ''}
-                    data-lo="${p.ref_low ?? ''}" data-hi="${p.ref_high ?? ''}"></td>
+                    data-result-type="${esc(p.result_type || 'numeric')}" data-lo="${p.ref_low ?? ''}" data-hi="${p.ref_high ?? ''}" data-critical-lo="${p.crit_low ?? ''}" data-critical-hi="${p.crit_high ?? ''}"></td>
               <td class="text-body-sm text-on-surface-variant">${esc(p.unit || '')}</td>
               <td class="text-body-sm text-on-surface-variant">${esc(p.ref_text || '')}</td>
               <td data-flag>${flagPill(r.flag)}</td>
@@ -183,21 +217,35 @@ function openResultEntry(orderId, after, readOnly = false) {
           }).join('')}</tbody>
         </table>
         <p class="text-body-sm text-on-surface-variant mt-3">Values outside the reference range are flagged automatically;
-          a grossly abnormal value is flagged <strong>critical</strong> and pushed to the treating doctor.</p>`,
+          configured critical limits trigger an alert to the treating doctor.</p>
+        ${o.provider_id ? '' : `<label class="field-label mt-3">Remarks for this report (optional)</label>
+        <textarea class="field" rows="3" maxlength="4000" data-remarks ${readOnly ? 'readonly' : ''} placeholder="e.g. RBCs: normocytic normochromic. WBCs: lymphocytic predominance. Platelets: adequate, clumps seen.">${esc(o.lab_remarks || '')}</textarea>
+        <p class="text-body-sm text-on-surface-variant mt-1">Prints on this patient's report only. The test's standard interpretation is set in Lab templates.</p>`}
+        ${o.provider_id ? '<div class="mt-3 p-2 rounded bg-info-bg text-body-md">Sent to an outside laboratory. The sample was collected here, so there are no results to type — attach the report they send back and record it. A signatory then checks and accepts it on the Outsourcing desk; it is always shown as their report.</div>' : ''}
+        <div class="mt-4 pt-3 border-t border-outline-variant" data-attach></div>`,
       footer: readOnly
         ? `<button class="btn-secondary" data-close>Close</button><button class="btn-primary" data-print>Print report</button>`
+        : o.provider_id
+          ? `<button class="btn-secondary" data-close>Close</button>
+             ${can('lab.result') ? '<button class="btn-primary" data-record-outside>Record outside report</button>' : ''}`
         : `<button class="btn-secondary" data-close>Cancel</button>
            <button class="btn-secondary" data-save>Save as reported</button>
            ${can('lab.verify') ? `<button class="btn-primary" data-save-verify>Save & verify</button>` : ''}`,
       onMount(root, close) {
+        mountAttachments(root.querySelector('[data-attach]'), 'order', orderId, { canEdit: !readOnly && can('lab.result') });
+        root.querySelector('[data-record-outside]')?.addEventListener('click', () => {
+          close(); recordReportDialog({ ...o, id: orderId, provider_name: o.provider_name || '' }, () => after?.());
+        });
         // live flagging
         root.querySelectorAll('[data-v]').forEach((inp) => {
           inp.addEventListener('input', () => {
             const lo = parseFloat(inp.dataset.lo), hi = parseFloat(inp.dataset.hi), v = parseFloat(inp.value);
             let flag = '';
-            if (!isNaN(v)) {
-              if (!isNaN(lo) && v < lo) flag = v < lo * 0.5 ? 'critical' : 'low';
-              else if (!isNaN(hi) && v > hi) flag = v > hi * 1.8 ? 'critical' : 'high';
+            if (inp.dataset.resultType !== 'text' && !isNaN(v)) {
+              const criticalLo=parseFloat(inp.dataset.criticalLo),criticalHi=parseFloat(inp.dataset.criticalHi);
+              if ((!isNaN(criticalLo) && v<=criticalLo) || (!isNaN(criticalHi) && v>=criticalHi)) flag='critical';
+              else if (!isNaN(lo) && v < lo) flag = 'low';
+              else if (!isNaN(hi) && v > hi) flag = 'high';
             }
             inp.closest('tr').querySelector('[data-flag]').innerHTML = flagPill(flag);
             inp.classList.toggle('field-error', flag === 'critical');
@@ -210,9 +258,10 @@ function openResultEntry(orderId, after, readOnly = false) {
         const post = async (verify, btn) => {
           busy(btn, true, 'Saving');
           try {
-            await api.post(`/lab/orders/${orderId}/results`, { results: collect(), verify });
+            await api.post(`/lab/orders/${orderId}/results`, { results: collect(), verify, remarks: root.querySelector('[data-remarks]')?.value ?? '' });
             close(); toast(verify ? 'Results saved and verified' : 'Results saved — awaiting verification', 'success');
             after?.();
+            if(verify) openResultEntry(orderId,after,true);
           } catch (e) { apiError(e, 'Could not save results'); busy(btn, false); }
         };
         root.querySelector('[data-save]')?.addEventListener('click', (e) => post(false, e.currentTarget));
@@ -223,45 +272,105 @@ function openResultEntry(orderId, after, readOnly = false) {
   })().catch(e=>apiError(e,'Could not open lab result'));
 }
 
-export async function printReport(orderId) {
-  const d = await api.get(`/lab/report/${orderId}`);
-  const s = d.settings || {};
-  printDocument(`${d.label} — ${d.patient_name}`, `
-    <div style="max-width:740px;margin:0 auto;font-family:Inter,Segoe UI,sans-serif;color:#172B4D">
-      <div style="display:flex;justify-content:space-between;border-bottom:2px solid #881D2C;padding-bottom:8px">
-        <div><div style="font-size:18px;font-weight:700;color:#881D2C">${esc(s.hospital_name || '')}</div>
-          <div style="font-size:11px;color:#526176">${esc(s.address || '')}${s.phone ? `<br>Phone: ${esc(s.phone)}` : ''}${s.nabh_no ? `<br>NABH ${esc(s.nabh_no)}` : ''}</div></div>
-        <div style="text-align:right"><div style="font-size:13px;font-weight:700;letter-spacing:.08em">LABORATORY REPORT</div>
-          <div style="font-size:11px;font-family:monospace">${esc(d.order_no)}</div></div>
-      </div>
-      <table style="width:100%;font-size:12px;margin-top:10px">
-        <tr><td style="color:#526176;width:90px">Patient</td><td><b>${esc(d.patient_name)}</b></td>
-            <td style="color:#526176;width:90px">UHID</td><td style="font-family:monospace">${esc(d.uhid)}</td></tr>
-        <tr><td style="color:#526176">Age / sex</td><td>${d.age_years ?? '—'} / ${esc(d.gender || '')}</td>
-            <td style="color:#526176">Sample</td><td style="font-family:monospace">${esc(d.sample_id || '—')}</td></tr>
-        <tr><td style="color:#526176">Referred by</td><td>${esc(d.ordered_by_name || '—')}</td>
-            <td style="color:#526176">Reported</td><td>${esc(d.completed_at || '')}</td></tr>
-      </table>
-      <div style="margin-top:14px;font-size:13px;font-weight:700;border-bottom:1px solid #D8DFE8;padding-bottom:4px">${esc(d.service_name || d.label)}</div>
-      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">
+
+/** Report categories in print order (same list as server/lab-catalog-data.js SECTION_ORDER). */
+const LAB_SECTION_ORDER = ['Haematology', 'Biochemistry', 'Serology & Immunology', 'Clinical Pathology', 'Cytology',
+  'Microbiology', 'Endocrinology', 'Histopathology', 'Others', 'Miscellaneous'];
+const sectionRank = (s) => { const i = LAB_SECTION_ORDER.indexOf(s || ''); return i < 0 ? LAB_SECTION_ORDER.length : i; };
+
+export async function printReport(orderId) { return printReports([orderId]); }
+
+/** Every reported test of a visit on one report, grouped by category in print order. */
+export async function printVisitReports(encounterId) {
+  const rows = await api.get(`/lab/encounter/${encounterId}/reports`);
+  if (!rows.length) { toast('No reported tests on this visit yet', 'info'); return; }
+  return printReports(rows.map((r) => r.id));
+}
+
+/**
+ * One printed report for one or more tests of the same patient: a single letterhead and patient
+ * strip, the tests grouped under their category (Haematology → Biochemistry → … → Miscellaneous)
+ * and, within a category, in the order they were requested; one signature block at the end.
+ */
+export async function printReports(orderIds) {
+  const all = await Promise.all(orderIds.map((id) => api.get(`/lab/report/${id}`)));
+  const tests = all.map((d, i) => ({ d, i })).sort((a, b) => sectionRank(a.d.lab_section) - sectionRank(b.d.lab_section) || a.i - b.i).map((x) => x.d);
+  const d = tests[0], s = d.settings || {};
+  const cell = 'padding:6px;border-bottom:1px solid #EEF2F7';
+  // the unit has its own column: drop a trailing unit from the reference text
+  const refOnly = (r) => { const ref = String(r.ref_range || '').trim(), u = String(r.unit || '').trim(); return u && ref.endsWith(u) ? ref.slice(0, -u.length).trim() : ref; };
+  const flagStyle = (r) => (r.flag === 'critical' ? 'color:#B91C1C;font-weight:700' : r.flag ? 'font-weight:700' : '');
+  const para = (title, text) => text ? `<div style="margin-top:10px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;page-break-inside:auto"><b style="font-size:12px">${esc(title)}</b><br>${esc(text)}</div>` : '';
+  const block = (t) => `
+    <div style="margin-top:12px;page-break-inside:auto">
+      <div style="font-size:13px;font-weight:700">${esc(t.service_name || t.label)}<span style="font-weight:400;color:#526176;font-size:11px"> · ${esc(t.order_no)}${t.sample_type ? ` · ${esc(t.sample_type)}` : ''}</span></div>
+      <table class="lab-res" style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px">
         <thead><tr style="background:#F5F7FA">
-          <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Parameter</th>
+          <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Test / parameter</th>
           <th style="text-align:right;padding:6px;border-bottom:1px solid #D8DFE8">Result</th>
+          <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Flag</th>
           <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Unit</th>
-          <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Biological reference</th></tr></thead>
-        <tbody>${d.results.map((r) => `<tr>
-          <td style="padding:6px;border-bottom:1px solid #EEF2F7">${esc(r.name)}</td>
-          <td style="padding:6px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace;
-            ${r.flag === 'critical' ? 'color:#B91C1C;font-weight:700' : r.flag ? 'font-weight:700' : ''}">
-            ${esc(r.value)}${r.flag ? ` ${r.flag === 'high' ? '↑ HIGH' : r.flag === 'low' ? '↓ LOW' : '‼ CRITICAL'}` : ''}</td>
-          <td style="padding:6px;border-bottom:1px solid #EEF2F7">${esc(r.unit || '')}</td>
-          <td style="padding:6px;border-bottom:1px solid #EEF2F7;color:#526176">${esc(r.ref_range || '')}</td></tr>`).join('')}
+          <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Bio. ref. interval</th></tr></thead>
+        <tbody>${t.results.map((r) => `<tr>
+          <td style="${cell}">${esc(r.name)}${r.method ? `<div style="font-size:10px;color:#526176">Method: ${esc(r.method)}</div>` : ''}${r.interpretation ? `<div style="font-size:10px">${esc(r.interpretation)}</div>` : ''}</td>
+          <td style="${cell};text-align:right;font-family:monospace;${flagStyle(r)}">${esc(r.value)}</td>
+          <td style="${cell};white-space:nowrap;${flagStyle(r)}">${r.flag === 'high' ? '↑ HIGH' : r.flag === 'low' ? '↓ LOW' : r.flag === 'critical' ? '‼ CRITICAL' : ''}</td>
+          <td style="${cell};color:#526176">${esc(r.unit || '')}</td>
+          <td style="${cell};color:#526176">${esc(refOnly(r))}</td></tr>`).join('')}
         </tbody></table>
-      <div style="margin-top:44px;display:flex;justify-content:flex-end;font-size:11px;text-align:center">
-        <div>_______________________<br><b>${esc(d.verified_by_name || '')}</b><br>
-          <span style="color:#526176">${esc(d.verified_by_qual || '')}${d.verified_by_reg ? ` · Reg ${esc(d.verified_by_reg)}` : ''}</span></div>
-      </div>
-      <div style="margin-top:16px;font-size:10px;color:#526176;border-top:1px solid #EEF2F7;padding-top:6px">
-        Results relate only to the sample tested. Please correlate clinically. — End of report —</div>
-    </div>`);
+      ${para('Remarks', t.lab_remarks)}
+      ${(t.result_guidance || []).length ? `<section style="margin-top:10px;font-size:11px;line-height:1.55"><b style="font-size:12px">Result-specific guidance</b>${t.result_guidance.map((item) => `<div style="margin-top:7px;page-break-inside:avoid"><b>${esc(item.finding)}</b><br>${esc(item.note)}</div>`).join('')}</section>` : ''}
+      ${para(t.test_comment_title || 'Interpretation', t.test_comment)}
+      ${tests.length === 1 ? para('Test information', t.test_description) : ''}
+    </div>`;
+  // category banners in print order
+  let body = '', last = null;
+  for (const t of tests) {
+    const sec = t.lab_section || 'Others';
+    if (sec !== last) { body += `<div style="margin-top:16px;padding:4px 8px;background:#EEF2F7;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">${esc(sec)}</div>`; last = sec; }
+    body += block(t);
+  }
+  const verifiers = [...new Map(tests.filter((t) => t.verified_by_name).map((t) => [t.verified_by_name, t])).values()];
+  const pending = tests.some((t) => !t.verified_at);
+  const latest = tests.map((t) => t.completed_at).filter(Boolean).sort().pop();
+  const title = tests.length === 1 ? `${d.label} — ${d.patient_name}` : `Laboratory report — ${d.patient_name}`;
+  // The <thead> / <tfoot> of the outer table repeat on every printed page, so each page carries
+  // the hospital banner, address, patient strip and the report footer.
+  printDocument(title, `
+    <style>
+      .lab-page{width:100%;border-collapse:collapse;font-family:Inter,Segoe UI,sans-serif;color:#172B4D}
+      .lab-page>thead>tr>td,.lab-page>tfoot>tr>td,.lab-page>tbody>tr>td{border:0;padding:0}
+      .lab-page>thead{display:table-header-group}.lab-page>tfoot{display:table-footer-group}
+      .lab-res tr{page-break-inside:avoid}
+      @media print{body{padding:0!important}}
+    </style>
+    <table class="lab-page" style="max-width:760px;margin:0 auto">
+      <thead><tr><td>
+        ${printLetterhead('LABORATORY REPORT', tests.length === 1 ? d.order_no : d.encounter_no || d.order_no)}
+        <table style="width:100%;font-size:11px;margin:6px 0 4px;border-collapse:collapse">
+          <tr><td style="border:0;padding:1px 4px;color:#526176;width:80px">Patient</td><td style="border:0;padding:1px 4px"><b>${esc(d.patient_name)}</b></td>
+              <td style="border:0;padding:1px 4px;color:#526176;width:80px">UHID</td><td style="border:0;padding:1px 4px;font-family:monospace">${esc(d.uhid)}</td></tr>
+          <tr><td style="border:0;padding:1px 4px;color:#526176">Age / sex</td><td style="border:0;padding:1px 4px">${d.age_years ?? '—'} / ${esc(d.gender || '')}</td>
+              <td style="border:0;padding:1px 4px;color:#526176">Sample</td><td style="border:0;padding:1px 4px;font-family:monospace">${esc([...new Set(tests.map((t) => t.sample_id).filter(Boolean))].join(', ') || '—')}</td></tr>
+          <tr><td style="border:0;padding:1px 4px;color:#526176">Referred by</td><td style="border:0;padding:1px 4px">${esc(d.referred_by_name || '—')}</td>
+              <td style="border:0;padding:1px 4px;color:#526176">Reported</td><td style="border:0;padding:1px 4px">${esc(latest ? fmtDateTime(latest) : '')}${pending ? ' · Provisional' : ' · Final'}</td></tr>
+        </table>
+        <div style="border-bottom:1px solid #D8DFE8"></div>
+      </td></tr></thead>
+      <tfoot><tr><td>
+        <div style="margin-top:10px;border-top:1px solid #D8DFE8;padding-top:4px;font-size:9px;color:#526176;display:flex;justify-content:space-between">
+          <span>${esc(s.hospital_name || '')} · ${esc(tests.length === 1 ? d.order_no : `${tests.length} tests`)} · ${esc(d.patient_name)} (${esc(d.uhid)})</span><span>Computer-generated report</span></div>
+      </td></tr></tfoot>
+      <tbody><tr><td>
+        ${body}
+        <div style="margin-top:36px;display:flex;justify-content:space-between;gap:16px;font-size:11px;page-break-inside:avoid">
+          <div>Technician: ${esc([...new Set(tests.flatMap((t) => t.results.map((r) => r.technician)).filter(Boolean))].join(', ') || '—')}<br>
+            ${pending ? 'Some results are pending authorisation' : `Verified ${esc(fmtDateTime(tests.map((t) => t.verified_at).sort().pop()))}`}</div>
+          ${(verifiers.length ? verifiers : [d]).map((v) => `<div style="text-align:center">_______________________<br><b>${esc(v.verified_by_name || '')}</b><br>
+            <span style="color:#526176">${esc(v.verified_by_qual || '')}${v.verified_by_reg ? ` · Reg ${esc(v.verified_by_reg)}` : ''}</span></div>`).join('')}
+        </div>
+        <div style="margin-top:14px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.05em">*** End of report ***</div>
+        ${s.lab_report_disclaimer ? `<div style="margin-top:8px;font-size:9.5px;line-height:1.45;color:#526176;page-break-inside:avoid"><b>Disclaimer:</b> ${esc(s.lab_report_disclaimer)}</div>` : ''}
+      </td></tr></tbody>
+    </table>`);
 }

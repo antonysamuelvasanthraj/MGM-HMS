@@ -160,7 +160,7 @@ async function journalForm(after) {
     <input class="field field-sm !h-9 text-right" type="number" step="0.01" min="0" data-cr placeholder="Credit"><button type="button" class="btn-ghost !h-9 !w-8 !px-0" data-rm aria-label="Remove">×</button></div>`;
   modal({
     title: 'Journal entry', size: 'lg',
-    subtitle: 'For opening balances, depreciation, accruals and corrections. Sales, receipts, purchases and expenses post themselves and are refused here.',
+    subtitle: 'Manual journal entries — opening balances, depreciation, corrections.',
     body: `<div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3"><div><label class="field-label">Date</label><input type="date" class="field" data-date value="${todayISO()}"></div>
       <div class="md:col-span-2"><label class="field-label">Narration</label><input class="field" data-narr required></div></div>
       <div class="space-y-2" data-lines>${line()}${line()}</div><button type="button" class="btn-ghost btn-sm mt-2" data-add>Add line</button>
@@ -194,7 +194,7 @@ function contraForm(after) {
   const opts = [['cash', 'Cash in hand'], ['upi', 'UPI settlement clearing'], ['card', 'Card settlement clearing'], ['cheque', 'Cheques in hand'], ['bank', 'Bank'], ['petty_cash', 'Petty cash']];
   modal({
     title: 'Bank deposit / settlement', size: 'md',
-    subtitle: 'Move money between the hospital’s own accounts — a cash deposit, or the UPI / card provider crediting the bank.',
+    subtitle: 'Move money between the hospital’s own accounts.',
     body: `<div class="grid grid-cols-2 gap-3"><div><label class="field-label">From</label><select class="field" data-from>${opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
       <div><label class="field-label">To</label><select class="field" data-to>${opts.map(([v, l]) => `<option value="${v}" ${v === 'bank' ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       <div><label class="field-label">Amount moved</label><input class="field" type="number" step="0.01" min="0" data-amount></div>
@@ -352,7 +352,7 @@ async function dayClose(pane, f) {
   const approval = p.closing?.approval_status;
   const MODES4 = [['cash', 'Cash in drawer'], ['upi', 'UPI (app / QR report)'], ['card', 'Card (terminal settlement)'], ['bank', 'Bank transfer / cheque']];
   pane.innerHTML = `<div class="space-y-4">
-    ${card({ title: `Daily hospital summary — ${fmtDate(date)}`, subtitle: 'Billing, revenue, collection, receivables and advances are separate figures; none is added to another',
+    ${card({ title: `Daily hospital summary — ${fmtDate(date)}`, subtitle: 'Each figure is shown separately — billed, earned, collected and owed.',
       actions: `<input type="date" class="field field-sm !h-8 !w-auto" data-date value="${date}" max="${todayISO()}" aria-label="Day">`,
       body: `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <div><h3 class="panel-title mb-1">Billing</h3>${rows([['Bills raised', H.billing.bills], ['Gross', m2(H.billing.gross)], ['Discounts', m2(H.billing.discount)], ['Net billed', m2(H.billing.net), 'font-semibold'],

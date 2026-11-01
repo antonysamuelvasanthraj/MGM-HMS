@@ -39,7 +39,7 @@ function chooser() {
   return page({
     eyebrow: eyebrow('Patient-facing preview', 'lock'),
     title: 'Secure Patient Portal',
-    subtitle: 'Choose a patient to see the portal exactly as they would: their visits, verified reports, bills and receipts — nothing clinical that has not been authorised.',
+    subtitle: 'See the patient portal exactly as the patient does.',
     body: card({ title: 'Open a patient portal', body: `<div class="max-w-md"><div data-picker></div></div>` }),
   });
 }

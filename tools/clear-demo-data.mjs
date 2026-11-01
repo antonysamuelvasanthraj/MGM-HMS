@@ -6,6 +6,12 @@ import { pathToFileURL } from 'node:url';
 import { createBackup } from '../deployment/backup.mjs';
 
 export const KEEP_TABLES = new Set(['users','settings','departments','counters','services','lab_params','wards','beds','accounts','sequences','role_permissions']);
+function tablesToKeep({preserveLogins=false,preserveMasters=false,preserveCatalogs=false}={}) {
+  const keepTables=new Set(KEEP_TABLES);
+  if(preserveMasters||preserveCatalogs){if(!preserveLogins)throw new Error('Preserved templates require preserved login owners.');for(const table of ['templates','payers','packages','package_items','service_rates','doctor_schedules','medicine_generics','medicine_brands','medicine_manufacturers'])keepTables.add(table);}
+  if(preserveCatalogs)for(const table of ['medicines','suppliers','store_items','assets','diagnostic_providers','visiting_doctors','visiting_doctor_rates','procedure_kits','referral_sources','product_masters'])keepTables.add(table);
+  return keepTables;
+}
 const quote = name => '"'+name.replaceAll('"','""')+'"';
 export function inspect(database,keepTables=KEEP_TABLES) {
   const tables=database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all().map(r=>r.name);
@@ -14,9 +20,8 @@ export function inspect(database,keepTables=KEEP_TABLES) {
   if(!admin||!admin.active)throw new Error('An active admin login must already exist; no password will be reset.');
   return {admin,counts,preserved:tables.filter(t=>keepTables.has(t)),cleared:tables.filter(t=>!keepTables.has(t))};
 }
-export async function clearDemoData(dataDir,backupDir,{preserveLogins=false,preserveMasters=false}={}) {
-  const keepTables=new Set(KEEP_TABLES);
-  if(preserveMasters){if(!preserveLogins)throw new Error('Preserved templates require preserved login owners.');for(const table of ['templates','payers','packages','package_items','service_rates','doctor_schedules','medicine_generics','medicine_brands','medicine_manufacturers'])keepTables.add(table);}
+export async function clearDemoData(dataDir,backupDir,{preserveLogins=false,preserveMasters=false,preserveCatalogs=false}={}) {
+  const keepTables=tablesToKeep({preserveLogins,preserveMasters,preserveCatalogs});
   dataDir=fs.realpathSync(dataDir);backupDir=path.resolve(backupDir);
   if(backupDir===dataDir||backupDir.startsWith(dataDir+path.sep))throw new Error('Use a backup directory outside the active data directory.');
   const file=path.join(dataDir,'surelyhms.db');
@@ -39,6 +44,7 @@ export async function clearDemoData(dataDir,backupDir,{preserveLogins=false,pres
     if(!preserveLogins)db.prepare('DELETE FROM users WHERE id<>?').run(before.admin.id);
     if(preserveLogins&&JSON.stringify(db.prepare('SELECT * FROM users ORDER BY id').all())!==JSON.stringify(usersBefore))throw new Error('Login records changed; cleanup refused.');
     db.exec("UPDATE beds SET status='vacant'; UPDATE sequences SET next_val=1;");
+    if(preserveCatalogs&&before.cleared.includes('purchases')&&before.cleared.includes('supplier_payments'))db.exec('UPDATE suppliers SET outstanding=0;');
     if(db.prepare('PRAGMA foreign_key_check').all().length)throw new Error('Cleanup would leave invalid references. Rolled back.');
     db.prepare('INSERT INTO audit_log (user_id,user_name,action,entity,detail,before_json,after_json,reason) VALUES (?,?,?,?,?,?,?,?)').run(
       before.admin.id,'Hospital Administrator','system.demo_cleanup','database',JSON.stringify({backup}),
@@ -58,10 +64,11 @@ export async function clearDemoData(dataDir,backupDir,{preserveLogins=false,pres
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
   const dataDir=path.resolve(process.argv[2]||'data');
+  const options={preserveLogins:process.argv.includes('--preserve-logins'),preserveMasters:process.argv.includes('--preserve-masters'),preserveCatalogs:process.argv.includes('--preserve-catalogs')};
   if(!process.argv.includes('--apply-confirmed-test-data')){
-    const db=new DatabaseSync(path.join(dataDir,'surelyhms.db'),{readOnly:true});try{console.log(JSON.stringify(inspect(db),null,2));}finally{db.close();}
+    const db=new DatabaseSync(path.join(dataDir,'surelyhms.db'),{readOnly:true});try{console.log(JSON.stringify(inspect(db,tablesToKeep(options)),null,2));}finally{db.close();}
   }else{
     if(!process.argv.includes('--server-stopped'))throw new Error('Stop the hospital server before using this offline maintenance tool.');
-    console.log(JSON.stringify(await clearDemoData(dataDir,path.resolve(process.argv[3]),{preserveLogins:process.argv.includes('--preserve-logins'),preserveMasters:process.argv.includes('--preserve-masters')}),null,2));
+    console.log(JSON.stringify(await clearDemoData(dataDir,path.resolve(process.argv[3]),options),null,2));
   }
 }

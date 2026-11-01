@@ -29,10 +29,19 @@ if (!health || health.status !== 'ok') {
   process.exit(1);
 }
 
-const args = named ? ['tunnel', '--no-autoupdate', 'run', '--url', `http://localhost:${port}`, named]
-  : ['tunnel', '--no-autoupdate', '--url', `http://localhost:${port}`];
+const args = named ? ['tunnel', '--no-autoupdate', 'run', '--url', `http://127.0.0.1:${port}`, named]
+  : ['tunnel', '--no-autoupdate', '--url', `http://127.0.0.1:${port}`];
 console.log(`Starting Cloudflare Tunnel → http://localhost:${port} …`);
 const child = spawn(exe, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+// everything cloudflared says goes to data/logs/tunnel.log, so an outage can be explained afterwards
+fs.mkdirSync(path.join(dataDir, 'logs'), { recursive: true });
+const logFile = path.join(dataDir, 'logs', 'tunnel.log');
+const stamp = () => new Date().toLocaleString('en-IN');
+fs.appendFileSync(logFile, `
+[${stamp()}] starting cloudflared (pid ${child.pid}) → http://localhost:${port}
+`);
+child.stdout.on('data', (b) => fs.appendFileSync(logFile, b));
+child.stderr.on('data', (b) => fs.appendFileSync(logFile, b));
 let announced = false;
 const scan = (buf) => {
   const text = String(buf);
@@ -47,5 +56,30 @@ const scan = (buf) => {
 };
 child.stdout.on('data', scan);
 child.stderr.on('data', scan);
-child.on('exit', (code) => { console.log(`Tunnel stopped (${code}).`); process.exit(code || 0); });
+
+/*
+ * Watchdog. A quick tunnel can be deleted on Cloudflare's side (e.g. after an internet drop): cloudflared
+ * then retries forever with "Tunnel not found" and the link stays dead. Restart instead — the wrapper
+ * loop (start-tunnel.cmd) starts a fresh tunnel and data/public-url.txt gets the new link.
+ */
+const restart = (why) => { fs.appendFileSync(logFile, `[${stamp()}] watchdog: ${why} — restarting the tunnel
+`); console.log(`Watchdog: ${why} — restarting.`); child.kill(); setTimeout(() => process.exit(3), 3000); };
+let notFound = 0;
+const watch = (buf) => { if (/Tunnel not found/i.test(String(buf)) && ++notFound >= 2) restart('Cloudflare no longer knows this tunnel'); };
+child.stdout.on('data', watch);
+child.stderr.on('data', watch);
+if (!named) {
+  let misses = 0;
+  setInterval(async () => {
+    const url = (fs.readFileSync(path.join(dataDir, 'public-url.txt'), 'utf8') || '').trim();
+    if (!announced || !url) return;
+    const local = await fetch(`http://127.0.0.1:${port}/api/health`, { signal: AbortSignal.timeout(5000) }).then((r) => r.ok).catch(() => false);
+    if (!local) { misses = 0; return; }              // the HMS itself is down: nothing the tunnel can fix
+    const ok = await fetch(`${url}/api/health`, { signal: AbortSignal.timeout(15000) }).then((r) => r.ok).catch(() => false);
+    misses = ok ? 0 : misses + 1;
+    if (misses >= 3) restart('public link failed its health check 3 times');
+  }, 120000).unref();
+}
+child.on('exit', (code, signal) => { fs.appendFileSync(logFile, `[${stamp()}] cloudflared exited (code ${code}, signal ${signal || '-'})
+`); console.log(`Tunnel stopped (${code}${signal ? ', ' + signal : ''}).`); process.exit(code || 0); });
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => child.kill());

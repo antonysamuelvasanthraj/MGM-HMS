@@ -7,9 +7,11 @@
  * payable). Everything lands in Central, converted to dispensing units.
  * HSN and GST class belong to the medicine master; the GRN only shows them.
  */
-import { api, modal, esc, money, toast, busy, apiError, confirmDialog } from './views/_kit.js';
+import { api, modal, esc, money, toast, busy, apiError, confirmDialog, state } from './views/_kit.js';
 import { scheduleTag } from './rx-editor.js';
 import { compositionEditor, wireComposition, compositionText } from './composition.js';
+import { invoiceLines } from './invoice-lines.js';
+import { matchInvoiceMedicine, invoiceDate, scannedSelectionValues } from './invoice-review.js';
 
 const UNITS = ['box', 'carton', 'strip', 'bottle', 'vial', 'ampoule', 'sachet', 'tube', 'pack', 'piece', 'tablet', 'capsule', 'ml', 'gram'];
 const PACKS = ['strip', 'bottle', 'vial', 'ampoule', 'sachet', 'tube', 'blister', 'piece', 'box', 'pack'];
@@ -21,14 +23,14 @@ const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${Stri
 const C = (k, label, type = 'number', extra = '', cls = '') => `<div class="grn-cell ${cls}"><label class="field-label">${label}</label><input class="field field-sm !h-9 ${type === 'number' ? 'text-right font-data-mono' : ''}" data-key="${k}" type="${type}" ${type === 'number' ? 'step="0.01" min="0"' : ''} ${extra}></div>`;
 const O = (k, label, value) => `<div class="grn-cell"><label class="field-label">${label}</label><output class="grn-out" data-out="${k}">${value}</output></div>`;
 
-export async function newGRN(after) {
+export async function newGRN(after, existing = null, scanned = null) {
   const [suppliers, med, masters] = await Promise.all([api.get('/pharmacy/suppliers'), api.get('/pharmacy/medicines?limit=1000'), api.get('/pharmacy/product-masters')]);
   const meds = med.rows;
   const list = (kind) => [...new Set([...masters.filter((m) => m.kind === kind).map((m) => m.name), ...meds.map((m) => m[kind]).filter(Boolean)])];
   modal({
-    title: 'Create GRN', size: 'full',
-    subtitle: 'Enter the supplier bill as printed. Stock is received into Central and converted to dispensing units.',
-    body: `<datalist id="dl-brand">${list('brand').map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
+    title: existing ? `Correct ${existing.grn_no}` : scanned ? 'Review scanned invoice as GRN' : 'Create GRN', size: 'full',
+    subtitle: existing ? 'A replacement receipt will be created and the original retained. Stock must still be untouched in Central and the receipt unpaid; otherwise use Returns.' : 'Enter the supplier bill as printed. Stock is received into Central and converted to dispensing units.',
+    body: `${scanned ? `<details class="card p-3" open><summary>Original scan and recognized invoice text — check every field</summary>${scanned.image ? `<img src="${esc(scanned.image)}" alt="Scanned supplier invoice" style="max-width:100%;max-height:400px;object-fit:contain">` : ''}<pre class="whitespace-pre-wrap p-3">${esc(scanned.text)}</pre><p>Only explicitly labelled header values are transferred. Enter and verify all medicine rows, quantities, batch, expiry and GST against this source before creating a receipt.</p></details>` : ''}<datalist id="dl-brand">${list('brand').map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
       <datalist id="dl-manufacturer">${list('manufacturer').map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
       <datalist id="dl-generic">${list('generic').map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
       <form data-form class="grn-form">
@@ -49,15 +51,17 @@ export async function newGRN(after) {
       <div class="grn-head" aria-hidden="true"><span>#</span><span>Product</span><span>Rec. qty (packs)</span><span>Free (packs)</span><span>Pack qty</span><span>DP</span><span>MRP</span><span>Disc %</span><span>Tax %</span><span>Tax amt</span><span>Total</span><span>Expiry</span><span>Batch no.</span><span></span></div>
       <div data-lines></div>
       <button class="btn-secondary mt-2" type="button" data-add><span class="material-symbols-outlined text-[16px]">add</span>Add item <span class="text-label-sm text-on-surface-variant">(Alt+A)</span></button>
+      <details class="card p-3 mt-4" open><summary class="font-semibold">GRN costing preview — paid and free packs</summary><p class="text-body-sm my-2">Pack follows the product type. Landing cost spreads cost over paid + free packs; inventory ACP includes allocated delivery/credit adjustments. Margin is before GST.</p><div class="overflow-auto" data-cost-preview></div></details>
       <section class="grn-foot mt-4">
         <div class="space-y-2">
           <div data-tally class="text-body-md" aria-live="polite"></div>
           <label class="flex items-center gap-2 text-body-md"><input type="checkbox" name="round_off" value="1"> Round the payable to the nearest rupee</label>
           <div><label class="field-label">Remarks</label><input class="field" name="remarks" placeholder="Optional"></div>
+          ${existing ? '<div><label class="field-label">Correction reason *</label><textarea class="field" name="reason" required></textarea></div>' : ''}
         </div>
         <dl class="grn-sum" data-total></dl>
       </section></form>`,
-    footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-secondary" data-save-next>Create & next invoice</button><button class="btn-primary" data-save>Create GRN</button>',
+    footer: `<button class="btn-secondary" data-close>Cancel</button>${existing ? '' : '<button class="btn-secondary" data-save-next>Create & next invoice</button>'}<button class="btn-primary" data-save>${existing ? 'Save correction' : 'Create GRN'}</button>`,
     onMount(root, close) {
       const form = root.querySelector('form'), host = root.querySelector('[data-lines]');
       const inter = () => form.gst_mode.value === 'inter';
@@ -88,15 +92,21 @@ export async function newGRN(after) {
                 <div><label class="field-label">Rack</label><input class="field field-sm !h-9" data-key="rack"></div>
                 <div><label class="field-label">Mfg date</label><input class="field field-sm !h-9" data-key="manufacturing_date" type="date"></div>
                 <div><label class="field-label">Selling price / pack</label><input class="field field-sm !h-9 text-right" data-key="selling_price" type="number" step="0.01" min="0" placeholder="= MRP"></div>
+                ${C('discount', 'Additional discount amount', 'number', 'value="0"')}
+                ${C('cgst_pct','CGST % override','number','max="100" placeholder="Auto"')}
+                ${C('sgst_pct','SGST % override','number','max="100" placeholder="Auto"')}
+                ${C('igst_pct','IGST % override','number','max="100" placeholder="Auto"')}
               </div></details>
           </div>`;
         host.append(el);
         renumber();
         el.querySelector('[data-remove]').onclick = () => { if (host.children.length > 1) { el.remove(); renumber(); totals(); } };
         const pick = () => {
+          const invoiceValues = scannedSelectionValues(el);
           const m = meds.find((x) => x.id === +el.querySelector('[data-key="medicine_id"]').value);
           el.priceHistory = null;
           if (!m) { totals(); return; }
+          el.querySelector('[data-create-scanned-medicine]')?.remove();
           el.querySelector('[data-price-history]').textContent = 'Loading previous prices…';
           api.get(`/pharmacy/price-history/${m.id}`).then((history) => {
             if (+el.querySelector('[data-key="medicine_id"]').value !== m.id) return;
@@ -107,6 +117,14 @@ export async function newGRN(after) {
           set('units_per_pack', (m.pack_size || 1) * (m.units_per_pack || 1));
           ['manufacturer', 'rack', 'dispensing_unit', 'package_type'].forEach((k) => set(k, m[k]));
           set('gst_pct', TAX.includes(+m.gst_pct) ? +m.gst_pct : 12);
+          Object.entries(invoiceValues).forEach(([key,value])=>set(key,value));
+          el.querySelector('[data-pack-warning]')?.remove();
+          const pack=+el.querySelector('[data-key="units_per_pack"]').value, masterPack=(m.pack_size || 1)*(m.units_per_pack || 1);
+          if(el.scannedInvoice && pack!==masterPack) {
+            const warning=document.createElement('p');warning.dataset.packWarning='';warning.className='text-warning';
+            warning.textContent=`Invoice pack: ${pack} units; medicine master: ${masterPack}. Invoice value retained. Confirm the actual pack before saving.`;
+            el.querySelector('.grn-info').append(warning);
+          }
           el.querySelector('[data-title]').innerHTML = `<b class="text-on-surface">${esc(m.name)}</b> ${scheduleTag(m) || '<span class="pill-neutral">OTC</span>'}
             · HSN <b class="font-data-mono text-on-surface">${esc(m.hsn || '—')}</b> <span class="text-label-sm">(from medicine master)</span>
             ${compositionText(m) ? ` · ${esc(compositionText(m))}` : ''}${m.form ? ` · ${esc(m.form)}` : ''}
@@ -124,10 +142,10 @@ export async function newGRN(after) {
 
       function lineMoney(i) {
         const gross = r2((i.qty || 0) * (i.rate || 0));
-        const disc = r2(gross * (i.discount_pct || 0) / 100);
+        const disc = r2(gross * (i.discount_pct || 0) / 100 + (i.discount || 0));
         const taxable = r2(gross - disc);
         const pct = i.gst_pct || 0;
-        const cg = inter() ? 0 : r2(taxable * pct / 200), sg = inter() ? 0 : r2(taxable * pct / 200), ig = inter() ? r2(taxable * pct / 100) : 0;
+        const cg = inter() ? 0 : r2(taxable * (i.cgst_pct ?? pct/2) / 100), sg = inter() ? 0 : r2(taxable * (i.sgst_pct ?? pct/2) / 100), ig = inter() ? r2(taxable * (i.igst_pct ?? pct) / 100) : 0;
         const units = i.medicine_id ? ((i.qty || 0) + (i.free_qty || 0)) * (i.units_per_pack || 1) : 0;
         return { gross, disc, taxable, cg, sg, ig, tax: r2(cg + sg + ig), net: r2(taxable + cg + sg + ig), units };
       }
@@ -137,6 +155,18 @@ export async function newGRN(after) {
         const rows = read(), lines = rows.map(lineMoney);
         lines.forEach((m) => { for (const k of Object.keys(t)) t[k] = r2(t[k] + m[k]); });
         const adjust = footer.delivery - footer.credit;
+        const previewHeaders = ['SL No','Item Name','Pack','HSN Code','Mfg','Batch No','Expiry','Qty (Packs)','Free (Packs)','Rate / Pack (excl. GST)','Disc %','MRP / Pack','GST %','Amount (Taxable)','GST Amount','Total (incl. GST)','Total Packs Received','Cost / Pack (incl. GST, no free)','Landing Cost / Pack (incl. GST & free)','Patient Price / Pack','Patient Price / Unit','Margin / Pack','Margin %','Stock Register ACP / Pack (excl. GST)'];
+        root.querySelector('[data-cost-preview]').innerHTML = `<table class="tbl"><thead><tr>${previewHeaders.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.filter(i => i.medicine_id).map((i, n) => {
+          const m = lineMoney(i), medicine = meds.find(x => x.id === +i.medicine_id) || {};
+          const packs = (+i.qty || 0) + (+i.free_qty || 0), upp = +i.units_per_pack || 1;
+          const allocated = t.taxable ? adjust * m.taxable / t.taxable : 0;
+          const landing = packs ? m.net / packs : 0;
+          const costEx = packs ? Math.max(0, m.taxable + allocated) / packs : 0;
+          const priceEx = (+i.mrp || 0) / (1 + (+i.gst_pct || 0) / 100);
+          const margin = priceEx - costEx;
+          const cells = [n+1, i.brand || medicine.name, `${i.package_type || i.purchase_unit || 'pack'} (${upp} units)`, i.hsn || medicine.hsn, i.manufacturer || medicine.manufacturer, i.batch_no, i.expiry, i.qty || 0, i.free_qty || 0, money(i.rate || 0,2), i.discount_pct || 0, money(i.mrp || 0,2), i.gst_pct || 0, money(m.taxable,2), money(m.tax,2), money(m.net,2), packs, money(i.qty ? m.net / i.qty : 0,2), money(landing,2), money(i.mrp || 0,2), money((i.mrp || 0)/upp,2), money(margin,2), priceEx ? `${r2(margin/priceEx*100)}%` : '—', money(costEx,4)];
+          return `<tr>${cells.map(c => `<td>${esc(c ?? '')}</td>`).join('')}</tr>`;
+        }).join('')}</tbody></table>`;
         rows.forEach((i, n) => {
           const m = lines[n], el = host.children[n];
           el.querySelector('[data-out="tax"]').textContent = m.taxable ? money(m.tax, 2) : '—';
@@ -192,7 +222,8 @@ export async function newGRN(after) {
       form.invoice_amount.oninput = totals;
       form.supplier_id.onchange = () => {
         const o = form.supplier_id.selectedOptions[0];
-        if (o?.dataset.state) form.gst_mode.value = /telangana/i.test(o.dataset.state) ? 'intra' : 'inter';
+        const hospitalState = String(state.meta?.settings?.hospital_state || '').trim().toLowerCase();
+        if (o?.dataset.state && hospitalState) form.gst_mode.value = o.dataset.state.trim().toLowerCase() === hospitalState ? 'intra' : 'inter';
         if (o?.dataset.credit && form.invoice_date.value && !form.due_date.value) {
           const d = new Date(`${form.invoice_date.value}T00:00:00`); d.setDate(d.getDate() + +o.dataset.credit);
           form.due_date.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -203,7 +234,94 @@ export async function newGRN(after) {
       root.addEventListener('keydown', (e) => { if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); addLine().querySelector('select').focus(); } });
       host.oninput = totals;
       host.onchange = totals;
-      addLine();
+      if (existing) {
+        for (const key of ['supplier_id','invoice_no','invoice_date','invoice_amount','due_date','gst_mode','remarks']) form.elements.namedItem(key).value = existing[key] ?? '';
+        form.received_date.value = String(existing.received_at).slice(0,10);
+        form.round_off.checked = !!existing.round_off;
+        footer.delivery = existing.delivery_charge || 0; footer.credit = existing.credit_note || 0;
+        for (const item of existing.items) {
+          const el = addLine(), pick = el.querySelector('[data-key="medicine_id"]'); pick.value = item.medicine_id; pick.onchange();
+          const values = { ...item, units_per_pack: (item.pack_size || 1)*(item.units_per_pack || 1), expiry: item.expiry.slice(0,7),
+            discount: r2(item.qty*item.rate*(1-(item.discount_pct||0)/100)-item.amount) };
+          el.original = item;
+          el.querySelectorAll('[data-key]').forEach(input => {
+            const value = values[input.dataset.key];
+            if (value !== null && value !== undefined) {
+              if (input.tagName === 'SELECT' && ![...input.options].some(o=>o.value===String(value))) input.add(new Option(String(value),String(value)));
+              input.value = value;
+            }
+          });
+        }
+        totals();
+      } else {
+        addLine();
+        if (scanned) {
+          const detected = scanned.items?.length ? scanned.items.map(item => {
+            const matches = matchInvoiceMedicine(item.name,meds);
+            return {...item, medicine_id:matches.length === 1 ? matches[0].id : null};
+          }) : invoiceLines(scanned.text, meds);
+          if (detected.length) {
+            host.innerHTML = '';
+            for (const item of detected) {
+              const el = addLine(), pick = el.querySelector('[data-key="medicine_id"]');
+              if (item.medicine_id) { pick.value = item.medicine_id; pick.onchange(); }
+              for (const key of ['qty','rate','mrp','batch_no','expiry']) el.querySelector(`[data-key="${key}"]`).value = item[key] ?? '';
+              if (item.units_per_pack) el.querySelector('[data-key="units_per_pack"]').value = item.units_per_pack;
+              for (const key of ['free_qty','discount_pct','gst_pct']) {
+                if (item[key] !== undefined) el.querySelector(`[data-key="${key}"]`).value = item[key];
+              }
+              el.scannedInvoice = true;
+              if(item.medicine_id) pick.onchange();
+              const source = document.createElement('p'); source.className = 'text-body-sm text-warning';
+              source.textContent = `Invoice source: ${item.source}${item.quantity_unit ? ` · Quantity unit: ${item.quantity_unit} — verify pack conversion` : ''}. Check every field; blank values need review.`;
+              if(item.warnings?.length) source.textContent+=' '+item.warnings.join(' · ');
+              el.querySelector('.grn-info').prepend(source);
+              if (!item.medicine_id) {
+                pick.options[0].textContent = `${item.name} — NEW medicine (complete details below)`;
+                const create = document.createElement('button'); create.type = 'button'; create.className = 'btn-secondary btn-sm';
+                create.dataset.createScannedMedicine='';
+                create.textContent = `New medicine: ${item.name} — review & create`;
+                create.onclick = () => masterForm('medicine', (_kind, medicine) => {
+                  meds.push(medicine);
+                  host.querySelectorAll('[data-key="medicine_id"]').forEach(select => select.add(new Option(medicine.name, medicine.id)));
+                  const retained = Object.fromEntries([...el.querySelectorAll('[data-key]')].filter(input => input.dataset.key !== 'medicine_id').map(input => [input.dataset.key,input.value]));
+                  pick.value = medicine.id; pick.onchange();
+                  for (const key of ['qty','rate','mrp','batch_no','expiry','free_qty','discount_pct','gst_pct']) el.querySelector(`[data-key="${key}"]`).value = retained[key];
+                  if (item.units_per_pack) el.querySelector('[data-key="units_per_pack"]').value = item.units_per_pack;
+                  create.remove(); totals();
+                }, { name: item.name, ...(item.hsn ? {hsn:item.hsn} : {}), ...(item.gst_pct !== undefined ? {gst_pct:item.gst_pct} : {}), ...(item.units_per_pack ? {units_per_pack:item.units_per_pack} : {}) });
+                el.querySelector('.grn-info').prepend(create);
+              }
+            }
+          } else {
+            const warning = document.createElement('p'); warning.className = 'text-warning p-3';
+            warning.textContent = 'No exact medicine names or codes were recognized. The invoice needs column mapping or manual medicine selection; no similar product was substituted.';
+            host.before(warning);
+          }
+          const invoice = scanned.text.match(/invoice\s*(?:no\.?|number)\s*[:#|\-]\s*([A-Za-z0-9/._-]+)/i);
+          const amount = scanned.text.match(/(?:net\s+amount|grand\s+total)\s*[:=]\s*(?:Rs\.?|₹)?\s*([\d,]+\.\d{2})/i);
+          if (invoice) form.invoice_no.value = invoice[1];
+          if (amount) form.invoice_amount.value = amount[1].replaceAll(',', '');
+          const gstins = scanned.text.match(/\b\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]\b/g) || [];
+          const matches = suppliers.filter(s => s.gstin && gstins.includes(s.gstin.toUpperCase()));
+          if (matches.length === 1) form.supplier_id.value = matches[0].id;
+          else {
+            const supplierLine = scanned.text.split(/\r?\n/).map(s=>s.trim()).find(s=>/\b(?:pvt\.?\s*ltd\.?|private\s+limited|medical(?:s)?|pharma(?:ceuticals)?|distributors?)\b/i.test(s) && !/terms|conditions|\bfor\b|product|invoice\s+type/i.test(s));
+            const proposed = (supplierLine || '').replace(/^[^a-z]+/i,'').replace(/\s+\d+\s*$/,'').trim();
+            if (proposed) {
+              form.supplier_id.options[0].textContent = `${proposed} — NEW supplier`;
+              const createSupplier = document.createElement('button'); createSupplier.type='button';createSupplier.className='btn-secondary mt-2';
+              createSupplier.textContent=`Create supplier: ${proposed}`;
+              createSupplier.onclick=()=>masterForm('supplier',(_kind,supplier)=>{
+                form.supplier_id.add(new Option(supplier.name,supplier.id));form.supplier_id.value=supplier.id;createSupplier.remove();
+              },{name:proposed,gstin:gstins[0] || ''});
+              form.supplier_id.parentElement.parentElement.append(createSupplier);
+            }
+          }
+          form.invoice_date.value = invoiceDate(scanned.text);
+          totals();
+        }
+      }
 
       root.querySelectorAll('[data-master]').forEach((b) => (b.onclick = () => masterForm(b.dataset.master, (kind, row) => {
         if (kind === 'supplier') { form.supplier_id.add(new Option(row.name, row.id)); form.supplier_id.value = row.id; }
@@ -223,28 +341,41 @@ export async function newGRN(after) {
         busy(btn, true);
         try {
           // a pack is the purchase unit: pack_size 1, pack qty = dispensing units per pack
-          const items = read().map((i) => ({ ...i, pack_size: 1, purchase_unit: i.package_type || 'pack', selling_price: i.selling_price ?? i.mrp }));
+          const items = read().map((i,n) => {
+            const original = host.children[n].original;
+            return { ...i, pack_size: 1, purchase_unit: original?.purchase_unit || i.package_type || 'pack', selling_price: i.selling_price ?? i.mrp,
+              ...(original && i.expiry === original.expiry.slice(0,7) ? {expiry:original.expiry} : {}) };
+          });
           const fd = Object.fromEntries(new FormData(form));
-          const r = await api.post('/pharmacy/purchases', {
+          const r = await api.post(existing ? `/pharmacy/purchases/${existing.id}/correct` : '/pharmacy/purchases', {
             ...fd, supplier_id: +fd.supplier_id, round_off: !!form.round_off.checked, items,
             delivery_charge: footer.delivery, credit_note: footer.credit,
             invoice_amount: fd.invoice_amount === '' ? undefined : +fd.invoice_amount,
           });
           close(); toast(`${r.grn_no} received into Central — payable ${money(r.total, 2)}`, 'success'); after?.();
           if (btn.hasAttribute('data-save-next')) await newGRN(after);
-        } catch (err) { apiError(err, 'GRN not saved'); busy(btn, false); }
+        } catch (err) {
+          const messages = {
+            grn_has_payments_use_return_workflow: 'This GRN has supplier payments. Use the supplier return and new receipt workflow.',
+            grn_stock_already_used_use_return_workflow: 'Stock from this GRN has been moved, used or combined with another receipt. Use the return workflow to correct it.',
+            grn_already_corrected: 'This GRN has already been replaced. Open the replacement receipt.',
+            inventory_approval_required: 'The store in-charge must make this correction.',
+          };
+          if (messages[err.message]) toast(messages[err.message], 'warning'); else apiError(err, 'GRN not saved');
+          busy(btn, false);
+        }
       };
       root.querySelector('[data-save]').onclick = save;
-      root.querySelector('[data-save-next]').onclick = save;
+      if (root.querySelector('[data-save-next]')) root.querySelector('[data-save-next]').onclick = save;
     },
   });
 }
 
 /** Quick master creation inside the GRN. Duplicates are refused by the server. */
-function masterForm(kind, done) {
+function masterForm(kind, done, defaults = {}) {
   const body = kind === 'supplier'
     ? `<div class="grid grid-cols-2 gap-3"><div class="col-span-2"><label class="field-label">Name</label><input class="field" data-f="name" required></div>
-       <div><label class="field-label">GSTIN</label><input class="field" data-f="gstin"></div><div><label class="field-label">State</label><input class="field" data-f="state" value="Telangana"></div>
+       <div><label class="field-label">GSTIN</label><input class="field" data-f="gstin"></div><div><label class="field-label">State</label><input class="field" data-f="state" value="${esc(state.meta?.settings?.hospital_state || '')}"></div>
        <div><label class="field-label">Mobile</label><input class="field" data-f="mobile"></div><div><label class="field-label">Drug licence</label><input class="field" data-f="dl_no"></div>
        <div><label class="field-label">Credit days</label><input class="field" type="number" data-f="credit_days" value="30"></div></div>`
     : kind === 'medicine'
@@ -263,6 +394,9 @@ function masterForm(kind, done) {
     stack: true, title: `New ${kind}`, size: kind === 'medicine' || kind === 'supplier' ? 'md' : 'sm', body,
     footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-create>Save</button>',
     onMount(el, close) {
+      for (const [key, value] of Object.entries(defaults)) {
+        const input = el.querySelector(`[data-f="${key}"]`); if (input) input.value = value;
+      }
       const readComp = kind === 'medicine' ? wireComposition(el, 'dl-generic') : null;
       el.querySelector('[data-create]').onclick = async (e) => {
         const btn = e.currentTarget;

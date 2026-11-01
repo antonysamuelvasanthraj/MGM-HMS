@@ -60,7 +60,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Requisitions', 'assignment')} ${liveChip()}`,
     title: 'Clinical Orders & Requisitions',
-    subtitle: 'Every lab, imaging, procedure and pharmacy requisition with its work state and billing state side by side.',
+    subtitle: 'Orders placed for patients, with work and billing status.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>`,
     body: `
       ${kpiRow([], 4)}

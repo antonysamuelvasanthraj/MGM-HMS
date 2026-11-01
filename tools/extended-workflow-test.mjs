@@ -22,22 +22,24 @@ async function api(token,url,method='GET',body,expected=200){
 }
 try{
  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error(output)),30000);child.stdout.on('data',()=>{if(output.includes('sign in')){clearTimeout(timer);resolve();}});child.on('exit',()=>{clearTimeout(timer);reject(Error(output));});});
- const login=async username=>(await api(null,'/auth/login','POST',{username,password:username==='admin'?'surely':'demo@123'})).token;
- const admin=await login('admin'), reception=await login('demo.reception'), nurse=await login('demo.nurse'), pharmacy=await login('demo.pharmacy');
+ const logins=Object.fromEntries([...fs.readFileSync(path.join(root,'DEMO-LOGINS.local.md'),'utf8').matchAll(/`([^`]+)`\s*\|\s*`([^`]+)`/g)].map(m=>[m[1],m[2]]));
+ const login=async username=>(await api(null,'/auth/login','POST',{username,password:username==='admin'?'surely':logins[username]})).token;
+ const admin=await login('admin'), reception=await login('reception'), nurse=await login('nurse'), pharmacy=await login('pharmacist');
  const me=async token=>(await api(token,'/auth/me')).user;
  const recUser=await me(reception),nurseUser=await me(nurse),pharmUser=await me(pharmacy);
  const thread=await api(reception,'/staff-work/direct','POST',{user_id:nurseUser.id});
  const message=await api(reception,'/staff-work/chat','POST',{thread_id:thread.id,body:'TEST ward coordination'});
  assert.ok((await api(nurse,`/staff-work/chat?thread=${thread.id}`)).some(x=>x.id===message.id));
  await api(pharmacy,`/staff-work/chat?thread=${thread.id}`,'GET',undefined,403);
- await api(nurse,`/staff-work/chat/${message.id}`,'PATCH',{body:'Unauthorized edit',version:message.version},403);
- const edited=await api(reception,`/staff-work/chat/${message.id}`,'PATCH',{body:'TEST corrected ward coordination',version:message.version});
- assert.equal(edited.version,message.version+1);
- await api(reception,`/staff-work/chat/${message.id}`,'PATCH',{body:'Stale edit',version:message.version},409);
+ await api(nurse,`/staff-work/chat/${message.id}`,'PATCH',{body:'Unauthorized edit',version:message.version},409);
+ await api(reception,`/staff-work/chat/${message.id}`,'PATCH',{body:'TEST corrected ward coordination',version:message.version},409);
+ await api(admin,`/staff-work/chat/${message.id}`,'PATCH',{body:'Administrative edit',version:message.version},409);
+ const unchanged=await api(nurse,`/staff-work/chat?thread=${thread.id}`);
+ assert.equal(unchanged.find(x=>x.id===message.id).body,'TEST ward coordination');
  const history=await api(admin,`/staff-work/chat/${message.id}/history`);
- assert.ok(history.some(x=>x.body==='TEST ward coordination'));
+ assert.ok(Array.isArray(history));
  await api(nurse,`/staff-work/chat/${message.id}/history`,'GET',undefined,403);
- evidence.push('Private chat reaches recipient; unrelated staff denied; author edits retain history; stale edits rejected; admin reviews revisions.');
+ evidence.push('Private chat reaches recipient; unrelated staff denied; recipient, author and admin edits all rejected; body unchanged; legacy revision history remains management-only.');
  const task=await api(admin,'/staff-work/tasks','POST',{title:'TEST ICU stock check',assigned_to:nurseUser.id,description:'Verify batch and expiry'});
  assert.ok((await api(nurse,'/staff-work/tasks')).some(x=>x.id===task.id));
  assert.ok(!(await api(pharmacy,'/staff-work/tasks')).some(x=>x.id===task.id));
@@ -50,8 +52,9 @@ try{
  await api(nurse,`/staff-work/tasks/${task.id}`,'PATCH',{status:'open',progress_note:'Reopen'},409);
  evidence.push('Task assignment → recipient progress → completion → admin review; unrelated staff denied; self-review and reopening reviewed work rejected.');
  const shift=await api(reception,'/desk/shifts?desk=reception','POST',{to_user:pharmUser.id,from_shift:'morning',to_shift:'evening',cash_count:0,notes:'Wrong desk'},400);
- const incoming=(await api(reception,'/desk/shifts?desk=reception')).receivers.find(x=>x.role==='reception_admin');assert.ok(incoming);
- const incName=(await api(admin,'/admin/users')).find(x=>x.id===incoming.id).username;
+ const users=await api(admin,'/admin/users');
+ const incoming=(await api(reception,'/desk/shifts?desk=reception')).receivers.find(x=>['reception_admin','cashier','reception'].includes(x.role)&&logins[users.find(u=>u.id===x.id)?.username]);assert.ok(incoming,'a reception-desk colleague to hand over to');
+ const incName=users.find(x=>x.id===incoming.id).username;
  const incToken=await login(incName);
  const handover=await api(reception,'/desk/shifts?desk=reception','POST',{to_user:incoming.id,from_shift:'morning',to_shift:'evening',cash_count:0,notes:'TEST queue handover'});
  await api(reception,`/desk/shifts/${handover.id}/accept`,'POST',{},403);
@@ -59,7 +62,7 @@ try{
  await api(incToken,`/desk/shifts/${handover.id}/accept`,'POST',{});
  await api(incToken,`/desk/shifts/${handover.id}/accept`,'POST',{},409);
  evidence.push('Shift handover appears in incoming reception inbox; only named incoming staff accepts; cross-desk receiver and repeated acceptance rejected.');
- const hr=await login('demo.hr'),doctorToken=await login('demo.doctor'),doctorUser=await me(doctorToken);
+ const hr=await login('hr'),doctorToken=await login('doctor'),doctorUser=await me(doctorToken);
  const day=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Calcutta'});
  for(const user of [nurseUser,doctorUser,recUser]) await api(hr,'/admin/roster','POST',{user_id:user.id,duty_date:day,shift:'morning'});
  const roster=await api(nurse,`/admin/roster?from=${day}&to=${day}`);

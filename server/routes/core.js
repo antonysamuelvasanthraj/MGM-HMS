@@ -1,13 +1,15 @@
 import { roleSummary, roleDashboard, defaultView, VIEWS, VIEW_PERM } from '../dashboards.js';
 import { Router } from 'express';
 import {
-  h, fail, all, get, one, insert, update, today, setting, setSetting, emit, where, nowIso,
+  h, fail, all, get, one, insert, update, run, today, setting, setSetting, emit, where, nowIso, visibleSettings, SECRET_SETTING, SECRET_MASK,
 } from '../lib.js';
 import { login, logout, publicUser, requireAuth, requirePerm, can, ROLE_PERMS } from '../auth.js';
 import { demoBlocked } from './demo.js';
 import { unreadTotal } from './staff-work.js';
 import { billScope } from './billing.js';
 import { clientCount } from '../realtime.js';
+import { goLiveCheck } from '../go-live.js';
+import { WORKFLOW_KEYS, deriveMode } from '../operating-mode.js';
 
 export const core = Router();
 
@@ -60,7 +62,7 @@ core.get('/auth/roles', h(() => ({ roles: Object.keys(ROLE_PERMS), perms: ROLE_P
 
 core.get('/meta', requireAuth, h((req) => ({
   environment: process.env.HMS_ENV || 'local',   // 'demo' shows the DEMO ENVIRONMENT badge; never set it in production
-  settings: Object.fromEntries(all('SELECT key,value FROM settings').filter(r => !r.key.startsWith('sms_gateway') || can(req.user,'admin.view')).map((r) => [r.key, r.value])),
+  settings: visibleSettings(req.user, can),
   departments: all('SELECT * FROM departments WHERE active=1 ORDER BY name'),
   doctors: all(`SELECT u.id, u.name, u.role, u.designation, u.qualification, u.op_fee, u.followup_fee,
                        u.department_id, u.reg_no, u.staff_code, d.name AS dept_name, d.code AS dept_code
@@ -75,14 +77,33 @@ core.get('/meta', requireAuth, h((req) => ({
   serverTime: nowIso(),
 })));
 
-core.get('/settings', requireAuth, h((req) =>
-  Object.fromEntries(all('SELECT key,value FROM settings').filter((r) => !r.key.startsWith('sms_gateway') || can(req.user, 'admin.view'))
-    .map((r) => [r.key, r.value]))));
+/** Go-live checklist (Settings, administrators). Read-only. */
+core.get('/admin/go-live', requirePerm('admin.view'), h(() => goLiveCheck()));
 
-core.patch('/settings', requirePerm('admin.view'), h((req) => {
+core.get('/settings', requireAuth, h((req) => {
+  const date=new Date(),year=date.getFullYear()-(date.getMonth()<3?1:0);
+  return {...visibleSettings(req.user, can),server_timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,server_financial_year:`${year}-${String(year+1).slice(-2)}`};
+}));
+
+const hideSecrets = (o) => Object.fromEntries(Object.entries(o || {}).map(([k, v]) => [k, SECRET_SETTING(k) && v ? SECRET_MASK : v]));
+core.patch('/settings', requirePerm('admin.write'), h((req) => {
+  if(req.body?.token_reset!==undefined&&!['daily','never'].includes(req.body.token_reset))fail(400,'invalid_token_reset');
+  // the hospital operating mode and the department switches it drives belong to the Hospital Admin only
+  const modeKeys = Object.keys(req.body || {}).filter((k) => k === 'hospital_mode' || WORKFLOW_KEYS.includes(k) || k === 'dept_entry_enabled' || k === 'duplicate_order_guard');
+  if (modeKeys.length && !can(req.user, 'hospital_mode.manage')) fail(403, 'hospital_mode_admin_only', { keys: modeKeys });
+  if ('hospital_mode' in (req.body || {})) fail(400, 'use_operating_mode_screen');
+  const before = Object.fromEntries(Object.keys(req.body || {}).map((k) => [k, all('SELECT value FROM settings WHERE key=?', k)[0]?.value ?? null]));
+  // a masked secret coming back from the form is "unchanged"; only an administrator with write rights may set one
+  for (const k of Object.keys(req.body || {})) if (SECRET_SETTING(k) && (req.body[k] === SECRET_MASK || !can(req.user, 'admin.write'))) { delete req.body[k]; delete before[k]; }
   for (const [k, v] of Object.entries(req.body || {})) setSetting(k, v);
-  emit(req, { topics: ['system'], event: 'settings.changed', data: req.body,
-    action: 'settings.update', entity: 'settings', detail: req.body });
+  let released = 0;
+  if (req.body?.release_op_rule === 'immediate' && before.release_op_rule !== 'immediate') {
+    released = all("SELECT id FROM orders WHERE status='awaiting_payment' AND category IN ('lab','imaging')").length;
+    run("UPDATE orders SET status='ordered' WHERE status='awaiting_payment' AND category IN ('lab','imaging')");
+  }
+  if (modeKeys.some((k) => WORKFLOW_KEYS.includes(k))) setSetting('hospital_mode', deriveMode(Object.fromEntries(WORKFLOW_KEYS.map((k) => [k, setting(k)]))));
+  emit(req, { topics: ['system'], event: 'settings.changed', data: hideSecrets(req.body),
+    action: 'settings.update', entity: 'settings', detail: { before: hideSecrets(before), after: hideSecrets(req.body), released_orders: released } });
   return { ok: true };
 }));
 
@@ -233,6 +254,24 @@ core.post('/notifications/:id/read', requireAuth, h((req) => {
 }));
 
 /* ------------------------------------------------------------------- audit */
+
+/**
+ * A desk downloaded a table as CSV or Excel. Only the report centre recorded its
+ * exports, so the 29 other download buttons — bills, collections, audit,
+ * attendance, consultation history — took patient and money data off the system
+ * leaving no trace of who took it. The shared download helpers in
+ * client/src/ui.js and client/src/excel.js post here, so the trail does not
+ * depend on each screen remembering to ask.
+ *
+ * Nothing is gated on the result: refusing the entry would only mean the file
+ * leaves without a record, which is the worse outcome.
+ */
+core.post('/audit/export', requireAuth, h((req) => {
+  const b = req.body || {};
+  emit(req, { topics: ['audit'], event: 'data.exported', action: 'data.export', entity: 'exports', entityId: null,
+    detail: { filename: String(b.filename || '').slice(0, 160), rows: Number(b.rows) || 0, format: b.format === 'excel' ? 'excel' : 'csv' } });
+  return { ok: true };
+}));
 
 core.get('/audit', requirePerm('audit.view'), h((req) => {
   const w = [], a = [];

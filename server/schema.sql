@@ -324,7 +324,22 @@ CREATE TABLE IF NOT EXISTS reports (             -- imaging / USG narrative repo
   signed_by   INTEGER REFERENCES users(id),
   signed_at   TEXT,
   created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-  updated_at  TEXT
+  updated_at  TEXT,
+  version_no INTEGER NOT NULL DEFAULT 1,
+  amendment_reason TEXT
+);
+
+CREATE TABLE IF NOT EXISTS report_versions (
+  id INTEGER PRIMARY KEY,
+  report_id INTEGER NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+  version_no INTEGER NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'imaging',
+  technique TEXT, findings TEXT, impression TEXT, advice TEXT,
+  status TEXT NOT NULL,
+  author_id INTEGER REFERENCES users(id), signed_by INTEGER REFERENCES users(id), signed_at TEXT,
+  amendment_reason TEXT, created_at TEXT, updated_at TEXT,
+  superseded_by INTEGER REFERENCES users(id), superseded_at TEXT,
+  UNIQUE(report_id,version_no)
 );
 
 CREATE TABLE IF NOT EXISTS prescriptions (
@@ -1273,3 +1288,6 @@ CREATE TABLE IF NOT EXISTS admission_forms (
  form_type TEXT NOT NULL CHECK(form_type IN ('estimate','consent','feedback')),
  details_json TEXT NOT NULL, created_by INTEGER REFERENCES users(id), created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS scheme_patient_permissions (id INTEGER PRIMARY KEY,bill_id INTEGER NOT NULL REFERENCES bills(id),item_id INTEGER NOT NULL REFERENCES bill_items(id),claim_id INTEGER NOT NULL REFERENCES insurance_claims(id),request_key TEXT UNIQUE NOT NULL,patient_amount REAL NOT NULL,previous_amount REAL NOT NULL,reason TEXT NOT NULL,authorization_ref TEXT NOT NULL,requested_by INTEGER REFERENCES users(id),requested_at TEXT NOT NULL,review_status TEXT NOT NULL DEFAULT 'pending',reviewed_by INTEGER REFERENCES users(id),reviewed_at TEXT,review_note TEXT);
+CREATE TABLE IF NOT EXISTS scheme_line_collections (id INTEGER PRIMARY KEY,item_id INTEGER NOT NULL REFERENCES bill_items(id),payment_id INTEGER NOT NULL UNIQUE REFERENCES payments(id),collection_desk TEXT NOT NULL,request_key TEXT UNIQUE NOT NULL,amount REAL NOT NULL,collected_by INTEGER REFERENCES users(id),created_at TEXT NOT NULL);

@@ -89,7 +89,7 @@ function blockReasons(r) {
   if (r.priority === 'emergency') return out;
   // an approved due / credit lets the patient through, exactly as the server's call gate does
   if (!['paid', 'free', 'waived'].includes(r.payment_status) && !r.fee_authorized) out.push('Fee pending');
-  if (!r.vitals_count) out.push('Vitals not recorded');
+  if (!r.vitals_count && !r.direct_to_doctor) out.push('Vitals not recorded');
   return out;
 }
 
@@ -97,7 +97,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Outpatient routing', 'groups')} ${liveChip()}`,
     title: 'Doctor Queue',
-    subtitle: 'Ordinary OP calling waits for the consultation fee and required vitals. Emergency care is never gated on payment — use the Emergency Desk for that pathway.',
+    subtitle: 'Patients ready to be called, and why anyone is held back.',
     actions: `${canCall() ? `<button class="btn-primary" data-call-next>
         <span class="material-symbols-outlined text-[18px]">campaign</span> Call next patient</button>` : ''}
       <a href="/display-queue" target="_blank" class="btn-secondary">
@@ -156,7 +156,7 @@ function rowHTML(r) {
         ${r.allergy_count ? '<span class="material-symbols-outlined text-[14px] text-danger" title="Allergies">warning</span>' : ''}</div>
       <div class="font-data-mono text-label-sm text-on-surface-variant">${esc(r.uhid)} · ${r.age_years ?? '—'}y ${esc((r.gender || '')[0] || '')}
         ${r.visit_type === 'followup' ? ' · follow-up' : ''}</div></td>
-    <td>${!r.vitals_count ? '<span class="pill-warning pill-dot">Pending</span>' : (() => {
+    <td>${!r.vitals_count && r.direct_to_doctor ? '<span class="pill-info pill-dot" title="Sent directly to the doctor at fee collection">Direct — skipped</span>' : !r.vitals_count ? '<span class="pill-warning pill-dot">Pending</span>' : (() => {
       const al = vitalAlerts(r.last_vitals);
       return al.length ? `<span class="${al.some((a) => a.critical) ? 'pill-danger' : 'pill-warning'} pill-dot" title="Out of range">${esc(al.map((a) => a.label).join(' · '))}</span>`
         : '<span class="pill-success pill-dot">Recorded</span>';

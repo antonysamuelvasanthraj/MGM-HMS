@@ -1,0 +1,15 @@
+import {DatabaseSync} from 'node:sqlite';
+const db=new DatabaseSync('data/surelyhms.db',{readOnly:true});
+const session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.username='reception' ORDER BY s.last_seen DESC LIMIT 1").get();
+const patient=db.prepare("SELECT patient_id FROM bills WHERE bill_type='PHARM' AND status IN ('unpaid','partial') AND balance>0.005 LIMIT 1").get();db.close();
+const targets=await fetch('http://127.0.0.1:9559/json').then(r=>r.json());
+const target=targets.find(t=>t.type==='page' && t.url.startsWith('http://localhost:4300'));
+const ws=new WebSocket(target.webSocketDebuggerUrl);
+await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+let seq=0;const pending=new Map();
+ws.addEventListener('message',event=>{const d=JSON.parse(event.data);if(pending.has(d.id)){pending.get(d.id)(d);pending.delete(d.id);}});
+const send=(method,params={})=>new Promise(resolve=>{const id=++seq;pending.set(id,resolve);ws.send(JSON.stringify({id,method,params}));});
+await send('Runtime.evaluate',{expression:`localStorage.setItem('surely_token',${JSON.stringify(session.token)})`});
+await send('Page.reload',{ignoreCache:true});
+await new Promise(resolve=>setTimeout(resolve,1500));
+const result=await send('Runtime.evaluate',{expression: `(async()=>{try{const {mount}=await import('/src/views/patient.js');await mount({host:document.getElementById('view'),params:['27'],query:{}});await new Promise(r=>setTimeout(r,600));document.querySelector('[data-tab=money]')?.click();const admitButton=!!document.querySelector('[data-admit-patient]');document.querySelector('[data-admit-patient]')?.click();await new Promise(r=>setTimeout(r,600));const presetPatient=document.querySelector('[data-af]')?.innerText.includes('Mohan');document.querySelector('[role=dialog] [data-close]')?.click();const pharmacyReadOnly=document.getElementById('view').innerText.includes('Pharmacy bills — view only');const expensesMenu=!!document.querySelector('a[href="/expenses"]');const expenses=await import('/src/views/expenses.js');await expenses.mount({host:document.getElementById('view'),params:[],query:{}});await new Promise(r=>setTimeout(r,600));return {admitButton,presetPatient,pharmacyReadOnly,expensesMenu,expensesLoaded:document.getElementById('view').innerText.includes('Expenses'),errors:document.body.innerText.includes('Could not complete that')};}catch(e){return {error:e.message}}})()`,awaitPromise:true,returnByValue:true});console.log(JSON.stringify(result.result?.result?.value));ws.close();

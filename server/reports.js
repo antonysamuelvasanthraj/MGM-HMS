@@ -349,7 +349,7 @@ export const REPORTS = [
   { id: 'ap_ageing', group: 'Finance', title: 'Payables ageing (suppliers)', perm: FIN, filters: ['asof'],
     run: (q) => {
       const rows = all(`SELECT s.name supplier, p.grn_no, p.invoice_no, date(p.received_at) received, round(p.total - p.paid,2) open
-        FROM purchases p JOIN suppliers s ON s.id=p.supplier_id WHERE p.total - p.paid > 0.005 AND date(p.received_at) <= ?
+        FROM purchases p JOIN suppliers s ON s.id=p.supplier_id WHERE p.status<>'corrected' AND p.total - p.paid > 0.005 AND date(p.received_at) <= ?
         ORDER BY p.received_at`, q.to).map((r) => {
         const age = Math.max(0, Math.floor((new Date(q.to) - new Date(r.received)) / 86400000));
         const b = ageBucket(age);
@@ -453,6 +453,11 @@ export function runReport(user, id, query) {
     mode: query.mode && query.mode !== 'all' ? String(query.mode) : null,
     doctor_id: query.doctor_id && query.doctor_id !== 'all' ? +query.doctor_id : null,
     account_id: query.account_id ? +query.account_id : null,
+    patient: String(query.patient || '').trim().slice(0,180),
+    medicine: String(query.medicine || '').trim().slice(0,180),
+    manufacturer: String(query.manufacturer || '').trim().slice(0,180),
+    encounter_type: ['OP','IP'].includes(query.encounter_type) ? query.encounter_type : null,
+    visiting_doctor_id: query.visiting_doctor_id ? +query.visiting_doctor_id : null,
   };
   if (query.department) q.department = String(query.department);
   const out = r.run(q, user);

@@ -4,16 +4,19 @@
  * (the fee then stays payable). Both decisions go to the audit trail.
  */
 import { page, eyebrow, liveChip, card, live, mountPage, api, can, esc, bind, money, pill, ago, toast, confirmDialog, apiError } from './_kit.js';
+import { payerRequestsPanel } from '../payer-change.js';
 
 export async function mount(ctx) {
   const root = mountPage(ctx, page({
     wide: true, eyebrow: `${eyebrow('Billing', 'approval')} ${liveChip()}`, title: 'Approvals',
-    subtitle: 'Free visits and free treatment waiting for a decision. The patient is already registered; approving clears the bill as free, declining leaves the fee payable.',
-    body: '<div data-list></div>',
+    subtitle: 'Free visits and waivers waiting for a decision.',
+    body: '<div data-payer-requests></div><div data-list></div>',
   }));
   let mayApprove = false;
+  const loadRequests = payerRequestsPanel(root.querySelector('[data-payer-requests]'));
 
   async function load() {
+    loadRequests();
     const d = await api.get('/approvals');
     mayApprove = d.can_approve;
     root.querySelector('[data-list]').innerHTML = card({
@@ -42,7 +45,7 @@ export async function mount(ctx) {
     if (!c) return;
     try { await api.post(`/approvals/${b.dataset.reject}/reject`, { reason: c.reason }); toast('Request declined', 'success'); load(); } catch (err) { apiError(err); }
   });
-  return live({ topics: ['approvals', 'billing'], events: ['approval.requested', 'approval.decided', 'payment.received'], load });
+  return live({ topics: ['approvals', 'billing'], events: ['approval.requested', 'approval.decided', 'payment.received', 'payer_request.created', 'payer_request.decided'], load });
 }
 
 export { can };

@@ -1,3 +1,4 @@
+import {openSchemePatientPayment} from '../scheme-patient-pay.js';
 import { collectBill } from '../collect.js';
 import {printBill} from './bills.js';
 import { printPatientPrescription } from '../patient-print.js';
@@ -11,7 +12,7 @@ import {
   page, eyebrow, liveChip, card, kpiRow, tableCard, live, mountPage, patientPicker,
   apiError, busy, api, qs, state, can, navigate,
   $, $$, esc, bind, toast, modal, renderRows, pill, money, moneyPlain, fmtDate, fmtTime, ago,
-  kpi, spinner, emptyState, debounce, printDocument, todayISO,
+  kpi, spinner, emptyState, debounce, printDocument, todayISO, setting, headCount,
 } from './_kit.js';
 import { printReceipt } from './op-registration.js';
 import { showBillingContext } from '../billing-context.js';
@@ -22,23 +23,34 @@ const cart = [];
 let ipMode = null;               // { admission_id, ip_no } while serving an inpatient
 const store = () => (ipMode ? 'IP' : 'OP');
 let patient = null;
+let admissionLookupFailed=false;
 let prescriptionId = null;
 let rxCache = [];
 
 export async function mount(ctx) {
   const root = mountPage(ctx, layout());
-  cart.length = 0; patient = null; prescriptionId = null; ipMode = null;
+  cart.length = 0; patient = null; prescriptionId = null; ipMode = null; admissionLookupFailed=false;
 
   async function load() {
+    if(patient){
+      const selectedId=patient.id;
+      const latest=await api.get(`/patients/${selectedId}`);
+      if(patient?.id===selectedId){patient=latest;showPatient(root);}
+    }
     const d = await api.get('/pharmacy/dispense/queue');
+    d.rows=(d.rows || []).filter(row=>String(row.created_at || '').slice(0,10)===todayISO());
+    d.stats.pending=d.rows.length;
     rxCache = d.rows;
+    headCount(root, manualRx() ? `${d.stats.sales_today} sales today` : `${d.stats.pending} prescriptions waiting · ${d.stats.sales_today} sales today`);
     $('[data-kpis]', root).innerHTML = [
-      { label: 'Prescriptions waiting', value: d.stats.pending, icon: 'prescriptions', tone: d.stats.pending ? 'warning' : 'success', sub: 'From today’s consultations' },
+      // manual dispensing has no e-prescription queue to point at
+      manualRx() ? { label: 'Paper prescriptions', value: 'Manual', icon: 'prescriptions', tone: 'info', sub: 'Dispense from the patient’s paper slip' }
+        : { label: 'Prescriptions waiting', value: d.stats.pending, icon: 'prescriptions', tone: d.stats.pending ? 'warning' : 'success', sub: 'From today’s consultations' },
       { label: 'Sales today', value: d.stats.sales_today, icon: 'point_of_sale', sub: 'Counter bills raised' },
       { label: 'Revenue today', value: money(d.stats.revenue_today), icon: 'payments', tone: 'success', sub: 'Pharmacy counter' },
       { label: 'Cart', value: cart.length, icon: 'shopping_cart', tone: 'info', sub: money(cartTotal()) },
     ].map(kpi).join('');
-    renderRows($('[data-rx]', root), d.rows, rxRow, { empty: 'No prescriptions waiting to be dispensed.' });
+    if ($('[data-rx]', root)) renderRows($('[data-rx]', root), d.rows, rxRow, { empty: 'No prescriptions waiting to be dispensed.' });
     // opened from the dashboard queue: load that prescription straight into the cart
     if (ctx.query.rx) { $(`[data-rx] tr[data-id="${+ctx.query.rx}"] [data-load-rx]`, root)?.click(); ctx.query.rx = null; }
   }
@@ -51,7 +63,8 @@ export async function mount(ctx) {
   bind(root, 'click', '[data-load-rx]', async (e, b) => {
     const rx = rxCache.find((x) => x.id === +b.closest('tr').dataset.id);
     if (!rx) return;
-    patient = await api.get(`/patients/${rx.patient_id}`);
+    patient = await api.get(`/patients/${rx.patient_id}`);admissionLookupFailed=false;
+    $('[data-pharmacy-notes]', root).value = '';
     prescriptionId = rx.id;
     ipMode = rx.admission_id ? { admission_id: rx.admission_id, ip_no: rx.ip_no || 'IP' } : null;
     cart.length = 0;
@@ -97,51 +110,56 @@ export async function mount(ctx) {
 }
 
 const cartTotal = () => cart.reduce((s, i) => s + i.qty * i.rate, 0);
+/** Settings → Department workflow → Pharmacy: manual dispensing from the paper prescription. */
+const manualRx = () => setting('workflow_pharmacy', 'eprescription') === 'manual';            // queue hidden
+const paperRx = () => ['manual', 'both'].includes(setting('workflow_pharmacy', 'eprescription')); // paper fields shown
 
 function layout() {
   return page({
     wide: true,
     eyebrow: `${eyebrow('Pharmacy counter', 'local_pharmacy')} ${liveChip()}`,
     title: 'Pharmacy Sales & Dispensing',
-    subtitle: 'Batches are picked first-expiry-first. Dispensing posts the bill, the stock movement and the receipt together.',
+    subtitle: 'Sell and dispense medicines.',
     actions: `<a href="/stock" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">inventory_2</span> Stock</a>
+      <a href="/bills?type=PHARM" class="btn-secondary">Completed bills / reprint</a><a href="/reports?report=pharmacy_patient_register" class="btn-secondary">Sales register</a>
       <a href="/medicines" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">pill</span> Medicine master</a>`,
     body: `
       ${kpiRow([], 4)}
-      <div class="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_460px] gap-5 items-start">
+      <div class="grid grid-cols-1 gap-3 items-start">
         <div class="space-y-4">
           ${card({
-            title: 'Counter', subtitle: 'Search a medicine and add it to the bill',
-            body: `<div class="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-3">
+            title: 'New pharmacy bill', subtitle: '1. Choose today’s patient → 2. Add medicines → 3. Collect and dispense',
+            body: `<div class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-3"><div><label class="field-label">1 · Today’s patient</label><div data-picker></div></div>
               <div>
-                <label class="field-label">Medicine</label>
+                <label class="field-label">2 · Add medicine</label>
                 <div class="relative">
-                  <input class="field" data-msearch placeholder="Name, generic or code — type at least 2 letters" autocomplete="off">
+                  <input class="field" data-msearch placeholder="Name, generic, code or HSN — at least 2 characters" autocomplete="off">
                   <div class="hidden absolute left-0 right-0 top-11 z-30 card shadow-md max-h-80 overflow-y-auto" data-mlist></div>
                 </div>
               </div>
-              <div><label class="field-label">Patient</label><div data-picker></div></div>
+              
             </div>
-            <div class="mt-2 text-body-sm text-on-surface-variant" data-pat-name>No patient selected — a walk-in sale still needs a patient record.</div>`,
+            <div class="mt-2 text-body-sm" data-stock-source>Dispensing store: OP. GRN stock in Central must be transferred and received here first. <a href="/stock-transfers" class="text-primary underline">Open stock transfers</a></div><div class="mt-2 text-body-sm text-on-surface-variant" data-pat-name>No patient selected — a walk-in sale still needs a patient record.</div>
+            ${paperRx() ? `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 pt-3 border-t border-outline-variant">
+              <div><label class="field-label">Paper prescription by</label><select class="field" data-rx-doctor><option value="">— outside doctor / OTC —</option>${(state.meta?.doctors || []).filter((d) => d.role === 'doctor').map((d) => `<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select></div>
+              <div><label class="field-label">Prescription reference / outside doctor</label><input class="field" data-rx-note placeholder="e.g. Rx dated today, Dr. K. Rao"></div></div>` : ''}`,
           })}
-          ${tableCard({
+          ${manualRx() ? '' : tableCard({
             title: 'Prescriptions waiting', maxHeight: '38vh', id: 'rxq',
             columns: [{ label: 'Patient' }, { label: 'Doctor' }, { label: 'Items' }, { label: 'Status' }, { label: 'Raised' }, { label: '', width: '120px' }],
           }).replace('data-rows', 'data-rx')}
         </div>
 
-        <section class="card 2xl:sticky 2xl:top-[88px]">
+        <section class="card">
           <header class="px-4 h-12 flex items-center justify-between border-b border-outline-variant">
             <h2 class="panel-title">Bill</h2>
-            <button class="btn-ghost btn-xs" data-clear><span class="material-symbols-outlined text-[15px]">delete_sweep</span> Clear</button>
+            <div class="flex gap-1"><button class="btn-ghost btn-xs" data-held>Held bills</button><button class="btn-ghost btn-xs" data-hold>Hold</button><button class="btn-ghost btn-xs" data-clear>New bill</button></div>
           </header>
           <div class="max-h-[46vh] overflow-y-auto" data-cart></div>
           <div class="p-4 border-t border-outline-variant space-y-2.5">
             <div class="flex items-center justify-between text-body-lg">
               <span class="text-on-surface-variant">Sub-total</span><span class="font-data-mono" data-sub>₹0</span></div>
-            <div class="flex items-center justify-between text-body-lg">
-              <label class="text-on-surface-variant" for="ph-disc">Discount</label>
-              <input id="ph-disc" class="field field-sm w-28 text-right" type="number" value="0" data-disc></div>
+            <p class="text-body-sm text-on-surface-variant">Medicines are billed at the selling price. Pharmacy discounts are disabled.</p>
             <div class="flex items-center justify-between pt-2 border-t border-outline-variant">
               <span class="font-title-md text-title-md">Bill value</span>
               <span class="font-headline-lg text-headline-lg text-primary" data-total>₹0</span></div>
@@ -153,6 +171,7 @@ function layout() {
                   <span class="font-label-md text-label-md">${l}</span></button>`).join('')}
             </div>
             <p class="text-body-sm text-info hidden" data-collection-note></p>
+            <div><label class="field-label">Pharmacy notes</label><textarea class="field" rows="2" data-pharmacy-notes placeholder="Instructions or issue notes — saved with the bill"></textarea></div>
             <button class="btn-primary w-full !h-11" data-dispense>
               <span class="material-symbols-outlined text-[18px]">medication</span> Dispense & bill</button>
           </div>
@@ -179,15 +198,19 @@ function rxRow(r) {
 function wireCounter(root, reload) {
   // patient
   patientPicker($('[data-picker]', root), async (p) => {
+    $('[data-pharmacy-notes]', root).value = '';
     patient = p;
     ipMode = null;
+    admissionLookupFailed=true;
     try {
       const adm = (await api.get(`/ipd/admissions${qs({ q: p.uhid })}`)).rows.find((a) => a.patient_id === p.id && a.status !== 'discharged');
+      if(patient?.id!==p.id)return;
       if (adm) ipMode = { admission_id: adm.id, ip_no: adm.ip_no };
-    } catch {}
+      admissionLookupFailed=false;
+    } catch(error) { if(patient?.id!==p.id)return;apiError(error,'Could not verify OP / IP stock source. Select the patient again.'); }
     if (cart.length && ipMode) { cart.length = 0; paintCart(root); toast('Cart cleared — this patient is admitted, so medicines come from the IP store', 'info'); }
     showPatient(root);
-  }, { placeholder: 'UHID, name or mobile' });
+  }, { placeholder: 'Today: UHID, name or mobile',todayOnly:true });
   root.addEventListener('change', (e) => {
     if (!e.target.matches('[data-ipmode]')) return;
     if (cart.length) { cart.length = 0; paintCart(root); }
@@ -207,7 +230,7 @@ function wireCounter(root, reload) {
       <button type="button" class="w-full text-left px-3 py-2 hover:bg-surface-container-low
         ${m.stock <= 0 ? 'opacity-50' : ''}" data-m="${m.id}" ${m.stock <= 0 ? 'disabled' : ''}>
         <div class="flex items-center justify-between gap-2">
-          <span class="font-label-lg text-label-lg truncate">${esc(m.name)}</span>
+          <span class="font-label-lg text-label-lg truncate">${esc(m.name)}${['H', 'H1', 'X'].includes(String(m.schedule || '').toUpperCase()) ? ` <span class="pill-warning" title="Prescription required">Sch ${esc(m.schedule)} · Rx</span>` : ''}</span>
           <span class="font-data-mono text-body-sm" title="Price of the batch that will be dispensed (first expiry)">${money(m.next_price ?? m.mrp ?? 0, 2)}</span></div>
         <div class="text-body-sm text-on-surface-variant">${esc(m.generic || '')} · ${esc(m.form || '')} ·
           ${store()} stock <span class="${m.stock <= m.reorder_level ? 'text-danger font-semibold' : ''}">${m.stock}</span>
@@ -226,7 +249,24 @@ function wireCounter(root, reload) {
     }
   }, 220);
   input.addEventListener('input', search);
-  input.addEventListener('blur', () => setTimeout(() => list.classList.add('hidden'), 180));
+  input.addEventListener('blur', () => setTimeout(() => { if (!list.contains(document.activeElement)) list.classList.add('hidden'); }, 180));
+  list.addEventListener('focusout', () => setTimeout(() => { if (!list.contains(document.activeElement) && document.activeElement !== input) list.classList.add('hidden'); }, 180));
+  // keyboard and barcode scanner: Enter takes the first in-stock match, ↓ moves into the list
+  input.addEventListener('keydown', (e) => {
+    const first = () => list.querySelector('[data-m]:not([disabled])');
+    if (e.key === 'ArrowDown' && first()) { e.preventDefault(); first().focus(); }
+    if (e.key !== 'Enter' || input.value.trim().length < 2) return;
+    e.preventDefault();
+    let tries = 0;  // a scanner types faster than the search: wait for the results of this text
+    const pick = () => { const b = !list.classList.contains('hidden') && first(); if (b) b.click(); else if (++tries < 10) setTimeout(pick, 120); };
+    pick();
+  });
+  list.addEventListener('keydown', (e) => {
+    if (!['ArrowDown', 'ArrowUp'].includes(e.key)) return;
+    const all = [...list.querySelectorAll('[data-m]:not([disabled])')], i = all.indexOf(document.activeElement);
+    e.preventDefault();
+    (all[i + (e.key === 'ArrowDown' ? 1 : -1)] || (e.key === 'ArrowUp' ? input : all[i]))?.focus();
+  });
   // the prescribed brand is out of stock: the pharmacist may give an equivalent (same composition and form)
   function offerSubstitutes(subs) {
     modal({
@@ -261,14 +301,16 @@ function wireCounter(root, reload) {
     });
   }
 
-  list.addEventListener('mousedown', async (e) => {
+  // mousedown keeps focus in the search box (so the list stays open); click also comes from Enter and scanners
+  list.addEventListener('mousedown', (e) => { if (e.target.closest('[data-m]')) e.preventDefault(); });
+  list.addEventListener('click', async (e) => {
     const b = e.target.closest('[data-m]');
     if (!b) return;
     const batches = await api.get(`/pharmacy/batches?medicine_id=${b.dataset.m}&location=${store()}`);
     if (!batches.length) { toast(`No sellable batch in the ${store()} store`, 'warning'); return; }
     const m = await api.get(`/pharmacy/medicines/${b.dataset.m}`);
     const batch = batches[0];
-    cart.push({ medicine_id: m.id, name: m.name, qty: 1, rate: batch.mrp, batch_id: batch.id,
+    cart.push({ medicine_id: m.id, name: m.name, qty: 1, rate: batch.selling_price ?? batch.mrp, batch_id: batch.id,
       batch_no: batch.batch_no, expiry: batch.expiry, stock: batch.qty, batches });
     input.value = ''; list.classList.add('hidden');
     paintCart(root); input.focus();
@@ -283,12 +325,30 @@ function wireCounter(root, reload) {
   bind(root, 'change', '[data-batch]', (e, el) => {
     const i = +el.closest('[data-line]').dataset.line;
     const b = cart[i].batches?.find((x) => x.id === +el.value);
-    if (b) { cart[i].batch_id = b.id; cart[i].batch_no = b.batch_no; cart[i].expiry = b.expiry; cart[i].rate = b.mrp; }
+    if (b) { cart[i].batch_id = b.id; cart[i].batch_no = b.batch_no; cart[i].expiry = b.expiry; cart[i].rate = b.selling_price ?? b.mrp; cart[i].stock = b.qty; }
     paintCart(root);
   });
   bind(root, 'click', '[data-rm]', (e, el) => { cart.splice(+el.closest('[data-line]').dataset.line, 1); paintCart(root); });
-  $('[data-clear]', root).onclick = () => { cart.length = 0; prescriptionId = null; paintCart(root); };
-  $('[data-disc]', root).addEventListener('input', () => paintTotals(root));
+  $('[data-clear]', root).onclick = () => { cart.length = 0; prescriptionId = null;patient=null;ipMode=null; $('[data-pharmacy-notes]', root).value = '';showPatient(root);$('[data-pp-input]',root).value=''; paintCart(root); };
+  $('[data-hold]', root).onclick = async () => {
+    if (!patient || !cart.length) { toast('Choose a patient and add medicines before holding the bill', 'warning'); return; }
+    try {
+      await api.post('/pharmacy/held-bills', {patient_id:patient.id,items:cart,notes:$('[data-pharmacy-notes]',root).value, prescription_id:prescriptionId, admission_id:ipMode?.admission_id, ip_no:ipMode?.ip_no});
+      cart.length=0; prescriptionId=null; patient=null; ipMode=null; $('[data-pharmacy-notes]',root).value=''; showPatient(root);paintCart(root);toast('Bill held. Stock is checked again when completed.','success');
+    } catch(e) { apiError(e); }
+  };
+  $('[data-held]', root).onclick = async () => {
+    try {
+      const rows=await api.get('/pharmacy/held-bills');
+      modal({title:'Held pharmacy bills',size:'lg',body:rows.length?`<table class="tbl"><thead><tr><th>Patient</th><th>Held at</th><th>Staff</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.patient_name)} · ${esc(r.uhid)}</td><td>${esc(r.created_at)}</td><td>${esc(r.held_by)}</td><td><button class="btn-primary btn-xs" data-resume="${r.id}">Resume</button></td></tr>`).join('')}</tbody></table>`:'<p>No held bills.</p>',footer:'<button class="btn-secondary" data-close>Close</button>',onMount(dialog,close){dialog.addEventListener('click',async e=>{
+        const id=e.target.closest('[data-resume]')?.dataset.resume;if(!id)return;
+        if(cart.length){toast('Hold or clear the current bill first','warning');return;}
+        try{const held=await api.post(`/pharmacy/held-bills/${id}/resume`,{});patient=held.patient;admissionLookupFailed=false;prescriptionId=held.prescription_id;ipMode=held.admission_id?{admission_id:held.admission_id,ip_no:held.ip_no}:null;
+          cart.push(...held.items);$('[data-pharmacy-notes]',root).value=held.notes||'';showPatient(root);paintCart(root);close();toast('Bill resumed. Quantities and batches are rechecked at completion.','success');
+        }catch(err){apiError(err);}
+      });}});
+    } catch(e){apiError(e);}
+  };
 
   let mode = 'cash';
   $('[data-modes]', root).onclick = (e) => {
@@ -303,13 +363,16 @@ function wireCounter(root, reload) {
 
   $('[data-dispense]', root).onclick = async (ev) => {
     if (!patient) { toast('Select the patient first', 'warning'); return; }
+    if(admissionLookupFailed){toast('Select the patient again so OP / IP stock can be verified','warning');return;}
     if (!cart.length) { toast('The bill is empty', 'warning'); return; }
     const actionButton = ev.currentTarget;
     busy(actionButton, true, 'Dispensing');
     try {
       const r = await api.post('/pharmacy/dispense', {
         patient_id: patient.id, prescription_id: prescriptionId, location: store(), admission_id: ipMode?.admission_id,
-        discount: +$('[data-disc]', root).value || 0,
+        discount: 0,
+        notes: $('[data-pharmacy-notes]', root).value.trim(),
+        ...(paperRx() ? { rx_doctor_id: +($('[data-rx-doctor]', root)?.value || 0) || undefined, rx_note: $('[data-rx-note]', root)?.value.trim() || undefined } : {}),
         mode, collect: false,
         items: cart.map((i) => ({ medicine_id: i.medicine_id, qty: i.qty, rate: i.rate, batch_id: i.batch_id, prescription_item_id: i.prescription_item_id })),
       });
@@ -317,10 +380,13 @@ function wireCounter(root, reload) {
         title: 'Sale complete',
         action: r.payment ? { label: 'Print receipt', run: async () => printReceipt(await api.get(`/payments/${r.payment.id}/receipt`)) } : {label:'Print bill',run:()=>printBill(r.bill.id)},
       });
+      const schemePatientId=patient?.id;
+      if(r.bill.payer_type==='aarogyasri'&&can('scheme.patient_pay'))toast('Aarogyasri: permit a patient share only when authorized','info',{action:{label:'Patient payment permitted',run:()=>openSchemePatientPayment(schemePatientId,r.bill.id,reload)}});
       if (ipMode) toast(`Charged to IP bill ${r.bill.bill_no} — settled at discharge by reception`, 'info');
       else if (r.bill.payer_type === 'self' && r.bill.balance > 0) collectBill(r.bill.id, reload, { mode: mode === 'card' ? 'debit_card' : mode }); // keep the counter's chosen mode
       else if (r.bill.deferred_collection) toast('Recorded against the patient and payer case / approved due. Collect only the patient share; payer settlement is recorded when received.', 'info');
       ipMode = null;
+      $('[data-pharmacy-notes]', root).value = '';
       cart.length = 0; prescriptionId = null; patient = null;
       showPatient(root);
       $('[data-pat-name]', root).textContent = 'No patient selected.';
@@ -335,6 +401,8 @@ function wireCounter(root, reload) {
 }
 
 function paintCart(root) {
+  const cartCard = $('[data-kpis]', root)?.lastElementChild;
+  if (cartCard) cartCard.outerHTML = kpi({ label: 'Cart', value: cart.length, icon: 'shopping_cart', tone: 'info', sub: money(cartTotal()) });
   const box = $('[data-cart]', root);
   box.innerHTML = cart.length ? cart.map((i, idx) => `
     <div class="p-3 border-b border-outline-variant/70" data-line="${idx}">
@@ -360,13 +428,13 @@ function paintCart(root) {
 
 function paintTotals(root) {
   const sub = cartTotal();
-  const disc = +$('[data-disc]', root)?.value || 0;
   $('[data-sub]', root).textContent = money(sub, 2);
-  $('[data-total]', root).textContent = money(Math.max(0, sub - disc), 2);
+  $('[data-total]', root).textContent = money(sub, 2);
 }
 
 /** Patient line under the counter, with the IP / OP store switch for admitted patients. */
 function showPatient(root, adm = ipMode) {
+  const source=root.querySelector('[data-stock-source]');if(source)source.innerHTML=`<b>Dispensing store: ${store()}</b>. Receive transfers from Central into this store before billing. <a href="/stock-transfers" class="text-primary underline">Open stock transfers</a>`;
   const deferred = ipMode || (patient && patient.payer_type !== 'self');
   $('[data-modes]', root)?.classList.toggle('hidden', !!deferred);
   const note = $('[data-collection-note]', root);

@@ -1,3 +1,4 @@
+import {receiptDeskSql} from './receipt-desk.js';
 /**
  * Metrics — the one place hospital figures are calculated. Dashboards, the
  * report centre and day close all read from here, so they always agree.
@@ -69,24 +70,25 @@ function jf(q, extra = []) {
   return { sql: w.join(' AND '), args: a };
 }
 
-/** Recognised revenue: gross by department, less discounts, free treatment and returns. */
+/** Recognised revenue: gross by department, less discounts, free treatment, returns and package adjustments (services a package covered). */
 export function revenue(q) {
   const f = jf(q, ["a.type='income'"]);
   const rows = all(`SELECT coalesce(l.segment,'OTHER') seg,
       sum(CASE WHEN a.subtype='revenue' THEN l.credit-l.debit ELSE 0 END) gross,
       sum(CASE WHEN a.system_key='discount_allowed' THEN l.debit-l.credit ELSE 0 END) discount,
       sum(CASE WHEN a.system_key='free_treatment' THEN l.debit-l.credit ELSE 0 END) free,
-      sum(CASE WHEN a.system_key='sales_returns' THEN l.debit-l.credit ELSE 0 END) returns
+      sum(CASE WHEN a.system_key='sales_returns' THEN l.debit-l.credit ELSE 0 END) returns,
+      sum(CASE WHEN a.system_key='package_adjustment' THEN l.debit-l.credit ELSE 0 END) package_adj
     ${incomeLines} WHERE ${f.sql} GROUP BY seg`, ...f.args);
   const by = Object.fromEntries(rows.map((r) => [r.seg, r]));
   const departments = SEGMENTS.map((s) => {
     const r = by[s] || {};
-    const d = { segment: s, label: SEGMENT_LABEL[s], gross: r2(r.gross || 0), discount: r2(r.discount || 0), free: r2(r.free || 0), returns: r2(r.returns || 0) };
-    d.net = r2(d.gross - d.discount - d.free - d.returns);
+    const d = { segment: s, label: SEGMENT_LABEL[s], gross: r2(r.gross || 0), discount: r2(r.discount || 0), free: r2(r.free || 0), returns: r2(r.returns || 0), package_adj: r2(r.package_adj || 0) };
+    d.net = r2(d.gross - d.discount - d.free - d.returns - d.package_adj);
     return d;
-  }).filter((d) => d.gross || d.discount || d.free || d.returns);
+  }).filter((d) => d.gross || d.discount || d.free || d.returns || d.package_adj);
   const t = (k) => r2(departments.reduce((s, d) => s + d[k], 0));
-  return { gross: t('gross'), discount: t('discount'), free: t('free'), returns: t('returns'), net: t('net'), departments };
+  return { gross: t('gross'), discount: t('discount'), free: t('free'), returns: t('returns'), package_adj: t('package_adj'), net: t('net'), departments };
 }
 
 export function revenueByDay(q) {
@@ -99,8 +101,8 @@ export function revenueByDay(q) {
 
 function pf(q) {
   const w = ['p.pay_date BETWEEN ? AND ?', 'p.cancelled=0'], a = [q.from, q.to];
-  if (q.desk === 'pharmacy') w.push("b.bill_type='PHARM'");
-  if (q.desk === 'reception') w.push("b.bill_type<>'PHARM'");
+  if (q.desk === 'pharmacy') w.push(receiptDeskSql()+"='pharmacy'");
+  if (q.desk === 'reception') w.push(receiptDeskSql()+"='reception'");
   if (q.mode) { w.push('p.mode=?'); a.push(q.mode); }
   if (q.category) { w.push('b.payer_type=?'); a.push(q.category); }
   if (q.doctor_id) { w.push('b.encounter_id IN (SELECT id FROM encounters WHERE doctor_id=?)'); a.push(+q.doctor_id); }
@@ -235,7 +237,7 @@ export function expenses(q) {
   const paid = get(`SELECT coalesce(sum(CASE WHEN a.system_key IN ('cash','petty_cash') THEN l.credit ELSE 0 END),0) cash,
       coalesce(sum(CASE WHEN a.subtype IN ('bank','clearing') THEN l.credit ELSE 0 END),0) bank
     ${incomeLines} WHERE v.source='expense_payment' AND v.voucher_date BETWEEN ? AND ?`, q.from, q.to);
-  const purchases = r2(one(`SELECT coalesce(sum(total),0) FROM purchases WHERE date(received_at) BETWEEN ? AND ?`, q.from, q.to) || 0);
+  const purchases = r2(one(`SELECT coalesce(sum(total),0) FROM purchases WHERE status<>'corrected' AND date(received_at) BETWEEN ? AND ?`, q.from, q.to) || 0);
   return { groups, total, cogs, operating: r2(total - cogs), paid_cash: r2(paid.cash), paid_bank: r2(paid.bank), inventory_purchases: purchases };
 }
 

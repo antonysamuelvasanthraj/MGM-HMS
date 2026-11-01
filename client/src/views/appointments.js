@@ -118,7 +118,7 @@ function rowHTML(a) {
 }
 
 function rescheduleAppt(a,after) {
-  modal({title:'Reschedule appointment',subtitle:`${a.patient_name || ''} · ${a.appt_no}`,size:'md',body:`<form data-reschedule-form class="space-y-3">
+  modal({title:'Reschedule appointment',subtitle:`${esc(a.patient_name || '')} · ${esc(a.appt_no)}`,size:'md',body:`<form data-reschedule-form class="space-y-3">
     <div><label class="field-label">Doctor</label><select class="field" name="doctor_id">${doctorOptions(false).map(d=>`<option value="${d.value}" ${String(d.value)===String(a.doctor_id)?'selected':''}>${esc(d.label)}</option>`).join('')}</select></div>
     <div><label class="field-label">New slot</label><input class="field" type="datetime-local" name="slot_start" value="${esc(a.slot_start.replace(' ','T').slice(0,16))}" required></div>
     <div><label class="field-label">Slot minutes</label><input class="field" type="number" name="slot_minutes" value="${a.slot_minutes||15}" min="5" max="120" required></div>
@@ -138,7 +138,7 @@ function bookAppt(after) {
         <p class="text-body-sm text-on-surface-variant mt-1">Leave blank and type the name below for a first-time caller.</p></div>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="field-label">Name</label><input class="field" name="patient_name"></div>
-        <div><label class="field-label">Mobile</label><input class="field" name="mobile"></div>
+        <div><label class="field-label">Mobile</label><input class="field" name="mobile" inputmode="tel" pattern="(\+?91[ \-]?|0)?[6-9][0-9]{4}[ \-]?[0-9]{5}" title="10-digit mobile number, e.g. 98765 43210"></div>
         <div><label class="field-label">Doctor *</label><select class="field" name="doctor_id" required>
           ${doctorOptions(false).map((o) => `<option value="${o.value}">${esc(o.label)}</option>`).join('')}</select></div>
         <div><label class="field-label">Slot *</label><input class="field" type="datetime-local" name="slot_start" required></div>

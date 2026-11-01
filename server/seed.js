@@ -1,3 +1,4 @@
+import { LAB_TEST_INFO } from './lab-test-info.js';
 /**
  * First-run configuration for a local hospital installation.
  * Creates only the administrator login and editable operational masters.
@@ -68,6 +69,7 @@ function settings() {
     lan_ip: '',
     cloud_endpoint: '',
     op_auto_bill: '1',
+    aarogyasri_ipd_only: '1',
     free_visit_requires_approval: '1',
     gate_doctor_on_payment: '1',
     gate_doctor_on_vitals: '1',
@@ -135,7 +137,7 @@ function services(dept) {
   const map = {};
   for (const [code, name, category, department_id, price, tat_minutes, sample_type] of rows) {
     const perDay = category === 'bed' || code.startsWith('IPC-');
-    map[code] = insert('services', { code, name, category, department_id, price, gst_pct: 0, tat_minutes, sample_type,
+    map[code] = insert('services', { code, name, category, department_id, price, gst_pct: 0, tat_minutes, sample_type, ...LAB_TEST_INFO.get(code),
       billing_unit: perDay ? 'day' : 'once', ipd_default: ['IPC-VIS', 'IPC-NUR'].includes(code) ? 1 : 0 });
   }
   return map;

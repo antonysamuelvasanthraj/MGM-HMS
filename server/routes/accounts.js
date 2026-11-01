@@ -391,4 +391,13 @@ accounts.get('/reports/run/:id', requireAuth, h((req) => {
   return out;
 }));
 
+accounts.post('/reports/export/:id', requireAuth, h(req=>{
+  const format=req.body?.format;
+  if(!['csv','excel','pdf'].includes(format))fail(400,'export_format_invalid');
+  const query=req.body?.query||{},out=runReport(req.user,req.params.id,query);
+  if(out.error)fail(out.status,out.error);
+  emit(req,{topics:['audit'],event:'report.exported',action:'report.export',entity:'reports',entityId:req.params.id,detail:{format,from:out.from,to:out.to,rows:out.rows.length,filters:{patient:out.patient,medicine:out.medicine,manufacturer:out.manufacturer,doctor_id:out.doctor_id,mode:out.mode,encounter_type:out.encounter_type}}});
+  return {ok:true,rows:out.rows.length};
+}));
+
 export { MONEY_MODES, PAYERS };

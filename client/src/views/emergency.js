@@ -78,7 +78,7 @@ function layout() {
     eyebrow: `${eyebrow('Casualty', 'e911_emergency')} ${liveChip()}
       <span class="pill-danger pill-dot">Care is never gated on payment here</span>`,
     title: 'Emergency & Casualty Desk',
-    subtitle: 'Triage on arrival, treat immediately, bill afterwards. Registration and charges follow the patient rather than blocking them.',
+    subtitle: 'Emergency patients — treat first, bill afterwards.',
     actions: `${can('emergency.treat')?'<a class="btn-secondary" href="/indents">Rack usage & replacement</a>':''}<button class="btn-secondary" data-toggle-all>Include closed</button>
       ${can('emergency.triage') ? `<button class="btn-primary" data-new>
         <span class="material-symbols-outlined text-[18px]">add</span> Register an arrival</button>` : ''}`,
@@ -261,7 +261,7 @@ function linkPatient(r, after) {
         <div class="col-span-2"><label class="field-label">Full name *</label><input class="field" name="name"></div>
         <div><label class="field-label">Gender *</label><select class="field" name="gender"><option value="">Select…</option><option>Male</option><option>Female</option><option>Other</option></select></div>
         <div><label class="field-label">Age (years)</label><input class="field" type="number" name="age_years" min="0" max="120"></div>
-        <div><label class="field-label">Mobile</label><input class="field" name="mobile"></div>
+        <div><label class="field-label">Mobile</label><input class="field" name="mobile" inputmode="tel" pattern="(\+?91[ \-]?|0)?[6-9][0-9]{4}[ \-]?[0-9]{5}" title="10-digit mobile number, e.g. 98765 43210"></div>
         <div><label class="field-label">Address</label><input class="field" name="address"></div>
         <div><label class="field-label">Attendant</label><input class="field" name="kin_name"></div>
         <div><label class="field-label">Attendant mobile</label><input class="field" name="kin_mobile"></div>

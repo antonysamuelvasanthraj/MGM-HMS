@@ -2,7 +2,8 @@
 param([Parameter(Mandatory)][string]$Backup,[Parameter(Mandatory)][string]$Destination)
 $ErrorActionPreference='Stop'
 $node=Join-Path $PSScriptRoot '..\runtime\node.exe'
-if(!(Test-Path -LiteralPath $node)){$node=(Get-Command node.exe).Source}
+if(!(Test-Path -LiteralPath $node)){$node=(Get-Command node.exe,node.cmd,node -ErrorAction SilentlyContinue | Select-Object -First 1).Source}
+if(!$node){throw 'Node.js runtime not found. Install Node.js or use the packaged local-server bundle.'}
 $Backup=[IO.Path]::GetFullPath($Backup)
 $Destination=[IO.Path]::GetFullPath($Destination)
 if($Destination.StartsWith('\\')){throw 'Restore to a local drive.'}

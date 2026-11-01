@@ -13,7 +13,7 @@ export async function mount(ctx) {
   const edit = can('admin.write');
   const root = mountPage(ctx, page({
     wide: true, eyebrow: eyebrow('Administration', 'bed'), title: 'Wards & beds',
-    subtitle: 'The wards, rooms and beds patients can be admitted to or moved between, with each bed’s daily charge.',
+    subtitle: 'Wards, rooms and beds, with each bed’s daily charge.',
     actions: edit ? '<button class="btn-primary" data-new-ward><span class="material-symbols-outlined text-[18px]">add</span>New ward / room type</button>' : '',
     body: '<div data-list class="space-y-4"></div>',
   }));

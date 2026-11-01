@@ -38,7 +38,7 @@ function layout() {
     wide: true,
     eyebrow: `${eyebrow('Clinical authoring', 'article')} ${liveChip()}`,
     title: 'My Templates',
-    subtitle: 'Reusable text for consultations, prescriptions, ultrasound reports and certificates. Keep a template private, share it with your department or publish it hospital-wide.',
+    subtitle: 'Ready-made text for notes, prescriptions, reports and certificates.',
     actions: can('template.write') ? `<button class="btn-primary" data-new>
       <span class="material-symbols-outlined text-[18px]">add</span> New template</button>` : '',
     body: `
@@ -47,7 +47,7 @@ function layout() {
         { value: '', label: 'All kinds' }, { value: 'consultation', label: 'Consultation' },
         { value: 'procedure', label: 'Procedure & OT' }, { value: 'lab', label: 'Laboratory report' },
         { value: 'prescription', label: 'Prescription' }, { value: 'usg', label: 'Ultrasound report' },
-        { value: 'imaging', label: 'Imaging report (X-ray / CT / MRI / ECG / Echo)' }, { value: 'nursing', label: 'Nursing chart / note' },
+        { value: 'imaging', label: 'Imaging report (X-ray / USG / CT / ECG / Echo)' }, { value: 'nursing', label: 'Nursing chart / note' },
         { value: 'certificate', label: 'Certificate' }] }])}
       <div class="grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-5 items-start">
         ${card({ title: 'Library', pad: false, body: `<div class="max-h-[62vh] overflow-y-auto" data-list></div>` })}
@@ -93,7 +93,7 @@ function paintEditor(root, reload) {
         <div class="md:col-span-1"><label class="field-label">Name</label>
           <input class="field" name="name" value="${esc(selected.name || '')}" ${mine ? '' : 'readonly'}></div>
         <div><label class="field-label">Kind</label><select class="field" name="kind" ${mine ? '' : 'disabled'}>
-          ${['consultation', 'procedure', 'lab', 'prescription', 'usg', 'certificate'].map((k) => `<option value="${k}" ${k === selected.kind ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
+          ${['consultation', 'procedure', 'lab', 'prescription', 'usg', 'imaging', 'nursing', 'certificate'].map((k) => `<option value="${k}" ${k === selected.kind ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
         <div><label class="field-label">Visibility</label><select class="field" name="scope" ${mine ? '' : 'disabled'}>
           <option value="private" ${selected.scope === 'private' ? 'selected' : ''}>Private to me</option>
           <option value="department" ${selected.scope === 'department' ? 'selected' : ''}>My department</option>

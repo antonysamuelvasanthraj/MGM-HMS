@@ -106,7 +106,7 @@ export async function openSession(id, after = () => {}) {
   const recordable = s.consent_given && !['summary_draft', 'reviewed', 'transcribing'].includes(s.status) && (can('counsel.write') || can('counsel.review'));
   let rec = null, timer = null;
   modal({
-    title: `${s.session_no} — ${s.patient_name}`, subtitle: `${META.topics[s.topic] || s.topic} · ${s.uhid} · doctor ${s.doctor_name || '—'}`, size: 'xl',
+    title: `${s.session_no} — ${s.patient_name}`, subtitle: `${esc(META.topics[s.topic] || s.topic)} · ${esc(s.uhid)} · doctor ${esc(s.doctor_name || '—')}`, size: 'xl',
     body: `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="space-y-3">
         <div class="rounded-lg border border-outline-variant p-3 text-body-md">${s.consent_given

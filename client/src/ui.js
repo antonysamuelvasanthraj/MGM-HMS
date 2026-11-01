@@ -1,5 +1,6 @@
 /** Shared UI toolkit: formatting, DOM helpers, toasts, modals, drawers, tables. */
 
+import { setting } from './store.js';
 /* ------------------------------------------------------------ formatting */
 
 export const money = (n, dp = 0) => {
@@ -21,9 +22,10 @@ export const compactMoney = (n) => {
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const parse = (v) => (v instanceof Date ? v : new Date(String(v).replace(' ', 'T')));
 
-export const fmtDate = (v) => { if (!v) return '—'; const d = parse(v); return `${String(d.getDate()).padStart(2, '0')} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
-export const fmtDay = (v) => { if (!v) return '—'; const d = parse(v); return `${String(d.getDate()).padStart(2, '0')} ${MON[d.getMonth()]}`; };
-export const fmtTime = (v) => { if (!v) return '—'; const d = parse(v); let h = d.getHours(); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${String(d.getMinutes()).padStart(2, '0')} ${ap}`; };
+// dates and times use non-breaking spaces, so "23 Oct 2026" never breaks across a table line
+export const fmtDate = (v) => { if (!v) return '—'; const d = parse(v); return `${String(d.getDate()).padStart(2, '0')} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
+export const fmtDay = (v) => { if (!v) return '—'; const d = parse(v); return `${String(d.getDate()).padStart(2, '0')} ${MON[d.getMonth()]}`; };
+export const fmtTime = (v) => { if (!v) return '—'; const d = parse(v); let h = d.getHours(); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${String(d.getMinutes()).padStart(2, '0')} ${ap}`; };
 export const fmtDateTime = (v) => (v ? `${fmtDate(v)}, ${fmtTime(v)}` : '—');
 export const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 export const shiftDate = (iso, days) => { const d = new Date(iso); d.setDate(d.getDate() + days); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -192,12 +194,16 @@ export function billStatus(b) {
 }
 
 /** Why a lab / imaging order may (or may not) proceed. Pass the row to show a payer patient's case. */
+/** Settings → Investigation release → Straight away: an unpaid OP test is not held, the patient pays at reception. */
+const startsNow = (row) => setting('release_op_rule', 'payment') === 'immediate' && row?.status && row.status !== 'awaiting_payment';
+
 export function clearancePill(c, row = null) {
   const payer = row && isPayer(row.financial_category || row.bill_payer) ? (row.financial_category || row.bill_payer) : null;
   if (c === 'payer_approved') return payerPill(payer || 'insurance', row?.claim_status, 'approved — released to the lab');
   if (payer && ['unpaid', 'part_paid'].includes(c)) return payerPill(payer, row.claim_status, 'blocked until the case is approved or reception authorises');
   const m = { paid: ['success', 'Paid'], covered: ['info', 'Payer / free'], due_approved: ['info', 'Due approved'], emergency: ['info', 'Emergency'],
     ip_bill: ['neutral', 'On IP bill'], part_paid: ['warning', 'Part paid — blocked'], unpaid: ['danger', 'Not paid — blocked'] };
+  if (['unpaid', 'part_paid'].includes(c) && startsNow(row)) return `<span class="pill-warning pill-dot">${c === 'unpaid' ? 'Not paid' : 'Part paid'} — pay at reception</span>`;
   const [tone, label] = m[c] || ['neutral', 'Not billed'];
   return `<span class="pill-${tone} pill-dot">${label}</span>`;
 }
@@ -295,9 +301,42 @@ export function toast(message, tone = 'info', { title = '', timeout = 4200, acti
   return close;
 }
 
+/**
+ * Give every form field the name of the label written above it, so screen readers, browser
+ * autofill and search-by-label work. Labels are plain <label class="field-label"> before the field;
+ * nothing is changed where a field already has a name of its own.
+ */
+export function labelFields(root) {
+  for (const label of root.querySelectorAll('label.field-label:not([data-linked])')) {
+    label.dataset.linked = '1';
+    let field = label.nextElementSibling;
+    if (field && !field.matches('input,select,textarea')) field = field.querySelector('input:not([type=hidden]),select,textarea');
+    if (!field || field.getAttribute('aria-label') || field.labels?.length) continue;
+    const text = label.textContent.replace(/\s*\*\s*$/, '').replace(/\s+/g, ' ').trim();
+    if (text) field.setAttribute('aria-label', text);
+  }
+  // fields inside table rows are named after their column heading and row number
+  for (const field of root.querySelectorAll('td input:not([type=hidden]):not([aria-label]), td select:not([aria-label]), td textarea:not([aria-label])')) {
+    const cell = field.closest('td'), row = cell.parentElement, head = cell.closest('table')?.tHead?.rows[0];
+    const th = head?.cells[cell.cellIndex];
+    const text = th?.textContent.replace(/\s*\*\s*$/, '').replace(/\s+/g, ' ').trim();
+    const first = row.cells[0] !== cell ? row.cells[0]?.textContent.replace(/\s+/g, ' ').trim() : '';
+    const which = first && !/^\d+$/.test(first) ? ` — ${first.slice(0, 60)}` : `, row ${row.sectionRowIndex + 1}`;
+    if (text) field.setAttribute('aria-label', text + which);
+  }
+}
+
 /* ---------------------------------------------------------------- modals */
 
-export function modal({ title, subtitle, body, footer, size = 'md', onMount, dismissable = true, stack = false }) {
+export function modal({ title, subtitle, body, footer, size = 'md', onMount, dismissable = true, stack = false, inlineHost = null }) {
+  if (inlineHost) {
+    inlineHost.innerHTML = `<section class="card" data-inline-workflow><header class="p-4 border-b border-outline-variant"><h2 class="panel-title">${esc(title || '')}</h2>${subtitle ? `<p class="text-body-sm mt-1">${subtitle}</p>` : ''}</header><div class="p-4" data-modal-body>${body || ''}</div><footer class="p-4 flex flex-wrap justify-end gap-2 border-t border-outline-variant">${footer || ''}</footer></section>`;
+    const close = () => inlineHost.replaceChildren();
+    inlineHost.querySelectorAll('[data-close]').forEach(button => button.onclick = close);
+    onMount?.(inlineHost, close);
+    inlineHost.scrollIntoView({behavior:'smooth',block:'start'});
+    return close;
+  }
   const root = $('#modal-root');
   const previous = stack ? [...root.childNodes] : [];
   const previousToken = root.dataset.modalToken;
@@ -306,7 +345,7 @@ export function modal({ title, subtitle, body, footer, size = 'md', onMount, dis
   root.innerHTML = `
     <div class="absolute inset-0 bg-[#172B4D]/45" data-close></div>
     <div class="absolute inset-0 grid grid-cols-[minmax(0,1fr)] place-items-center p-4 pointer-events-none">
-        <div role="dialog" aria-modal="true" aria-labelledby="modal-title-${token}" class="pointer-events-auto w-full ${widths[size]} max-h-[92vh] flex flex-col bg-white rounded-xl border border-outline-variant shadow-lg fade-in">
+        <div role="dialog" aria-modal="true" aria-labelledby="modal-title-${token}" class="pointer-events-auto w-full ${widths[size]} max-h-[92vh] flex flex-col [@media(max-height:560px)]:block [@media(max-height:560px)]:overflow-y-auto bg-white rounded-xl border border-outline-variant shadow-lg fade-in">
         <div class="flex items-start justify-between gap-4 px-5 py-4 border-b border-outline-variant shrink-0">
           <div class="min-w-0">
               <h2 id="modal-title-${token}" class="font-headline-md text-headline-md text-on-surface">${esc(title || '')}</h2>
@@ -316,7 +355,7 @@ export function modal({ title, subtitle, body, footer, size = 'md', onMount, dis
             <span class="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
-        <div class="flex-1 overflow-y-auto px-5 py-4" data-modal-body>${body || ''}</div>
+        <div class="flex-1 overflow-y-auto [@media(max-height:560px)]:overflow-visible px-5 py-4" data-modal-body>${body || ''}</div>
         ${footer ? `<div class="shrink-0 flex flex-wrap items-center justify-end gap-2 px-5 py-3.5 border-t border-outline-variant bg-surface-container-low rounded-b-xl">${footer}</div>` : ''}
       </div>
     </div>`;
@@ -392,19 +431,26 @@ export function renderRows(tbody, rows, rowHTML, { key = 'id', empty = 'Nothing 
   const node = typeof tbody === 'string' ? $(tbody) : tbody;
   if (!node) return;
   if (!rows.length) {
+    if(node.dataset.rowsSignature===`empty:${empty}`)return;
+    node.dataset.rowsSignature=`empty:${empty}`;
     const cols = node.closest('table')?.querySelectorAll('thead th').length || 1;
     node.innerHTML = `<tr><td colspan="${cols}" class="px-3 py-10 text-center text-on-surface-variant text-body-lg">
       <span class="material-symbols-outlined text-[28px] opacity-40 block mb-1">inbox</span>${esc(empty)}</td></tr>`;
     return;
   }
   const prev = new Map([...node.children].map((tr) => [tr.dataset.k, tr.dataset.sig]));
+  const signatures=[];
   const html = rows.map((r) => {
     const k = String(r[key]);
     const inner = rowHTML(r);
     const sig = hash(inner);
+    signatures.push([k,sig]);
     const changed = prev.has(k) && prev.get(k) !== sig;
     return `<tr data-k="${esc(k)}" data-sig="${sig}" data-id="${esc(k)}" class="${changed ? 'row-flash' : ''}">${inner}</tr>`;
   }).join('');
+  const signature=JSON.stringify(signatures);
+  if(node.dataset.rowsSignature===signature)return;
+  node.dataset.rowsSignature=signature;
   node.innerHTML = html;
 }
 
@@ -453,8 +499,8 @@ export function ageText(p) {
 
 export function kpi({ label, value, sub, icon, tone = 'neutral', trend, onClick }) {
   const tones = { neutral: 'text-primary bg-primary-fixed', success: 'text-success bg-success-bg', warning: 'text-warning bg-warning-bg', danger: 'text-danger bg-danger-bg', info: 'text-info bg-info-bg' };
-  const borderAccent = { neutral: '#881D2C', success: '#166534', warning: '#92400E', danger: '#B91C1C', info: '#1E40AF' };
-  return `<div class="card ${onClick ? 'card-hover cursor-pointer' : ''} p-4 flex flex-col justify-between min-h-[104px]" style="border-left: 3px solid ${borderAccent[tone] || borderAccent.neutral}20" ${onClick ? `onclick="${onClick}"` : ''}>
+  const borderAccent = { neutral: 'rgb(var(--c-primary))', success: '#166534', warning: '#92400E', danger: '#B91C1C', info: '#1E40AF' };
+  return `<div class="card ${onClick ? 'card-hover cursor-pointer' : ''} p-4 flex flex-col justify-between min-h-[104px]" style="border-left: 3px solid color-mix(in srgb, ${borderAccent[tone] || borderAccent.neutral} 13%, transparent)" ${onClick ? `onclick="${onClick}"` : ''}>
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <div class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">${esc(label)}</div>
@@ -489,7 +535,7 @@ export function spinner(label = 'Loading') {
 }
 
 /** Simple inline sparkline / bar chart — no chart library on a hospital LAN. */
-export function sparkline(values, { width = 160, height = 36, stroke = '#881D2C', fill = 'rgba(136,29,44,.10)' } = {}) {
+export function sparkline(values, { width = 160, height = 36, stroke = 'rgb(var(--c-primary))', fill = 'rgb(var(--c-primary) / .10)' } = {}) {
   const v = values.filter((n) => typeof n === 'number' && !isNaN(n));
   if (v.length < 2) return `<svg width="${width}" height="${height}"></svg>`;
   const max = Math.max(...v), min = Math.min(...v);
@@ -497,8 +543,8 @@ export function sparkline(values, { width = 160, height = 36, stroke = '#881D2C'
   const pts = v.map((n, i) => [(i / (v.length - 1)) * width, height - 3 - ((n - min) / span) * (height - 6)]);
   const d = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="overflow-visible">
-    <path d="${d} L${width},${height} L0,${height} Z" fill="${fill}" stroke="none"/>
-    <path d="${d}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="${d} L${width},${height} L0,${height} Z" style="fill:${fill}" stroke="none"/>
+    <path d="${d}" fill="none" style="stroke:${stroke}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
   </svg>`;
 }
 
@@ -533,17 +579,23 @@ export function donut(segments, { size = 132, thickness = 16 } = {}) {
 
 /** The hospital's letterhead banner on every printed document (old square logo headers are replaced by it). */
 export const PRINT_BANNER = '/assets/mgm-estimation-logo.jpeg';
+export function printLetterhead(title='',reference='') {
+  return `<header data-print-letterhead style="display:flex;align-items:center;gap:14px;border-bottom:1px solid #222;padding:8px 0;color:#111"><div style="flex:1;text-align:center"><h1 style="font-size:19px;font-weight:800;margin:0">${esc(setting('hospital_name','MGM Superspeciality Hospitals'))}</h1><p style="font-size:10px;margin:3px 0">${esc(setting('address',''))}</p><p style="font-size:10px;margin:3px 0">${esc(setting('phone',''))}${setting('gstin')?' · GSTIN: '+esc(setting('gstin')):''}${setting('drug_license')?' · DL No: '+esc(setting('drug_license')):''}</p>${title?`<b style="font-size:12px">${esc(title)}</b>`:''}${reference?`<div style="font-size:10px">${esc(reference)}</div>`:''}</div><img src="/assets/mgm-hospital-logo.png" alt="MGM Hospitals" style="width:95px;height:72px;object-fit:contain"></header>`;
+}
 
 /** Open a clean print window for a receipt / report / certificate. */
-export function printDocument(title, innerHTML, { width = 800 } = {}) {
+export function printDocument(title, innerHTML, { width = 800, paper = 'A4' } = {}) {
+  innerHTML=innerHTML.replace(/<img[^>]*mgm-estimation-logo\.jpeg[^>]*>/g,'');
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
     <link rel="stylesheet" href="/app.css">
-    <style>body{background:#fff;padding:24px;font-size:13px}th,td{padding:5px;text-align:left;border-bottom:1px solid #ddd}@page{margin:12mm}</style>
-    </head><body>${innerHTML.includes(PRINT_BANNER)?'':`<img src="${PRINT_BANNER}" alt="MGM Hospitals" style="width:100%;max-width:760px;height:auto;margin-bottom:10px">`}${innerHTML.replace(/<img[^>]*mgm-hospital-logo\.png[^>]*>/g,'')}</body></html>`;
+    <style>body{background:#fff;padding:24px;font-size:13px}th,td{padding:5px;text-align:left;border-bottom:1px solid #ddd}@page{margin:12mm}</style><style id="paper-size"></style>
+    </head><body>${innerHTML.includes('data-print-letterhead')?'':printLetterhead()}${innerHTML}</body></html>`;
   modal({title,subtitle:'Review the document, then print or choose Save as PDF in the print dialog.',size:width>900?'xl':'lg',stack:true,
     body:`<iframe title="${esc(title)}" data-print-preview style="width:100%;height:62vh;border:1px solid #ddd;background:white"></iframe>`,
-    footer:'<button class="btn-secondary" data-close>Close preview</button><button class="btn-primary" data-print-document disabled>Print / Save PDF</button>',
-    onMount(root){const frame=root.querySelector('[data-print-preview]'),button=root.querySelector('[data-print-document]');frame.onload=()=>{button.disabled=false;};button.onclick=()=>{frame.contentWindow.focus();frame.contentWindow.print();};frame.srcdoc=html;}});
+    footer:`<label class="field-label">Paper</label><select class="field field-sm !w-36" data-paper-size>${['A4','A4 landscape','A5','80mm'].map(p=>`<option value="${p}" ${p===paper?'selected':''}>${p==='80mm'?'80 mm':p}</option>`).join('')}</select><button class="btn-secondary" data-close>Close preview</button><button class="btn-primary" data-print-document disabled>Print / Save PDF</button>`,
+    onMount(root){const frame=root.querySelector('[data-print-preview]'),button=root.querySelector('[data-print-document]'),paper=root.querySelector('[data-paper-size]');
+      const resize=()=>{const thermal=paper.value==='80mm';frame.contentDocument.getElementById('paper-size').textContent=`@page{size:${thermal?'80mm 297mm':paper.value};margin:${thermal?'3mm':'10mm'}}body{${thermal?'width:74mm;max-width:74mm;padding:0;margin:0 auto;font-size:10px;':'max-width:none;'}}${thermal?'table{width:100%!important;table-layout:fixed}td,th{padding:3px!important;width:auto!important;overflow-wrap:anywhere;font-size:9px!important}img{max-width:74mm!important}':''}`;};
+      frame.onload=()=>{button.disabled=false;resize();};paper.onchange=resize;button.onclick=()=>{frame.contentWindow.focus();frame.contentWindow.print();};frame.srcdoc=html;}});
 }
 
 export function downloadCSV(filename, rows) {
@@ -559,5 +611,17 @@ export function downloadCSV(filename, rows) {
   a.download = filename;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  recordExport(filename, rows.length, 'csv');
   toast(`${rows.length} rows exported`, 'success');
+}
+
+/**
+ * Leave an audit trail for a download. Every export screen reaches this through
+ * downloadCSV / exportWorkbook, so no screen has to remember to ask.
+ * Deliberately fire-and-forget: the file has already been written to disk, and
+ * failing the download because the trail could not be written would be worse
+ * than the missing entry.
+ */
+export function recordExport(filename, rows, format) {
+  import('./api.js').then(({ api }) => api.post('/audit/export', { filename, rows, format })).catch(() => {});
 }

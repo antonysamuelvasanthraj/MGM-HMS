@@ -56,6 +56,7 @@ export const CHART = [
   ['2000', 'Liabilities', 'liability', null, null, null, 1],
   ['2100', 'Supplier Payables', 'liability', 'payable', '2000', 'ap_suppliers', 0],
   ['2200', 'Accrued Expenses', 'liability', 'accrual', '2000', 'accrued_expenses', 0],
+  ['2150', 'Outside Lab & Imaging Centre Payables', 'liability', 'payable', '2000', 'ap_diagnostic', 0],
   ['2300', 'Patient Advances & Deposits', 'liability', 'advance', '2000', 'patient_advances', 0],
   ['2400', 'GST Output', 'liability', null, '2000', null, 1],
   ['2410', 'Output CGST', 'liability', 'tax_output', '2400', 'gst_out_cgst', 0],
@@ -111,6 +112,7 @@ export const CHART = [
   ['6840', 'Statutory Fees & Licences', 'expense', 'expense', '6000', 'exp_statutory', 0],
   ['6850', 'Printing & Stationery', 'expense', 'expense', '6000', 'exp_stationery', 0],
   ['6410', 'Lab Consumables & Reagents', 'expense', 'expense', '6000', 'exp_lab_consumables', 0],
+  ['6420', 'Outsourced Investigation Charges', 'expense', 'expense', '6000', 'exp_outsourced_tests', 0],
   ['6610', 'Equipment (non-capital)', 'expense', 'expense', '6000', 'exp_equipment', 0],
   ['6860', 'Administration & Office', 'expense', 'expense', '6000', 'exp_admin', 0],
   ['6870', 'Software & IT Services', 'expense', 'expense', '6000', 'exp_software', 0],
@@ -172,6 +174,9 @@ export function revenueHead(item, bill, encounter) {
     case 'pharmacy': case 'consumable': return bill.bill_type === 'IP' ? 'PHARMACY' : 'PHARMACY';
     case 'package': return 'PACKAGE';
     case 'ot': return 'OT';
+    case 'surgery': case 'anaesthesia': return 'OT';
+    case 'professional': return ['surgeon','assistant','anaesthetist'].includes(item.visiting_role) ? 'OT' : encounter?.kind === 'IP' || bill.bill_type === 'IP' ? 'IP' : 'OP';
+    case 'nursing': return 'NURSING';
     case 'procedure':
       return (svc && OT_CODES.has(svc.code)) || bill.source === 'OT' ? 'OT' : 'PROCEDURE';
     case 'bed': return /icu|nicu/i.test(item.description || '') ? 'ICU' : 'ROOM';
@@ -355,7 +360,7 @@ export function reverseSource(source, sourceId, reason) {
  * the difference from what is already posted — so adding a line, discounting
  * or cancelling a bill all account correctly without each route knowing how.
  */
-export function syncBillAccounting(billId) {
+export function syncBillAccounting(billId, {date}={}) {
   const bill = get('SELECT * FROM bills WHERE id=?', billId);
   if (!bill) return null;
   const enc = bill.encounter_id ? get('SELECT kind FROM encounters WHERE id=?', bill.encounter_id) : null;
@@ -389,8 +394,26 @@ export function syncBillAccounting(billId) {
       add('ar_patient', m.total, { ...party, segment: head });
     }
     if (bill.discount > 0) {
-      add('discount_allowed', bill.discount, { segment: primary || 'OTHER', category: party.category });
-      add('ar_patient', -bill.discount, { ...party, segment: primary || 'OTHER' });
+      const byHead = new Map();
+      for (const it of items.filter(it => bill.bill_type !== 'PHARM' && !it.batch_id && it.revenue_head !== 'PHARMACY' && !['pharmacy','medicine','drug'].includes(it.category))) {
+        const head=it.revenue_head || revenueHead(it,bill,enc);
+        byHead.set(head,round2((byHead.get(head)||0)+itemMoney(it).total));
+      }
+      const eligible=[...byHead].filter(([,value])=>value>0).map(([head,value])=>({head,value}));
+      const total = eligible.reduce((s, it) => s + it.value, 0);
+      let remaining = bill.discount;
+      for (let i = 0; i < eligible.length; i++) {
+        const it = eligible[i], head = it.head;
+        const amount = i === eligible.length - 1 ? remaining : round2(bill.discount * it.value / total);
+        remaining = round2(remaining - amount);
+        add('discount_allowed', amount, { segment: head, category: party.category });
+        add('ar_patient', -amount, { ...party, segment: head });
+      }
+      // Preserve accounting for legacy all-pharmacy discounts without authorising new ones.
+      if (!eligible.length) {
+        add('discount_allowed', bill.discount, { segment: primary || 'OTHER', category: party.category });
+        add('ar_patient', -bill.discount, { ...party, segment: primary || 'OTHER' });
+      }
     }
   }
 
@@ -412,7 +435,7 @@ export function syncBillAccounting(billId) {
   }
   if (!lines.length) return null;
   return postVoucher({
-    type: 'SV', source: 'bill', sourceId: billId,
+    type: 'SV', source: 'bill', sourceId: billId,date,
     narration: bill.status === 'cancelled' ? `Bill ${bill.bill_no} cancelled` : `Charges on bill ${bill.bill_no}`,
     lines,
   });
@@ -446,7 +469,7 @@ export function syncAdvance(billId) {
 /* ------------------------------------------------------------- money in/out */
 
 /** A payment row (money received, or negative for money refunded). */
-export function postPayment(payment) {
+export function postPayment(payment, {date}={}) {
   const bill = payment.bill_id ? get('SELECT * FROM bills WHERE id=?', payment.bill_id) : null;
   const amt = round2(payment.amount);
   // money paid back by UPI / card / cheque leaves the bank account; only receipts sit in a clearing account awaiting settlement
@@ -454,7 +477,7 @@ export function postPayment(payment) {
   if (!moneyAcct) throw new AccountingError('payment_mode_has_no_account', { mode: payment.mode });
   const party = { party_type: 'patient', party_id: payment.patient_id, category: bill?.payer_type || 'self' };
   return postVoucher({
-    type: amt >= 0 ? 'RV' : 'PV', source: 'payment', sourceId: payment.id,
+    type: amt >= 0 ? 'RV' : 'PV', source: 'payment', sourceId: payment.id,date,
     narration: `${amt >= 0 ? 'Receipt' : 'Refund'} ${payment.receipt_no}${bill ? ` on ${bill.bill_no}` : ''} · ${payment.mode}`,
     lines: [
       { account: moneyAcct, debit: amt > 0 ? amt : 0, credit: amt < 0 ? -amt : 0 },
@@ -546,6 +569,46 @@ export function postSupplierPayment(sp) {
     lines: [
       { account: 'ap_suppliers', debit: sp.amount, party_type: 'supplier', party_id: sp.supplier_id },
       { account: MONEY_MODES[sp.mode] || 'bank', credit: sp.amount },
+    ],
+  });
+}
+
+/**
+ * A tie-up lab's / imaging centre's bill for work it did for our patients. The patient was billed
+ * by the hospital as usual (revenue already in the books); this is only the hospital's cost and
+ * what it owes the centre — it never touches a patient bill.
+ */
+export function postOutsourceInvoice(inv) {
+  const provider = get('SELECT name, kind FROM diagnostic_providers WHERE id=?', inv.provider_id);
+  return postVoucher({
+    type: 'PUR', source: 'outsource_invoice', sourceId: inv.id, date: inv.invoice_date,
+    narration: `${provider?.name || 'Outside centre'} bill ${inv.invoice_no} (${inv.ref_no})`,
+    lines: [
+      { account: 'exp_outsourced_tests', debit: inv.total, segment: provider?.kind === 'imaging' ? 'IMAGING' : 'LAB' },
+      { account: 'ap_diagnostic', credit: inv.total, party_type: 'diagnostic_provider', party_id: inv.provider_id },
+    ],
+  });
+}
+
+export function postOutsourcePayment(p) {
+  return postVoucher({
+    type: 'PV', source: 'outsource_payment', sourceId: p.id, date: p.paid_on,
+    narration: `Payment ${p.payment_no} to ${get('SELECT name FROM diagnostic_providers WHERE id=?', p.provider_id)?.name || 'outside centre'}`,
+    lines: [
+      { account: 'ap_diagnostic', debit: p.amount, party_type: 'diagnostic_provider', party_id: p.provider_id },
+      { account: MONEY_MODES[p.mode] || 'bank', credit: p.amount },
+    ],
+  });
+}
+
+/** Lab tubes, needles and reagents used for a test, at batch cost (not charged to the patient separately). */
+export function postLabConsumption({ orderId, cost, narration }) {
+  if (!(cost > 0)) return null;
+  return postVoucher({
+    type: 'COGS', source: 'lab_consumption', sourceId: orderId, narration,
+    lines: [
+      { account: 'exp_lab_consumables', debit: cost, segment: 'LAB' },
+      { account: 'inventory_pharmacy', credit: cost, segment: 'LAB' },
     ],
   });
 }

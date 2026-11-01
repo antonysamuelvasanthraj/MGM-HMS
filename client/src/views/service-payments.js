@@ -13,7 +13,7 @@ export async function mount(ctx) {
   const f = { show: 'waiting', q: '' };
   const root = mountPage(ctx, page({
     wide: true, eyebrow: `${eyebrow('Reception', 'point_of_sale')} ${liveChip()}`, title: 'Service payments',
-    subtitle: 'Lab, imaging and procedure orders waiting for payment or approval. Split across modes, bill to a payer, or approve free / due with a reason.',
+    subtitle: 'Tests and procedures waiting for payment or approval.',
     actions: can('billing.create') ? '<a class="btn-primary" href="/bills?new=op">Bill OPD procedure</a>' : '',
     body: `<div class="card p-3 flex flex-wrap items-end gap-2">
         <div class="inline-flex p-0.5 rounded bg-surface-container" role="tablist">${[['waiting', 'Waiting'], ['cleared', 'Cleared today']].map(([v, l]) => `<button data-show="${v}" role="tab" class="px-3 h-8 rounded font-label-md text-label-md">${l}</button>`).join('')}</div>
@@ -43,7 +43,7 @@ export async function mount(ctx) {
     });
   };
 
-  async function load() { rows = await api.get(`/service-queue${qs({ show: f.show === 'cleared' ? 'cleared' : '' })}`); paint(); }
+  async function load() { rows = await api.get(`/service-queue${qs({ show: f.show === 'cleared' ? 'cleared' : '',today:'1' })}`); paint(); }
   bind(root, 'click', '[data-show]', (e, b) => { f.show = b.dataset.show; load(); });
   bind(root, 'click', '[data-pay]', (e, b) => collectBill(+b.dataset.pay, load));
   root.querySelector('[data-q]').oninput = (e) => { f.q = e.target.value; paint(); };

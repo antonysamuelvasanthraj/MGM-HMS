@@ -1,3 +1,4 @@
+import {receiptDeskSql} from '../receipt-desk.js';
 /**
  * Daily desk report and cash handover — one for reception, one for pharmacy.
  *
@@ -27,6 +28,7 @@ function deskFor(req) {
   return d;
 }
 const typeClause = (d) => (d === 'pharmacy' ? "b.bill_type='PHARM'" : "b.bill_type<>'PHARM'");
+const receiptClause=d=>receiptDeskSql()+"='"+d+"'";
 const byMode = (rows) => {
   const out = Object.fromEntries(GROUPS.map((g) => [g, 0]));
   for (const r of rows) out[GROUP[r.mode] || r.mode] = r2((out[GROUP[r.mode] || r.mode] || 0) + r.amount);
@@ -37,7 +39,7 @@ function receipts(d, date, userId, throughDate = false) {
   return all(`SELECT p.id, p.receipt_no, p.created_at, p.amount, p.mode, p.reference, p.transaction_id, p.remarks,
       u.name collected_by, p.received_by, b.bill_no, b.bill_type, pt.name patient_name, pt.uhid
     FROM payments p JOIN bills b ON b.id=p.bill_id JOIN patients pt ON pt.id=p.patient_id LEFT JOIN users u ON u.id=p.received_by
-    WHERE p.pay_date${throughDate ? '<=' : '='}? AND p.cancelled=0 AND ${typeClause(d)} ${userId ? 'AND p.received_by=?' : ''} ORDER BY p.id`, date, ...(userId ? [userId] : []));
+    WHERE p.pay_date${throughDate ? '<=' : '='}? AND p.cancelled=0 AND ${receiptClause(d)} ${userId ? 'AND p.received_by=?' : ''} ORDER BY p.id`, date, ...(userId ? [userId] : []));
 }
 
 /* ------------------------------------------------------------ reception */
@@ -127,7 +129,7 @@ function pharmacy(date, userId) {
 }
 
 function cashPosition(d, date, userId) {
-  const cash = one(`SELECT coalesce(sum(p.amount),0) FROM payments p JOIN bills b ON b.id=p.bill_id WHERE p.pay_date<=? AND p.cancelled=0 AND p.mode='cash' AND ${typeClause(d)} ${userId ? 'AND p.received_by=?' : ''}`,date,...(userId?[userId]:[])) || 0;
+  const cash = one(`SELECT coalesce(sum(p.amount),0) FROM payments p JOIN bills b ON b.id=p.bill_id WHERE p.pay_date<=? AND p.cancelled=0 AND p.mode='cash' AND ${receiptClause(d)} ${userId ? 'AND p.received_by=?' : ''}`,date,...(userId?[userId]:[])) || 0;
   const handovers = all(`SELECT declared,status FROM cash_handovers WHERE desk=? AND handover_date<=? ${userId?'AND user_id=?':''} AND status IN ('submitted','accepted')`,d,date,...(userId?[userId]:[]));
   const accepted = r2(handovers.filter(h=>h.status==='accepted').reduce((s,h)=>s+(JSON.parse(h.declared).cash || 0),0));
   const pending = r2(handovers.filter(h=>h.status==='submitted').reduce((s,h)=>s+(JSON.parse(h.declared).cash || 0),0));
@@ -144,7 +146,7 @@ desk.get('/desk/day', requireAuth, h((req) => {
   const received = r2(data.receipts.filter((r) => r.amount > 0).reduce((s, r) => s + r.amount, 0));
   const refunded = r2(-data.receipts.filter((r) => r.amount < 0).reduce((s, r) => s + r.amount, 0));
   const collectors = all(`SELECT DISTINCT u.id, u.name FROM payments p JOIN bills b ON b.id=p.bill_id JOIN users u ON u.id=p.received_by
-    WHERE p.pay_date=? AND p.cancelled=0 AND ${typeClause(d)} ORDER BY u.name`, date);
+    WHERE p.pay_date=? AND p.cancelled=0 AND ${receiptClause(d)} ORDER BY u.name`, date);
   const sales_today = one(`SELECT coalesce(sum(b.total),0) FROM bills b WHERE b.bill_date=? AND b.status<>'cancelled' AND ${typeClause(d)}`,date) || 0;
   return { desk: d, date, user_id: userId, sales_today, ...cashPosition(d,date,userId), collectors, modes, received, refunded, net: r2(received - refunded), ...data };
 }));
@@ -156,7 +158,7 @@ desk.get('/desk/range', requireAuth, h(req => {
   const valid=v=>{if(!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/.test(v))return false;const n=v.match(/\d+/g).map(Number),d=new Date(n[0],n[1]-1,n[2],n[3],n[4],n[5]||0);return d.getFullYear()===n[0]&&d.getMonth()===n[1]-1&&d.getDate()===n[2]&&d.getHours()===n[3]&&d.getMinutes()===n[4]&&d.getSeconds()===(n[5]||0);};
   if(!valid(from)||!valid(to)||from>=to)fail(400,'valid_time_range_required');
   const uid=req.query.user_id?+req.query.user_id:null;
-  const rec=all(`SELECT p.*,u.name collected_by,b.bill_no,pt.name patient_name,pt.uhid FROM payments p JOIN bills b ON b.id=p.bill_id JOIN patients pt ON pt.id=p.patient_id LEFT JOIN users u ON u.id=p.received_by WHERE p.cancelled=0 AND p.created_at>=? AND p.created_at<? AND ${typeClause(d)} ${uid?'AND p.received_by=?':''} ORDER BY p.created_at,p.id`,from,to,...(uid?[uid]:[]));
+  const rec=all(`SELECT p.*,u.name collected_by,b.bill_no,pt.name patient_name,pt.uhid FROM payments p JOIN bills b ON b.id=p.bill_id JOIN patients pt ON pt.id=p.patient_id LEFT JOIN users u ON u.id=p.received_by WHERE p.cancelled=0 AND p.created_at>=? AND p.created_at<? AND ${receiptClause(d)} ${uid?'AND p.received_by=?':''} ORDER BY p.created_at,p.id`,from,to,...(uid?[uid]:[]));
   const bills=all(`SELECT b.*,p.name patient_name,p.uhid FROM bills b JOIN patients p ON p.id=b.patient_id WHERE b.status<>'cancelled' AND b.created_at>=? AND b.created_at<? AND ${typeClause(d)} ORDER BY b.created_at,b.id`,from,to);
   const sales=all(`SELECT i.id,i.created_at,i.description,i.category,i.qty,i.rate,i.amount,b.bill_no,p.name patient_name,mb.batch_no,mb.expiry FROM bill_items i JOIN bills b ON b.id=i.bill_id JOIN patients p ON p.id=b.patient_id LEFT JOIN medicine_batches mb ON mb.id=i.batch_id WHERE b.status<>'cancelled' AND i.created_at>=? AND i.created_at<? AND ${typeClause(d)} ORDER BY i.created_at,i.id`,from,to);
   return {desk:d,from,to,receipts:rec,bills,sales,modes:byMode(rec),net:r2(rec.reduce((s,r)=>s+r.amount,0)),billed:r2(sales.reduce((s,r)=>s+r.amount,0))};

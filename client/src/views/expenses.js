@@ -60,7 +60,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Finance', 'payments')} ${liveChip()}`,
     title: 'Operational Expenses',
-    subtitle: 'Vouchers by head with an approval trail; marking one paid posts both sides of the entry to the ledger.',
+    subtitle: 'Expense vouchers, approvals and payments.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
       ${can('expense.write') ? `<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> New voucher</button>` : ''}`,
     body: `
@@ -97,9 +97,9 @@ function rowHTML(e) {
     <td><div class="text-body-md">${esc(e.created_by_name || '—')}</div>
       ${e.approved_by_name ? `<div class="text-label-sm text-on-surface-variant">appr. ${esc(e.approved_by_name)}</div>` : ''}</td>
     <td class="text-right whitespace-nowrap">
-      ${can('expense.write') && e.status === 'pending' ? `<button class="btn-secondary btn-xs" data-act="approve">Approve</button>
+      ${can('expense.write') && e.status === 'pending' ? `${can('expense.approve') || can('finance.write')?'<button class="btn-secondary btn-xs" data-act="approve">Approve</button>':''}
         <button class="btn-ghost btn-xs" data-act="reject">Reject</button>` : ''}
-      ${can('expense.write') && e.status === 'approved' ? `<button class="btn-primary btn-xs" data-act="pay">Mark paid</button>` : ''}
+      ${can('expense.write') && (can('expense.approve') || can('finance.write')) && e.status === 'approved' ? `<button class="btn-primary btn-xs" data-act="pay">Mark paid</button>` : ''}
     </td>`;
 }
 

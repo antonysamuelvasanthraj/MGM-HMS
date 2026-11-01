@@ -1,0 +1,15 @@
+import {DatabaseSync} from 'node:sqlite';
+const db=new DatabaseSync('data/surelyhms.db',{readOnly:true});
+const session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
+db.close();
+const targets=await fetch('http://127.0.0.1:9559/json').then(r=>r.json());
+const target=targets.find(t=>t.type==='page' && t.url.startsWith('http://localhost:4300'));
+const ws=new WebSocket(target.webSocketDebuggerUrl);
+await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+let seq=0;const pending=new Map();
+ws.addEventListener('message',event=>{const d=JSON.parse(event.data);if(pending.has(d.id)){pending.get(d.id)(d);pending.delete(d.id);}});
+const send=(method,params={})=>new Promise(resolve=>{const id=++seq;pending.set(id,resolve);ws.send(JSON.stringify({id,method,params}));});
+await send('Runtime.evaluate',{expression:`localStorage.setItem('surely_token',${JSON.stringify(session.token)})`});
+await send('Page.reload',{ignoreCache:true});
+await new Promise(resolve=>setTimeout(resolve,1500));
+const result=await send('Runtime.evaluate',{expression:`(async()=>{try{const api=await import('/src/api.js');api.setToken(localStorage.getItem('surely_token'));const {mount}=await import('/src/views/bills.js');await mount({host:document.getElementById('view'),query:{}});await new Promise(r=>setTimeout(r,400));document.querySelector('[data-new]').click();await new Promise(r=>setTimeout(r,500));const input=document.querySelector('[data-pp-input]');input.value='Venkata';input.dispatchEvent(new Event('input',{bubbles:true}));await new Promise(r=>setTimeout(r,700));const choice=document.querySelector('[data-pp-list] [data-id="2"]');if(!choice)throw Error('QA patient selection unavailable');choice.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));await new Promise(r=>setTimeout(r,700));const service=document.querySelector('[data-lines] [data-s]');service.selectedIndex=1;service.dispatchEvent(new Event('change',{bubbles:true}));const qty=document.querySelector('[data-q]');qty.value='3';qty.dispatchEvent(new Event('input',{bubbles:true}));const dropdown=document.querySelector('[data-billing-category]');const initial=dropdown.value;dropdown.value=initial==='credit'?'self':'credit';dropdown.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,600));const payerDialog=!!document.querySelector('[data-cat]');document.querySelector('[role=dialog] button[data-close]').click();const retainedQty=document.querySelector('[data-q]')?.value;return {initial,payerDialog,retainedQty,dropdownRestored:!!document.querySelector('[data-billing-category]'),billDraftPresent:!!document.querySelector('[data-nb]')};}catch(e){return {error:e.message,stack:e.stack};}})()`,awaitPromise:true,returnByValue:true});console.log(JSON.stringify(result.result));const value=result.result?.result?.value;if(!value?.payerDialog || value.retainedQty!=='3' || !value.billDraftPresent)throw Error('Payer dropdown/draft preservation failed');ws.close();

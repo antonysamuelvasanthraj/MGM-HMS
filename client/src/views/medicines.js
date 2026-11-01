@@ -5,8 +5,9 @@ import {
   $, $$, esc, bind, toast, modal, drawer, renderRows, pill, money, fmtDate, kpi, optionList, emptyState,
 } from './_kit.js';
 import { compositionEditor, wireComposition, compositionText } from '../composition.js';
+import { bulkMedicines } from '../medicine-import.js';
 
-let f = { q: '', form: '', schedule: '', low: '' };
+let f = { q: '', form: '', schedule: '', low: '', active: '1' };
 let cache = [];
 
 export async function mount(ctx) {
@@ -28,6 +29,7 @@ export async function mount(ctx) {
 
   bind(root, 'click', '[data-act="open"]', (e, b) => openMedicine(b.closest('tr').dataset.id, load));
   bind(root, 'click', '[data-new]', () => editMedicine(null, load));
+  bind(root, 'click', '[data-bulk]', () => bulkMedicines(load));
   bind(root, 'click', '[data-export]', () => downloadCSV('medicine-master.csv', cache.map((m) => ({
     code: m.code, name: m.name, generic: m.generic, form: m.form, strength: m.strength,
     manufacturer: m.manufacturer, schedule: m.schedule, gst: m.gst_pct, rack: m.rack,
@@ -43,11 +45,12 @@ function layout() {
     title: 'Medicine Master Catalog',
     subtitle: 'The single formulary behind prescriptions, dispensing, stock and purchasing.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
-      ${can('inventory.write') ? `<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> Add medicine</button>` : ''}`,
+      ${can('inventory.write') ? `<button class="btn-secondary" data-bulk>Bulk import medicines</button><button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> Add medicine</button>` : ''}`,
     body: `
       ${kpiRow([], 4)}
       ${filterBar([
-        { type: 'search', key: 'q', label: 'Find', placeholder: 'Brand, generic or code' },
+        { type: 'search', key: 'q', label: 'Find', placeholder: 'Brand, generic, code or HSN' },
+        { type: 'select', key: 'active', label: 'Catalogue', value: f.active, options: [{ value: '1', label: 'Active items' }, { value: '0', label: 'Archived items' }, { value: '', label: 'All items' }] },
         { type: 'select', key: 'form', label: 'Form', value: f.form, options: optionList([{ value: '', label: 'Any form' }, 'tablet', 'capsule', 'syrup', 'injection', 'ointment']) },
         { type: 'select', key: 'schedule', label: 'Schedule', value: f.schedule, options: optionList([{ value: '', label: 'Any' }, 'OTC', 'H', 'H1', 'X']) },
         { type: 'select', key: 'low', label: 'Stock', value: f.low, options: [{ value: '', label: 'All items' }, { value: '1', label: 'Below reorder only' }] },
@@ -67,7 +70,8 @@ function rowHTML(m) {
   const soon = m.next_expiry && (new Date(m.next_expiry) - Date.now()) / 864e5 < 90;
   return `
     <td class="font-data-mono text-body-sm">${esc(m.code)}</td>
-    <td><div class="font-label-lg text-label-lg">${esc(m.name)}</div>
+    <td><div class="font-label-lg text-label-lg">${esc(m.name)} ${!m.active ? '<span class="pill-neutral">Archived</span>' : ''}</div>
+      <div class="text-label-sm">HSN ${esc(m.hsn || '—')}</div>
       <div class="text-label-sm text-on-surface-variant">${esc(compositionText(m))}${/\+/.test(m.generic || '') ? ' <span class="pill-info">Combination</span>' : ''}</div></td>
     <td class="text-body-md capitalize">${esc(m.form || '—')} ${esc(m.strength || '')}</td>
     <td class="text-body-md">${esc(m.manufacturer || '—')}</td>
@@ -88,17 +92,18 @@ async function openMedicine(id, after) {
     width: 'max-w-3xl',
     body: `<div class="p-5 space-y-5">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        ${[{ label: 'Stock on hand', value: m.stock, icon: 'inventory_2', tone: m.stock <= m.reorder_level ? 'warning' : 'success' },
+        ${[{ label: 'Usable stock', value: m.usable_stock, sub: `${m.stock} physical units including expired stock`, icon: 'inventory_2', tone: m.usable_stock <= m.reorder_level ? 'warning' : 'success' },
            { label: 'Batches', value: m.batches.length, icon: 'layers' },
            { label: 'Reorder level', value: m.reorder_level, icon: 'trending_down' },
            { label: 'GST', value: `${m.gst_pct}%`, icon: 'percent' }].map(kpi).join('')}
       </div>
-      ${card({ title: 'Batches', pad: false, body: m.batches.length ? `<table class="tbl">
-        <thead><tr><th>Batch</th><th>Expiry</th><th class="text-right">Qty</th><th class="text-right">Purchase</th>
+      ${can('purchase.view') ? `<a class="btn-secondary" href="/grn?medicine_id=${m.id}">Distributor & invoice history</a>` : ''}
+      ${card({ title: 'Batch history — includes exhausted and expired stock', pad: false, body: m.batches.length ? `<table class="tbl">
+        <thead><tr><th>Batch / location</th><th>Expiry</th><th class="text-right">Qty</th><th class="text-right">Purchase</th>
           <th class="text-right">MRP</th><th>Supplier</th><th></th></tr></thead>
         <tbody>${m.batches.map((b) => {
           const days = Math.round((new Date(b.expiry) - Date.now()) / 864e5);
-          return `<tr><td class="font-data-mono">${esc(b.batch_no)}</td>
+          return `<tr><td class="font-data-mono">${esc(b.batch_no)}<div>${esc(b.location || 'Central')} ${b.qty <= 0 ? '<span class="pill-neutral">Exhausted</span>' : days < 0 ? '<span class="pill-danger">Expired</span>' : '<span class="pill-success">In stock</span>'}</div></td>
             <td class="${days < 0 ? 'text-danger font-bold' : days < 90 ? 'text-warning font-semibold' : ''}">${fmtDate(b.expiry)}
               <span class="text-label-sm text-on-surface-variant">${days < 0 ? 'expired' : `${days}d`}</span></td>
             <td class="num">${b.qty}</td><td class="num">${money(b.purchase_rate, 2)}</td>
@@ -134,8 +139,9 @@ function adjustStock(batch, after) {
     body: `<div class="space-y-3">
       <div><label class="field-label">Change (negative to remove)</label><input class="field" type="number" data-q value="0"></div>
       <div><label class="field-label">Type</label><select class="field" data-t>
-        <option value="adjust">Adjustment</option><option value="return">Return to supplier</option>
-        <option value="expiry">Expiry write-off</option><option value="transfer">Transfer</option></select></div>
+        <option value="adjust">Adjustment</option><option value="expiry">Expiry write-off</option>
+        <option value="damage">Damage</option><option value="disposal">Disposal</option><option value="loss">Loss</option></select>
+        <p class="text-body-sm mt-2">Use Stock Transfers to move stock and Returns to return goods to a supplier.</p></div>
       <div><label class="field-label">Reason *</label><input class="field" data-r placeholder="Recorded in the stock ledger" required></div>
     </div>`,
     footer: `<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-ok>Post adjustment</button>`,
@@ -174,6 +180,7 @@ function editMedicine(m, after) {
       <div><label class="field-label">GST %</label><input class="field" name="gst_pct" type="number" value="${m?.gst_pct ?? 12}"></div>
       <div><label class="field-label">Rack</label><input class="field" name="rack" value="${esc(m?.rack || '')}"></div>
       <div><label class="field-label">Reorder level</label><input class="field" name="reorder_level" type="number" value="${m?.reorder_level ?? 50}"></div>
+      ${m ? `<div><label class="field-label">Catalogue status</label><select class="field" name="active"><option value="1" ${m.active ? 'selected' : ''}>Active</option><option value="0" ${!m.active ? 'selected' : ''}>Archived — hidden from dispensing</option></select><p class="text-body-sm">Purchase and stock history are retained.</p></div>` : ''}
       <label class="flex items-center gap-2 text-body-lg md:col-span-2 mt-5">
         <input type="checkbox" name="narcotic" ${m?.narcotic ? 'checked' : ''}> Narcotic / controlled substance</label>
     </form>`,

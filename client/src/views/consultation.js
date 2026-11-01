@@ -8,7 +8,7 @@
 import {
   page, eyebrow, card, live, mountPage, patientBanner, apiError, busy,
   api, qs, state, can, navigate, doctorOptions,
-  $, $$, esc, bind, toast, modal, drawer, confirmDialog, pill, priorityPill, flagPill,
+  $, $$, esc, bind, toast, modal, drawer, confirmDialog, withDuplicateCheck, pill, priorityPill, flagPill,
   money, fmtDate, fmtDateTime, fmtTime, ago, spinner, emptyState, todayISO, services, printDocument, ageText,
 } from './_kit.js';
 import { rxRow, readRx, wireRx } from '../rx-editor.js';
@@ -79,7 +79,7 @@ async function picker() {
   return page({
     eyebrow: eyebrow('Clinical workspace', 'stethoscope'),
     title: 'Consultation',
-    subtitle: 'Pick the patient you are seeing. The workspace opens with their identity, allergies and today’s vitals already in view.',
+    subtitle: 'Choose the patient you are seeing.',
     body: live_.length ? `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         ${live_.map((r) => `<button class="card p-3 text-left hover:border-primary/50 transition-colors" data-pick="${r.id}">
           <div class="flex items-center justify-between gap-2">
@@ -479,7 +479,7 @@ export async function openOrderDialog(e, after) {
         const actionButton = ev.currentTarget;
         busy(actionButton, true, 'Placing');
         try {
-          const r = await api.post('/orders', {
+          const r = await withDuplicateCheck((extra) => api.post('/orders', { ...extra,
             encounter_id: e.id,
             bill: root.querySelector('[data-obill]').checked,
             items: [...chosen.values()].map((s) => ({
@@ -487,7 +487,8 @@ export async function openOrderDialog(e, after) {
               priority: root.querySelector('[data-opri]').value,
               clinical_note: root.querySelector('[data-onote]').value,
             })),
-          });
+          }));
+          if (!r) { busy(actionButton, false); return; }
           close();
           toast(`${chosen.size} order(s) placed${r.bill ? (['IP', 'ER'].includes(r.bill.bill_type) ? ` · added to the running ${r.bill.bill_type} bill ${r.bill.bill_no}` : ` · bill ${r.bill.bill_no} for ${money(r.bill.total)}`) : ' · held for payment'}`, 'success');
           after?.();

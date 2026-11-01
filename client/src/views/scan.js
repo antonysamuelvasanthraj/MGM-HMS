@@ -57,7 +57,7 @@ export async function mount(ctx) {
     let it;
     try { it = await api.get(`/stores/items/by-code/${encodeURIComponent(code)}`); }
     catch (e) { box.innerHTML = card({ body: emptyState('qr_code', 'No item with that code', e.payload?.error === 'item_not_found' ? `Nothing in the store master is labelled ${esc(code)}.` : 'Could not look it up.') }); return; }
-    box.innerHTML = card({ title: it.name, subtitle: `${it.code} · ${it.category_name}${it.unit ? ` · per ${it.unit}` : ''}`,
+    box.innerHTML = card({ title: it.name, subtitle: `${esc(it.code)} · ${esc(it.category_name)}${it.unit ? ` · per ${it.unit}` : ''}`,
       body: `${it.can_view ? `<div class="grid grid-cols-2 gap-2 mb-3">
           <div class="rounded-lg border border-outline-variant p-2"><div class="text-label-sm text-on-surface-variant">In stock</div><div class="font-data-mono text-title-md font-semibold">${+(+it.qty).toFixed(3)} ${esc(it.unit)}</div>${it.low ? '<span class="pill-danger">Low — reorder</span>' : ''}</div>
           <div class="rounded-lg border border-outline-variant p-2"><div class="text-label-sm text-on-surface-variant">Value (avg cost ${money(it.avg_cost, 2)})</div><div class="font-data-mono text-title-md font-semibold">${money(it.value, 2)}</div></div></div>

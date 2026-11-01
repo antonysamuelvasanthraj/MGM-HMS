@@ -9,23 +9,25 @@ import {
 } from './_kit.js';
 
 const STATUS_LABEL = { active: 'Active', maintenance: 'Under maintenance', out_of_service: 'Out of service', retired: 'Retired',
-  open: 'Open', assigned: 'Assigned', in_progress: 'In progress', resolved: 'Resolved', closed: 'Closed' };
+  open: 'Open', assigned: 'Assigned', in_progress: 'In progress', resolved: 'Resolved', closed: 'Closed',
+  scheduled: 'Scheduled', completed: 'Completed', cancelled: 'Cancelled' };
 const TONE = { active: 'pill-success', maintenance: 'pill-warning', out_of_service: 'pill-danger', retired: 'pill-neutral',
   open: 'pill-danger', assigned: 'pill-warning', in_progress: 'pill-info', resolved: 'pill-success', closed: 'pill-neutral',
+  scheduled: 'pill-info', completed: 'pill-success', cancelled: 'pill-neutral',
   critical: 'pill-danger', high: 'pill-warning', normal: 'pill-info', low: 'pill-neutral' };
 const tag = (s) => `<span class="${TONE[s] || 'pill-neutral'} pill-dot">${esc(STATUS_LABEL[s] || s)}</span>`;
 const NEXT = { open: ['assigned', 'in_progress'], assigned: ['in_progress', 'resolved'], in_progress: ['resolved'], resolved: ['closed', 'in_progress'], closed: [] };
 
 export async function mount(ctx) {
   const manage = can('maintenance.write'), viewAll = manage || can('maintenance.view');
-  const tabs = [['tickets', viewAll ? 'Tickets' : 'My tickets'], ...(viewAll ? [['assets', 'Asset register']] : [])];
+  const tabs = [['tickets', viewAll ? 'Tickets' : 'My tickets'], ...(viewAll ? [['assets', 'Asset register'], ['pm', 'Preventive maintenance']] : [])];
   const f = { tab: tabs.some(([k]) => k === ctx.query.tab) ? ctx.query.tab : 'tickets', status: 'open', q: '' };
-  let summary = { assets: {}, tickets: {}, types: [] };
+  let summary = { assets: {}, tickets: {}, preventive: {}, types: [] };
   const root = mountPage(ctx, page({
     wide: true, eyebrow: `${eyebrow('Facilities', 'build')} ${liveChip()}`, title: 'Maintenance & Assets',
-    subtitle: 'Report a fault from any department. The maintenance team assigns, repairs and closes it; the equipment register keeps warranty, AMC and service dates.',
+    subtitle: 'Report faults, work repair tickets and keep preventive-service history.',
     actions: `<button class="btn-primary" data-raise><span class="material-symbols-outlined text-[18px]">report</span>Report a fault</button>
-      ${manage ? '<button class="btn-secondary" data-new-asset><span class="material-symbols-outlined text-[18px]">add</span>Add asset</button>' : ''}`,
+      ${manage ? '<button class="btn-secondary" data-new-pm><span class="material-symbols-outlined text-[18px]">event</span>Schedule PM</button><button class="btn-secondary" data-new-asset><span class="material-symbols-outlined text-[18px]">add</span>Add asset</button>' : ''}`,
     body: `${viewAll ? kpiRow([], 4) : ''}
       <div class="flex flex-wrap items-center gap-2"><div class="inline-flex p-0.5 rounded bg-surface-container" role="tablist">
         ${tabs.map(([k, l]) => `<button data-tab="${k}" role="tab" class="px-3 h-8 rounded font-label-md text-label-md">${l}</button>`).join('')}</div>
@@ -37,19 +39,20 @@ export async function mount(ctx) {
   async function load() {
     summary = await api.get('/maintenance/summary');
     if (viewAll) {
-      const a = summary.assets || {}, t = summary.tickets || {};
+      const a = summary.assets || {}, t = summary.tickets || {}, p = summary.preventive || {};
       root.querySelector('[data-kpis]').innerHTML = [
         { label: 'Open tickets', value: (t.open || 0) + (t.assigned || 0) + (t.in_progress || 0), icon: 'build', tone: t.critical ? 'danger' : 'warning', sub: `${t.critical || 0} critical · ${t.in_progress || 0} in progress` },
         { label: 'Assets', value: a.total || 0, icon: 'inventory_2', tone: 'info', sub: `${a.active || 0} active · ${a.maintenance || 0} under maintenance` },
         { label: 'Out of service', value: a.out_of_service || 0, icon: 'block', tone: a.out_of_service ? 'danger' : 'success', sub: `${a.retired || 0} retired` },
-        { label: 'Service due ≤ 15 days', value: a.service_due || 0, icon: 'event', tone: a.service_due ? 'warning' : 'success', sub: `${a.amc_expired || 0} AMC expired` },
+        { label: 'Service due ≤ 15 days', value: a.service_due || 0, icon: 'event', tone: a.service_due ? 'warning' : 'success', sub: `${p.overdue || 0} PM overdue · ${p.completed || 0} completed` },
       ].map(kpi).join('');
     }
     root.querySelectorAll('[data-tab]').forEach((b) => { const on = b.dataset.tab === f.tab; b.setAttribute('aria-selected', on);
       b.className = `px-3 h-8 rounded font-label-md text-label-md ${on ? 'bg-white shadow-sm text-on-surface' : 'text-on-surface-variant hover:text-on-surface'}`; });
     const sel = root.querySelector('[data-status]');
-    const opts = f.tab === 'tickets' ? [['open', 'Open (not resolved)'], ['all', 'All'], ['open', 'Open'], ['assigned', 'Assigned'], ['in_progress', 'In progress'], ['resolved', 'Resolved'], ['closed', 'Closed']].filter((x, i) => i !== 2)
-      : [['all', 'All statuses'], ['active', 'Active'], ['maintenance', 'Under maintenance'], ['out_of_service', 'Out of service'], ['retired', 'Retired']];
+    const opts = f.tab === 'tickets' ? [['open', 'Open (not resolved)'], ['all', 'All'], ['assigned', 'Assigned'], ['in_progress', 'In progress'], ['resolved', 'Resolved'], ['closed', 'Closed']]
+      : f.tab === 'assets' ? [['all', 'All statuses'], ['active', 'Active'], ['maintenance', 'Under maintenance'], ['out_of_service', 'Out of service'], ['retired', 'Retired']]
+      : [['open', 'Scheduled'], ['all', 'All including history'], ['completed', 'Completed'], ['cancelled', 'Cancelled']];
     if (!opts.some(([v]) => v === f.status)) f.status = opts[0][0];
     sel.innerHTML = opts.map(([v, l]) => `<option value="${v}" ${v === f.status ? 'selected' : ''}>${l}</option>`).join('');
     const list = root.querySelector('[data-list]');
@@ -64,7 +67,7 @@ export async function mount(ctx) {
           <td class="text-body-sm"><div>${fmtDateTime(r.raised_at)}</div><div class="text-on-surface-variant">${esc(r.raised_by_name || '')}</div></td>
           <td class="text-right whitespace-nowrap">${manage && r.status !== 'closed' ? '<button class="btn-secondary btn-xs" data-work>Update</button>' : ''}</td></tr>`).join('')}
         </tbody></table></div>` : `<div class="p-6">${emptyState('build', 'No tickets', viewAll ? 'Nothing matches this filter.' : 'Faults you report appear here with their progress.')}</div>` });
-    } else {
+    } else if (f.tab === 'assets') {
       const rows = await api.get(`/maintenance/assets${qs({ status: f.status, q: f.q })}`);
       const soon = (d) => d && d <= new Date(Date.now() + 15 * 864e5).toISOString().slice(0, 10);
       list.innerHTML = card({ title: `${rows.length} asset(s)`, pad: false, body: rows.length ? `<div class="overflow-auto max-h-[64vh]"><table class="tbl"><thead><tr>
@@ -75,24 +78,38 @@ export async function mount(ctx) {
           <td class="text-body-sm"><div>Warranty ${a.warranty_until ? fmtDate(a.warranty_until) : '—'}</div><div class="${a.amc_until && a.amc_until < new Date().toISOString().slice(0, 10) ? 'text-danger font-semibold' : ''}">AMC ${a.amc_until ? fmtDate(a.amc_until) : '—'}</div></td>
           <td class="text-body-sm">${esc(a.vendor || '—')}</td>
           <td class="text-body-sm"><div>${a.last_service ? fmtDate(a.last_service) : '—'}</div><div class="${soon(a.next_service) ? 'text-warning font-semibold' : ''}">Next ${a.next_service ? fmtDate(a.next_service) : '—'}${soon(a.next_service) ? ' · due' : ''}</div></td>
-          <td>${tag(a.status)}${a.open_tickets ? `<div class="text-label-sm text-on-surface-variant mt-1">${a.open_tickets} open ticket(s)</div>` : ''}</td>
+          <td>${tag(a.status)}${a.open_tickets ? `<div class="text-label-sm text-on-surface-variant mt-1">${a.open_tickets} open ticket(s)</div>` : ''}${a.open_pm ? `<div class="text-label-sm text-on-surface-variant mt-1">${a.open_pm} PM scheduled</div>` : ''}</td>
           <td class="text-right whitespace-nowrap"><button class="btn-ghost btn-xs" data-raise-for="${a.id}" title="Report a fault on this asset">Report fault</button>
             ${manage ? '<button class="btn-secondary btn-xs" data-edit-asset>Edit</button>' : ''}</td></tr>`).join('')}
         </tbody></table></div>` : `<div class="p-6">${emptyState('inventory_2', 'No assets', 'Add equipment to the register.')}</div>` });
+    } else {
+      const rows = (await api.get(`/maintenance/pm${qs({ status: f.status })}`)).filter((r) => !f.q || `${r.asset_code} ${r.asset_name} ${r.title} ${r.location || ''}`.toLowerCase().includes(f.q.toLowerCase()));
+      list.innerHTML = card({ title: `${rows.length} preventive-service record(s)`, pad: false, body: rows.length ? `<div class="overflow-auto max-h-[64vh]"><table class="tbl"><thead><tr>
+        <th>Due</th><th>Asset</th><th>PM plan / checklist</th><th>Repeat</th><th>Status</th><th>Assigned / completed</th><th>Work history</th><th></th></tr></thead><tbody>
+        ${rows.map((r) => `<tr data-id="${r.id}"><td>${fmtDate(r.scheduled_date)}</td><td><b>${esc(r.asset_code)}</b> · ${esc(r.asset_name)}<div class="text-body-sm text-on-surface-variant">${esc(r.location || '')}</div></td>
+          <td><div class="font-label-lg">${esc(r.title)}</div><div class="text-body-sm text-on-surface-variant">${esc(r.checklist || '—')}</div></td><td>${r.interval_days ? `${r.interval_days} days` : 'One-off'}</td><td>${tag(r.status)}</td>
+          <td class="text-body-sm">${esc(r.assigned_to_name || '—')}${r.completed_by_name ? `<div>Completed by ${esc(r.completed_by_name)}</div>` : ''}</td>
+          <td class="text-body-sm">${esc(r.work_done || r.cancellation_reason || '—')}${r.next_service_date ? `<div>Next: ${fmtDate(r.next_service_date)}</div>` : ''}</td>
+          <td class="text-right whitespace-nowrap">${manage && r.status === 'scheduled' ? '<button class="btn-primary btn-xs" data-complete-pm>Complete</button><button class="btn-ghost btn-xs" data-cancel-pm>Cancel</button>' : ''}</td></tr>`).join('')}
+        </tbody></table></div>` : `<div class="p-6">${emptyState('event', 'No preventive-service records', 'Schedule recurring or one-off preventive maintenance to build service history.')}</div>` });
     }
     root._rows = f.tab;
   }
 
   const findTicket = async (id) => (await api.get('/maintenance/tickets?status=all')).find((t) => t.id === id);
-  bind(root, 'click', '[data-tab]', (e, b) => { f.tab = b.dataset.tab; f.status = f.tab === 'tickets' ? 'open' : 'all'; load(); });
+  const findPM = async (id) => (await api.get('/maintenance/pm?status=all')).find((p) => p.id === id);
+  bind(root, 'click', '[data-tab]', (e, b) => { f.tab = b.dataset.tab; f.status = f.tab === 'assets' ? 'all' : 'open'; load(); });
   root.querySelector('[data-status]').onchange = (e) => { f.status = e.target.value; load(); };
   let qt; root.querySelector('[data-q]').oninput = (e) => { clearTimeout(qt); qt = setTimeout(() => { f.q = e.target.value.trim(); load(); }, 250); };
   bind(root, 'click', '[data-raise]', () => raiseTicket(null, summary, load));
   bind(root, 'click', '[data-raise-for]', (e, b) => raiseTicket(+b.dataset.raiseFor, summary, load));
   bind(root, 'click', '[data-new-asset]', () => assetForm(null, summary, load));
+  bind(root, 'click', '[data-new-pm]', () => pmForm(load));
   bind(root, 'click', '[data-edit-asset]', async (e, b) => { const id = +b.closest('tr').dataset.id; const a = (await api.get('/maintenance/assets')).find((x) => x.id === id); assetForm(a, summary, load); });
   bind(root, 'click', '[data-work]', async (e, b) => workTicket(await findTicket(+b.closest('tr').dataset.id), load));
-  return live({ topics: ['maintenance'], events: ['asset.created', 'asset.updated', 'maintenance.ticket'], load });
+  bind(root, 'click', '[data-complete-pm]', async (e, b) => completePM(await findPM(+b.closest('tr').dataset.id), load));
+  bind(root, 'click', '[data-cancel-pm]', async (e, b) => cancelPM(await findPM(+b.closest('tr').dataset.id), load));
+  return live({ topics: ['maintenance'], events: ['asset.created', 'asset.updated', 'maintenance.ticket', 'maintenance.pm'], load });
 }
 
 async function raiseTicket(assetId, summary, after) {
@@ -149,11 +166,80 @@ function assetForm(a, summary, after) {
   });
 }
 
+async function pmForm(after) {
+  const assets = (await api.get('/maintenance/assets')).filter((a) => a.status !== 'retired');
+  const staff = (state.meta.staff || []).filter((s) => ['maintenance', 'admin', 'store'].includes(s.role));
+  if (!assets.length) return toast('Add an active asset before scheduling preventive maintenance', 'warning');
+  modal({
+    title: 'Schedule preventive maintenance', subtitle: 'Plan the work now; completion creates a permanent service-history entry.', size: 'lg',
+    body: `<form data-pmf class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div class="md:col-span-2"><label class="field-label">Asset *</label><select class="field" name="asset_id" required><option value="">Select equipment</option>
+        ${assets.map((a) => `<option value="${a.id}">${esc(a.asset_code)} · ${esc(a.name)}${a.location ? ` — ${esc(a.location)}` : ''}</option>`).join('')}</select></div>
+      <div class="md:col-span-2"><label class="field-label">Service plan *</label><input class="field" name="title" required placeholder="e.g. Quarterly performance and safety check"></div>
+      <div><label class="field-label">Scheduled date *</label><input class="field" type="date" name="scheduled_date" required value="${new Date().toISOString().slice(0, 10)}"></div>
+      <div><label class="field-label">Repeat interval (days)</label><input class="field" type="number" name="interval_days" min="1" max="3650" step="1" placeholder="Blank for one-off service"></div>
+      <div><label class="field-label">Assigned to</label><select class="field" name="assigned_to"><option value="">—</option>${staff.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></div>
+      <div class="md:col-span-2"><label class="field-label">Checklist / instructions</label><textarea class="field" name="checklist" rows="4" placeholder="Inspection, calibration, cleaning, electrical safety and performance checks"></textarea></div>
+    </form>`,
+    footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Schedule</button>',
+    onMount(el, close) {
+      el.querySelector('[data-save]').onclick = async (ev) => {
+        const form = el.querySelector('[data-pmf]'); if (!form.reportValidity()) return;
+        const btn = ev.currentTarget; busy(btn, true);
+        try { await api.post('/maintenance/pm', Object.fromEntries(new FormData(form))); close(); toast('Preventive maintenance scheduled', 'success'); after(); }
+        catch (e) { apiError(e); busy(btn, false); }
+      };
+    },
+  });
+}
+
+function completePM(p, after) {
+  if (!p) return;
+  modal({
+    title: `Complete service — ${p.asset_code}`, subtitle: `${esc(p.asset_name)} · ${esc(p.title)}`, size: 'md',
+    body: `<form data-pmc class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="field-label">Service date *</label><input class="field" type="date" name="service_date" required value="${new Date().toISOString().slice(0, 10)}"></div>
+        <div><label class="field-label">Next service due</label><input class="field" type="date" name="next_service_date"><div class="field-help">Calculated from the repeat interval if left blank.</div></div>
+      </div>
+      <div><label class="field-label">Work performed and checks completed *</label><textarea class="field" name="work_done" rows="4" required>${esc(p.checklist || '')}</textarea></div>
+      <div class="grid grid-cols-2 gap-3"><div><label class="field-label">Vendor / service reference</label><input class="field" name="vendor_reference"></div>
+        <div><label class="field-label">Cost (₹)</label><input class="field" type="number" min="0" step="0.01" name="cost"></div></div>
+    </form>`,
+    footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Complete service</button>',
+    onMount(el, close) {
+      el.querySelector('[data-save]').onclick = async (ev) => {
+        const form = el.querySelector('[data-pmc]'); if (!form.reportValidity()) return;
+        const btn = ev.currentTarget; busy(btn, true);
+        try { await api.post(`/maintenance/pm/${p.id}/complete`, Object.fromEntries(new FormData(form))); close(); toast('Service completed and asset dates updated', 'success'); after(); }
+        catch (e) { apiError(e); busy(btn, false); }
+      };
+    },
+  });
+}
+
+function cancelPM(p, after) {
+  if (!p) return;
+  modal({
+    title: `Cancel scheduled service — ${p.asset_code}`, subtitle: esc(p.title), size: 'md',
+    body: '<form data-pmx><label class="field-label">Cancellation reason *</label><textarea class="field" name="reason" rows="3" required></textarea></form>',
+    footer: '<button class="btn-secondary" data-close>Keep schedule</button><button class="btn-danger" data-save>Cancel service</button>',
+    onMount(el, close) {
+      el.querySelector('[data-save]').onclick = async (ev) => {
+        const form = el.querySelector('[data-pmx]'); if (!form.reportValidity()) return;
+        const btn = ev.currentTarget; busy(btn, true);
+        try { await api.post(`/maintenance/pm/${p.id}/cancel`, Object.fromEntries(new FormData(form))); close(); toast('Scheduled service cancelled', 'success'); after(); }
+        catch (e) { apiError(e); busy(btn, false); }
+      };
+    },
+  });
+}
+
 function workTicket(t, after) {
   if (!t) return;
   const staff = (state.meta.staff || []).filter((s) => ['maintenance', 'admin', 'store'].includes(s.role));
   modal({
-    title: `${t.ticket_no} — ${t.title}`, subtitle: `${t.asset_name || 'General'}${t.location ? ` · ${t.location}` : ''} · raised by ${t.raised_by_name || '—'}`, size: 'md',
+    title: `${t.ticket_no} — ${t.title}`, subtitle: `${esc(t.asset_name || 'General')}${t.location ? ` · ${t.location}` : ''} · raised by ${t.raised_by_name || '—'}`, size: 'md',
     body: `<form data-wf class="space-y-3">
       <div class="flex flex-wrap gap-2 items-center">${tag(t.status)} ${tag(t.priority)}</div>
       <div class="grid grid-cols-2 gap-3">

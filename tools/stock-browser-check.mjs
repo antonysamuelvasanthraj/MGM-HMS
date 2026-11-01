@@ -1,0 +1,15 @@
+import {DatabaseSync} from 'node:sqlite';
+const db=new DatabaseSync('data/surelyhms.db',{readOnly:true});
+const session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
+db.close();
+const targets=await fetch('http://127.0.0.1:9559/json').then(r=>r.json());
+const target=targets.find(t=>t.type==='page' && t.url.startsWith('http://localhost:4300'));
+const ws=new WebSocket(target.webSocketDebuggerUrl);
+await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+let seq=0;const pending=new Map();
+ws.addEventListener('message',event=>{const d=JSON.parse(event.data);if(pending.has(d.id)){pending.get(d.id)(d);pending.delete(d.id);}});
+const send=(method,params={})=>new Promise(resolve=>{const id=++seq;pending.set(id,resolve);ws.send(JSON.stringify({id,method,params}));});
+await send('Runtime.evaluate',{expression:`localStorage.setItem('surely_token',${JSON.stringify(session.token)})`});
+await send('Page.reload',{ignoreCache:true});
+await new Promise(resolve=>setTimeout(resolve,1500));
+const result=await send('Runtime.evaluate',{expression:`(async()=>{try{const api=await import('/src/api.js');api.setToken(localStorage.getItem('surely_token'));const {mount}=await import('/src/views/stock.js');await mount({host:document.getElementById('view'),query:{}});await new Promise(r=>setTimeout(r,700));const cards=[...document.querySelectorAll('[data-stock-location]')].map(e=>e.dataset.stockLocation);document.querySelector('[data-stock-location=OP]').click();await new Promise(r=>setTimeout(r,700));const rowLocations=[...document.querySelectorAll('[data-rows] tr')].map(r=>r.querySelector('td:nth-child(2)')?.textContent.trim()).filter(Boolean);document.querySelector('[data-print-stock]').click();await new Promise(r=>setTimeout(r,500));return {cards,selected:document.querySelector('[data-f=location]')?.value,rowLocations,printTitle:document.querySelector('[role=dialog] h2')?.textContent,printReady:document.querySelector('[data-print-document]')?.disabled===false};}catch(e){return {error:e.message,stack:e.stack};}})()`,awaitPromise:true,returnByValue:true});console.log(JSON.stringify(result.result));const value=result.result?.result?.value;if(value?.selected!=='OP' || !value?.printReady)throw Error('Stock page browser check failed');ws.close();

@@ -37,7 +37,7 @@ function view(acc, health) {
   return page({
     eyebrow: `${eyebrow('Diagnostics', 'key')} ${liveChip()}`,
     title: 'My Access & Diagnostics',
-    subtitle: 'Exactly what this account can reach, the permissions behind it, and whether this workstation is healthy.',
+    subtitle: 'What this login can open, and whether this computer is connected.',
     body: `
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         ${[{ label: 'Role', value: titleCase(u.role), icon: 'shield' },

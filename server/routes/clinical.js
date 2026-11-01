@@ -2,12 +2,14 @@ import { Router } from 'express';
 import {
   h, fail, all, get, one, insert, update, run, nextNo, today, where, emit, num, money,
   recalcBill, patientCard, tx, setting, nowIso, requireOrderClearance,
-priceFor, callGate, } from '../lib.js';
+priceFor, callGate, REQUESTED_BY_SQL, } from '../lib.js';
 import { billNewToPayer } from '../payer-billing.js';
 import { ipBill } from '../ipd-charges.js';
 import { activeAssignment, applyPackage } from '../packages.js';
 import { requireAuth, requirePerm, requireAnyPerm, can } from '../auth.js';
 import { encounterView } from './opd.js';
+import { orderSourceFor, SOURCE_LABEL, paperAllowed } from '../operating-mode.js';
+import {visitBillingCategory} from '../payer-context.js';
 
 export const clinical = Router();
 const TOPICS = ['clinical', 'queue', 'dashboard'];
@@ -135,7 +137,7 @@ clinical.get('/orders', requirePerm('order.view'), h((req) => {
   const w = extra.length ? `WHERE ${extra.join(' AND ')}` : '';
   return all(
     `SELECT o.*, p.uhid, p.name patient_name, p.gender, p.age_years, p.mobile,
-            u.name ordered_by_name, v.name verified_by_name, s.name service_name, s.price, s.tat_minutes, s.sample_type,
+            u.name ordered_by_name, ${REQUESTED_BY_SQL} requested_by_name, v.name verified_by_name, s.name service_name, s.price, s.tat_minutes, s.sample_type,
             e.token_no, e.encounter_no, e.kind encounter_kind,
             (SELECT count(*) FROM lab_results r WHERE r.order_id=o.id) result_count,
             (SELECT count(*) FROM lab_results r WHERE r.order_id=o.id AND r.flag='critical') critical_count,
@@ -155,52 +157,91 @@ clinical.post('/orders', requirePerm('order.create'), h((req) => {
   const b = req.body || {};
   const e = get('SELECT * FROM encounters WHERE id=?', num(b.encounter_id));
   if (!e) fail(400, 'encounter_required');
+  return placeOrders(req, e, b);
+}));
+
+/**
+ * Bill orders on a visit: the running IP / ER bill when there is one, otherwise a new lab / imaging /
+ * OP bill. billable: [{ order_id, service }]. Shared by placeOrders and the reception investigation
+ * queue's "Generate bill" for orders placed without one.
+ */
+export function billOrderRows(req, e, billable) {
+  const admission = e.kind === 'IP' ? get("SELECT * FROM admissions WHERE encounter_id=? AND status<>'discharged'", e.id) : null;
+  const running = admission ? ipBill(admission)
+    : e.kind === 'EMG' ? get("SELECT * FROM bills WHERE encounter_id=? AND bill_type='ER' AND status<>'cancelled' ORDER BY id DESC LIMIT 1", e.id) : null;
+  const bid = running ? running.id : insert('bills', {
+    bill_no: nextNo('bill'), patient_id: e.patient_id, encounter_id: e.id,
+    bill_type: e.kind === 'EMG' ? 'ER' : billable[0].service.category === 'lab' ? 'LAB'
+             : billable[0].service.category === 'imaging' ? 'IMAGING' : 'OP',
+    status: 'unpaid', payer_type: visitBillingCategory(e.patient_id,e.id),
+    created_by: req.user.id, ...(e.kind === 'EMG' ? { source: 'emergency', source_id: get('SELECT id FROM emergency_cases WHERE encounter_id=?', e.id)?.id || null } : {}),
+  });
+  for (const { order_id, service } of billable) {
+    insert('bill_items', {
+      bill_id: bid, service_id: service.id, order_id,
+      description: service.name, category: service.category,
+      qty: 1, rate: priceFor(service, e.patient_id), gst_pct: service.gst_pct, amount: priceFor(service, e.patient_id),
+    });
+    update('orders', order_id, { billed: 1 });
+  }
+  return recalcBill(bid);
+}
+
+/**
+ * Create orders on a visit and (unless b.bill === false) bill them. Shared by the doctor's
+ * order screen and reception billing of lab / imaging tests (manual workflow).
+ * opts.referredBy: who asked for the test when the orderer is not the doctor (paper prescription).
+ */
+export function placeOrders(req, e, b, opts = {}) {
   const items = Array.isArray(b.items) ? b.items : [b];
   if (!items.length) fail(400, 'items_required');
 
+  const source = orderSourceFor(req.user, opts.source);
+  const patientPayer = visitBillingCategory(e.patient_id,e.id);
+  const emergency = e.kind === 'EMG' || e.priority === 'emergency';
   return tx(() => {
     const created = [];
     const billable = [];
+    const duplicates = [];
     for (const it of items) {
       const svc = it.service_id ? get('SELECT * FROM services WHERE id=?', num(it.service_id)) : null;
       const category = it.category || svc?.category || 'procedure';
+      // Hybrid working means the same test can arrive twice — once from the doctor's screen and once
+      // from the paper slip at reception. An open order for the same test on this visit is held back
+      // unless the person confirms a second one is really wanted.
+      let duplicateOf = null;
+      if (svc && ['lab', 'imaging'].includes(category) && setting('duplicate_order_guard') !== '0') {
+        const open = get(`SELECT id, order_no, label, order_source, ordered_at, status FROM orders WHERE encounter_id=? AND service_id=?
+          AND status NOT IN ('cancelled','verified','dispensed') ORDER BY id DESC LIMIT 1`, e.id, svc.id);
+        if (open && !(it.confirm_duplicate || b.confirm_duplicate)) { duplicates.push({ ...open, source_label: SOURCE_LABEL[open.order_source] || open.order_source }); continue; }
+        duplicateOf = open?.id || null;
+      }
+      // Work the hospital sends out. A tie-up lab still bills here as usual; a scan the hospital has no
+      // machine for is paid by the patient at the outside centre, so it must raise no charge and must
+      // never be held for a payment this hospital is not collecting.
+      const providerId = num(it.provider_id, 0) || svc?.provider_id || null;
+      const provider = providerId ? get('SELECT * FROM diagnostic_providers WHERE id=? AND active=1', providerId) : null;
+      const paidOutside = provider?.billing === 'outside';
       const oid = insert('orders', {
         order_no: nextNo('order'), encounter_id: e.id, patient_id: e.patient_id,
-        service_id: svc?.id || null, category,
+        service_id: svc?.id || null, category, provider_id: provider?.id || null,
         label: it.label || svc?.name || 'Service',
         priority: it.priority || 'routine', clinical_note: it.clinical_note,
         // inpatient and emergency work is never held for money: it goes on the running IP / ER bill
-        status: ['lab','imaging'].includes(category) && !['EMG', 'IP'].includes(e.kind) && e.priority !== 'emergency' && (!svc || svc.price > 0) ? 'awaiting_payment' : 'ordered',
-        ordered_by: req.user.id,
+        status: !paidOutside && ['lab','imaging'].includes(category) && !['EMG', 'IP'].includes(e.kind) && e.priority !== 'emergency' && (!svc || svc.price > 0)
+          && setting('release_op_rule') !== 'immediate' ? 'awaiting_payment' : 'ordered',
+        ordered_by: req.user.id, referred_by: opts.referredBy || null,
+        order_source: source, duplicate_of: duplicateOf,
+        auth_status: emergency ? 'emergency_override' : ['insurance', 'aarogyasri', 'corporate', 'trust'].includes(patientPayer) && ['lab', 'imaging'].includes(category) ? 'pending' : 'not_required',
         sample_id: category === 'lab' ? `S${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 90 + 10)}` : null,
         modality: category === 'imaging' ? (svc?.name || '').match(/USG|CT|MRI|ECG|Echo/i)?.[0]?.toUpperCase() || 'XR' : null,
       });
       created.push(oid);
-      if (svc) billable.push({ order_id: oid, service: svc });
+      if (svc && !paidOutside) billable.push({ order_id: oid, service: svc });
     }
+    if (duplicates.length) fail(409, 'duplicate_order', { duplicates });
 
-    let bill = null;
-    if (b.bill !== false && billable.length) {
-      const admission = e.kind === 'IP' ? get("SELECT * FROM admissions WHERE encounter_id=? AND status<>'discharged'", e.id) : null;
-      const running = admission ? ipBill(admission)
-        : e.kind === 'EMG' ? get("SELECT * FROM bills WHERE encounter_id=? AND bill_type='ER' AND status<>'cancelled' ORDER BY id DESC LIMIT 1", e.id) : null;
-      const bid = running ? running.id : insert('bills', {
-        bill_no: nextNo('bill'), patient_id: e.patient_id, encounter_id: e.id,
-        bill_type: e.kind === 'EMG' ? 'ER' : billable[0].service.category === 'lab' ? 'LAB'
-                 : billable[0].service.category === 'imaging' ? 'IMAGING' : 'OP',
-        status: 'unpaid', payer_type: get('SELECT payer_type FROM patients WHERE id=?', e.patient_id).payer_type,
-        created_by: req.user.id, ...(e.kind === 'EMG' ? { source: 'emergency', source_id: get('SELECT id FROM emergency_cases WHERE encounter_id=?', e.id)?.id || null } : {}),
-      });
-      for (const { order_id, service } of billable) {
-        insert('bill_items', {
-          bill_id: bid, service_id: service.id, order_id,
-          description: service.name, category: service.category,
-          qty: 1, rate: priceFor(service, e.patient_id), gst_pct: service.gst_pct, amount: priceFor(service, e.patient_id),
-        });
-        update('orders', order_id, { billed: 1 });
-      }
-      bill = recalcBill(bid);
-    }
+    let bill = b.bill !== false && billable.length ? billOrderRows(req, e, billable) : null;
 
     if (e.stage === 'consulted') update('encounters', e.id, { stage: 'services_pending' });
     const view = encounterView(e.id);
@@ -213,6 +254,52 @@ clinical.post('/orders', requirePerm('order.create'), h((req) => {
     if (bill?.id && billNewToPayer(req, [bill.id]).length) bill = get('SELECT * FROM bills WHERE id=?', bill.id);
     if (bill?.id && applyPackage(req, activeAssignment({ encounterId: e.id }))) bill = get('SELECT * FROM bills WHERE id=?', bill.id);
     return { encounter: view, orders: created.map((id) => get('SELECT * FROM orders WHERE id=?', id)), bill };
+  });
+}
+
+/**
+ * Manual workflow (Settings → workflow_lab = 'reception'): reception bills lab / imaging tests
+ * from a paper prescription or an outside doctor's slip. The tests reach the lab worklist exactly
+ * like a doctor's order; the lab portal is unchanged. A walk-in without a visit today gets a
+ * diagnostics-only visit (no consultation, no token).
+ */
+clinical.post('/reception/diagnostics', requireAuth, h((req) => {
+  if (!paperAllowed('lab')) fail(409, 'reception_lab_billing_disabled');
+  if (!can(req.user, 'billing.create') && !can(req.user, 'op.register')) fail(403, 'forbidden', { need: 'billing.create' });
+  const b = req.body || {};
+  const patient = get('SELECT * FROM patients WHERE id=?', num(b.patient_id)) || fail(400, 'patient_required');
+  const items = (Array.isArray(b.items) ? b.items : []).map((it) => {
+    const svc = get('SELECT * FROM services WHERE id=? AND active=1', num(it.service_id));
+    if (!svc || !['lab', 'imaging'].includes(svc.category)) fail(400, 'lab_or_imaging_only');
+    return { service_id: svc.id, priority: ['urgent', 'stat'].includes(it.priority) ? it.priority : 'routine', clinical_note: b.clinical_note || null };
+  });
+  if (!items.length) fail(400, 'items_required');
+  const doctor = b.doctor_id ? get("SELECT id, name, department_id FROM users WHERE id=? AND role='doctor'", num(b.doctor_id)) : null;
+  const referredBy = String(b.referred_by || '').trim() || (doctor ? doctor.name : '');
+  if (!referredBy) fail(400, 'referred_by_required');
+  return tx(() => {
+    let e = b.encounter_id ? get('SELECT * FROM encounters WHERE id=? AND patient_id=?', num(b.encounter_id), patient.id) : null;
+    if (b.encounter_id && !e) fail(404, 'encounter_not_found');
+    // an admitted or emergency patient's tests go on the running IP / ER bill (never held for money),
+    // otherwise on today's open OP visit
+    if (!e) e = get(`SELECT e.* FROM admissions a JOIN encounters e ON e.id=a.encounter_id WHERE a.patient_id=? AND a.status<>'discharged' ORDER BY a.id DESC LIMIT 1`, patient.id)
+      || get(`SELECT e.* FROM emergency_cases c JOIN encounters e ON e.id=c.encounter_id WHERE c.patient_id=? AND c.closed_at IS NULL AND e.stage NOT IN ('closed','cancelled') ORDER BY c.id DESC LIMIT 1`, patient.id)
+      || get(`SELECT * FROM encounters WHERE patient_id=? AND kind='OP' AND visit_date=? AND stage NOT IN ('closed','cancelled') ORDER BY id DESC LIMIT 1`, patient.id, today());
+    let created = false;
+    if (!e) {
+      const eid = insert('encounters', {
+        encounter_no: nextNo('encounter'), patient_id: patient.id, kind: 'OP', visit_type: 'new',
+        department_id: doctor?.department_id || get("SELECT id FROM departments WHERE code='LAB'")?.id || null, doctor_id: doctor?.id || null,
+        referred_by: referredBy, stage: 'services_pending', payment_status: 'pending',
+        counter_id: req.user.counter_id || null, created_by: req.user.id, remarks: 'Diagnostics only — billed at reception (no consultation)',
+      });
+      e = get('SELECT * FROM encounters WHERE id=?', eid); created = true;
+      emit(req, { topics: ['queue', 'opd', 'billing', `patient:${patient.id}`], event: 'encounter.created', data: { id: eid },
+        action: 'op.register.diagnostics', entity: 'encounters', entityId: eid,
+        detail: { before: null, after: { encounter_no: e.encounter_no, referred_by: referredBy }, reason: 'Walk-in for tests billed at reception' } });
+    }
+    const r = placeOrders(req, e, { items, bill: true, confirm_duplicate: !!b.confirm_duplicate }, { referredBy, source: 'paper_prescription' });
+    return { ...r, created_visit: created };
   });
 }));
 
@@ -264,7 +351,10 @@ export function closeEncounterIfDone(encounterId) {
   if (!e || e.stage !== 'services_pending') return;
   const open = one(
     `SELECT count(*) FROM orders WHERE encounter_id=? AND status NOT IN ('verified','dispensed','cancelled')`, encounterId);
-  if (!open) update('encounters', encounterId, { stage: 'consulted' });
+  if (open) return;
+  // a tests-only visit billed at reception has no consultation to come back to: it is finished
+  const testsOnly = /^Diagnostics only/.test(e.remarks || '') && !one('SELECT count(*) FROM consultations WHERE encounter_id=?', encounterId);
+  update('encounters', encounterId, testsOnly ? { stage: 'closed', closed_at: nowIso() } : { stage: 'consulted' });
 }
 
 /* ---------------------------------------------------------- prescriptions */

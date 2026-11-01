@@ -111,7 +111,7 @@ payers.get('/payer-rates/patient/:id', requireAuth, h((req) => {
 
 /* ---------------------------------------------------------------- packages */
 
-const PKG_FIELDS = ['code', 'name', 'category', 'price', 'mrp', 'validity_days', 'description', 'payer_id', 'hospital_package_id', 'payer_code', 'los_days', 'inclusions', 'exclusions', 'active', 'cover_categories', 'pharmacy_limit'];
+const PKG_FIELDS = ['code', 'name', 'category', 'price', 'mrp', 'validity_days', 'description', 'payer_id', 'hospital_package_id', 'payer_code', 'los_days', 'inclusions', 'exclusions', 'active', 'cover_categories', 'pharmacy_limit','excluded_categories'];
 function cleanPackage(b, partial = false) {
   const row = {};
   for (const k of PKG_FIELDS) if (k in b) row[k] = typeof b[k] === 'string' ? b[k].trim() || null : b[k];
@@ -124,6 +124,12 @@ function cleanPackage(b, partial = false) {
   if ('hospital_package_id' in row) row.hospital_package_id = row.hospital_package_id ? num(row.hospital_package_id) : null;
   if ('active' in row) row.active = row.active ? 1 : 0;
   // coverage rules: which charge categories the package pays for (none chosen = all-inclusive), and a medicine limit
+  if('excluded_categories' in row){
+    const list=Array.isArray(row.excluded_categories)?row.excluded_categories:[];
+    const allowed=[...COVER_CATEGORIES.map(([key])=>key),'ot'];
+    if(list.some(key=>!allowed.includes(key)))fail(400,'package_exclusion_invalid');
+    row.excluded_categories=JSON.stringify([...new Set(list)]);
+  }
   if ('cover_categories' in row) {
     const list = Array.isArray(row.cover_categories) ? row.cover_categories : row.cover_categories ? String(row.cover_categories).split(',') : null;
     const ok = COVER_CATEGORIES.map(([k]) => k);

@@ -58,7 +58,7 @@ function layout() {
       <span class="font-data-mono text-label-sm text-on-surface-variant">Desk ${esc(state.user.counter?.name || 'unassigned')}</span>
       ${liveChip()}`,
     title: 'OP Fee Collection',
-    subtitle: 'Outstanding consultation and service bills for the day. Collecting here posts to the same receipts ledger as every other counter.',
+    subtitle: 'Bills waiting to be collected today.',
     actions: `<a href="/op-registration" class="btn-secondary">
         <span class="material-symbols-outlined text-[18px]">how_to_reg</span> Registration</a>
       <button class="btn-secondary" data-export>

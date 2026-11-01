@@ -61,7 +61,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Reception board', 'timeline')} ${liveChip()}`,
     title: 'Visit Tracking',
-    subtitle: 'One row per visit, four independent states. A completed consultation does not mean the reports are ready or the bill is settled.',
+    subtitle: 'Where every patient is today — visit, tests and bill.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export day</button>
       <a href="/op-registration" class="btn-primary"><span class="material-symbols-outlined text-[18px]">how_to_reg</span> New registration</a>`,
     body: `

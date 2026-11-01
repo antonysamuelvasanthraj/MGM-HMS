@@ -42,3 +42,8 @@ whisper/*.zip
 *.dll
 Thumbs.db
 .DS_Store
+
+# Staff logins and demo material (never publish), LabSmart copyrighted export
+DEMO_DOCUMENTS/
+docs/labsmart_preserved/
+*.docx

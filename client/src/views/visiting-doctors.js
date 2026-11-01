@@ -8,7 +8,7 @@ import { page, eyebrow, liveChip, card, live, mountPage, api, can, esc, toast, a
   money, fmtDate, fmtDateTime, modal, confirmDialog, pill, $, state, modeLabel,
 } from './_kit.js';
 
-const canEdit = () => can('admin.view') || can('finance.write');
+const canEdit = () => can('admin.write') || can('finance.write');
 const canPay = () => can('finance.write') || can('admin.write');
 const rule = (d) => (d.share_type === 'fixed' ? `${money(d.share_value)} per case` : `${d.share_value}%`);
 
@@ -17,8 +17,8 @@ export async function mount(ctx) {
   const root = mountPage(ctx, page({
     eyebrow: `${eyebrow('Finance', 'stethoscope')} ${liveChip()}`,
     title: 'Visiting doctors',
-    subtitle: 'Outside doctors earn their share only on what their cases actually collect. Post a statement to accrue it, then pay with TDS withheld.',
-    actions: canEdit() ? '<button class="btn-primary" data-add><span class="material-symbols-outlined text-[18px]">person_add</span>Add visiting doctor</button>' : '',
+    subtitle: 'Visiting doctors\' shares, statements and payouts.',
+    actions: `<a class="btn-secondary" href="/reports?report=visiting_doctor_work">Clinical fee report</a><a class="btn-secondary" href="/reports?report=visiting_doctor_payments">Payout report</a>${canEdit() ? '<button class="btn-primary" data-add><span class="material-symbols-outlined text-[18px]">person_add</span>Add visiting doctor</button>' : ''}`,
     body: `${kpiRow([], 4)}${card({ title: 'Doctors and what they are owed', subtitle: 'Earned = share of the attributed lines × the part of each bill collected', pad: false, body: '<div data-list></div>' })}`,
   }));
 
@@ -71,6 +71,12 @@ function editDoctor(d, after) {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         ${f('name', 'Name *', 'text', 'required')}${f('speciality', 'Speciality')}${f('qualification', 'Qualification')}
         ${f('reg_no', 'Registration no.')}${f('mobile', 'Mobile', 'tel')}${f('email', 'Email', 'email')}
+        ${f('hospital', 'Primary hospital')}
+        <div><label class="field-label">Doctor type</label><select class="field" name="doctor_type">${['inhouse','visiting','external'].map(v => `<option value="${v}" ${v === (d.doctor_type || 'visiting') ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+        ${f('schedule', 'Visiting schedule')}
+        ${f('consultation_fee', 'Consultation fee', 'number', 'min="0" step="0.01"')}${f('procedure_fee', 'Procedure fee', 'number', 'min="0" step="0.01"')}
+        ${f('session_fee', 'Session fee', 'number', 'min="0" step="0.01"')}${f('day_fee', 'Daily fee', 'number', 'min="0" step="0.01"')}
+        ${f('settlement_terms', 'Settlement terms')}${f('agreement_reference', 'Clinical fee agreement reference')}
         ${f('pan', 'PAN (for TDS)')}<div class="md:col-span-2">${f('bank_details', 'Bank / UPI for payouts')}</div>
       </div>
       <fieldset class="rounded-lg border border-outline-variant p-3"><legend class="px-1 field-label !mb-0">Share of the work they do</legend>
@@ -122,6 +128,7 @@ async function openLedger(id, after) {
         ? `Reconciled: Visiting Doctors Payable in the books (${money(l.books_payable_all, 2)}) matches the statements less payouts for all visiting doctors.`
         : `Not reconciled: the books show ${money(l.books_payable_all, 2)} payable, the ledger ${money(l.ledger_payable_all, 2)}. Check Accounts for manual entries to account 2700.`}</p>
       <div class="field-label">Attributed work</div>
+      ${l.adjustments?.length ? `<div class="field-label mt-2">Approved fee adjustments</div><table class="tbl"><tbody>${l.adjustments.map(a=>`<tr><td>${esc(a.approved_at)}</td><td>${esc(a.reason)}</td><td>${esc(a.reference||'')}</td><td class="num">${money(a.amount,2)}</td><td>${esc(a.approved_by_name)}</td></tr>`).join('')}</tbody></table>` : ''}
       ${l.lines.length ? `<div class="max-h-[40vh] overflow-auto"><table class="tbl"><thead><tr><th>Bill</th><th>Patient</th><th>Line</th><th class="text-right">Fee</th><th>Share</th><th class="text-right">Collected</th><th class="text-right">Earned</th></tr></thead><tbody>
         ${l.lines.map((x) => `<tr><td class="font-data-mono">${esc(x.bill_no)}<div class="text-label-sm text-on-surface-variant">${fmtDate(x.bill_date)}</div></td>
           <td class="text-body-md">${esc(x.patient)}<div class="text-label-sm text-on-surface-variant">${esc(x.uhid)}</div></td>
@@ -134,9 +141,11 @@ async function openLedger(id, after) {
         <div><div class="field-label">Payouts</div>${l.payouts.length ? `<table class="tbl"><tbody>${l.payouts.map((p) => `<tr><td class="font-data-mono">${esc(p.payout_no)}</td><td>${fmtDateTime(p.paid_at)}</td><td class="num">${money(p.gross, 2)}</td><td class="text-body-sm">TDS ${money(p.tds, 2)} · net ${money(p.net, 2)} · ${esc(modeLabel(p.mode))}</td></tr>`).join('')}</tbody></table>` : '<p class="text-body-sm text-on-surface-variant">None yet.</p>'}</div>
       </div>`,
     footer: `<button class="btn-secondary" data-close>Close</button>
+      ${canPay() ? '<button class="btn-secondary" data-adjust-fee>Approve fee adjustment</button>' : ''}
       ${canPay() && Math.abs(l.not_yet_accrued) >= 0.01 ? `<button class="btn-secondary" data-stmt>Post statement (${money(l.not_yet_accrued, 2)})</button>` : ''}
       ${canPay() && l.payable >= 0.01 ? '<button class="btn-primary" data-pay>Pay</button>' : ''}`,
     onMount(root, close) {
+      root.querySelector('[data-adjust-fee]')?.addEventListener('click',()=>modal({title:'Approve clinical fee adjustment',stack:true,body:'<form data-adjustment class="space-y-3"><div><label class="field-label">Amount (+ increase, − deduction)</label><input class="field" name="amount" type="number" step="0.01" required></div><div><label class="field-label">Reason for clinical fee adjustment *</label><input class="field" name="reason" required></div><div><label class="field-label">Agreement / supporting reference</label><input class="field" name="reference"></div></form>',footer:'<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-approve>Approve adjustment</button>',onMount(dialog,done){dialog.querySelector('[data-approve]').onclick=async()=>{const form=dialog.querySelector('form');if(!form.reportValidity())return;try{await api.post(`/visiting-doctors/${id}/adjustments`,Object.fromEntries(new FormData(form)));done();close();after();openLedger(id,after);}catch(e){apiError(e);}};}}));
       root.querySelector('[data-stmt]')?.addEventListener('click', async (ev) => {
         const ok = await confirmDialog({ title: 'Post this statement?', message: `${money(l.not_yet_accrued, 2)} is booked to Doctor Professional Fees and Visiting Doctors Payable.${l.not_yet_accrued < 0 ? ' It is negative because refunds reduced what was collected.' : ''}`, confirmLabel: 'Post statement' });
         if (!ok) return;

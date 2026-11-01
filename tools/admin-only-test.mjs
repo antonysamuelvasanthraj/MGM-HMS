@@ -66,6 +66,9 @@ try {
     const structural = new Set(['settings', 'departments', 'users', 'counters', 'services', 'lab_params', 'wards', 'beds', 'accounts', 'sequences']);
     for (const { name } of database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all()) {
       if (structural.has(name)) continue;
+      // the lab catalogue's packages are master definitions, unpriced (unusable) until the hospital prices them
+      if (name === 'packages' && database.prepare("SELECT count(*) AS n FROM packages WHERE category<>'Lab package' OR price<>0").get().n === 0) continue;
+      if (name === 'package_items' && database.prepare("SELECT count(*) AS n FROM package_items i JOIN packages p ON p.id=i.package_id WHERE p.category<>'Lab package' OR p.price<>0").get().n === 0) continue;
       assert.equal(database.prepare(`SELECT count(*) AS n FROM "${name}"`).get().n, 0, `${name} must have no first-run records`);
       emptyTables++;
     }

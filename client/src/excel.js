@@ -2,7 +2,7 @@
  * Excel export without a library: SpreadsheetML (.xls) opens in Excel and
  * LibreOffice with one worksheet per section, real numbers and a header row.
  */
-import { toast } from './ui.js';
+import { toast, recordExport } from './ui.js';
 
 const x = (s) => String(s ?? '').replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
 const isNum = (c) => c.type === 'money' || c.type === 'number';
@@ -35,6 +35,7 @@ ${sheets.map(sheet).join('\n')}</Workbook>`;
   a.download = filename.endsWith('.xls') ? filename : `${filename}.xls`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  recordExport(a.download, sheets.reduce((n, s) => n + (s.rows?.length || 0), 0), 'excel');
   toast('Excel file downloaded', 'success');
 }
 

@@ -21,6 +21,8 @@
 import { all, get } from './db.js';
 import { settleBill, cancelSettlement, PAYERS } from './payments.js';
 import { isApprovedStage } from './payer-cases.js';
+import { effectiveCopay } from './payer-policy.js';
+import {billExclusions} from './payer-lines.js';
 
 const r2 = (v) => Math.round((+v + Number.EPSILON) * 100) / 100;
 const key = (billId, tag = 'payer') => `${tag}-${billId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -28,7 +30,7 @@ const modeOf = (c) => (c.payer_type === 'scheme' ? 'aarogyasri' : c.payer_type);
 
 /** Amount on a bill the patient pays whatever the payer approves (lines marked patient_pays), limited to the open balance. */
 function patientPays(bill) {
-  const v = get('SELECT coalesce(sum(coalesce(patient_pay_amount,amount)),0) v FROM bill_items WHERE bill_id=? AND patient_pays=1 AND amount>0', bill.id).v || 0;
+  const v = billExclusions(bill.id);
   return r2(Math.min(bill.balance, Math.max(0,v-bill.paid)));
 }
 
@@ -52,14 +54,17 @@ export function billCaseToPayer(req, claimId, { billIds = null, includeIp = fals
   if (pkg && c.admission_id && !includeIp && admissionOpen) return [];
 
   let room = Infinity;
-  const paidTowardCopay = all("SELECT b.paid, coalesce((SELECT sum(coalesce(patient_pay_amount,amount)) FROM bill_items WHERE bill_id=b.id AND patient_pays=1 AND amount>0),0) exclusions FROM bills b WHERE b.claim_id=? AND b.status<>'cancelled'",c.id).reduce((sum,b)=>sum+Math.max(0,b.paid-b.exclusions),0);
-  let copayRoom = r2(Math.max(0,(c.copay_amount || 0)-paidTowardCopay));
+  const paidTowardCopay = all("SELECT b.id,b.paid FROM bills b WHERE b.claim_id=? AND b.status<>'cancelled'",c.id).reduce((sum,b)=>sum+Math.max(0,b.paid-billExclusions(b.id)),0);
+  // the case co-pay includes the policy terms (deductible, co-pay %, room-rent limit, sub-limits)
+  const caseCopay = effectiveCopay(c);
+  let copayRoom = r2(Math.max(0,caseCopay-paidTowardCopay));
   if (c.approved > 0) room = Math.min(room, r2(c.approved - alreadyBilled(c, mode)));
-  if (pkg) room = Math.min(room, r2(Math.max(0,pkg.price-(c.copay_amount || 0)) - alreadyBilled(c, mode)));
+  if (pkg) room = Math.min(room, r2(Math.max(0,pkg.price-caseCopay) - alreadyBilled(c, mode)));
   const bills = all(`SELECT b.* FROM bills b WHERE b.claim_id=? AND b.status<>'cancelled' AND b.balance>0.005
       ${billIds ? `AND b.id IN (${billIds.map(() => '?').join(',')})` : ''} ORDER BY b.bill_type='IP', b.id`, c.id, ...(billIds || []));
   const moved = [];
-  let packageAdjustmentRoom = pkg ? Math.max(0,r2(get("SELECT coalesce(sum(b.total),0)-coalesce(sum((SELECT coalesce(sum(coalesce(patient_pay_amount,amount)),0) FROM bill_items WHERE bill_id=b.id AND patient_pays=1 AND amount>0)),0) value FROM bills b WHERE b.claim_id=? AND b.status<>'cancelled'",c.id).value-pkg.price-get("SELECT coalesce(sum(amount),0) value FROM bill_settlements WHERE claim_id=? AND status<>'cancelled' AND payer_name='Package adjustment'",c.id).value)) : 0;
+  const caseCoveredTotal=all("SELECT id,total FROM bills WHERE claim_id=? AND status<>'cancelled'",c.id).reduce((sum,b)=>sum+b.total-billExclusions(b.id),0);
+  let packageAdjustmentRoom=pkg?Math.max(0,r2(caseCoveredTotal-pkg.price-get("SELECT coalesce(sum(amount),0) value FROM bill_settlements WHERE claim_id=? AND status<>'cancelled' AND payer_name='Package adjustment'",c.id).value)):0;
   for (const b0 of bills) {
     if (b0.bill_type === 'IP' && !includeIp && get("SELECT 1 FROM admissions WHERE encounter_id=? AND status<>'discharged'", b0.encounter_id)) continue;
     const b = get('SELECT * FROM bills WHERE id=?', b0.id);

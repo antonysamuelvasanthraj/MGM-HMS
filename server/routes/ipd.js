@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import {
   h, fail, all, get, one, insert, update, run, nextNo, today, where, emit, num, money,
-  recalcBill, patientCard, tx, nowIso, priceFor, publish,
+  recalcBill, patientCard, tx, nowIso, priceFor, publish, setting,
 } from '../lib.js';
 import { requireAuth, requirePerm, requireAnyPerm, can } from '../auth.js';
 import { ensurePayerCase, isApprovedStage } from '../payer-cases.js';
@@ -11,6 +11,9 @@ import { accrueAdmission, accrueAll, startBedCharge, addCharge, stopCharge, tran
 
 import { admissionForUser, canReadAdmissionClinical } from '../admission-access.js';
 import { refund, takePayment } from '../payments.js';
+import { feeSnapshot } from '../doctor-fees.js';
+import { convertPayer, mayChangePayer, needsApproval } from '../payer-convert.js';
+import { paperAllowed } from '../operating-mode.js';
 
 export const ipd = Router();
 const TOPICS = ['ipd', 'dashboard'];
@@ -279,14 +282,21 @@ ipd.post('/admissions/:id/package', requireAuth, h((req) => tx(() => {
   if (a.status === 'discharged') fail(409, 'already_discharged');
   if (get("SELECT 1 FROM insurance_claims WHERE admission_id=? AND status<>'rejected' AND package_id IS NOT NULL", a.id)) fail(409, 'payer_case_has_package');
   const pkg = get('SELECT * FROM packages WHERE id=? AND active=1 AND payer_id IS NULL', num(req.body?.package_id)) || fail(400, 'package_unavailable');
+  const agreed=req.body?.agreed_price===undefined?pkg.price:Number(req.body.agreed_price);
+  if(!Number.isFinite(agreed)||agreed<0)fail(400,'package_price_invalid');
+  if(money(agreed)!==money(pkg.price)){
+    if(!can(req.user,'payment.authorize')&&!can(req.user,'billing.discount'))fail(403,'package_price_approval_required');
+    if(String(req.body?.notes || '').trim().length<5)fail(400,'package_price_reason_required');
+  }
   const bill = ipBill(a);
   const pa = assignPackage(req, { packageId: pkg.id, patientId: a.patient_id, encounterId: a.encounter_id, admissionId: a.id, billId: bill.id, notes: req.body?.notes || null });
-  insert('bill_items', { bill_id: bill.id, description: `Package — ${pkg.name}`, category: 'package', revenue_head: 'PACKAGE', qty: 1, rate: pkg.price, amount: pkg.price,
+  update('package_assignments',pa.id,{price:money(agreed)});pa.price=money(agreed);
+  insert('bill_items', { bill_id: bill.id, description: `Package — ${pkg.name}`, category: 'package', revenue_head: 'PACKAGE', qty: 1, rate: pa.price, amount: pa.price,
     created_by: req.user.id, created_at: nowIso() });
   update('bills', bill.id, { package_id: pkg.id });
   recalcBill(bill.id);
   emit(req, { topics: [...TOPICS, 'billing', `admission:${a.id}`], event: 'admission.updated', data: { id: a.id }, action: 'package.assign', entity: 'package_assignments', entityId: pa.id,
-    detail: { before: null, after: { package: pkg.name, price: pkg.price, ip_no: a.ip_no }, reason: req.body?.notes || 'Package chosen' } });
+    detail: { before: null, after: { package: pkg.name, standard_price:pkg.price,price:pa.price, ip_no: a.ip_no }, reason: req.body?.notes || 'Package chosen' } });
   return pa;
 })));
 
@@ -484,27 +494,18 @@ ipd.post('/admissions', requirePerm('ipd.admit'), h((req) => {
   });
 }));
 
-ipd.patch('/admissions/:id/payer', requirePerm('ipd.manage'), h(req => tx(() => {
+ipd.patch('/admissions/:id/payer', requireAuth, h(req => tx(() => {
+  if (!mayChangePayer(req.user, true)) fail(403, 'forbidden', { need: 'billing.payer_change' });
+  if (needsApproval(req.user)) fail(409, 'payer_change_needs_approval');
   const a=get('SELECT * FROM admissions WHERE id=?',+req.params.id) || fail(404,'admission_not_found');
   if(a.status==='discharged')fail(409,'already_discharged');
-  const b=req.body || {}, reason=String(b.reason || '').trim();
-  if(!reason)fail(400,'reason_required');
-  const category=b.financial_category;
-  if(!['self','credit','insurance','aarogyasri','corporate','trust'].includes(category))fail(400,'category_invalid');
-  const payer=b.payer_id?get('SELECT * FROM payers WHERE id=? AND active=1',num(b.payer_id)):null;
-  const normalized=payer?.payer_type==='tpa'?'insurance':payer?.payer_type;
-  if(!['self','credit'].includes(category) && (!payer || normalized!==category))fail(400,'payer_category_mismatch');
-  if(get("SELECT 1 FROM bill_settlements s JOIN bills bl ON bl.id=s.bill_id WHERE bl.encounter_id=? AND s.status<>'cancelled'",a.encounter_id))fail(409,'existing_settlements_need_review');
-  update('patients',a.patient_id,{payer_type:category,payer_id:payer?.id || null,payer_name:payer?.name || null,policy_no:b.policy_no || null});
-  update('admissions',a.id,{financial_category:category});
-  run("UPDATE bills SET payer_type=? WHERE encounter_id=? AND status<>'cancelled'",category,a.encounter_id);
-  for(const bill of all("SELECT id FROM bills WHERE encounter_id=? AND status<>'cancelled'",a.encounter_id))recalcBill(bill.id);
-  const c=ensurePayerCase(get('SELECT * FROM admissions WHERE id=?',a.id));
-  if(c && payer)update('insurance_claims',c.id,{payer_id:payer.id,tpa:payer.name,policy_no:b.policy_no || null,...(c.payer_id && c.payer_id!==payer.id?{status:'preauth_pending'}:{})});
-  if(c && ['self','credit'].includes(category))update('insurance_claims',c.id,{status:'rejected',stage_note:reason});
-  emit(req,{topics:[...TOPICS,'insurance','billing','accounts'],event:'admission.updated',action:'ipd.payer.convert',entity:'admissions',entityId:a.id,detail:{before:{financial_category:a.financial_category},after:{financial_category:category,payer_id:payer?.id || null},reason}});
+  const b=req.body || {};
+  // shared with OP: money received and payer entries are guarded there (see payer-convert.js)
+  const r=convertPayer(req,a.encounter_id,{...b,category:b.financial_category ?? b.category});
+  emit(req,{topics:[...TOPICS,'insurance','billing','accounts','lab','imaging','pharmacy','queue'],event:'admission.updated',action:'ipd.payer.convert',entity:'admissions',entityId:a.id,
+    detail:{before:r.before,after:r.after,reason:r.reason}});
   const updatedAdmission=get('SELECT * FROM admissions WHERE id=?',a.id);
-  return admissionForUser({...updatedAdmission,claim_id:payer?c?.id || null:null}, req.user);
+  return {...admissionForUser({...updatedAdmission,claim_id:r.claim?.id || null}, req.user),conversion:r.after};
 })));
 
 ipd.patch('/admissions/:id', requireAuth, h((req) => {
@@ -573,6 +574,22 @@ ipd.post('/admissions/:id/discharge', requirePerm('ipd.discharge'), h((req) => {
   const a = get('SELECT * FROM admissions WHERE id=?', id);
   if (!a) fail(404, 'admission_not_found');
   if (a.status === 'discharged') fail(409, 'already_discharged');
+  // Clinical clearance and a discharge summary come before discharge (checked first: nothing is billed yet).
+  // In Paper / Hybrid mode the desk may record the doctor's paper clearance and the paper summary instead.
+  // LAMA, death and absconding are recorded as they happen.
+  const dtype = String(req.body.discharge_type || 'routine');
+  if (setting('discharge_requires_clearance', '1') !== '0' && !['lama', 'dama', 'death', 'absconded'].includes(dtype)) {
+    const paper = paperAllowed('doctor');
+    const paperClearance = paper ? String(req.body.paper_clearance || '').trim() : '';
+    const paperSummary = paper ? String(req.body.paper_summary || '').trim() : '';
+    const cleared = ['clinically_cleared', 'financially_cleared'].includes(a.status) || paperClearance.length >= 3;
+    const summary = !!String(req.body.discharge_summary || a.discharge_summary || '').trim() || a.summary_status === 'final' || paperSummary.length >= 3
+      || !!get("SELECT 1 FROM clinical_documents WHERE admission_id=? AND form='discharge_summary'", id);
+    const missing = [!cleared && 'clinical_clearance', !summary && 'discharge_summary'].filter(Boolean);
+    if (missing.length) fail(409, 'clinical_clearance_pending', { missing, paper_allowed: paper });
+    if (paperClearance || paperSummary) req.body.discharge_summary = req.body.discharge_summary || a.discharge_summary
+      || [paperSummary && `Discharge summary on paper: ${paperSummary}`, paperClearance && `Cleared on paper by ${paperClearance}`].filter(Boolean).join(' · ');
+  }
   const at = nowIso();
   accrueAdmission(id, at);
   const payerCase = get('SELECT id FROM insurance_claims WHERE admission_id=? ORDER BY id DESC LIMIT 1', id);
@@ -643,13 +660,14 @@ ipd.post('/admissions/:id/charges', requireAuth, h((req) => {
   const a = get('SELECT * FROM admissions WHERE id=?', +req.params.id);
   if (!a || a.status === 'discharged') fail(409, 'admission_not_active');
   const b = req.body || {};
+  if(b.request_key){const previous=get("SELECT entity_id FROM audit_log WHERE action='ipd.charge.add' AND json_extract(detail,'$.charge_request_key')=?",String(b.request_key));if(previous){const charge=get('SELECT admission_id FROM admission_charges WHERE id=?',previous.entity_id);if(charge?.admission_id!==a.id)fail(409,'request_key_conflict');return chargePlan(a.id);}}
   const cid = tx(() => {
     try { return addCharge(a, b, req.user.id); } catch (e) { fail(e.http || 400, e.message); }
   });
   accrueAdmission(a.id);
   const row = get('SELECT * FROM admission_charges WHERE id=?', cid);
   emit(req, { topics: [...TOPICS, 'billing'], event: 'admission.charges', data: { admission_id: a.id },
-    action: 'ipd.charge.add', entity: 'admission_charges', entityId: cid, detail: { after: row } });
+    action: 'ipd.charge.add', entity: 'admission_charges', entityId: cid, detail: { after: row,charge_request_key:b.request_key?String(b.request_key):null } });
   return chargePlan(a.id);
 }));
 
@@ -670,7 +688,7 @@ ipd.post('/admissions/:id/charges/:cid/stop', requireAuth, h((req) => {
 ipd.get('/discharge/board', requirePerm('ipd.view'), h((req) => {
   accrueAll();
   const rows = all(
-    `SELECT a.*, p.uhid, p.name patient_name, p.gender, p.age_years, p.mobile,
+    `SELECT a.*, p.uhid, p.name patient_name, p.gender, p.age_years, p.mobile, p.payer_type patient_payer_type, p.payer_name patient_payer_name,
             b.bed_no, w.name ward_name, u.name consultant_name,
             cast(julianday('now','localtime') - julianday(a.admitted_at) AS int) los_days,
             (SELECT coalesce(sum(balance),0) FROM bills bl WHERE bl.encounter_id IN (a.encounter_id, (SELECT ec.encounter_id FROM emergency_cases ec WHERE ec.id=a.emergency_id))) balance,
@@ -700,6 +718,9 @@ ipd.get('/discharge/board', requirePerm('ipd.view'), h((req) => {
       insurance: ['self', 'credit'].includes(r.financial_category) || isApprovedStage(r.claim_status),
     };
     r.ready = Object.values(r.checks).every(Boolean);
+    // payer details on the patient record, but the admission is billed self-pay: probably a missed conversion
+    r.payer_warning = ['self', ''].includes(r.financial_category || 'self') && !['self', 'credit', '', null, undefined].includes(r.patient_payer_type)
+      ? `Patient record names ${r.patient_payer_name || r.patient_payer_type}, but this admission is billed self-pay — change the payer before final settlement if it applies` : null;
   }
   return { rows: rows.map(row => admissionForUser(row, req.user)), counts: { total: rows.length, ready: rows.filter((r) => r.ready).length } };
 }));
@@ -1044,7 +1065,7 @@ ipd.delete('/emergency/:id/charges/:itemId', requireAuth, h((req) => {
 /** Clinical and financial tables that point at a patient — moved together when a temporary ER record is merged into the real UHID. */
 const PATIENT_TABLES = ['allergies', 'problems', 'encounters', 'vitals', 'consultations', 'orders', 'prescriptions', 'bills', 'payments', 'refunds',
   'insurance_claims', 'admissions', 'nursing_notes', 'ot_bookings', 'maternity_cases', 'emergency_cases', 'appointments', 'certificates',
-  'bill_settlements', 'ward_indents', 'ward_replacements', 'patient_messages', 'counselling_sessions', 'procedure_consumptions', 'package_assignments'];
+  'bill_settlements', 'ward_indents', 'ward_replacements', 'patient_messages', 'counselling_sessions', 'procedure_consumptions', 'package_assignments', 'pharmacy_held_bills'];
 
 ipd.post('/emergency/:id/link-patient', requirePerm('emergency.triage'), h((req) => {
   const c = erCase(+req.params.id);
@@ -1070,6 +1091,7 @@ ipd.post('/emergency/:id/link-patient', requirePerm('emergency.triage'), h((req)
     return tx(() => {
       const moved = {};
       for (const t of PATIENT_TABLES) { const r = run(`UPDATE ${t} SET patient_id=? WHERE patient_id=?`, p.id, temp.id); moved[t] = r?.changes ?? null; }
+      moved.attachments=run("UPDATE attachments SET entity_id=? WHERE entity='patient' AND entity_id=?",p.id,temp.id)?.changes||0;
       run("UPDATE journal_lines SET party_id=? WHERE party_type='patient' AND party_id=?", p.id, temp.id);   // the patient's receivable follows them
       update('patients', temp.id, { temporary: 2, merged_into: p.id, name: `${temp.name} (merged into ${p.uhid})`, updated_at: nowIso() });
       emit(req, { topics: ['emergency', 'dashboard', 'patients'], event: 'emergency.updated', data: { id: c.id }, action: 'emergency.merge_patient', entity: 'patients', entityId: temp.id,
@@ -1147,8 +1169,11 @@ function otCharges(raw) {
     const description = String(c.description || svc?.name || '').trim();
     const rate = money(c.rate !== undefined && c.rate !== '' && c.rate !== null ? num(c.rate) : svc?.price || 0);
     if (!description || !(rate > 0)) return null;
-    const role = ['surgeon', 'anaesthetist'].includes(c.role) ? c.role : svc?.category === 'anaesthesia' ? 'anaesthetist' : svc?.category === 'surgery' ? 'surgeon' : null;
-    return { service_id: svc?.id || null, description, rate, qty: Math.max(1, num(c.qty, 1)), ...(role ? { role } : {}) };
+    const role = ['surgeon', 'assistant', 'anaesthetist', 'consultant', 'session', 'day'].includes(c.role) ? c.role : svc?.category === 'anaesthesia' ? 'anaesthetist' : svc?.category === 'surgery' ? 'surgeon' : null;
+    // a visiting doctor's share needs a clinical role, or the case could not be billed on completion
+    if (c.visiting_doctor_id && !role) fail(400, 'clinical_role_required', { line: description });
+    const category = role ? 'professional' : svc?.category || (['ot','nursing','equipment','other'].includes(c.category) ? c.category : 'ot');
+    return { service_id: svc?.id || null, description, category, rate, qty: Math.max(1, num(c.qty, 1)), visiting_doctor_id: c.visiting_doctor_id ? visitingId(c.visiting_doctor_id) : null, ...(role ? { role } : {}) };
   }).filter(Boolean);
 }
 
@@ -1161,9 +1186,13 @@ function billOtCase(req, booking) {
     bill_no: nextNo('bill'), patient_id: booking.patient_id, encounter_id: null, bill_type: 'OP', status: 'unpaid',
     payer_type: get('SELECT payer_type FROM patients WHERE id=?', booking.patient_id)?.payer_type || 'self', source: 'ot', source_id: booking.id, created_by: req.user.id }));
   const visitor = (role) => (role === 'surgeon' ? booking.visiting_surgeon_id : role === 'anaesthetist' ? booking.visiting_anaesthetist_id : null) || null;
-  for (const l of lines) insert('bill_items', { bill_id: bill.id, service_id: l.service_id, description: `${l.description} — ${booking.booking_no}`,
-    category: 'procedure', qty: l.qty || 1, rate: l.rate, amount: money((l.qty || 1) * l.rate), created_by: req.user.id, created_at: nowIso(),
-    visiting_doctor_id: visitor(l.role), visiting_role: visitor(l.role) ? l.role : null });
+  for (const l of lines) {
+    const doctorId = l.visiting_doctor_id || visitor(l.role);
+    if (doctorId && !l.role) fail(400, 'clinical_role_required');
+    insert('bill_items', { bill_id: bill.id, service_id: l.service_id, ot_booking_id:booking.id, description: `${l.description} — ${booking.booking_no}`,
+    category: l.category || 'procedure', qty: l.qty || 1, rate: l.rate, amount: money((l.qty || 1) * l.rate), created_by: req.user.id, created_at: nowIso(),
+    visiting_doctor_id: doctorId, visiting_role: doctorId ? l.role : null, ...feeSnapshot(doctorId, l.service_id, req.user.id, l.role) });
+  }
   recalcBill(bill.id);
   update('ot_bookings', booking.id, { bill_id: bill.id, billed_at: nowIso() });
   return get('SELECT * FROM bills WHERE id=?', bill.id);

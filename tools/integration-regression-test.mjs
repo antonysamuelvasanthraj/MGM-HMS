@@ -6,6 +6,9 @@ import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
+import { pharmacyRegressions } from './fixtures/pharmacy-regressions.mjs';
+import { upgradeRegressions } from './fixtures/upgrade-regressions.mjs';
+import { preloadLabTestInfo } from '../server/lab-test-info.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const tempRoot = fs.realpathSync(os.tmpdir());
@@ -108,6 +111,8 @@ try {
   check('discharged list redacted', () => assert.ok(!JSON.stringify(past).includes('PRIVATE-')));
   assert.equal(failures.length, 0, failures.join('\n'));
   await login('admin');await api('/admin/users',{username:'allocation-insurance',name:'Allocation insurance',role:'insurance',password:'surely'});
+  // allocation maths; the Aarogyasri approval checklist is covered by tools/payer-change-test.mjs
+  await api('/settings',{scheme_checklist_required:'0'},'PATCH');
   for(const category of ['insurance','aarogyasri','corporate','trust']){
     await login('admin');
     const patient=await api('/patients',{name:'Allocation '+category,gender:'Male',age_years:40,payer_type:category});
@@ -309,6 +314,70 @@ try {
   formDb.prepare('UPDATE admissions SET status=? WHERE id=?').run(originalStatus,a.id); formDb.close();
   await login('lab');const forbiddenForms=await request(`/ipd/admissions/${a.id}/forms`);
   check('reception form data restricted by role',()=>assert.equal(forbiddenForms.status,403));
+  await pharmacyRegressions({ api, request, login, check, dataDir });
+  /** Raw body upload, for the streamed-video route that must not be JSON parsed. */
+  const stream = (p, body, headers = {}) => fetch(`http://127.0.0.1:${port}/api${p}`, { method: 'POST',
+    headers: { 'Content-Type': 'application/octet-stream', ...(token ? { 'X-Session': token } : {}), ...headers }, body });
+  await upgradeRegressions({ api, request, login, check, dataDir, stream });
+  await login('admin');
+  const labDepartment = (await api('/meta')).departments.find(d => d.code === 'LAB');
+  await api('/admin/users', { username: 'lab_test_admin', password: 'surely', name: 'Lab test administrator', role: 'lab_admin', department_id: labDepartment.id });
+  await login('lab_test_admin');
+  const testDescription = 'Test-specific information\nSecond line <b>plain text</b>';
+  const labTest = await api('/services', { code: 'REG-LAB-ADMIN', name: 'Lab administrator test', category: 'lab', department_id: labDepartment.id, price: 150, sample_type: 'Serum', tat_minutes: 60, billing_unit: 'once', description: testDescription, lab_section: 'Biochemistry', initial_parameter: { name: 'Result', unit: 'mg/dL', result_type: 'numeric', ref_low: 1, ref_high: 10 } });
+  check('lab admin creates priced lab test', () => { assert.equal(labTest.category, 'lab'); assert.equal(labTest.price, 150); });
+  const firstFields = await api(`/lab/params?service_id=${labTest.id}`);
+  check('single form creates test and first result field', () => { assert.equal(firstFields.length, 1); assert.equal(firstFields[0].unit, 'mg/dL'); assert.equal(firstFields[0].ref_high, 10); });
+  check('description and section saved with test', () => { assert.equal(labTest.description, testDescription); assert.equal(labTest.lab_section, 'Biochemistry'); });
+  await login('admin');
+  const describedVisit = (await api('/encounters', { patient_id: p.id, doctor_id: (await api('/meta')).doctors.find(d => d.role === 'doctor').id, kind: 'EMG' })).encounter;
+  const describedOrder = (await api('/orders', { encounter_id: describedVisit.id, items: [{ service_id: labTest.id }] })).orders[0];
+  await login('lab_test_admin');
+  await api(`/lab/orders/${describedOrder.id}/collect`, {});
+  await api(`/lab/orders/${describedOrder.id}/results`, { results: [{ param_id: firstFields[0].id, value: '5' }], verify: true });
+  await api(`/lab/tests/${labTest.id}`, { description: 'Changed for future reports', lab_section: 'Other', price: 999 }, 'PATCH');
+  const describedReport = await api(`/lab/report/${describedOrder.id}`);
+  check('printed report receives this test description snapshot', () => assert.equal(describedReport.test_description, testDescription));
+  const savedService = (await api('/services')).find(s => s.id === labTest.id);
+  check('description edits cannot change tariff price', () => { assert.equal(savedService.price, 150); assert.equal(savedService.description, 'Changed for future reports'); });
+  const clearedInfo = await api(`/lab/tests/${labTest.id}`, { description: '' }, 'PATCH');
+  check('description can be cleared', () => assert.equal(clearedInfo.description, ''));
+  const blankTest = await api('/services', { code: 'REG-LAB-BLANK', name: 'Optional description test', category: 'lab', price: 0 });
+  check('new test description is optional', () => assert.equal(blankTest.description, ''));
+  const invalidRange = await request('/services', { code: 'REG-LAB-INVALID', name: 'Invalid reference range', category: 'lab', initial_parameter: { name: 'Result', ref_low: 10, ref_high: 1 } });
+  check('invalid first parameter rejects the whole test', () => assert.equal(invalidRange.status, 400));
+  const listedTests = await api('/services');
+  check('invalid test is absent from master', () => assert.ok(!listedTests.some(s => s.code === 'REG-LAB-INVALID')));
+  const preloadDb = new DatabaseSync(path.join(dataDir, 'surelyhms.db'));
+  try {
+    const cbc = preloadDb.prepare("SELECT * FROM services WHERE code='LAB-CBC'").get();
+    const lipid = preloadDb.prepare("SELECT * FROM services WHERE code='LAB-LIP'").get();
+    check('preloaded tests have distinct descriptions', () => { assert.ok(cbc.description); assert.ok(lipid.description); assert.notEqual(cbc.description, lipid.description); });
+    preloadDb.prepare('UPDATE services SET description=? WHERE id=?').run('', cbc.id);
+    preloadDb.prepare('UPDATE services SET description=? WHERE id=?').run('Custom laboratory wording', lipid.id);
+    preloadLabTestInfo(preloadDb);
+    check('preloading preserves blank and custom descriptions', () => { assert.equal(preloadDb.prepare('SELECT description FROM services WHERE id=?').get(cbc.id).description, ''); assert.equal(preloadDb.prepare('SELECT description FROM services WHERE id=?').get(lipid.id).description, 'Custom laboratory wording'); });
+  } finally { preloadDb.close(); }
+  const labMeta = await api('/meta');
+  check('new lab test available to templates', () => assert.ok(labMeta.services.some(s => s.id === labTest.id)));
+  const labParameter = await api('/lab/params', { service_id: labTest.id, name: 'Result', unit: 'mg/dL', ref_low: 1, ref_high: 10 });
+  await api(`/lab/params/${labParameter.id}`, { ref_high: 12 }, 'PATCH');
+  const parameters = await api(`/lab/params?service_id=${labTest.id}`);
+  check('lab admin manages new test parameters', () => assert.equal(parameters.find(p => p.id === labParameter.id).ref_high, 12));
+  for (const category of ['imaging', 'consultation', 'procedure']) {
+    const denied = await request('/services', { code: 'REG-DENIED-' + category, name: 'Forbidden service', category, price: 1 });
+    check('lab admin cannot create ' + category, () => assert.equal(denied.status, 403));
+  }
+  const wrongDepartment = labMeta.departments.find(d => d.code !== 'LAB');
+  const deniedDepartment = await request('/services', { code: 'REG-DENIED-DEPT', name: 'Forbidden department', category: 'lab', department_id: wrongDepartment.id });
+  check('lab test creation restricted to lab department', () => assert.equal(deniedDepartment.status, 403));
+  const deniedSettings = await request('/settings', { hospital_name: 'Forbidden' }, 'PATCH');
+  check('lab admin does not gain hospital settings access', () => assert.equal(deniedSettings.status, 403));
+  await login('lab');
+  const deniedStaff = await request('/services', { code: 'REG-DENIED-STAFF', name: 'Forbidden staff test', category: 'lab', price: 1 });
+  check('ordinary lab staff cannot create tests', () => assert.equal(deniedStaff.status, 403));
+  const deniedDescription = await request(`/lab/tests/${labTest.id}`, { description: 'Forbidden' }, 'PATCH');
+  check('ordinary lab staff cannot edit descriptions', () => assert.equal(deniedDescription.status, 403));
   assert.equal(failures.length,0,failures.join('\n'));
   console.log(JSON.stringify({ passed: true, checks, workflows: ['admission clinical privacy', 'emergency counselling merge', 'counselling identity validation','four payer line allocations, desk collection, partial payment, rejection and automatic settlement','mixed-batch emergency rack usage, pharmacy replacement billing, partial physical receipt and reversal','shared billing summary, reconciliation, handover inbox and patient batch history'] }, null, 2));
 } finally {

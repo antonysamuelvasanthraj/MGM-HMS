@@ -44,7 +44,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Documents', 'verified_user')} ${liveChip()}`,
     title: 'Medical Certificates',
-    subtitle: 'Fitness, sickness, insurance and statutory certificates, issued against the patient record and kept with it.',
+    subtitle: 'Fitness, sickness, insurance and statutory certificates.',
     actions: can('certificate.write') ? `<button class="btn-primary" data-new>
       <span class="material-symbols-outlined text-[18px]">add</span> Issue a certificate</button>` : '',
     body: `

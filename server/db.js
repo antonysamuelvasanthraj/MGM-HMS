@@ -88,6 +88,9 @@ const DEFAULT_SEQUENCES = {
   indent: ['IND-{P}-', 5, 'year'], sales_return: ['SRN-{P}-', 5, 'year'],
   purchase_return: ['PRN-{P}-', 5, 'year'], handover: ['HO-{P}-', 5, 'year'], purchase_request: ['PR-{P}-', 5, 'year'],
   counselling: ['CNS-{P}-', 5, 'year'], store_move: ['SMV-{P}-', 6, 'year'], store_receipt: ['SRV-{P}-', 5, 'year'], store_request: ['SMR-{P}-', 5, 'year'], store_transfer: ['STF-{P}-', 5, 'year'],
+  payer_request: ['PCR-{P}-', 5, 'year'],
+  accession: ['ACC-{P}-', 4, 'day'],
+  outsource_dispatch: ['DSP-{P}-', 5, 'year'], outsource_invoice: ['OSI-{P}-', 5, 'year'], outsource_payment: ['OSP-{P}-', 5, 'year'],
 };
 
 export function nextNo(name) {
@@ -120,6 +123,7 @@ export function nextNo(name) {
     indent: [['ward_indents', 'indent_no']], sales_return: [['sales_returns', 'return_no']],
     purchase_return: [['purchase_returns', 'return_no']], handover: [['cash_handovers', 'handover_no']], purchase_request: [['purchase_requests', 'pr_no']],
     counselling: [['counselling_sessions', 'session_no']], store_move: [['store_moves', 'move_no']], store_receipt: [['store_receipts', 'receipt_no']], store_request: [['store_requests', 'request_no']],
+    payer_request: [['payer_change_requests', 'request_no']],
   };
   if (name.startsWith('vch_')) documents[name] = [['journal_vouchers', 'voucher_no']];
   if (name.startsWith('bill_')) documents[name] = [['bills', 'bill_no']];

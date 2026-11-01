@@ -1,8 +1,8 @@
 /**
  * Team chat & tasks. Conversations: the hospital-wide "All staff" channel, direct messages
  * to any colleague with a login, and groups (members picked by name or a whole department).
- * Messages are retained — they can be edited for 15 minutes and every earlier version stays
- * in the history management can review. Tasks are assigned by in-charges and reviewed by management.
+ * Messages are immutable and cannot be edited or deleted. Legacy earlier versions remain
+ * available to authorised management reviewers. Tasks are assigned by in-charges and reviewed by management.
  */
 import { api, state, page, card, mountPage, live, esc, modal, toast, apiError, busy, fmtDateTime, titleCase } from './_kit.js';
 
@@ -10,7 +10,7 @@ export async function mount(ctx) {
   const root = mountPage(ctx, page({
     wide: true,
     title: 'Team chat & tasks',
-    subtitle: 'Message the whole hospital, any colleague, or a group. Chats are retained: messages can be edited for 15 minutes and earlier versions stay on record.',
+    subtitle: 'Messages and tasks with colleagues.',
     body: `<div class="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[300px_minmax(0,1fr)_360px] gap-4 items-start">
       ${card({ title: 'Chats', pad: false,
         actions: '<button class="btn-secondary btn-xs" data-new-direct>New message</button><button class="btn-primary btn-xs" data-new-group>New group</button>',
@@ -63,7 +63,7 @@ export async function mount(ctx) {
         return `<div class="flex ${me ? 'justify-end' : 'justify-start'}"><div class="max-w-[78%] rounded-lg px-3 py-2 ${me ? 'bg-info-bg' : 'bg-surface-container-low'}">
           <div class="text-label-sm text-on-surface-variant">${me ? 'You' : `<b>${esc(m.sender)}</b> · ${esc(m.sender_designation || titleCase(m.sender_role || ''))}`} · ${fmtDateTime(m.created_at)}${m.edited_at ? ' · edited' : ''}</div>
           <p class="whitespace-pre-wrap my-1 text-body-md">${esc(m.body)}</p>
-          ${me ? `<button class="btn-ghost btn-xs" data-edit="${m.id}">Edit</button>` : ''}${people.can_review && m.edited_at ? `<button class="btn-ghost btn-xs" data-history="${m.id}">Edit history</button>` : ''}
+          ${people.can_review && m.edited_at ? `<button class="btn-ghost btn-xs" data-history="${m.id}">Earlier versions</button>` : ''}
         </div></div>`;
       }).join('') || '<p class="text-center text-on-surface-variant py-10">No messages yet — say hello.</p>'}`;
     if (!keepScroll || atBottom) box.scrollTop = box.scrollHeight;
@@ -189,13 +189,12 @@ export async function mount(ctx) {
     if (th) { try { await openThread(th.dataset.thread); } catch (err) { apiError(err); } return; }
     if (e.target.closest('[data-members]')) { membersDialog(); return; }
     if (e.target.closest('[data-older]') || e.target.closest('[data-latest]')) { before = e.target.closest('[data-older]') ? chat[0]?.id : null; try { await openThread(current, { quiet: true }); } catch (err) { apiError(err); } return; }
-    const edit = e.target.closest('[data-edit]'), history = e.target.closest('[data-history]'), task = e.target.closest('[data-task]');
-    if (history) { try { const rows = await api.get(`/staff-work/chat/${history.dataset.history}/history`); modal({ title: 'Retained chat history', body: rows.map((r) => `<p class="mb-3 whitespace-pre-wrap">Version ${r.version} · ${esc(r.created_at)}<br>${esc(r.body)}</p>`).join('') || 'No earlier edits.' }); } catch (err) { apiError(err); } return; }
-    if (!edit && !task) return;
-    const m = edit ? chat.find((x) => x.id === +edit.dataset.edit) : null;
-    modal({ title: edit ? 'Edit your message — the earlier text is retained' : 'Record task progress / review',
-      body: `<textarea data-note class="field" rows="4" maxlength="4000">${esc(m?.body || '')}</textarea>`, footer: '<button data-save class="btn-primary">Save</button>',
-      onMount(r, close) { r.querySelector('[data-save]').onclick = async (ev) => { ev.currentTarget.disabled = true; try { await api.patch(edit ? `/staff-work/chat/${m.id}` : `/staff-work/tasks/${task.dataset.task}`, edit ? { body: r.querySelector('[data-note]').value, version: m.version } : { status: task.dataset.status, progress_note: r.querySelector('[data-note]').value }); close(); await load(); } catch (err) { apiError(err); r.querySelector('[data-save]').disabled = false; } }; } });
+    const history = e.target.closest('[data-history]'), task = e.target.closest('[data-task]');
+    if (history) { try { const rows = await api.get(`/staff-work/chat/${history.dataset.history}/history`); modal({ title: 'Retained chat history', body: rows.map((r) => `<p class="mb-3 whitespace-pre-wrap">Version ${r.version} · ${esc(r.created_at)}<br>${esc(r.body)}</p>`).join('') || 'No earlier versions.' }); } catch (err) { apiError(err); } return; }
+    if (!task) return;
+    modal({ title: 'Record task progress / review',
+      body: '<textarea data-note class="field" rows="4" maxlength="4000"></textarea>', footer: '<button data-save class="btn-primary">Save</button>',
+      onMount(r, close) { r.querySelector('[data-save]').onclick = async (ev) => { ev.currentTarget.disabled = true; try { await api.patch(`/staff-work/tasks/${task.dataset.task}`, { status: task.dataset.status, progress_note: r.querySelector('[data-note]').value }); close(); await load(); } catch (err) { apiError(err); r.querySelector('[data-save]').disabled = false; } }; } });
   });
 
   return live({ topics: ['staff-work'], events: ['staff-work.changed'], load });

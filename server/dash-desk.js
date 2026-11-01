@@ -1,3 +1,4 @@
+import {receiptDeskSql} from './receipt-desk.js';
 /**
  * Department dashboards — pharmacy, reception and owner. Every figure comes
  * from metrics.js or from live transaction tables; nothing is sampled or
@@ -40,7 +41,7 @@ function pharmSeries(g) {
   const q = (sql, ...a) => Object.fromEntries(all(sql, ...a).map((r) => [r.k, r2(r.v)]));
   const sales = q(`SELECT ${k('coalesce(bi.created_at, b.created_at)')} k, sum(bi.amount) v ${PHARM_LINES} AND bi.category<>'refund' AND date(coalesce(bi.created_at, b.created_at)) BETWEEN ? AND ? GROUP BY k`, from, to);
   const returns = q(`SELECT ${k('bi.created_at')} k, sum(-bi.amount) v ${PHARM_LINES} AND bi.category='refund' AND date(bi.created_at) BETWEEN ? AND ? GROUP BY k`, from, to);
-  const coll = q(`SELECT ${k('p.created_at')} k, sum(p.amount) v FROM payments p JOIN bills b ON b.id=p.bill_id WHERE b.bill_type='PHARM' AND p.cancelled=0 AND p.pay_date BETWEEN ? AND ? GROUP BY k`, from, to);
+  const coll = q(`SELECT ${k('p.created_at')} k, sum(p.amount) v FROM payments p JOIN bills b ON b.id=p.bill_id WHERE ${receiptDeskSql()}='pharmacy' AND p.cancelled=0 AND p.pay_date BETWEEN ? AND ? GROUP BY k`, from, to);
   const due = q(`SELECT ${k('b.created_at')} k, sum(CASE WHEN b.balance>0 THEN b.balance ELSE 0 END) v FROM bills b WHERE b.bill_type='PHARM' AND b.status<>'cancelled' AND b.bill_date BETWEEN ? AND ? GROUP BY k`, from, to);
   let keys;
   if (bucket === 'hour') keys = [...new Set([...Object.keys(sales), ...Object.keys(coll)])].sort();
@@ -75,7 +76,7 @@ function pharmacyDash(q, query) {
     low_stock: stock.filter((s) => s.qty > 0 && s.qty <= s.reorder_level).length, out_of_stock: stock.filter((s) => s.qty <= 0).length,
     near_expiry: n("SELECT count(*) FROM medicine_batches WHERE qty>0 AND expiry BETWEEN date('now','localtime') AND date('now','localtime','+90 day')"),
     expired: n("SELECT count(*) FROM medicine_batches WHERE qty>0 AND expiry < date('now','localtime')"),
-    pending_grn: n("SELECT count(*) FROM purchases WHERE verified_at IS NULL AND status<>'returned'"),
+    pending_grn: n("SELECT count(*) FROM purchases WHERE verified_at IS NULL AND status NOT IN ('returned','corrected')"),
     supplier_outstanding: r2(n('SELECT coalesce(sum(outstanding),0) FROM suppliers WHERE outstanding>0')),
     emergency_pending: n('SELECT count(*) FROM stock_transfers WHERE emergency=1 AND ratified_by IS NULL'),
   };
@@ -134,16 +135,16 @@ function pharmacyDash(q, query) {
   // purchases / GRN
   const month = M.monthStart(d);
   const grn = {
-    today: n('SELECT count(*) FROM purchases WHERE date(received_at)=?', d),
-    value_today: r2(n('SELECT coalesce(sum(total),0) FROM purchases WHERE date(received_at)=?', d)),
-    value_month: r2(n('SELECT coalesce(sum(total),0) FROM purchases WHERE date(received_at) BETWEEN ? AND ?', month, d)),
-    pending_bills: n('SELECT count(*) FROM purchases WHERE total - paid > 0.005'),
-    pending_amount: r2(n('SELECT coalesce(sum(total - paid),0) FROM purchases WHERE total - paid > 0.005')),
+    today: n("SELECT count(*) FROM purchases WHERE status<>'corrected' AND date(received_at)=?", d),
+    value_today: r2(n("SELECT coalesce(sum(total),0) FROM purchases WHERE status<>'corrected' AND date(received_at)=?", d)),
+    value_month: r2(n("SELECT coalesce(sum(total),0) FROM purchases WHERE status<>'corrected' AND date(received_at) BETWEEN ? AND ?", month, d)),
+    pending_bills: n("SELECT count(*) FROM purchases WHERE status<>'corrected' AND total - paid > 0.005"),
+    pending_amount: r2(n("SELECT coalesce(sum(total - paid),0) FROM purchases WHERE status<>'corrected' AND total - paid > 0.005")),
     pending_verification: kpis.pending_grn,
     returns_month: r2(n('SELECT coalesce(sum(value + cgst + sgst + igst),0) FROM purchase_returns WHERE date(created_at) BETWEEN ? AND ?', month, d)),
     supplier_credits: r2(-n('SELECT coalesce(sum(outstanding),0) FROM suppliers WHERE outstanding<0')),
     rows: all(`SELECT p.id, p.grn_no, s.name supplier, p.invoice_no, p.invoice_date, p.gross, p.discount, p.cgst, p.sgst, p.igst, p.round_off, p.total, p.paid,
-        round(p.total - p.paid, 2) due, p.status, p.verified_at FROM purchases p JOIN suppliers s ON s.id=p.supplier_id ORDER BY p.id DESC LIMIT 40`)
+        round(p.total - p.paid, 2) due, p.status, p.verified_at FROM purchases p JOIN suppliers s ON s.id=p.supplier_id WHERE p.status<>'corrected' ORDER BY p.id DESC LIMIT 40`)
       .map((g) => ({ ...g, taxable: r2(g.gross - (g.discount || 0)), state: g.verified_at ? (g.due > 0.005 ? 'Verified · due' : 'Verified · paid') : 'Awaiting verification' })),
   };
 
@@ -313,6 +314,11 @@ function ownerDash(q) {
     census: M.census(d), occupancy: occ, alos: M.alos(f),
     departments: M.departmentSummary(f),
     refunds: M.refundAnalysis(f), discounts: M.discountAnalysis(f), advances: M.advances(f),
+    professional_fees: {
+      accrued:r2(n('SELECT coalesce(sum(accrual),0) FROM visiting_statements WHERE as_of BETWEEN ? AND ?',f.from,f.to)),
+      paid:r2(n("SELECT coalesce(sum(gross),0) FROM visiting_payouts WHERE status='paid' AND date(paid_at) BETWEEN ? AND ?",f.from,f.to)),
+      payable:r2(n('SELECT coalesce(sum(accrual),0) FROM visiting_statements WHERE as_of<=?',d)-n("SELECT coalesce(sum(gross),0) FROM visiting_payouts WHERE status='paid' AND date(paid_at)<=?",d)),
+    },
     insurance: M.payerAnalysis(f, 'insurance'), aarogyasri: M.payerAnalysis(f, 'aarogyasri'),
   };
 }

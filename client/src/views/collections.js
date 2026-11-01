@@ -61,7 +61,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Cashier desk', 'point_of_sale')} ${liveChip()}`,
     title: 'All Collections',
-    subtitle: 'Every receipt taken across the hospital today, by mode and by counter, with what is still to be collected beside it.',
+    subtitle: 'Today\'s receipts by mode and counter.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
       <a href="/counter-reconciliation" class="btn-primary"><span class="material-symbols-outlined text-[18px]">balance</span> Reconcile counters</a>`,
     body: `

@@ -19,6 +19,9 @@ const brand = {
   border: '#D8DFE8',
 };
 
+/** a colour from a theme variable holding "R G B" channels */
+const v = (name) => `rgb(var(${name}) / <alpha-value>)`;
+
 module.exports = {
   content: [
     './client/index.html',
@@ -39,19 +42,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        /* --- brand ------------------------------------------------------- */
-        primary: brand.primary,
+        /* --- brand -------------------------------------------------------
+         * Brand colours are CSS variables (space-separated RGB channels) so the
+         * whole app can switch theme at runtime: see :root / [data-theme] in
+         * app.src.css. Opacity modifiers (bg-primary/10) keep working. */
+        primary: v('--c-primary'),
         'on-primary': '#FFFFFF',
-        'primary-container': brand.deep,
-        'on-primary-container': '#FFD9DD',
-        'primary-fixed': '#FBE7EA',
-        'primary-fixed-dim': '#F1C6CC',
-        'on-primary-fixed': '#3B0A12',
-        'on-primary-fixed-variant': brand.primary,
-        'inverse-primary': '#E7A7AE',
-        'surface-tint': brand.primary,
-        'brand-dark': brand.dark,
-        'brand-accent': brand.accent,
+        'primary-container': v('--c-primary-deep'),
+        'on-primary-container': v('--c-on-primary-container'),
+        'primary-fixed': v('--c-primary-fixed'),
+        'primary-fixed-dim': v('--c-primary-fixed-dim'),
+        'on-primary-fixed': v('--c-on-primary-fixed'),
+        'on-primary-fixed-variant': v('--c-primary'),
+        'inverse-primary': v('--c-inverse-primary'),
+        'surface-tint': v('--c-primary'),
+        'brand-dark': v('--c-brand-dark'),
+        'brand-accent': v('--c-accent'),
 
         /* --- secondary (slate, not pink) --------------------------------- */
         secondary: brand.text2,

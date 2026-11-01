@@ -36,6 +36,7 @@ export function packageRules(pkg) {
   let categories = null;
   try { const c = JSON.parse(pkg.cover_categories || 'null'); if (Array.isArray(c)) categories = c; } catch { categories = null; }
   return {
+    excludedCategories: (()=>{try{return JSON.parse(pkg.excluded_categories || '[]');}catch{return [];}})(),
     allInclusive: categories === null,
     categories: categories || COVER_CATEGORIES.map(([k]) => k),
     days: pkg.los_days ? Number(pkg.los_days) : null,
@@ -76,26 +77,33 @@ export function packageUsage(a) {
   const rules = packageRules(pkg);
   const left = new Map(rules.items.map((i) => [i.service_id, i.qty]));
   const daysUsed = new Map();        // daily charge plan → days counted
+  const stayStart=a.admission_id?get('SELECT admitted_at FROM admissions WHERE id=?',a.admission_id)?.admitted_at:a.assigned_at;
   let pharmacyLeft = rules.pharmacyLimit;
   const lines = stayLines(a).map((l) => {
     const out = { bill_item_id: l.id, bill_id: l.bill_id, bill_no: l.bill_no, description: l.description, category: l.category, qty: l.qty, amount: l.net, covered: 0, excess: 0, excluded: 0, rule: '' };
     if (l.patient_pays) { out.excluded = l.net; out.rule = 'Excluded — patient pays'; return out; }
-    if (rules.allInclusive) { out.covered = l.net; out.rule = 'Included'; return out; }
+    const isOt=!!l.ot_booking_id || !!get("SELECT 1 FROM ot_bookings WHERE bill_id=? AND instr(?,booking_no)>0",l.bill_id,l.description);
+    const normalizedCategory=PHARMACY.includes(l.category)?'pharmacy':l.category;
+    if(rules.excludedCategories.includes(normalizedCategory)||(isOt&&rules.excludedCategories.includes('ot'))){out.excluded=l.net;out.rule='Excluded by package agreement';return out;}
     // a listed service, within its allowance
     if (l.service_id && left.has(l.service_id)) {
       const can = Math.min(left.get(l.service_id), l.qty || 1);
       left.set(l.service_id, left.get(l.service_id) - can);
-      const part = r2((l.net * can) / (l.qty || 1));
+      let part = r2((l.net * can) / (l.qty || 1));
+      if(normalizedCategory==='pharmacy'&&pharmacyLeft!==null){part=r2(Math.min(part,Math.max(0,pharmacyLeft)));pharmacyLeft=r2(pharmacyLeft-part);}
       out.covered = part; out.excess = r2(l.net - part);
       out.rule = out.excess > 0 ? 'Listed service — beyond the allowance' : 'Listed service';
       return out;
     }
     const cat = PHARMACY.includes(l.category) ? 'pharmacy' : l.category;
-    if (!rules.categories.includes(cat)) { out.excess = l.net; out.rule = 'Not covered by the package'; return out; }
+    if (!rules.allInclusive && !rules.categories.includes(cat)) { out.excess = l.net; out.rule = 'Not covered by the package'; return out; }
     // bed and daily charges: within the covered days
-    if ((cat === 'bed' || l.admission_charge_id) && rules.days !== null) {
+    const charge=l.admission_charge_id?get('SELECT unit,started_at FROM admission_charges WHERE id=?',l.admission_charge_id):null;
+    if ((cat === 'bed' || (charge&&['day','hour'].includes(charge.unit))) && rules.days !== null) {
       const k = l.admission_charge_id || `${cat}`;
-      const n = (daysUsed.get(k) || 0) + 1; daysUsed.set(k, n);
+      const from=charge?.started_at || stayStart;
+      const offset=new Date(String(from).replace(' ','T')).getTime()+Math.max(0,(l.charge_cycle || 1)-1)*86400000-new Date(String(stayStart).replace(' ','T')).getTime();
+      const n=Math.max(1,Math.floor((offset+60000)/86400000)+1);daysUsed.set(k,Math.max(daysUsed.get(k)||0,n));
       if (n > rules.days) { out.excess = l.net; out.rule = `Day ${n} — beyond the ${rules.days} covered day(s)`; return out; }
       out.covered = l.net; out.rule = `Day ${n} of ${rules.days}`; return out;
     }
@@ -112,7 +120,7 @@ export function packageUsage(a) {
   const sum = (k) => r2(lines.reduce((s, l) => s + l[k], 0));
   const posted = r2(one(`SELECT coalesce(sum(amount),0) FROM bill_settlements WHERE status<>'cancelled' AND payer_name='Package adjustment' AND reference=?`, `PKGA-${a.id}`) || 0);
   return {
-    assignment: a, package: pkg, rules: { all_inclusive: rules.allInclusive, categories: rules.categories, days: rules.days, pharmacy_limit: rules.pharmacyLimit },
+    assignment: a, package: pkg, rules: { all_inclusive: rules.allInclusive, categories: rules.categories, excluded_categories:rules.excludedCategories, days: rules.days, pharmacy_limit: rules.pharmacyLimit },
     lines, covered: sum('covered'), excess: sum('excess'), excluded: sum('excluded'), price: a.price,
     allowances: rules.items.map((i) => ({ service_id: i.service_id, name: get('SELECT name FROM services WHERE id=?', i.service_id)?.name, allowed: i.qty, used: i.qty - (left.get(i.service_id) ?? 0) })),
     pharmacy: { limit: rules.pharmacyLimit, used: r2(lines.filter((l) => PHARMACY.includes(l.category) || l.category === 'pharmacy').reduce((s, l) => s + l.covered, 0)) },

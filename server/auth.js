@@ -18,7 +18,7 @@ export const DEFAULT_ROLE_PERMS = {
   reception: [
     'dash.reception', 'dash.work', 'patient.view', 'patient.create', 'patient.edit',
     'appt.*', 'op.register', 'op.collect', 'queue.view', 'queue.manage', 'ipd.view', 'ipd.admit', 'ipd.manage', 'ipd.discharge',
-    'billing.view', 'billing.create', 'payment.collect', 'payment.authorize', 'payment.view',
+    'billing.view', 'billing.create', 'billing.payer_change', 'payment.collect', 'payment.authorize', 'payment.view',
     'certificate.view', 'reports.collection', 'reports.reception', 'order.view', 'lab.view', 'imaging.view', 'vitals.record',
   ],
   cashier: [
@@ -39,7 +39,7 @@ export const DEFAULT_ROLE_PERMS = {
     'maternity.*', 'order.view', 'lab.view', 'counsel.view', 'counsel.write',
   ],
   // Lab: its own queue and results. It sees payment status but cannot touch stock or accounts.
-  lab: ['dash.lab', 'dash.work', 'patient.view', 'lab.*', 'order.view', 'order.update', 'billing.view'],
+  lab: ['dash.lab', 'dash.work', 'patient.view', 'lab.view', 'lab.collect', 'lab.result', 'order.view', 'order.update', 'billing.view'],
   radiology: ['dash.lab', 'dash.work', 'patient.view', 'imaging.*', 'usg.*', 'order.view', 'order.update', 'billing.view'],
   // Pharmacy: stock, GRN, transfers, sales. No P&L, salaries or owner analytics.
   // Transfer approval (inventory.approve) belongs to the store in-charge; give it to a role from Users & Roles.
@@ -52,8 +52,9 @@ export const DEFAULT_ROLE_PERMS = {
   quality: ['dash.work', 'quality.*', 'audit.view'],
 };
 
+for(const role of ['reception','cashier','pharmacy'])DEFAULT_ROLE_PERMS[role].push('scheme.patient_pay');
 export const STAFF_TEAMS = { reception_admin: ['reception', 'cashier'], pharmacy_admin: ['pharmacy', 'store'], lab_admin: ['lab', 'radiology'] };
-for (const [role, base] of [['reception_admin','reception'],['pharmacy_admin','pharmacy'],['lab_admin','lab']]) DEFAULT_ROLE_PERMS[role] = [...DEFAULT_ROLE_PERMS[base], 'staff.manage', ...(role === 'pharmacy_admin' ? ['inventory.approve'] : [])];
+for (const [role, base] of [['reception_admin','reception'],['pharmacy_admin','pharmacy'],['lab_admin','lab']]) DEFAULT_ROLE_PERMS[role] = [...DEFAULT_ROLE_PERMS[base], 'staff.manage', ...(role === 'pharmacy_admin' ? ['inventory.approve'] : role === 'lab_admin' ? ['lab.verify'] : [])];
 
 DEFAULT_ROLE_PERMS.imaging_admin = [...DEFAULT_ROLE_PERMS.radiology, 'staff.manage'];
 DEFAULT_ROLE_PERMS.nursing_incharge = [...DEFAULT_ROLE_PERMS.nurse, 'staff.manage'];
@@ -85,12 +86,20 @@ DEFAULT_ROLE_PERMS.manager = ['dash.work', 'staff.manage', 'reports.attendance',
 STAFF_TEAMS.manager = ['reception','reception_admin','cashier','pharmacy','pharmacy_admin','store','lab','lab_admin','radiology','imaging_admin','nurse','nursing_incharge','cleaning','cleaning_incharge','hr','hr_staff','medical_superintendent','quality','insurance','accounts','doctor'];
 // in-charges and HR read the attendance reports of the staff they roster
 for (const r of ['hr', 'reception_admin', 'pharmacy_admin', 'lab_admin', 'imaging_admin', 'nursing_incharge', 'cleaning_incharge']) DEFAULT_ROLE_PERMS[r].push('reports.attendance');
+// Combined desks for a small hospital where one person runs the whole counter:
+// front office = registration + billing + cashier; pharmacy = sales + store + GRN + transfers + approvals.
+const union = (...lists) => [...new Set(lists.flat())];
+DEFAULT_ROLE_PERMS.front_office = union(DEFAULT_ROLE_PERMS.reception, DEFAULT_ROLE_PERMS.cashier, ['billing.discount', 'insurance.view']);
+DEFAULT_ROLE_PERMS.pharmacy_all = union(DEFAULT_ROLE_PERMS.pharmacy, DEFAULT_ROLE_PERMS.store, ['inventory.approve', 'maintenance.view']);
+// HR rosters and manages every member of staff except the administrator and the owner
+STAFF_TEAMS.hr = Object.keys(DEFAULT_ROLE_PERMS).filter((r) => !['admin', 'owner'].includes(r));
+for (const r of ['manager', 'medical_superintendent']) STAFF_TEAMS[r].push(...(r === 'manager' ? ['front_office', 'pharmacy_all'] : ['pharmacy_all']));
 export const ROLE_DEPARTMENTS = {
- reception:['RECP'], reception_admin:['RECP'], cashier:['RECP'], pharmacy:['PHAR'], pharmacy_admin:['PHAR'], store:['PHAR'],
+ reception:['RECP'], reception_admin:['RECP'], cashier:['RECP'], front_office:['RECP'], pharmacy:['PHAR'], pharmacy_admin:['PHAR'], store:['PHAR'], pharmacy_all:['PHAR'],
  lab:['LAB'], lab_admin:['LAB'], radiology:['RAD'], imaging_admin:['RAD'], nurse:['NURS'], nursing_incharge:['NURS'],
  cleaning:['HK'], cleaning_incharge:['HK'], hr:['HR'], hr_staff:['HR'], manager:['ADMIN'], medical_superintendent:['ADMIN'], accounts:['ACC'], insurance:['INS'], quality:['QUAL'], admin:['ADMIN'], owner:['ADMIN'],
 };
-const DEFAULT_ROLE_LABELS = {maintenance:'Maintenance / Biomedical',ot_incharge:'OT In-charge',er_incharge:'ER In-charge',reception:'Reception Staff',pharmacy:'Pharmacy Staff',lab:'Laboratory Staff',radiology:'Imaging Staff',nurse:'Nursing Staff',store:'Store Staff',lab_admin:'Laboratory Admin',imaging_admin:'Imaging Admin',nursing_incharge:'Nursing In-charge',cleaning:'Cleaning Staff',cleaning_incharge:'Cleaning In-charge',hr:'HR In-charge',hr_staff:'HR Staff',medical_superintendent:'Medical Superintendent'};
+const DEFAULT_ROLE_LABELS = {maintenance:'Maintenance / Biomedical',ot_incharge:'OT In-charge',er_incharge:'ER In-charge',reception:'Reception Staff',pharmacy:'Pharmacy Staff',lab:'Laboratory Staff',radiology:'Imaging Staff',nurse:'Nursing Staff',store:'Store Staff',lab_admin:'Laboratory Admin',imaging_admin:'Imaging Admin',nursing_incharge:'Nursing In-charge',cleaning:'Cleaning Staff',cleaning_incharge:'Cleaning In-charge',hr:'HR Manager',front_office:'Front Office (reception, billing & cashier)',pharmacy_all:'Pharmacy (sales, store, GRN & transfers)',manager:'Hospital Manager',hr_staff:'HR Staff',medical_superintendent:'Medical Superintendent'};
 
 /**
  * Live permissions. Defaults come from DEFAULT_ROLE_PERMS; the administrator
@@ -131,9 +140,9 @@ export const PERMISSION_CATALOG = [
   ['Diagnostics', [['lab.view', 'View lab'], ['lab.collect', 'Collect samples'], ['lab.result', 'Enter results'], ['lab.verify', 'Verify & publish results'],
     ['imaging.view', 'View imaging'], ['imaging.schedule', 'Schedule imaging'], ['imaging.report', 'Write & sign imaging reports']]],
   ['Billing & payments', [['billing.view', 'View bills'], ['billing.create', 'Create bills / add charges'], ['billing.discount', 'Give discounts'],
-    ['billing.cancel', 'Cancel bills'], ['payment.view', 'View receipts'], ['payment.collect', 'Collect payments'],
+    ['billing.cancel', 'Cancel bills'], ['billing.payer_change', 'Change payer (self / credit / insurance / scheme)'], ['payment.view', 'View receipts'], ['payment.collect', 'Collect payments'],
     ['payment.authorize', 'Bill to payer / approve due'], ['payment.approve_free', 'Approve free visits & treatment'], ['payment.cancel', 'Cancel receipts'],
-    ['payment.refund', 'Refunds'], ['insurance.view', 'View insurance claims'], ['insurance.write', 'Manage insurance claims']]],
+    ['payment.refund', 'Refunds'], ['scheme.patient_pay','Permit Aarogyasri patient payment on own desk lines'], ['insurance.view', 'View insurance claims'], ['insurance.write', 'Manage insurance claims']]],
   ['Pharmacy & stores', [['pharmacy.view', 'View pharmacy'], ['pharmacy.dispense', 'Dispense & sell'], ['inventory.view', 'View stock'],
     ['inventory.write', 'Stock changes & transfers'], ['inventory.approve', 'Approve stock transfers (in-charge)'], ['purchase.view', 'View purchases'],
     ['purchase.write', 'Receive goods (GRN) & returns'], ['supplier.view', 'View suppliers'], ['supplier.write', 'Manage suppliers'],

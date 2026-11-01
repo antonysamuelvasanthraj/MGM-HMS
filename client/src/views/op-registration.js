@@ -1,4 +1,8 @@
+import {printLetterhead} from '../ui.js';
+import {loadMeta} from '../store.js';
 import { collectBill } from '../collect.js';
+import { referralHTML, wireReferrals } from '../referrals.js';
+import { openDiagnosticsBilling, receptionBillsTests } from '../reception-diagnostics.js';
 /**
  * OP Registration.
  *
@@ -11,19 +15,23 @@ import {
   patientPicker, doctorOptions, doctorSetupNotice, deptOptions, counterOptions, apiError, busy,
   api, qs, state, can, navigate, on,
   $, $$, esc, el, bind, toast, modal, confirmDialog, renderRows, pill, priorityPill,
-  money, fmtTime, todayISO, ago, spinner, emptyState, setting, kpi, payerFieldsHTML, wirePayerFields, printDocument, modeLabel,
+  money, fmtTime, todayISO, ago, spinner, emptyState, setting, kpi, payerFieldsHTML, wirePayerFields, printDocument, modeLabel, headCount,
 } from './_kit.js';
 
 let f = { date: todayISO(), doctor_id: '', stage: '', q: '' };
 let picked = null;
 
 export async function mount(ctx) {
+  if(setting('workflow_doctor','portal')==='manual')return navigate('/billing-desk?desk=reception',{replace:true});
   picked = null;
   const root = mountPage(ctx, layout());
   const selectPatient = wirePicker(root);
   let appointment = null;
   if (ctx.query.appointment) appointment = await api.get(`/appointments/${ctx.query.appointment}`);
   wireForm(root, appointment?.id);
+  if (appointment && !appointment.patient_id) {
+    root.querySelector('[data-new-patient]').onclick = () => openNewPatient(selectPatient, { name: appointment.patient_name, mobile: appointment.mobile });
+  }
   const patientId = appointment?.patient_id || ctx.query.patient;
   if (patientId) selectPatient(await api.get(`/patients/${patientId}`));
   if (appointment?.doctor_id) {
@@ -38,14 +46,21 @@ export async function mount(ctx) {
     paintKpis(root, counts);
     renderRows($('[data-rows]', root), rows, rowHTML, { empty: 'No visits registered for this filter yet.' });
     $('[data-count]', root).textContent = `${rows.length} visit(s) · ${date}`;
+    headCount(root, `${counts.total} today · ${counts.vitals + counts.ready} waiting`);
   }
 
+  root.querySelector('[data-dx-bill]')?.addEventListener('click', () => openDiagnosticsBilling(load));
   bind(root, 'click', '[data-act]', async (e, b) => {
     const tr = b.closest('tr');
     const id = tr?.dataset.id;
     if (b.dataset.act === 'collect') openCollect(id, load);
     if (b.dataset.act === 'open') navigate(`/visit/${id}`);
     if (b.dataset.act === 'vitals') navigate(`/vitals-queue?encounter=${id}`);
+    if (b.dataset.act === 'tests') { const v = await api.get(`/encounters/${id}`); openDiagnosticsBilling(load, { patient: { id: v.patient_id, name: v.patient_name, uhid: v.uhid }, encounterId: +id, doctorId: v.doctor_id }); }
+    if (b.dataset.act === 'seen') {
+      try { await api.post(`/encounters/${id}/stage`, { stage: 'closed' }); toast('Marked seen — visit closed', 'success'); load(); }
+      catch (err) { apiError(err, 'Could not close the visit'); }
+    }
     if (b.dataset.act === 'cancel') {
       const r = await confirmDialog({ title: 'Cancel this visit?', message: 'The token is released and the visit is closed. Any unpaid consultation bill stays for review.', confirmLabel: 'Cancel visit', tone: 'danger', requireReason: true });
       if (!r) return;
@@ -75,7 +90,8 @@ function layout() {
       <button class="btn-secondary" data-new-patient>
         <span class="material-symbols-outlined text-[18px]">person_add</span> New patient</button>
       <a href="/op-fee-collection" class="btn-secondary">
-        <span class="material-symbols-outlined text-[18px]">payments</span> Fee collection</a>`,
+        <span class="material-symbols-outlined text-[18px]">payments</span> Fee collection</a>
+      ${receptionBillsTests() ? `<button class="btn-secondary" data-dx-bill><span class="material-symbols-outlined text-[18px]">biotech</span> Bill lab / scan tests</button>` : ''}`,
     body: `
       <div class="grid grid-cols-1 2xl:grid-cols-[minmax(0,420px)_1fr] gap-5 items-start">
         ${registrationForm()}
@@ -92,11 +108,11 @@ function layout() {
           ])}
           ${tableCard({
             title: "Today's registrations",
-            subtitle: 'Token order, with payment and vitals shown separately',
+            subtitle: setting('workflow_doctor','portal')==='manual'?'Paper visits, with consultation payment shown separately':'Token order, with payment and vitals shown separately',
             actions: `<span class="font-data-mono text-body-sm text-on-surface-variant" data-count></span>`,
             id: 'reg-table', maxHeight: '58vh',
             columns: [
-              { label: 'Token', width: '72px' }, { label: 'Patient' }, { label: 'Doctor / Dept' },
+              { label: setting('workflow_doctor','portal')==='manual'?'Visit no.':'Token', width: '72px' }, { label: 'Patient' }, { label: 'Doctor / Dept' },
               { label: 'Visit' }, { label: 'Stage' }, { label: 'Payment' },
               { label: 'Due', cls: 'text-right' }, { label: 'Registered' }, { label: '', width: '150px' },
             ],
@@ -104,6 +120,28 @@ function layout() {
         </div>
       </div>`,
   });
+}
+
+export async function openPatientRegistration(host, patient, after) {
+  host.innerHTML = `<div data-inline-workflow>${registrationForm()}<button class="btn-secondary mt-2" data-cancel-registration>Cancel registration</button></div>`;
+  wireForm(host, null, after);
+  const selectPatient = wirePicker(host);
+  selectPatient(await api.get(`/patients/${patient.id}`));
+  host.querySelector('[data-pp-input]').readOnly = true;
+  host.querySelector('[data-pp-input]').setAttribute('aria-label','Selected patient');
+  host.querySelector('[data-cancel-registration]').onclick = () => host.replaceChildren();
+  host.querySelector('form').onreset = () => {};
+  host.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/** Reception Billing uses the same visit, fee and collection workflow. */
+export async function openBillingRegistration(after){
+  await loadMeta();
+  picked=null;
+  modal({title:'OP visit & consultation billing',size:'lg',body:`<button class="btn-secondary mb-3" data-new-patient>New patient</button>${registrationForm()}`,footer:'<button class="btn-secondary" data-close>Close</button>',onMount(root,close){
+    wireForm(root,null,async()=>{close();await after?.();});
+    wirePicker(root);
+  }});
 }
 
 function registrationForm() {
@@ -192,7 +230,7 @@ function registrationForm() {
 
       <div class="flex items-center gap-2 pt-1">
         <button class="btn-primary flex-1 !h-11" type="submit" data-submit ${doctorOptions(false).length ? '' : 'disabled'}>
-          <span class="material-symbols-outlined text-[18px]">how_to_reg</span> Register visit & allot token</button>
+          <span class="material-symbols-outlined text-[18px]">how_to_reg</span> ${setting('workflow_doctor','portal')==='manual'?'Register paper visit':'Register visit & allot token'}</button>
         <button class="btn-secondary !h-11 !px-3" type="reset" title="Clear">
           <span class="material-symbols-outlined text-[18px]">restart_alt</span></button>
       </div>
@@ -222,6 +260,8 @@ function rowHTML(r) {
     <td class="text-right whitespace-nowrap">
       ${due ? `<button class="btn-primary btn-xs" data-act="collect">Collect</button>` : ''}
       <button class="btn-secondary btn-xs" data-act="open">Open</button>
+      ${receptionBillsTests() && !['closed', 'cancelled'].includes(r.stage) ? `<button class="btn-ghost btn-xs" data-act="tests" title="Bill lab / scan tests from the prescription"><span class="material-symbols-outlined text-[15px]">biotech</span></button>` : ''}
+      ${['manual', 'both'].includes(setting('workflow_doctor', 'portal')) && ['registered', 'vitals_pending', 'vitals_done', 'ready', 'in_consult', 'consulted', 'services_pending'].includes(r.stage) && ['paid', 'free', 'waived'].includes(r.payment_status) && can('queue.manage') ? `<button class="btn-ghost btn-xs" data-act="seen" title="Doctor has seen the patient (paper prescription)">Seen</button>` : ''}
       ${['registered', 'vitals_pending'].includes(r.stage) ? `<button class="btn-ghost btn-xs" data-act="cancel" title="Cancel visit">
         <span class="material-symbols-outlined text-[15px]">close</span></button>` : ''}
     </td>`;
@@ -231,7 +271,7 @@ function paintKpis(root, c) {
   $('[data-kpis]', root).innerHTML = [
     { label: 'Registered today', value: c.total, icon: 'how_to_reg', sub: `${c.closed} completed` },
     { label: 'Waiting', value: c.vitals + c.ready, icon: 'hourglass_top', tone: 'info',
-      sub: `${c.vitals} for vitals · ${c.ready} for doctor` },
+      sub: setting('workflow_doctor','portal')==='manual'?'Registered visits awaiting paper consultation':`${c.vitals} for vitals · ${c.ready} for doctor` },
     { label: 'Payment pending', value: c.payment_pending, icon: 'schedule',
       tone: c.payment_pending ? 'warning' : 'success', sub: `${money(c.due_amount)} outstanding` },
     { label: 'In consultation', value: c.in_consult, icon: 'stethoscope', tone: 'success',
@@ -268,14 +308,16 @@ function wirePicker(root) {
   };
   patientPicker($('[data-picker]', root), selectPatient, { autofocus: true });
 
-  $('[data-new-patient]', root).onclick = () => openNewPatient((p) => {
-    toast(`${p.name} registered as ${p.uhid}`, 'success', { title: 'New UHID created' });
+  const newPatientButton = $('[data-new-patient]', root);
+  if (newPatientButton) newPatientButton.onclick = () => openNewPatient((p, how) => {
+    if (how?.existing) toast(`${p.name} · ${p.uhid} — existing record opened`, 'info');
+    else toast(`${p.name} registered as ${p.uhid}`, 'success', { title: 'New UHID created' });
     selectPatient(p);
   });
   return selectPatient;
 }
 
-function wireForm(root, appointmentId = null) {
+function wireForm(root, appointmentId = null, after = null) {
   const form = $('[data-reg-form]', root);
   const feePanel = $('[data-fee-panel]', root);
   let payMode = 'pay';
@@ -347,6 +389,7 @@ function wireForm(root, appointmentId = null) {
         action: { label: 'Open visit', run: () => navigate(`/visit/${e2.id}`) },
       });
       form.reset();
+      if (after) { root.replaceChildren(); await after(); }
       $('[data-pp-input]', root)?.focus();
       // after the fee is taken the slip must show it paid: read the visit again, not the pre-payment copy
       if (payMode === 'pay' && r.bill?.balance > 0) collectBill(r.bill.id, async () => {
@@ -367,7 +410,7 @@ function showSlip(r) {
     size: 'sm',
     body: `<div class="text-center py-3">
         <div class="font-display-lg text-[56px] leading-none text-primary font-bold tnum">${e.token_no}</div>
-        <div class="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant mt-1">Token number</div>
+        <div class="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant mt-1">${setting('workflow_doctor','portal')==='manual'?'Visit number':'Token number'}</div>
       </div>
       <dl class="grid grid-cols-[110px_1fr] gap-y-1.5 text-body-lg border-t border-outline-variant pt-3">
         <dt class="text-on-surface-variant">UHID</dt><dd class="font-data-mono">${esc(e.uhid)}</dd>
@@ -378,11 +421,11 @@ function showSlip(r) {
         ${r.bill ? `<dt class="text-on-surface-variant">Bill</dt><dd class="font-data-mono">${esc(r.bill.bill_no)} · ${money(r.bill.total)}</dd>` : ''}
       </dl>
       <p class="mt-3 text-body-md text-on-surface-variant">
-        ${e.payment_status === 'pending'
+        ${setting('workflow_doctor','portal')==='manual' ? 'Collect only the patient share shown on the bill, then send the patient with the paper visit slip. The doctor records vitals and treatment on paper; mark the visit Seen afterwards.' : e.payment_status === 'pending'
           ? (['insurance', 'aarogyasri', 'corporate', 'trust'].includes(e.payer_type)
             ? 'Payer approval is pending. The insurance team confirms coverage and any patient co-pay; the collection desk collects only the patient share. Record vitals and check visit readiness.'
             : 'Send the patient to the collection desk; check payment approval and record vitals before calling the token.')
-          : 'Send the patient to the vitals station.'}</p>`,
+          : setting('workflow_doctor', 'portal') === 'manual' ? 'Send the patient to the doctor with the slip. The doctor writes the prescription on paper; mark the visit Seen afterwards.' : 'Send the patient to the vitals station.'}</p>`,
     footer: `<button class="btn-secondary" data-close>Close</button>
       <button class="btn-secondary" data-print>Print slip</button>
       <button class="btn-primary" data-goto>Open visit</button>`,
@@ -418,7 +461,7 @@ function printToken(e, bill) {
 
 /* --------------------------------------------------------- new patient */
 
-export function openNewPatient(onCreated) {
+export function openNewPatient(onCreated, prefill = {}) {
   modal({
     title: 'Register a new patient',
     subtitle: 'Only create a UHID when the person has never been seen here before.',
@@ -428,7 +471,7 @@ export function openNewPatient(onCreated) {
         <span class="material-symbols-outlined text-[17px]">info</span>
         A returning patient keeps the same UHID for life. Search first — a new visit is not a new patient.</div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="md:col-span-2"><label class="field-label">Full name *</label><input class="field" name="name" required></div>
+        <div class="md:col-span-2"><label class="field-label">Full name *</label><input class="field" name="name" value="${esc(prefill.name || '')}" required></div>
         <div><label class="field-label">Title</label><select class="field" name="title">
           ${['', 'Mr.', 'Mrs.', 'Ms.', 'Master', 'Baby', 'Dr.'].map((t) => `<option>${t}</option>`).join('')}</select></div>
         <div><label class="field-label">Gender *</label><select class="field" name="gender" required>
@@ -439,18 +482,19 @@ export function openNewPatient(onCreated) {
         <div><label class="field-label">Date of birth</label><input class="field" name="dob" type="date" max="${new Date().toISOString().slice(0, 10)}"></div>
         <div><label class="field-label">Blood group</label><select class="field" name="blood_group">
           ${['', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map((t) => `<option>${t}</option>`).join('')}</select></div>
-        <div><label class="field-label">Mobile *</label><input class="field" name="mobile" required placeholder="+91 …"></div>
+        <div><label class="field-label">Mobile *</label><input class="field" name="mobile" value="${esc(prefill.mobile || '')}" required inputmode="tel" pattern="(\+?91[ \-]?|0)?[6-9][0-9]{4}[ \-]?[0-9]{5}" title="10-digit mobile number, e.g. 98765 43210" placeholder="98765 43210"></div>
         <div><label class="field-label">Alternate mobile</label><input class="field" name="alt_mobile"></div>
         <div><label class="field-label">ABHA number</label><input class="field" name="abha" placeholder="14 digit"></div>
         <div class="md:col-span-2"><label class="field-label">Address</label><input class="field" name="address"></div>
-        <div><label class="field-label">City</label><input class="field" name="city" value="Hyderabad"></div>
-        <div><label class="field-label">State</label><input class="field" name="state" value="Telangana"></div>
+        <div><label class="field-label">City</label><input class="field" name="city" value="${esc(state.meta?.settings?.hospital_city || '')}"></div>
+        <div><label class="field-label">State</label><input class="field" name="state" value="${esc(state.meta?.settings?.hospital_state || '')}"></div>
         <div><label class="field-label">PIN code</label><input class="field" name="pincode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}"></div>
         <div><label class="field-label">Email</label><input class="field" name="email" type="email"></div>
         <div><label class="field-label">Attendant name</label><input class="field" name="kin_name"></div>
         <div><label class="field-label">Relationship</label><input class="field" name="kin_relation"></div>
         <div><label class="field-label">Attendant mobile</label><input class="field" name="kin_mobile"></div>
         ${payerFieldsHTML({})}
+        ${referralHTML()}
         <div class="md:col-span-3"><label class="field-label">Known allergies</label>
           <input class="field" name="allergy" placeholder="e.g. Penicillin — urticaria (severe). Leave blank if none known.">
           <p class="text-body-sm text-on-surface-variant mt-1">Recorded on the patient record and shown on every clinical screen.</p></div>
@@ -461,6 +505,7 @@ export function openNewPatient(onCreated) {
              <button class="btn-primary" data-save><span class="material-symbols-outlined text-[17px]">person_add</span> Create UHID</button>`,
     onMount(rootEl, close) {
       wirePayerFields(rootEl);
+      wireReferrals(rootEl);
       const form = rootEl.querySelector('[data-np]');
       // a date of birth fills the age (years and, for infants, months)
       form.dob.addEventListener('change', () => {
@@ -494,7 +539,7 @@ export function openNewPatient(onCreated) {
         const b = e.target.closest('[data-use]');
         if (!b) return;
         const p = await api.get(`/patients/${b.dataset.use}`);
-        close(); onCreated?.(p);
+        close(); onCreated?.(p, { existing: true });
       });
       rootEl.querySelector('[data-save]').onclick = async (ev) => {
         if (!form.reportValidity()) return;
@@ -504,9 +549,19 @@ export function openNewPatient(onCreated) {
           const fd = Object.fromEntries(new FormData(form));
           if (fd.allergy?.trim()) fd.allergies = [{ substance: fd.allergy.trim(), severity: 'moderate' }];
           delete fd.allergy;
+          if (actionButton.dataset.confirmNew) fd.confirm_new_patient = true;
           const p = await api.post('/patients', fd);
           close(); onCreated?.(p);
-        } catch (err) { apiError(err, 'Could not create the patient'); busy(actionButton, false); }
+        } catch (err) {
+          busy(actionButton, false);
+          if (err?.payload?.error !== 'possible_duplicate') { apiError(err, 'Could not create the patient'); return; }
+          // show the matches and make creating a second record a deliberate choice
+          await checkDupes();
+          actionButton.dataset.confirmNew = '1';
+          actionButton.innerHTML = '<span class="material-symbols-outlined text-[18px]">person_add</span> Different person — create anyway';
+          toast('This mobile and name are already registered — use the existing UHID, or confirm it is a different person', 'warning', { timeout: 8000 });
+          dupes.scrollIntoView({ block: 'nearest' });
+        }
       };
     },
   });
@@ -529,14 +584,7 @@ export function printReceipt(rc) {
   const s = rc.settings || {};
   const html = `
   <div style="max-width:700px;margin:0 auto;font-family:Inter,Segoe UI,sans-serif;color:#172B4D">
-    <img src="/assets/mgm-estimation-logo.jpeg" alt="MGM Hospitals" style="width:100%;height:auto;margin-bottom:6px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #881D2C;padding-bottom:10px">
-      <div><div style="font-size:19px;font-weight:700;color:#881D2C">${esc(s.hospital_name || '')}</div>
-        <div style="font-size:11px;color:#526176">${esc(s.address || '')}<br>${esc(s.phone || '')} · GSTIN ${esc(s.gstin || '')}</div></div>
-      <div style="text-align:right"><div style="font-size:13px;font-weight:700;letter-spacing:.08em">PAYMENT RECEIPT</div>
-        <div style="font-size:12px;font-family:monospace">${esc(rc.receipt_no)}</div>
-        <div style="font-size:11px;color:#526176">${esc(rc.created_at)}</div></div>
-    </div>
+    ${printLetterhead('PAYMENT RECEIPT',rc.receipt_no)}<p style="text-align:right;font-size:10px">${esc(rc.created_at)}</p>
     <table style="width:100%;font-size:12px;margin-top:12px">
       <tr><td style="color:#526176;width:110px">Patient</td><td><b>${esc(rc.patient_name)}</b> · ${rc.age_years ?? ''}y ${esc(rc.gender || '')}</td>
           <td style="color:#526176;width:90px">UHID</td><td style="font-family:monospace">${esc(rc.uhid)}</td></tr>
@@ -550,14 +598,20 @@ export function printReceipt(rc) {
         <th style="text-align:left;padding:7px;border-bottom:1px solid #D8DFE8">Particulars</th>
         <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:60px">Qty</th>
         <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:100px">Amount</th></tr></thead>
-      <tbody>${(rc.items || []).map((i) => `<tr>
-        <td style="padding:7px;border-bottom:1px solid #EEF2F7">${esc(i.description)}</td>
+      <tbody>${(rc.items || []).filter((i) => i.amount || i.waiver_of).map((i) => `<tr>
+        <td style="padding:7px;border-bottom:1px solid #EEF2F7">${esc(i.description)}${i.discount > 0 ? `<div style="font-size:10px;color:#166534">Discount −${Number(i.discount).toFixed(2)} on ${Number(i.qty * i.rate).toFixed(2)}</div>` : ''}</td>
         <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7">${i.qty}</td>
         <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.amount).toFixed(2)}</td></tr>`).join('')}
       </tbody>
       <tfoot>
+        ${rc.bill_discount > 0 ? `<tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">Bill discount${rc.discount_reason ? ` (${esc(rc.discount_reason)})` : ''}</td>
+            <td style="padding:7px;text-align:right;font-family:monospace">−${Number(rc.bill_discount).toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">Bill total</td>
             <td style="padding:7px;text-align:right;font-family:monospace">${Number(rc.bill_total || 0).toFixed(2)}</td></tr>
+        ${(rc.adjustments || []).map((a) => `<tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">${esc(a.payer_name === 'Package adjustment' ? 'Covered by the package' : a.mode === 'free' ? `Free — ${a.reason || 'approved'}` : `Payer — ${a.payer_name || a.mode}`)}</td>
+            <td style="padding:7px;text-align:right;font-family:monospace">−${Number(a.amount).toFixed(2)}</td></tr>`).join('')}
+        ${rc.paid_before > 0 ? `<tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">Paid earlier</td>
+            <td style="padding:7px;text-align:right;font-family:monospace">−${Number(rc.paid_before).toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:7px;text-align:right;font-weight:700">Received (${esc(modeLabel(rc.mode))})</td>
             <td style="padding:7px;text-align:right;font-weight:700;font-family:monospace;color:#166534">${Number(rc.amount).toFixed(2)}</td></tr>
         <tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">Balance</td>

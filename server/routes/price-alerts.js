@@ -77,6 +77,7 @@ priceAlerts.post('/price-alerts/acknowledge', requireAuth, h((req) => {
   const note = String(req.body?.note || '').trim();
   const rows = ids.map((id) => get('SELECT * FROM price_alerts WHERE id=?', id) || fail(404, 'alert_not_found', { id }));
   if (rows.some((r) => r.status === 'acknowledged')) fail(409, 'already_acknowledged');
+  if (rows.some((r) => r.status === 'superseded')) fail(409, 'grn_already_corrected');
   // a big increase, a supplier query or a return needs the reason written down
   if (!note && (action !== 'accepted' || rows.some((r) => r.severity === 'high'))) fail(400, 'note_required');
   for (const r of rows) update('price_alerts', r.id, { status: 'acknowledged', acknowledged_by: req.user.id, acknowledged_at: nowIso(), action, ack_note: note || null });
@@ -90,6 +91,7 @@ priceAlerts.post('/price-alerts/:id/escalate', requireAuth, h((req) => {
   if (!canSee(req.user)) fail(403, 'forbidden', { need: 'purchase.view' });
   const a = get('SELECT * FROM price_alerts WHERE id=?', +req.params.id) || fail(404, 'alert_not_found');
   if (a.status === 'acknowledged') fail(409, 'already_acknowledged');
+  if (a.status === 'superseded') fail(409, 'grn_already_corrected');
   const note = String(req.body?.note || '').trim() || fail(400, 'note_required');
   update('price_alerts', a.id, { status: 'escalated', escalated_at: nowIso(), escalation_level: a.escalation_level + 1, escalation_note: note });
   tell(management(), 'danger', `Price change escalated — ${a.grn_no}`, `${line(a)} · ${note} (by ${req.user.name})`);

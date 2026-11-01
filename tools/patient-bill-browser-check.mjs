@@ -1,0 +1,15 @@
+import {DatabaseSync} from 'node:sqlite';
+const db=new DatabaseSync('data/surelyhms.db',{readOnly:true});
+const session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
+db.close();
+const targets=await fetch('http://127.0.0.1:9559/json').then(r=>r.json());
+const target=targets.find(t=>t.type==='page' && t.url.startsWith('http://localhost:4300'));
+const ws=new WebSocket(target.webSocketDebuggerUrl);
+await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+let seq=0;const pending=new Map();
+ws.addEventListener('message',event=>{const d=JSON.parse(event.data);if(pending.has(d.id)){pending.get(d.id)(d);pending.delete(d.id);}});
+const send=(method,params={})=>new Promise(resolve=>{const id=++seq;pending.set(id,resolve);ws.send(JSON.stringify({id,method,params}));});
+await send('Runtime.evaluate',{expression:`localStorage.setItem('surely_token',${JSON.stringify(session.token)})`});
+await send('Page.reload',{ignoreCache:true});
+await new Promise(resolve=>setTimeout(resolve,1500));
+const result=await send('Runtime.evaluate',{expression:`(async()=>{try{const api=await import('/src/api.js');api.setToken(localStorage.getItem('surely_token'));const store=await import('/src/store.js');const {mount}=await import('/src/views/patient.js');await mount({host:document.getElementById('view'),params:['2'],query:{}});await new Promise(r=>setTimeout(r,900));const headerButton=!!document.querySelector('[data-new-patient-bill]');document.querySelector('[data-tab=money]').click();const tabButton=!!document.querySelector('[data-tab-content] [data-new-patient-bill]') || document.querySelectorAll('[data-new-patient-bill]').length===2;document.querySelector('[data-new-patient-bill]').click();await new Promise(r=>setTimeout(r,900));const patient=document.querySelector('[data-pp-input]')?.value;const visit=document.querySelector('[name=encounter_id]')?.value;const payer=document.querySelector('[data-billing-category]')?.value;const billForm=!!document.querySelector('[data-nb]');const {canRaiseReceptionBill}=await import('/src/views/bills.js');const original=store.state.user;store.state.user={role:'reception',perms:['billing.create','op.collect']};const receptionAllowed=canRaiseReceptionBill();store.state.user={role:'pharmacy',perms:['billing.create','pharmacy.dispense']};const pharmacyBlocked=!canRaiseReceptionBill();store.state.user={role:'lab',perms:['lab.view','patient.view']};const labBlocked=!canRaiseReceptionBill();store.state.user=original;document.querySelector('[role=dialog] button[data-close]').click();return {headerButton,tabButton,patient,visit,payer,billForm,receptionAllowed,pharmacyBlocked,labBlocked};}catch(e){return {error:e.message,stack:e.stack};}})()`,awaitPromise:true,returnByValue:true});console.log(JSON.stringify(result.result));const value=result.result?.result?.value;if(!value?.headerButton || !value.tabButton || !value.billForm || !value.patient?.includes('SHMS-2627-0002') || !value.receptionAllowed || !value.pharmacyBlocked || !value.labBlocked)throw Error('Patient record billing shortcut check failed');ws.close();

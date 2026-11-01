@@ -6,7 +6,7 @@
  * one main action → summary → filters → working table → detail drawer
  * (section 5 of the operating brief).
  */
-import { $, $$, esc, el, bind, debounce, toast, spinner, emptyState, renderRows, kpi, ageText } from '../ui.js';
+import { $, $$, esc, el, bind, debounce, toast, spinner, emptyState, renderRows, kpi, ageText, confirmDialog } from '../ui.js';
 import { api, qs } from '../api.js';
 import { subscribe, on } from '../ws.js';
 import { state, can, setting, doctors, departments, counters, services, doctorById, deptById, staffById, loadMeta } from '../store.js';
@@ -20,10 +20,10 @@ export { api, qs, subscribe, on, state, can, navigate, setting, doctors, departm
 export function page({ eyebrow, title, subtitle, actions = '', meta = '', body = '', wide = false }) {
   return `
   <div class="p-6 space-y-5 ${wide ? '' : 'max-w-content'} mx-auto w-full">
-    <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
+    <div class="page-head flex flex-col xl:flex-row xl:items-center justify-between gap-4">
       <div class="min-w-0">
         ${eyebrow ? `<div class="flex items-center gap-2 flex-wrap">${eyebrow}</div>` : ''}
-        <h1 class="font-headline-lg text-headline-lg text-on-surface mt-1">${esc(title)}</h1>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface mt-1">${esc(title)}<span class="head-count" data-head-count></span></h1>
         ${subtitle ? `<p class="text-body-lg text-on-surface-variant mt-1 max-w-3xl">${subtitle}</p>` : ''}
       </div>
       ${actions ? `<div class="flex flex-wrap items-center gap-2 shrink-0">${actions}</div>` : ''}
@@ -31,6 +31,31 @@ export function page({ eyebrow, title, subtitle, actions = '', meta = '', body =
     ${meta ? `<div class="flex flex-wrap items-center gap-2">${meta}</div>` : ''}
     ${body}
   </div>`;
+}
+
+/** Put the screen's key figure beside its title: headCount(root, '4 free of 5'). */
+export function headCount(root, text) {
+  const el = root?.querySelector?.('[data-head-count]');
+  if (el) el.textContent = text ? `· ${text}` : '';
+}
+
+/**
+ * Send an order request; if the server reports the same test is already open on this visit
+ * (Hybrid: doctor's screen and paper slip), show what is open and resend only when confirmed.
+ *   const r = await withDuplicateCheck((extra) => api.post('/orders', { ...body, ...extra }));
+ * Resolves null when the person keeps the existing order.
+ */
+export async function withDuplicateCheck(send) {
+  try { return await send({}); }
+  catch (err) {
+    if (err?.payload?.error !== 'duplicate_order') throw err;
+    const list = (err.payload.duplicates || []).map((d) => `<li><b>${esc(d.label)}</b> — ${esc(d.order_no)} · ${esc(d.source_label || '')} · ${esc(String(d.status).replace(/_/g, ' '))}</li>`).join('');
+    const ok = await confirmDialog({ title: 'Already ordered on this visit',
+      message: `These tests are already open for this patient:<ul class="list-disc pl-5 mt-2 text-body-md text-on-surface">${list}</ul><p class="mt-2">Order them again anyway? Choose Cancel to keep the existing order.</p>`,
+      confirmLabel: 'Order again' });
+    if (!ok) return null;
+    return send({ confirm_duplicate: true });
+  }
 }
 
 export const eyebrow = (text, icon = 'apartment') =>
@@ -54,7 +79,7 @@ export function doctorSetupNotice() {
 }
 
 export function kpiRow(cards, cols = 4) {
-  return `<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-${cols} gap-4" data-kpis>
+  return `<div class="grid grid-cols-2 xl:grid-cols-${cols} gap-3 sm:gap-4" data-kpis>
     ${cards.map(kpi).join('')}</div>`;
 }
 
@@ -227,7 +252,8 @@ export function payerFieldsHTML(p = {}) {
       ${PAYER_CATS.map(([v, l]) => `<option value="${v}" ${v === cat ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     <div data-payer-extra class="${['self', 'credit'].includes(cat) ? 'hidden' : ''}"><label class="field-label">Payer / TPA</label><select class="field" name="payer_id" data-payer-id data-current="${p.payer_id || ''}">
       <option value="">${esc(p.payer_name || '— choose —')}</option></select></div>
-    <div data-payer-extra class="${['self', 'credit'].includes(cat) ? 'hidden' : ''}"><label class="field-label">Policy / card / employee no.</label><input class="field" name="policy_no" value="${esc(p.policy_no || '')}"></div>
+    <div data-payer-extra class="${['self', 'credit'].includes(cat) ? 'hidden' : ''}"><label class="field-label" data-policy-label>${cat === 'aarogyasri' ? 'Aarogyasri card no. *' : 'Policy / card / employee no.'}</label><input class="field" name="policy_no" value="${esc(p.policy_no || '')}" ${cat === 'aarogyasri' ? 'required' : ''}></div>
+    <p data-scheme-note class="${cat === 'aarogyasri' ? '' : 'hidden'} md:col-span-2 text-body-sm rounded-lg bg-info-bg text-info px-3 py-2">Aarogyasri: take the scheme card and Aadhaar (last 4 digits) now. The Insurance desk records eligibility proof, the package and the scheme pre-auth no. on the case — the patient pays ₹0 unless an exclusion is recorded with a reason.</p>
     <input type="hidden" name="payer_name" value="${esc(p.payer_name || '')}">`;
 }
 
@@ -242,6 +268,9 @@ export async function wirePayerFields(root) {
     sel.innerHTML = `<option value="">— choose —</option>${list.filter((x) => c === 'self' || CAT_OF[x.payer_type] === c)
       .map((x) => `<option value="${x.id}" ${String(x.id) === cur ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}`;
     root.querySelectorAll('[data-payer-extra]').forEach((el) => el.classList.toggle('hidden', c === 'self' || c === 'credit'));
+    const scheme = c === 'aarogyasri', pol = root.querySelector('input[name="policy_no"]'), lab = root.querySelector('[data-policy-label]');
+    if (pol) pol.required = scheme; if (lab) lab.textContent = scheme ? 'Aarogyasri card no. *' : 'Policy / card / employee no.';
+    root.querySelector('[data-scheme-note]')?.classList.toggle('hidden', !scheme);
   };
   fill();
   cat.addEventListener('change', fill);
@@ -271,7 +300,7 @@ export function counterOptions(includeAll = true) {
 export const optionList = (arr) => arr.map((v) => (typeof v === 'string' ? { value: v, label: v } : v));
 
 /** Type-ahead patient picker. Calls `onPick(patient)`. */
-export function patientPicker(container, onPick, { placeholder = 'Search UHID, name or mobile…', autofocus = false } = {}) {
+export function patientPicker(container, onPick, { placeholder = 'Search UHID, name or mobile…', autofocus = false, todayOnly = false } = {}) {
   const node = typeof container === 'string' ? $(container) : container;
   node.innerHTML = `
     <div class="relative">
@@ -284,7 +313,7 @@ export function patientPicker(container, onPick, { placeholder = 'Search UHID, n
   const search = debounce(async () => {
     const q = input.value.trim();
     if (q.length < 2) { list.classList.add('hidden'); return; }
-    const { rows } = await api.get(`/patients${qs({ q, limit: 10 })}`);
+    const { rows } = await api.get(`/patients${qs({ q, limit: 10,activity:todayOnly?'today':undefined })}`);
     list.innerHTML = rows.length ? rows.map((p) => `
       <button type="button" class="w-full text-left px-3 py-2 hover:bg-surface-container-low border-b border-outline-variant/60 last:border-0" data-id="${p.id}">
         <div class="flex items-center justify-between gap-2">
@@ -325,6 +354,11 @@ export function live({ topics = [], events = [], load, interval = 0 }) {
   let pending = null;
   const refresh = async (context) => {
     if (disposed) return;
+      const editing = document.activeElement;
+      if (!context?.first && editing?.closest?.('#view') && editing.matches?.('input,textarea,select,[contenteditable="true"]')) {
+        pending = context;
+        return;
+      }
     if (loading) { pending = context; return; }
     loading = true;
     try { await loadMeta(); if (!disposed) await load(context); }
@@ -345,9 +379,11 @@ export function live({ topics = [], events = [], load, interval = 0 }) {
   unsubs.push(on('realtime.connected', reload));
   // Catch missed events and suspended browser tabs without replacing clinical drafts.
   const resume = () => { if (document.visibilityState !== 'hidden') reload(); };
+    const finishEditing = () => { if (pending && !loading) reload(); };
+    document.addEventListener('focusout', finishEditing);
   document.addEventListener('visibilitychange', resume);
   window.addEventListener('focus', resume);
-  unsubs.push(() => document.removeEventListener('visibilitychange', resume), () => window.removeEventListener('focus', resume));
+    unsubs.push(() => document.removeEventListener('visibilitychange', resume), () => window.removeEventListener('focus', resume), () => document.removeEventListener('focusout', finishEditing));
   const t = setInterval(() => {
     if (document.visibilityState !== 'hidden') refresh({ live: true, tick: true });
   }, Math.min(interval || 30000, 30000));
@@ -395,10 +431,33 @@ export function apiError(e, fallback = 'Could not complete that') {
     forbidden: 'Your role does not allow that action',
     day_closed: 'That day is closed — only an administrator can change it, with a reason',
     consent_required: 'Informed consent is not signed — open the checklist and record it before the patient goes into theatre',
-    books_closed_today: "Today's books are already closed — ask Accounts to reopen the day before collecting or refunding",
+    mobile_invalid: 'Enter a 10-digit mobile number (e.g. 98765 43210)',
+    manual_stock_adjust_disabled: 'Single-batch stock adjustment is switched off by the administrator — use the Excel bulk stock count, or ask the administrator (Settings → Pharmacy & stock)',
+    cannot_approve_own_request: 'You raised this request — another in-charge approves it (or switch on self-approval in Settings → Pharmacy & stock)',
+    alt_mobile_invalid: 'The alternate mobile must be a 10-digit number',
+    kin_mobile_invalid: "The attendant's mobile must be a 10-digit number",
+    age_invalid: 'Age must be between 0 and 120 years',
+    pincode_invalid: 'PIN code must be 6 digits',
+    abha_invalid: 'ABHA number must be 14 digits',
+    email_invalid: 'That email address does not look right',
+    reference_required: 'Enter the UPI transaction ID, card approval code, UTR or cheque number',
+    prescription_required_for_schedule: 'Schedule H / H1 / X medicine — choose the prescribing doctor or write the prescription reference',
+    no_reply: 'No reply from the server — the link may have dropped. Check the Live chip at the top, then refresh to see whether it was saved before trying again',
+    network_error: 'Cannot reach the server — check the network connection and try again',
+    books_closed_today:"Today's books are already closed — ask Accounts to reopen the day before collecting or refunding",
     variance_needs_explanation: 'Explain the difference in the remark',
     closer_cannot_approve_own_variance: 'Another person must approve your own close',
     reason_required: 'A reason is required',
+    hospital_mode_admin_only: 'Only the Hospital Admin can change the operating mode or department workflow',
+    use_operating_mode_screen: 'Change the operating mode from Settings → Hospital operating mode',
+    confirmation_required: 'Tick the confirmation box first',
+    mode_unchanged: 'The hospital is already in that mode',
+    paper_requests_disabled: 'Paper requests are off — the hospital is in Paperless mode',
+    department_entry_disabled: 'Department entry of paper requests is switched off in Settings',
+    encounter_required: 'This patient has no open visit or admission today — send them to reception to register first',
+    other_department_test: 'That test belongs to another department',
+    referred_by_required: 'Choose or type the doctor who asked for the test',
+    mri_not_offered: 'MRI is not offered by this hospital',
     unit_outside_department: "Choose a unit from this person's own department",
     past_or_today_only: 'Attendance can be marked for today or earlier days only',
     has_punches_cannot_clear: 'This day has punch times — change the status instead of clearing it',
@@ -408,9 +467,23 @@ export function apiError(e, fallback = 'Could not complete that') {
     register_patient_first: 'Link the patient to a UHID first',
     bill_has_collections_use_credit_note: 'Money is already paid on this bill — reception must waive or refund instead',
     case_already_closed: 'This case is already closed',
+    payer_allocation_requires_insurance: 'Only the Insurance desk can allocate an amount to a payer — use Change payer, or ask the Insurance desk',
+    payer_change_needs_approval: 'A payer change needs Insurance desk approval — send it as a request',
+    payer_request_already_pending: 'A payer-change request for this visit is already waiting for approval',
+    money_received_choose_action: 'Money was already received — choose keep as patient share, or refund',
+    payer_entries_to_reverse: 'Unpaid payer entries must be reversed first — tick Reverse',
+    existing_settlements_need_review: 'Payer money or an approved waiver is on this visit — review it on Insurance & Payer Cases first',
+    payer_unchanged: 'That is already the payer for this visit',
+    payer_category_mismatch: 'Choose a payer of the selected type',
+    scheme_checklist_incomplete: 'Aarogyasri checklist is incomplete — the case cannot be approved yet',
+    request_already_decided: 'This request was already decided',
+    visit_closed: 'This visit is closed',
+    reception_lab_billing_disabled: 'Reception billing of tests is switched off — Settings → Department workflow → Laboratory',
+    referred_by_required: 'Choose the prescribing doctor or type the outside doctor',
+    lab_or_imaging_only: 'Only lab and imaging tests can be billed here',
   };
   const key = e?.payload?.error || e?.message;
-  const detail = e?.payload?.reasons?.join(' · ') || e?.payload?.balance !== undefined
+  const detail = e?.payload?.missing ? `Missing: ${e.payload.missing.join(', ')}` : e?.payload?.reasons?.join(' · ') || e?.payload?.balance !== undefined
     ? (e.payload.reasons ? e.payload.reasons.join(' · ') : `Balance ₹${e.payload.balance}`)
     : (e?.payload?.fields ? e.payload.fields.join(', ') : '');
   const need = e?.payload?.need ? `Needs permission: ${e.payload.need}` : '';

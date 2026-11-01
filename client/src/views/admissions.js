@@ -4,11 +4,12 @@ import {
   page, eyebrow, liveChip, kpiRow, tableCard, filterBar, wireFilters, live, mountPage, card,
   apiError, busy, api, qs, state, can, navigate, patientPicker, doctorOptions, compactMoney,
   $, $$, esc, bind, toast, modal, drawer, confirmDialog, renderRows, pill, money,
-  fmtDate, fmtDateTime, ago, kpi, emptyState, patientBanner,
+  fmtDate, fmtDateTime, ago, kpi, emptyState, patientBanner, headCount,
 } from './_kit.js';
 import { openDischargeSummary } from '../discharge-summary.js';
 import { packageBlock, openPackageUsage } from '../package-usage.js';
 import { collectBill } from '../collect.js';
+import { openPayerChange, canChangePayer } from '../payer-change.js';
 
 let f = { status: 'active', kind: '', q: '' };
 let view = 'board';
@@ -33,6 +34,7 @@ export async function mount(ctx) {
     $('[data-board]', root).innerHTML = bedBoard(beds);
     renderRows($('[data-rows]', root), adm.rows, rowHTML, { empty: 'No admissions match this filter.' });
     $('[data-count]', root).textContent = `${adm.rows.length} inpatient(s)`;
+    headCount(root, `${beds.totals.vacant} free of ${beds.totals.total} beds · ${adm.counts.total} inpatients`);
   }
 
   bind(root, 'click', '[data-bed]', (e, b) => {
@@ -150,13 +152,14 @@ async function assignAdmissionPackage(a, after) {
   modal({
     title: 'Add a package to this stay', subtitle: `${esc(a.patient_name)} · ${esc(a.ip_no)}`, size: 'sm',
     body: `<label class="field-label">Package</label><select class="field" data-pk>${list.map((p) => `<option value="${p.id}">${esc(p.name)} · ${money(p.price)}${p.los_days ? ` · ${p.los_days} day(s)` : ''}</option>`).join('')}</select>
-      <p class="text-body-sm text-on-surface-variant mt-2">The package price is added to the running bill. Charges it covers are offset at discharge; anything outside it is billed as an extra.</p>`,
+      <label class="field-label mt-3">Agreed package price (₹)</label><input class="field" type="number" min="0" step="0.01" data-agreed-price value="${list[0]?.price || 0}"><label class="field-label mt-2">Agreement / reason</label><textarea class="field" data-agreement placeholder="Required if the agreed price differs from the standard price"></textarea><p class="text-body-sm text-on-surface-variant mt-2">Covered charges are adjusted at discharge; excluded services are billed separately. A different agreed price needs financial approval.</p>`,
     footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-ok>Add package</button>',
     onMount(root, close) {
+      root.querySelector('[data-pk]').onchange=()=>{root.querySelector('[data-agreed-price]').value=list.find(p=>p.id===+root.querySelector('[data-pk]').value)?.price || 0;};
       root.querySelector('[data-ok]').onclick = async (ev) => {
-        busy(ev.currentTarget, true);
-        try { await api.post(`/ipd/admissions/${a.id}/package`, { package_id: +root.querySelector('[data-pk]').value }); close(); toast('Package added to the stay', 'success'); after(); }
-        catch (e) { apiError(e); busy(ev.currentTarget, false); }
+        const button=ev.currentTarget;busy(button, true);
+        try { await api.post(`/ipd/admissions/${a.id}/package`, { package_id: +root.querySelector('[data-pk]').value,agreed_price:Number(root.querySelector('[data-agreed-price]').value),notes:root.querySelector('[data-agreement]').value.trim() }); close(); toast('Package added to the stay', 'success'); after(); }
+        catch (e) { apiError(e); busy(button, false); }
       };
     },
   });
@@ -186,7 +189,7 @@ function payerCard(a) {
     <span class="${tone} pill-dot">${esc(status)}</span></div>`;
 }
 
-async function openAdmission(id, after) {
+export async function openAdmission(id, after) {
   const a = await api.get(`/ipd/admissions/${id}`);
   const scheme = SCHEMES.includes(a.financial_category);
   drawer({
@@ -235,7 +238,7 @@ async function openAdmission(id, after) {
       ${a.status !== 'discharged' && (can('nursing.write') || can('ipd.manage')) ? '<button class="btn-secondary" data-cons>Consumables used</button>' : ''}
       ${a.access?.clinical ? `<button class="btn-secondary" data-summary>Discharge summary${a.summary_status === 'final' ? ' ✓' : a.discharge_summary ? ' (draft)' : ''}</button>` : ''}
       ${can('nursing.write') ? `<button class="btn-secondary" data-note>Add nursing note</button>` : ''}
-      ${can('ipd.manage') ? `<button class="btn-secondary" data-transfer>Transfer bed</button><button class="btn-secondary" data-convert-payer>Change payer / cash / credit</button>` : ''}
+      ${can('ipd.manage') ? `<button class="btn-secondary" data-transfer>Transfer bed</button>` : ''}${canChangePayer(true) ? `<button class="btn-secondary" data-convert-payer>Change payer / cash / credit</button>` : ''}
       ${a.ip_bill_id && can('payment.collect') && !scheme ? (() => {
         // this button collects on the IP bill only; ER / pharmacy bills are separate and settle at discharge
         const ipDue = +(a.bills || []).find((b) => b.id === a.ip_bill_id)?.balance || 0;
@@ -280,12 +283,7 @@ async function openAdmission(id, after) {
       root.querySelector('[data-ip-order]')?.addEventListener('click', async () => {
         try { const enc = await api.get(`/encounters/${a.encounter_id}`); const { openOrderDialog } = await import('./consultation.js'); openOrderDialog(enc, after); } catch (err) { apiError(err); }
       });
-      root.querySelector('[data-convert-payer]')?.addEventListener('click', async () => {
-        try {
-          const payers=await api.get('/payers'); close();
-          modal({title:'Change admission payer',subtitle:'Existing receipts stay recorded. Running bills link to the payer case; approval, co-pay and exclusions are completed by the insurance desk. Patient credit stays a patient due.',body:`<label class="field-label">Billing category</label><select class="field" data-category>${[['self','Cash / self-pay'],['insurance','Insurance / TPA'],['aarogyasri','Aarogyasri'],['corporate','Company / corporate credit'],['trust','Trust sponsorship'],['credit','Patient credit — pay later']].map(([v,l])=>`<option value="${v}" ${a.financial_category===v?'selected':''}>${l}</option>`).join('')}</select><label class="field-label mt-3">Payer master</label><select class="field" data-payer-master></select><label class="field-label mt-3">Policy / employee / scheme reference</label><input class="field" data-policy><label class="field-label mt-3">Reason *</label><input class="field" data-convert-reason>`,footer:'<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save-payer>Update payer</button>',onMount(dialog,done){const category=dialog.querySelector('[data-category]'),payer=dialog.querySelector('[data-payer-master]');const fill=()=>{payer.disabled=['self','credit'].includes(category.value);payer.innerHTML='<option value="">Choose payer</option>'+payers.filter(p=>(p.payer_type==='tpa'?'insurance':p.payer_type)===category.value).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');};category.onchange=fill;fill();dialog.querySelector('[data-save-payer]').onclick=async e=>{const button=e.currentTarget;busy(button,true);try{const result=await api.patch(`/ipd/admissions/${id}/payer`,{financial_category:category.value,payer_id:payer.disabled?null:+payer.value,policy_no:dialog.querySelector('[data-policy]').value,reason:dialog.querySelector('[data-convert-reason]').value});done();toast(result.claim_id?'Payer linked — complete approval and co-pay in Insurance & Payer Cases':'Billing category updated','success');after();}catch(err){apiError(err);busy(button,false);}};}});
-        }catch(err){apiError(err);}
-      });
+      root.querySelector('[data-convert-payer]')?.addEventListener('click', () => { close(); openPayerChange(a.encounter_id, after); });
       root.querySelector('[data-discharge]')?.addEventListener('click', async () => {
         await api.patch(`/ipd/admissions/${a.id}`, { status: 'discharge_initiated' });
         close(); toast('Discharge started — see the discharge board', 'success'); navigate('/discharge');
@@ -302,14 +300,14 @@ function chargesCard(a) {
   const plan = a.charges || [];
   const mayEdit = can('billing.create') || can('ipd.manage');
   return card({
-    title: 'Running charges', subtitle: 'Daily charges bill every started 24 hours from when they began; hourly charges bill the hours used each day', pad: false,
+    title: 'Running charges', subtitle: 'Daily charges bill per started 24 hours; hourly charges by the hour.', pad: false,
     actions: mayEdit && a.status !== 'discharged' ? '<button class="btn-secondary btn-sm" data-add-charge><span class="material-symbols-outlined text-[15px]">add</span>Add charge</button>' : '',
     body: plan.length ? `<table class="tbl"><thead><tr><th>Charge</th><th class="num">Rate</th><th>From</th><th class="num">Billed</th><th class="num">Amount</th><th>State</th><th></th></tr></thead><tbody>
       ${plan.map((c) => `<tr><td>${esc(c.description)}${c.stop_reason ? `<div class="text-body-sm text-on-surface-variant">${esc(c.stop_reason)}</div>` : ''}</td>
         <td class="num">${perLabel(c)}</td><td class="text-body-sm">${fmtDateTime(c.started_at)}</td><td class="num">${c.unit === 'hour' ? `${c.qty_billed} h` : c.unit === 'once' ? 'once' : `${c.days_billed} d`}</td>
         <td class="num">${money(c.amount, 2)}</td>
-        <td>${c.status === 'active' ? pill('active', 'Running') : pill(c.status === 'ended' ? 'closed' : 'cancelled', c.status === 'ended' ? 'Ended' : 'Stopped')}</td>
-        <td class="text-right">${mayEdit && c.status === 'active' && c.kind !== 'bed' ? `<button class="btn-ghost btn-xs" data-stop-charge="${c.id}">Stop</button>` : ''}</td></tr>`).join('')}
+        <td>${c.unit==='once'?pill('closed','One-time / visit'):c.status === 'active' ? pill('active', 'Running') : pill(c.status === 'ended' ? 'closed' : 'cancelled', c.status === 'ended' ? 'Ended' : 'Stopped')}</td>
+        <td class="text-right">${mayEdit && c.status === 'active' && c.kind !== 'bed' && c.unit!=='once' ? `<button class="btn-ghost btn-xs" data-stop-charge="${c.id}">Stop</button>` : ''}</td></tr>`).join('')}
       </tbody></table>` : '<p class="p-4 text-body-md text-on-surface-variant">No recurring charges on this admission.</p>',
   });
 }
@@ -324,7 +322,7 @@ function billCard(a) {
     body: `<div class="max-h-80 overflow-y-auto"><table class="tbl"><thead><tr><th>Particulars</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th><th></th></tr></thead><tbody>
       ${bills.flatMap((b) => b.items.map((i) => ({ ...i, bill_id: b.id, bill_status: b.status }))).map((i) => `<tr class="${waived.has(i.id) ? 'opacity-50 line-through' : ''}">
         <td>${esc(i.description)}</td><td class="num">${i.qty}</td><td class="num">${money(i.rate, 2)}</td><td class="num ${i.amount < 0 ? 'text-success' : ''}">${money(i.amount, 2)}</td>
-        <td class="text-right">${mayWaive && i.amount > 0 && !i.waiver_of && !waived.has(i.id) ? `<button class="btn-ghost btn-xs" data-waive="${i.id}" data-bill="${i.bill_id}" data-desc="${esc(i.description)}" data-amt="${i.amount}">Waive</button>` : ''}</td></tr>`).join('')}
+        <td class="text-right">${mayWaive && i.amount > 0 && !i.batch_id && i.revenue_head !== 'PHARMACY' && i.category !== 'pharmacy' && !i.waiver_of && !waived.has(i.id) ? `<button class="btn-ghost btn-xs" data-waive="${i.id}" data-bill="${i.bill_id}" data-desc="${esc(i.description)}" data-amt="${i.amount}">Waive</button>` : ''}</td></tr>`).join('')}
       </tbody></table></div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 border-t border-outline-variant text-body-md">
         <div>Charges <b class="font-data-mono">${money(bills.reduce((s, b) => s + b.total, 0), 2)}</b></div>
@@ -337,11 +335,12 @@ function billCard(a) {
 
 async function addChargeForm(a, after) {
   const catalog = await api.get('/ipd/charge-catalog');
+  const requestKey=`ip-plan-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   modal({
     title: 'Add charge', subtitle: `${esc(a.patient_name)} · ${esc(a.ip_no)}`, size: 'sm',
     body: `<label class="field-label">Charge</label><select class="field" data-svc>${catalog.map((c) => `<option value="${c.id}" data-price="${c.price}" data-unit="${c.billing_unit}">${esc(c.name)} — ${money(c.price)}${c.billing_unit === 'day' ? '/day' : c.billing_unit === 'hour' ? '/hour' : ''}</option>`).join('')}</select>
-      <div class="grid grid-cols-2 gap-3 mt-3"><div><label class="field-label">Rate</label><input class="field text-right" type="number" min="0" step="1" data-rate></div>
-      <div><label class="field-label">Billed</label><select class="field" data-unit><option value="day">Per day (24 h)</option><option value="hour">Per hour used</option><option value="once">Once</option></select></div></div>`,
+      <div class="grid grid-cols-2 gap-3 mt-3"><div><label class="field-label">Rate for the selected unit (₹)</label><input class="field text-right" type="number" min="0" step="0.01" data-rate></div>
+      <div><label class="field-label">Billed</label><select class="field" data-unit><option value="day">Per started day (24 h)</option><option value="hour">Per started hour</option><option value="once">Per visit / one-time item</option></select></div></div><label class="field-label mt-3">Actual start (optional — defaults to now)</label><input class="field" type="datetime-local" data-charge-start min="${esc(String(a.admitted_at || '').replace(' ','T').slice(0,16))}"><p class="text-body-sm mt-2">The rate uses the selected unit. Started hours and 24-hour days have a one-minute grace. Stop a daily service before changing to individual visits. Hourly services stop when you record Stop.</p>`,
     footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Add to bill</button>',
     onMount(el, close) {
       const sync = () => { const o = el.querySelector('[data-svc]').selectedOptions[0]; el.querySelector('[data-rate]').value = o?.dataset.price || 0; el.querySelector('[data-unit]').value = o?.dataset.unit || 'day'; };
@@ -349,7 +348,7 @@ async function addChargeForm(a, after) {
       el.querySelector('[data-save]').onclick = async (e) => {
         const btn = e.currentTarget; busy(btn, true);
         try {
-          await api.post(`/ipd/admissions/${a.id}/charges`, { service_id: +el.querySelector('[data-svc]').value, rate: +el.querySelector('[data-rate]').value, unit: el.querySelector('[data-unit]').value });
+          await api.post(`/ipd/admissions/${a.id}/charges`, { service_id: +el.querySelector('[data-svc]').value, rate: +el.querySelector('[data-rate]').value, unit: el.querySelector('[data-unit]').value,started_at:el.querySelector('[data-charge-start]').value || undefined,request_key:requestKey });
           close(); toast('Charge added to the IP bill', 'success'); after();
         } catch (err) { apiError(err); busy(btn, false); }
       };
@@ -446,7 +445,7 @@ function bedActions(bed, after) {
   });
 }
 
-export async function admitPatient(after, presetBedId = null, { patientId = null, emergencyId = null, er = null } = {}) {
+export async function admitPatient(after, presetBedId = null, { patientId = null, emergencyId = null, er = null, inlineHost = null } = {}) {
   const [beds, catalog, preset] = await Promise.all([api.get('/ipd/beds'), api.get('/ipd/charge-catalog'),
     patientId ? api.get(`/patients/${patientId}`) : Promise.resolve(null)]);
   const free = beds.beds.filter((b) => b.status === 'vacant' || b.id === presetBedId);
@@ -454,7 +453,7 @@ export async function admitPatient(after, presetBedId = null, { patientId = null
   const kindOf = (bedId) => beds.beds.find((b) => b.id === +bedId)?.ward_kind || 'general';
   const appliesIn = (c, kind) => !c.ward_kinds || String(c.ward_kinds).split(',').includes(kind);
   let picked = preset;
-  modal({
+  modal({ inlineHost,
     title: 'Admit a patient', subtitle: 'Opens the IP encounter, allots the bed and starts the running IP bill', size: 'lg',
     body: `<form data-af class="space-y-3">
       <div><label class="field-label">Patient *</label>${preset ? `<div class="field flex items-center">${esc(preset.name)} · ${esc(preset.uhid)}</div>` : '<div data-picker></div>'}</div>
@@ -484,7 +483,7 @@ export async function admitPatient(after, presetBedId = null, { patientId = null
           <p class="text-body-sm text-on-surface-variant mt-1">Sets the patient's payer: agreed rates apply and the case shows this payer.</p></div>
         <div><label class="field-label">Policy / card / employee no.</label><input class="field" name="policy_no" value="${esc(preset?.policy_no || '')}"></div>
       </div>
-      <fieldset><legend class="field-label">Daily charges for this patient</legend>
+      <fieldset><legend class="field-label">Starting charge plan for this patient</legend>
         <p class="text-body-sm text-on-surface-variant mb-2">The bed is charged at its tariff automatically. Ticked charges follow the chosen bed's ward; daily ones bill every 24 hours from admission, hourly ones the hours used. Stop or waive later.</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">${daily.map((c) => `<label class="flex items-center gap-2 rounded-lg border border-outline-variant px-3 py-2 cursor-pointer hover:bg-surface-container-low" data-ward-kinds="${esc(c.ward_kinds || '')}" data-auto="${c.ipd_default ? 1 : 0}">
           <input type="checkbox" name="charges" value="${c.id}">

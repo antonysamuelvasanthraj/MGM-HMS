@@ -1,8 +1,8 @@
 /**
  * Team chat & tasks. Every login can message the whole hospital ("All staff"),
  * any colleague directly, or a group they create (members picked by name or a
- * whole department at once). Messages are retained: they cannot be deleted,
- * edits keep every earlier version, and management may review edit history.
+ * whole department at once). Messages are immutable: they cannot be edited or
+ * deleted. Legacy revisions remain available to authorised management reviewers.
  * Realtime events carry ids only; each screen reloads what its login may read.
  */
 import { Router } from 'express';
@@ -191,18 +191,12 @@ staffWork.post('/staff-work/chat', h((req) => tx(() => {
   return row;
 })));
 
-staffWork.patch('/staff-work/chat/:id', h((req) => tx(() => {
-  const row = get('SELECT * FROM staff_chat WHERE id=?', +req.params.id) || fail(404, 'message_not_found');
-  if (row.user_id !== req.user.id) fail(403, 'only_author_can_edit');
-  if (get("SELECT (julianday('now','localtime')-julianday(created_at))*86400 age FROM staff_chat WHERE id=?", row.id).age > 900) fail(409, 'message_edit_window_closed');
-  if (+req.body.version !== row.version) fail(409, 'message_changed_refresh');
-  const body = bodyText(req.body.body);
-  insert('staff_chat_revisions', { message_id: row.id, body: row.body, version: row.version, edited_by: req.user.id });
-  update('staff_chat', row.id, { body, edited_at: nowIso(), version: row.version + 1 });
-  const after = get('SELECT * FROM staff_chat WHERE id=?', row.id);
-  staffEvent(req, 'chat.edit', 'staff_chat', row.id, { version: row.version }, { version: after.version }, 'Message edited');
-  return after;
-})));
+staffWork.patch('/staff-work/chat/:id', h((req) => {
+  if (!get('SELECT 1 FROM staff_chat WHERE id=?', +req.params.id)) fail(404, 'message_not_found');
+  // Chat is an immutable communication record. Historical revisions remain readable,
+  // but no new edit is accepted even by the author or an administrator.
+  fail(409, 'chat_immutable');
+}));
 
 staffWork.get('/staff-work/chat/:id/history', h((req) => {
   if (!reviewer(req.user) && !['manager', 'medical_superintendent'].includes(req.user.role)) fail(403, 'management_review_only');

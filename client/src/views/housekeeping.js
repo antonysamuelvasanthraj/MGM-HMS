@@ -8,7 +8,7 @@ export async function mount(ctx) {
   const root = mountPage(ctx, page({
     eyebrow: `${eyebrow('Housekeeping', 'cleaning_services')} ${liveChip()}`,
     title: 'Beds to clean',
-    subtitle: 'A discharged or transferred patient leaves the bed for cleaning. Mark it clean when it is ready — it becomes available to admit at once.',
+    subtitle: 'Beds to clean and make ready.',
     body: `${kpiRow([], 3)}${card({ title: 'Waiting for cleaning', subtitle: 'Longest waiting first', pad: false, body: '<div data-list></div>' })}`,
   }));
 

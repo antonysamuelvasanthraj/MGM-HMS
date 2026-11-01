@@ -79,7 +79,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Finance', 'balance')} ${liveChip()}`,
     title: 'Counter Reconciliation',
-    subtitle: 'What the system recorded against what the cashier counted. A variance over ₹1 marks the shift disputed until it is explained.',
+    subtitle: 'Close a counter: system total against cash counted.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
       <a href="/collections" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">point_of_sale</span> Collections</a>`,
     body: `

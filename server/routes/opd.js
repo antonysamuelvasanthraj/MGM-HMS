@@ -8,6 +8,7 @@ import { takePayment } from '../payments.js';
 import { requireAuth, requirePerm, can } from '../auth.js';
 import { requestFree } from './approvals.js';
 import { collectionPolicy } from '../collection-policy.js';
+import { payerCheck, convertPayer, mayChangePayer, mayApprovePayer, needsApproval, dryRunConvert } from '../payer-convert.js';
 
 export const opd = Router();
 
@@ -212,7 +213,9 @@ opd.post('/encounters', requirePerm('op.register'), h((req) => {
 }));
 
 function nextToken(doctorId) {
-  const max = one('SELECT max(token_no) FROM encounters WHERE visit_date=? AND doctor_id=?', today(), doctorId);
+  const max = setting('token_reset','daily') === 'never'
+    ? one('SELECT max(token_no) FROM encounters WHERE doctor_id=?',doctorId)
+    : one('SELECT max(token_no) FROM encounters WHERE visit_date=? AND doctor_id=?', today(), doctorId);
   return (max || 0) + 1;
 }
 function daysBetween(a, b) {
@@ -277,6 +280,143 @@ opd.post('/encounters/:id/stage', requireAuth, h((req) => {
     action: `encounter.${to}`, entity: 'encounters', entityId: id, detail: { from: e.stage, to },
   });
   return view;
+}));
+
+/**
+ * Send an OP visit straight to the doctor's queue, skipping the vitals station.
+ * An explicit desk choice (ticked while collecting the fee) — offered only while
+ * the 'op_direct_doctor_option' setting is on. Payment is not inferred: the stage
+ * becomes 'ready' only if the fee is settled, else 'vitals_done' as after vitals.
+ */
+opd.post('/encounters/:id/direct-to-doctor', requireAuth, h((req) => {
+  if (!can(req.user, 'queue.manage') && !can(req.user, 'op.register') && !can(req.user, 'payment.collect')) fail(403, 'forbidden', { need: 'op.register' });
+  if (setting('op_direct_doctor_option') === '0') fail(409, 'direct_to_doctor_disabled');
+  const e = get('SELECT * FROM encounters WHERE id=?', +req.params.id);
+  if (!e) fail(404, 'encounter_not_found');
+  if (e.kind !== 'OP') fail(400, 'op_visit_only');
+  if (!['registered', 'vitals_pending'].includes(e.stage)) fail(409, 'visit_already_past_vitals', { stage: e.stage });
+  const settled = ['paid', 'free', 'waived'].includes(e.payment_status)
+    || one(`SELECT count(*) FROM bills WHERE encounter_id=? AND bill_type='OP' AND status<>'cancelled' AND authorization_status='approved'`, e.id) > 0;
+  const after = { stage: settled ? 'ready' : 'vitals_done', direct_to_doctor: 1, direct_by: req.user.id, direct_at: nowIso() };
+  update('encounters', e.id, after);
+  const view = encounterView(e.id);
+  emit(req, {
+    topics: [...QUEUE_TOPICS, 'display', `encounter:${e.id}`, `patient:${e.patient_id}`], event: 'encounter.stage', data: view,
+    action: 'encounter.direct_to_doctor', entity: 'encounters', entityId: e.id,
+    detail: { before: { stage: e.stage, direct_to_doctor: e.direct_to_doctor || 0 }, after, reason: req.body?.reason || 'Sent directly to the doctor at fee collection (vitals skipped)' },
+  });
+  return view;
+}));
+
+/* ----------------------------------------------------- change payer (OP / IP) */
+
+/** What a payer change would touch: money received, payer entries to reverse, entries that block it. */
+opd.get('/encounters/:id/payer-check', requireAuth, h((req) => {
+  const c = payerCheck(+req.params.id);
+  if (!mayChangePayer(req.user, !!c.admission_id)) fail(403, 'forbidden', { need: 'billing.payer_change' });
+  return c;
+}));
+
+/** Self-pay ⇄ credit ⇄ insurance / Aarogyasri / corporate / trust for one visit (an admitted visit converts its admission). */
+opd.post('/encounters/:id/payer', requireAuth, h((req) => tx(() => {
+  const id = +req.params.id;
+  const e = get('SELECT * FROM encounters WHERE id=?', id) || fail(404, 'encounter_not_found');
+  const adm = get("SELECT id FROM admissions WHERE encounter_id=? AND status<>'discharged'", id);
+  if (!mayChangePayer(req.user, !!adm)) fail(403, 'forbidden', { need: 'billing.payer_change' });
+  if (needsApproval(req.user)) fail(409, 'payer_change_needs_approval');
+  const r = convertPayer(req, id, req.body || {});
+  const view = encounterView(id);
+  emit(req, {
+    topics: [...QUEUE_TOPICS, 'billing', 'insurance', 'accounts','lab','imaging','pharmacy', `encounter:${id}`, `patient:${e.patient_id}`], event: 'encounter.updated', data: view,
+    action: 'encounter.payer.convert', entity: 'encounters', entityId: id, detail: { before: r.before, after: r.after, reason: r.reason },
+  });
+  return { ...view, conversion: r.after };
+})));
+
+/* ---------------------------------------- payer change: request -> approve */
+
+const PCR_TOPICS = ['billing', 'insurance', 'approvals', 'dashboard'];
+const requestRow = (id) => get(`SELECT r.*, p.name patient_name, p.uhid, e.encounter_no, e.kind, a.ip_no, py.name payer_name,
+    u.name requested_by_name, d.name decided_by_name
+  FROM payer_change_requests r JOIN patients p ON p.id=r.patient_id JOIN encounters e ON e.id=r.encounter_id
+  LEFT JOIN admissions a ON a.id=r.admission_id LEFT JOIN payers py ON py.id=r.payer_id
+  LEFT JOIN users u ON u.id=r.requested_by LEFT JOIN users d ON d.id=r.decided_by WHERE r.id=?`, id);
+const shapeRequest = (r) => r && { ...r, body: JSON.parse(r.body_json || '{}'), result: r.result_json ? JSON.parse(r.result_json) : null };
+
+/** Raise a request. The conversion is validated now (dry run), so guard errors surface at the desk, not at approval. */
+opd.post('/encounters/:id/payer-request', requireAuth, h((req) => tx(() => {
+  const id = +req.params.id;
+  const e = get('SELECT * FROM encounters WHERE id=?', id) || fail(404, 'encounter_not_found');
+  const adm = get("SELECT id FROM admissions WHERE encounter_id=? AND status<>'discharged'", id);
+  if (!mayChangePayer(req.user, !!adm)) fail(403, 'forbidden', { need: 'billing.payer_change' });
+  if (get("SELECT 1 FROM payer_change_requests WHERE encounter_id=? AND status='pending'", id)) fail(409, 'payer_request_already_pending');
+  const b = req.body || {};
+  const preview = dryRunConvert(req, id, b);
+  const refundAllowed = b.money_action === 'refund' && (can(req.user, 'payment.collect') || can(req.user, 'payment.refund')) ? 1 : 0;
+  const rid = insert('payer_change_requests', {
+    request_no: nextNo('payer_request'), encounter_id: id, admission_id: adm?.id || null, patient_id: e.patient_id,
+    from_category: preview.before.category, to_category: preview.after.category, payer_id: preview.after.payer_id,
+    body_json: JSON.stringify({ category: b.category, payer_id: b.payer_id || null, policy_no: b.policy_no || null, money_action: b.money_action || null,
+      refund_mode: b.refund_mode || null, reverse_payer_entries: !!b.reverse_payer_entries }),
+    reason: preview.reason, refund_allowed: refundAllowed, requested_by: req.user.id,
+  });
+  const row = shapeRequest(requestRow(rid));
+  emit(req, { topics: [...PCR_TOPICS, `encounter:${id}`], event: 'payer_request.created', data: { id: rid, encounter_id: id },
+    action: 'payer.request', entity: 'payer_change_requests', entityId: rid,
+    detail: { before: preview.before, after: { ...preview.after, status: 'pending' }, reason: preview.reason } });
+  return row;
+})));
+
+opd.get('/payer-requests', requireAuth, h((req) => {
+  // read by the desks that raise requests and by anyone who sees the Insurance or Approvals screens
+  if (!mayChangePayer(req.user, true) && !mayApprovePayer(req.user) && !can(req.user, 'insurance.view') && !can(req.user, 'payment.approve_free')) fail(403, 'forbidden', { need: 'billing.payer_change' });
+  const status = req.query.status || 'pending';
+  const enc = req.query.encounter_id ? +req.query.encounter_id : null;
+  const ids = all(`SELECT id FROM payer_change_requests r WHERE (?='all' OR r.status=?) ${enc ? 'AND r.encounter_id=?' : ''} ORDER BY r.id DESC LIMIT 200`,
+    status, status, ...(enc ? [enc] : []));
+  return { rows: ids.map((r) => shapeRequest(requestRow(r.id))), can_approve: mayApprovePayer(req.user) };
+}));
+
+opd.post('/payer-requests/:id/approve', requireAuth, h((req) => tx(() => {
+  if (!mayApprovePayer(req.user)) fail(403, 'forbidden', { need: 'insurance.write' });
+  const r = get('SELECT * FROM payer_change_requests WHERE id=?', +req.params.id) || fail(404, 'request_not_found');
+  if (r.status !== 'pending') fail(409, 'request_already_decided', { status: r.status });
+  const note = String(req.body?.note || '').trim();
+  const body = { ...JSON.parse(r.body_json), reason: `${r.reason}${note ? ` — approved: ${note}` : ''}` };
+  const result = convertPayer(req, r.encounter_id, body, { refundAuthorized: !!r.refund_allowed });
+  update('payer_change_requests', r.id, { status: 'approved', decided_by: req.user.id, decided_at: nowIso(), decision_note: note || null,
+    result_json: JSON.stringify(result.after) });
+  const e = get('SELECT patient_id FROM encounters WHERE id=?', r.encounter_id);
+  emit(req, { topics: [...PCR_TOPICS, ...QUEUE_TOPICS, 'accounts','lab','imaging','pharmacy', `encounter:${r.encounter_id}`, `patient:${e.patient_id}`], event: 'encounter.updated', data: encounterView(r.encounter_id),
+    action: result.admission_id ? 'ipd.payer.convert' : 'encounter.payer.convert', entity: 'encounters', entityId: r.encounter_id,
+    detail: { before: result.before, after: { ...result.after, request_no: r.request_no, requested_by: r.requested_by }, reason: result.reason } });
+  return shapeRequest(requestRow(r.id));
+})));
+
+opd.post('/payer-requests/:id/reject', requireAuth, h((req) => {
+  if (!mayApprovePayer(req.user)) fail(403, 'forbidden', { need: 'insurance.write' });
+  const r = get('SELECT * FROM payer_change_requests WHERE id=?', +req.params.id) || fail(404, 'request_not_found');
+  if (r.status !== 'pending') fail(409, 'request_already_decided', { status: r.status });
+  const reason = String(req.body?.reason || '').trim();
+  if (!reason) fail(400, 'reason_required');
+  update('payer_change_requests', r.id, { status: 'rejected', decided_by: req.user.id, decided_at: nowIso(), decision_note: reason });
+  emit(req, { topics: [...PCR_TOPICS, `encounter:${r.encounter_id}`], event: 'payer_request.decided', data: { id: r.id, approved: false },
+    action: 'payer.request.reject', entity: 'payer_change_requests', entityId: r.id,
+    detail: { before: { status: 'pending' }, after: { status: 'rejected' }, reason } });
+  return shapeRequest(requestRow(r.id));
+}));
+
+/** The requester (or an approver) withdraws a pending request. */
+opd.post('/payer-requests/:id/cancel', requireAuth, h((req) => {
+  const r = get('SELECT * FROM payer_change_requests WHERE id=?', +req.params.id) || fail(404, 'request_not_found');
+  if (r.status !== 'pending') fail(409, 'request_already_decided', { status: r.status });
+  if (r.requested_by !== req.user.id && !mayApprovePayer(req.user)) fail(403, 'forbidden');
+  const why = String(req.body?.reason || '').trim() || 'Withdrawn by the desk';
+  update('payer_change_requests', r.id, { status: 'cancelled', decided_by: req.user.id, decided_at: nowIso(), decision_note: why });
+  emit(req, { topics: [...PCR_TOPICS, `encounter:${r.encounter_id}`], event: 'payer_request.decided', data: { id: r.id, approved: false },
+    action: 'payer.request.cancel', entity: 'payer_change_requests', entityId: r.id,
+    detail: { before: { status: 'pending' }, after: { status: 'cancelled' }, reason: why } });
+  return shapeRequest(requestRow(r.id));
 }));
 
 /** Call the next waiting patient for a doctor (doctor queue "Call next"). */

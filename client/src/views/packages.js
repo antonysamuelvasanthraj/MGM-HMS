@@ -60,7 +60,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Commercial', 'inventory')} ${liveChip()}`,
     title: 'Packages',
-    subtitle: 'Common hospital packages are available to every patient. Optional payer agreements link to a common package and define that payer’s price, stay and coverage.',
+    subtitle: 'Hospital packages and payer package rates.',
     actions: `${can('insurance.view') || can('admin.view') ? '<button class="btn-secondary" data-payers>Payers & TPAs</button>' : ''}
       ${canEdit() ? '<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> New package</button>' : ''}`,
     body: `${kpiRow([], 4)}<div data-active></div><div class="flex flex-wrap gap-2" data-filter></div><div data-grid></div>`,
@@ -159,7 +159,7 @@ export async function packageForm(id, after, defaults = {}) {
       <fieldset class="rounded-lg border border-outline-variant p-3"><legend class="px-1 field-label !mb-0">What the price covers — used to bill extras automatically</legend>
         <p class="text-body-sm text-on-surface-variant mb-2">Tick the charge types the package pays for. Leave all unticked for an all-inclusive package. Bed and daily charges are covered for the stay days above; listed services below for their quantity; anything else is billed to the patient as an extra.</p>
         <div class="grid grid-cols-2 md:grid-cols-3 gap-1.5">${COVER.map(([k, l]) => `<label class="flex items-center gap-2 text-body-md"><input type="checkbox" data-cover="${k}" ${(() => { try { return (JSON.parse(p?.cover_categories || '[]') || []).includes(k) ? 'checked' : ''; } catch { return ''; } })()}> ${l}</label>`).join('')}</div>
-        <div class="mt-2 max-w-[260px]"><label class="field-label">Medicines covered up to ₹ <span class="normal-case tracking-normal text-on-surface-variant">(blank = no limit)</span></label><input class="field text-right" type="number" min="0" step="0.01" name="pharmacy_limit" value="${p?.pharmacy_limit ?? ''}"></div>
+        <div class="mt-3"><b>Always bill separately</b><div class="flex flex-wrap gap-4 mt-2">${[['ot','OT / surgeon / anaesthetist charges'],['pharmacy','Pharmacy & consumables']].map(([key,label])=>`<label><input type="checkbox" data-exclude="${key}" ${(()=>{try{return JSON.parse(p?.excluded_categories || '[]').includes(key)?'checked':'';}catch{return '';}})()}> ${label}</label>`).join('')}</div><p class="text-body-sm">These exclusions take priority over all-inclusive and listed-service coverage.</p></div><div class="mt-2 max-w-[260px]"><label class="field-label">Medicines covered up to ₹ <span class="normal-case tracking-normal text-on-surface-variant">(blank = no limit)</span></label><input class="field text-right" type="number" min="0" step="0.01" name="pharmacy_limit" value="${p?.pharmacy_limit ?? ''}"></div>
       </fieldset>
       <div><label class="field-label">Short description</label><input class="field" name="description" value="${v('description')}"></div>
       <div class="border border-outline-variant rounded-lg">
@@ -197,11 +197,11 @@ export async function packageForm(id, after, defaults = {}) {
         const f = root.querySelector('[data-kf]');
         if (!f.reportValidity()) return;
         const body = { ...Object.fromEntries(new FormData(f)), items, hospital_package_id: f.payer_id.value ? (f.hospital_package_id.value || null) : null,
-          cover_categories: [...root.querySelectorAll('[data-cover]:checked')].map((x) => x.dataset.cover) };
+          cover_categories: [...root.querySelectorAll('[data-cover]:checked')].map((x) => x.dataset.cover),excluded_categories:[...root.querySelectorAll('[data-exclude]:checked')].map(x=>x.dataset.exclude) };
         if (p) body.active = f.active?.checked ? 1 : 0;
-        busy(ev.currentTarget, true);
+        const saveButton=ev.currentTarget;busy(saveButton, true);
         try { const r = p ? await api.patch(`/payer-packages/${p.id}`, body) : await api.post('/payer-packages', body); close(); toast(`${r.name} saved`, 'success'); after?.(r); }
-        catch (e) { apiError(e, 'Package not saved'); busy(ev.currentTarget, false); }
+        catch (e) { apiError(e, 'Package not saved'); busy(saveButton, false); }
       };
     },
   });

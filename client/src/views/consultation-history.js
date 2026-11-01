@@ -43,7 +43,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Clinical records', 'history')} ${liveChip()}`,
     title: 'Consultation History & Amendments',
-    subtitle: 'A signed note is never overwritten. Any later change is stored as an amendment with the original text, the reason and who made it.',
+    subtitle: 'Past consultations and their amendments.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>`,
     body: `
       ${kpiRow([], 4)}

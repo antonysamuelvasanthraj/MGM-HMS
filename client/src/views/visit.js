@@ -11,6 +11,8 @@ import {
 } from './_kit.js';
 import { openCollect, printReceipt } from './op-registration.js';
 import { openVitals } from './vitals-queue.js';
+import { openPayerChange, canChangePayer } from '../payer-change.js';
+import { openDiagnosticsBilling, receptionBillsTests } from '../reception-diagnostics.js';
 
 export async function mount(ctx) {
   const id = ctx.params[0];
@@ -29,6 +31,10 @@ export async function mount(ctx) {
       'consultation.saved', 'orders.created', 'order.updated', 'lab.verified', 'prescription.saved'],
     load });
 }
+
+const PAYER_LABEL = { self: 'Self-pay', credit: 'Patient credit', insurance: 'Insurance / TPA', aarogyasri: 'Aarogyasri', scheme: 'Aarogyasri', corporate: 'Corporate', trust: 'Trust' };
+/** The visit's billing category: its own bill's payer (the patient record may already name a newer one). */
+const payerOf = (e) => e.bills.find((b) => b.bill_type === (e.kind === 'EMG' ? 'ER' : e.kind))?.payer_type || e.bills[0]?.payer_type || e.payer_type || 'self';
 
 function view(e) {
   const stages = ['registered', 'vitals_done', 'ready', 'in_consult', 'consulted', 'closed'];
@@ -51,7 +57,9 @@ function view(e) {
       <div class="card p-4">
         <div class="flex items-center justify-between mb-3">
           <h2 class="panel-title">Visit progress</h2>
-          <div class="flex items-center gap-2">${pill(e.stage)} ${pill(e.payment_status)}</div>
+          <div class="flex items-center gap-2">${pill(e.stage)} ${pill(e.payment_status)}
+            <span class="${payerOf(e) === 'self' ? 'pill-neutral' : 'pill-info'}" title="Billing category">${esc(PAYER_LABEL[payerOf(e)] || payerOf(e))}${e.payer_name && payerOf(e) !== 'self' ? ` · ${esc(e.payer_name)}` : ''}</span>
+            ${canChangePayer(e.kind === 'IP') && !['closed', 'cancelled'].includes(e.stage) ? `<button class="btn-ghost btn-xs" data-change-payer title="Change payer"><span class="material-symbols-outlined text-[15px]">swap_horiz</span>Change</button>` : ''}</div>
         </div>
         <ol class="grid grid-cols-2 md:grid-cols-6 gap-2">
           ${['Registered', 'Vitals', 'Ready', 'In consultation', 'Consulted', 'Closed'].map((label, i) => `
@@ -151,8 +159,10 @@ function view(e) {
               ${(can('queue.manage') || can('consult.write')) && !['closed', 'cancelled'].includes(e.stage) ? `<button class="btn-secondary btn-sm" data-stage="closed">Close visit</button>` : ''}
               ${can('admin.view') && e.payment_status === 'pending' ? `<button class="btn-secondary btn-sm" data-free>Approve free visit</button>` : ''}
               ${can('order.create') ? `<a class="btn-secondary btn-sm" href="/orders?encounter=${e.id}">Place orders</a>` : ''}
+              ${receptionBillsTests() && !['closed', 'cancelled'].includes(e.stage) ? `<button class="btn-secondary btn-sm" data-dx-bill>Bill lab / scan tests</button>` : ''}
             </div>
             <dl class="grid grid-cols-[130px_1fr] gap-y-1.5 mt-4 pt-3 border-t border-outline-variant text-body-md">
+              <dt class="text-on-surface-variant">Payer</dt><dd>${esc(PAYER_LABEL[payerOf(e)] || payerOf(e))}${e.payer_name && payerOf(e) !== 'self' ? ` · ${esc(e.payer_name)}` : ''}</dd>
               <dt class="text-on-surface-variant">Visit type</dt><dd>${e.visit_type === 'followup' ? 'Follow-up' : 'New consultation'}</dd>
               <dt class="text-on-surface-variant">Counter</dt><dd>${esc(e.counter_name || '—')}</dd>
               <dt class="text-on-surface-variant">Door-to-doctor</dt><dd>${e.consult_start ? mins((new Date(e.consult_start.replace(' ', 'T')) - new Date(e.opened_at.replace(' ', 'T'))) / 60000) : '—'}</dd>
@@ -206,6 +216,8 @@ function consultBlock(c) {
 function wire(root, e, reload) {
   root.querySelector('[data-collect]')?.addEventListener('click', () => openCollect(e.id, reload));
   root.querySelector('[data-vitals]')?.addEventListener('click', () => openVitals(e.id, reload));
+  root.querySelector('[data-dx-bill]')?.addEventListener('click', () => openDiagnosticsBilling(reload, { patient: { id: e.patient_id, name: e.patient_name, uhid: e.uhid }, encounterId: e.id, doctorId: e.doctor_id }));
+  root.querySelectorAll('[data-change-payer]').forEach((b) => b.addEventListener('click', () => openPayerChange(e.id, reload)));
   bind(root, 'click', '[data-collect-bill]', (ev, b) => openCollect(null, reload, { billId: +b.dataset.collectBill }));
   bind(root, 'click', '[data-print-receipt]', async (ev, b) => {
     printReceipt(await api.get(`/payments/${b.dataset.printReceipt}/receipt`));

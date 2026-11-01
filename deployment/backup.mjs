@@ -35,24 +35,32 @@ export async function createBackup(c) {
   const source=new DatabaseSync(dbFile,{readOnly:true});
   try { await backup(source,path.join(pending,'surelyhms.db')); } finally { source.close(); }
   const snapshot=new DatabaseSync(path.join(pending,'surelyhms.db'),{readOnly:true});
-  let attachments;
-  try { attachments=snapshot.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='attachments'").get() ? snapshot.prepare('SELECT DISTINCT path FROM attachments').all() : []; }
+  let references=[];
+  try {
+    if(snapshot.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='attachments'").get())
+      references.push(...snapshot.prepare('SELECT DISTINCT path FROM attachments').all().map(a=>path.join('uploads',a.path)));
+    if(snapshot.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='counselling_sessions'").get())
+      references.push(...snapshot.prepare("SELECT DISTINCT recording_path FROM counselling_sessions WHERE recording_path IS NOT NULL AND recording_path<>''").all().map(a=>path.join('counselling',a.recording_path)));
+  }
   finally { snapshot.close(); }
   const files=['surelyhms.db'];
   // Upload filenames are immutable; copy exactly the files referenced by the DB snapshot,
   // including soft-deleted attachments retained for the audit history.
-  for (const a of attachments) {
-    const relative=path.join('uploads',a.path), from=inside(c.dataDir,relative), to=inside(pending,relative);
-    if (!fs.existsSync(from) || fs.lstatSync(from).isSymbolicLink()) throw new Error(`Referenced upload missing or linked: ${a.path}`);
+  for (const relative of new Set(references)) {
+    const from=inside(c.dataDir,relative), to=inside(pending,relative);
+    if (!fs.existsSync(from) || fs.lstatSync(from).isSymbolicLink()) throw new Error(`Referenced upload missing or linked: ${relative}`);
     fs.mkdirSync(path.dirname(to),{recursive:true}); fs.copyFileSync(from,to); files.push(relative);
   }
-  const manifest={format:1,createdAt:new Date().toISOString(),node:process.version,files:[]};
+  const manifest={format:1,kind:c.kind || 'manual',createdAt:new Date().toISOString(),node:process.version,files:[]};
   for (const relative of files) manifest.files.push({path:relative,sha256:await hash(path.join(pending,relative))});
   fs.writeFileSync(path.join(pending,'manifest.json'),JSON.stringify(manifest,null,2));
   await verifyBackup(pending);
   fs.renameSync(pending,destination);
   // Only this tool's completed, manifest-bearing backup folders are retained/pruned.
-  const names=fs.readdirSync(c.backupDir).filter(n=>/^hms-\d{4}-[\dTZ-]+-[a-f0-9]{6}$/.test(n) && fs.existsSync(path.join(c.backupDir,n,'manifest.json'))).sort().reverse();
+  const names=fs.readdirSync(c.backupDir).filter(n=>{
+    if(!/^hms-\d{4}-[\dTZ-]+-[a-f0-9]{6}$/.test(n)) return false;
+    try { return (JSON.parse(fs.readFileSync(path.join(c.backupDir,n,'manifest.json'),'utf8')).kind || 'manual') === (c.kind || 'manual'); } catch { return false; }
+  }).sort().reverse();
   for (const old of names.slice(c.keepBackups)) fs.rmSync(inside(c.backupDir,old),{recursive:true});
   return destination;
 }

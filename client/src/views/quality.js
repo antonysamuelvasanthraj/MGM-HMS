@@ -63,7 +63,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Quality & NABH', 'verified')} ${liveChip()}`,
     title: 'Quality & Audit',
-    subtitle: 'Incidents, near-misses, complaints and audit findings with corrective action and the NABH clause each one touches.',
+    subtitle: 'Incidents, complaints and corrective actions.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
       ${can('quality.write') ? `<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> Report an event</button>` : ''}`,
     body: `

@@ -63,7 +63,7 @@ async function patient(f) {
 async function pay(user, billId, mode = 'cash', ref) {
   const b = await api(user, `/bills/${billId}`);
   if (!(b.balance > 0.005)) return b;
-  const line = { mode, amount: b.balance, ...(ref ? { reference: ref } : {}) };
+  const line = { mode, amount: b.balance, reference: ref || (mode !== 'cash' ? 'REF-' + Date.now() : undefined) };
   return api(user, `/bills/${billId}/settle`, { request_key: key('demo'), lines: [line] });
 }
 async function opVisit(p, doc, { mode = 'cash', ref, followup = false, payer: payerBill = false } = {}) {
@@ -96,7 +96,7 @@ async function dispenseRx(p, enc, mode = 'cash', location = 'OP') {
   const list = await api('pharmacist', '/pharmacy/dispense/queue');
   const r = (list.rows || list).find((x) => x.encounter_id === enc.id);
   if (!r) throw new Error('prescription not in pharmacy queue');
-  return api('pharmacist', '/pharmacy/dispense', { patient_id: p.id, prescription_id: r.id, location, mode, collect: true,
+  return api('pharmacist', '/pharmacy/dispense', { patient_id: p.id, prescription_id: r.id, location, mode, collect: true, reference: mode !== 'cash' ? 'REF-' + Date.now() : undefined,
     items: r.items.filter((i) => i.medicine_id).map((i) => ({ medicine_id: i.medicine_id, qty: i.qty, prescription_item_id: i.id })) });
 }
 async function admit(p, doc, bedKind, f = {}) {

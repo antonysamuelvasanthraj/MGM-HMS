@@ -1,3 +1,4 @@
+import {receiptDeskSql} from './receipt-desk.js';
 /**
  * Department report catalogue — pharmacy, reception, executive, operational,
  * scheme / payer and revenue reports. Every report returns summary KPIs, an
@@ -7,6 +8,9 @@
 import { all, get, one, today } from './db.js';
 import * as M from './metrics.js';
 import { can, STAFF_TEAMS } from './auth.js';
+import { PHARMACY_REGISTERS } from './report-pharmacy-registers.js';
+import { OUTSOURCING_REPORTS } from './report-outsourcing.js';
+import { LAB_REPORTS } from './report-lab.js';
 
 const r2 = M.r2;
 const col = (key, label, type = 'text') => ({ key, label, type });
@@ -115,19 +119,19 @@ const PHARMACY = [
       WHERE b.qty>0 AND b.expiry <= date('now','localtime','+90 day') ORDER BY b.expiry`).map((r) => ({ ...r, bucket: r.days < 0 ? 'Expired' : r.days <= 30 ? '≤ 30 days' : r.days <= 60 ? '31–60 days' : '61–90 days' }));
     return { kpis: [kpi('Batches', rows.length, 'number'), kpi('Value at risk', sum(rows, 'value'))], columns: [col('name', 'Medicine'), col('batch_no', 'Batch'), date('expiry', 'Expiry'), col('bucket', 'Window'), col('location', 'Store'), num('qty', 'Qty'), money('value', 'Value'), col('supplier', 'Supplier')], rows, total: ['value'] }; }],
   ['pharm_purchase', 'Purchase register (GRN lines)', (q) => { const rows = all(`SELECT p.grn_no, date(p.received_at) d, s.name supplier, p.invoice_no, m.name item, i.batch_no, i.qty, i.free_qty, i.rate, i.taxable_value, i.cgst_amount, i.sgst_amount, i.igst_amount, i.net_value
-      FROM purchase_items i JOIN purchases p ON p.id=i.purchase_id JOIN suppliers s ON s.id=p.supplier_id JOIN medicines m ON m.id=i.medicine_id WHERE date(p.received_at) BETWEEN ? AND ? ORDER BY p.id, i.id`, q.from, q.to);
+      FROM purchase_items i JOIN purchases p ON p.id=i.purchase_id JOIN suppliers s ON s.id=p.supplier_id JOIN medicines m ON m.id=i.medicine_id WHERE p.status<>'corrected' AND date(p.received_at) BETWEEN ? AND ? ORDER BY p.id, i.id`, q.from, q.to);
     return { kpis: [kpi('Lines', rows.length, 'number'), kpi('Taxable', sum(rows, 'taxable_value')), kpi('GST', r2(sum(rows, 'cgst_amount') + sum(rows, 'sgst_amount') + sum(rows, 'igst_amount'))), kpi('Net', sum(rows, 'net_value'))],
       columns: [col('grn_no', 'GRN'), date('d', 'Date'), col('supplier', 'Supplier'), col('invoice_no', 'Invoice'), col('item', 'Item'), col('batch_no', 'Batch'), num('qty', 'Qty'), num('free_qty', 'Free'), money('rate', 'Rate'), money('taxable_value', 'Taxable'), money('cgst_amount', 'CGST'), money('sgst_amount', 'SGST'), money('igst_amount', 'IGST'), money('net_value', 'Net')],
       rows, total: ['taxable_value', 'cgst_amount', 'sgst_amount', 'igst_amount', 'net_value'] }; }],
   ['pharm_supplier_purchase', 'Supplier-wise purchase', (q) => { const rows = all(`SELECT s.name supplier, count(p.id) grns, round(sum(p.gross - p.discount),2) taxable, round(sum(p.cgst+p.sgst+p.igst),2) gst, round(sum(p.total),2) total, round(sum(p.paid),2) paid
-      FROM purchases p JOIN suppliers s ON s.id=p.supplier_id WHERE date(p.received_at) BETWEEN ? AND ? GROUP BY s.id ORDER BY total DESC`, q.from, q.to).map((r) => ({ ...r, due: r2(r.total - r.paid) }));
+      FROM purchases p JOIN suppliers s ON s.id=p.supplier_id WHERE p.status<>'corrected' AND date(p.received_at) BETWEEN ? AND ? GROUP BY s.id ORDER BY total DESC`, q.from, q.to).map((r) => ({ ...r, due: r2(r.total - r.paid) }));
     return { kpis: [kpi('Purchases', sum(rows, 'total')), kpi('Paid', sum(rows, 'paid')), kpi('Due', sum(rows, 'due'))], columns: [col('supplier', 'Supplier'), num('grns', 'GRNs'), money('taxable', 'Taxable'), money('gst', 'GST'), money('total', 'Total'), money('paid', 'Paid'), money('due', 'Due')], rows, total: ['grns', 'taxable', 'gst', 'total', 'paid', 'due'],
       chart: { type: 'hbar', x: 'supplier', series: [{ key: 'total', label: 'Purchases' }] } }; }],
-  ['pharm_supplier_outstanding', 'Supplier outstanding', () => { const rows = all(`SELECT s.name supplier, s.credit_days, s.outstanding, (SELECT count(*) FROM purchases p WHERE p.supplier_id=s.id AND p.total-p.paid>0.005) open_grns,
-      (SELECT min(date(received_at)) FROM purchases p WHERE p.supplier_id=s.id AND p.total-p.paid>0.005) oldest FROM suppliers s WHERE s.outstanding <> 0 ORDER BY s.outstanding DESC`);
+  ['pharm_supplier_outstanding', 'Supplier outstanding', () => { const rows = all(`SELECT s.name supplier, s.credit_days, s.outstanding, (SELECT count(*) FROM purchases p WHERE p.supplier_id=s.id AND p.status<>'corrected' AND p.total-p.paid>0.005) open_grns,
+      (SELECT min(date(received_at)) FROM purchases p WHERE p.supplier_id=s.id AND p.status<>'corrected' AND p.total-p.paid>0.005) oldest FROM suppliers s WHERE s.outstanding <> 0 ORDER BY s.outstanding DESC`);
     return { kpis: [kpi('Outstanding', sum(rows, 'outstanding'))], columns: [col('supplier', 'Supplier'), num('credit_days', 'Credit days'), num('open_grns', 'Open GRNs'), date('oldest', 'Oldest open'), money('outstanding', 'Outstanding')], rows, total: ['outstanding'] }; }],
   ['pharm_grn', 'GRN register', (q) => { const rows = all(`SELECT p.grn_no, date(p.received_at) d, s.name supplier, p.invoice_no, p.invoice_date, round(p.gross - p.discount,2) taxable, p.cgst, p.sgst, p.igst, p.discount, p.total, p.paid,
-      round(p.total - p.paid,2) due, CASE WHEN p.verified_at IS NULL THEN 'Awaiting verification' ELSE 'Verified' END status FROM purchases p JOIN suppliers s ON s.id=p.supplier_id WHERE date(p.received_at) BETWEEN ? AND ? ORDER BY p.id DESC`, q.from, q.to);
+      round(p.total - p.paid,2) due, CASE WHEN p.verified_at IS NULL THEN 'Awaiting verification' ELSE 'Verified' END status FROM purchases p JOIN suppliers s ON s.id=p.supplier_id WHERE p.status<>'corrected' AND date(p.received_at) BETWEEN ? AND ? ORDER BY p.id DESC`, q.from, q.to);
     return { kpis: [kpi('GRNs', rows.length, 'number'), kpi('Net amount', sum(rows, 'total')), kpi('Due', sum(rows, 'due'))], columns: [col('grn_no', 'GRN'), date('d', 'Received'), col('supplier', 'Supplier'), col('invoice_no', 'Invoice'), date('invoice_date', 'Inv. date'), money('taxable', 'Taxable'), money('cgst', 'CGST'), money('sgst', 'SGST'), money('igst', 'IGST'), money('discount', 'Discount'), money('total', 'Net'), money('paid', 'Paid'), money('due', 'Due'), col('status', 'Status')],
       rows, total: ['taxable', 'cgst', 'sgst', 'igst', 'discount', 'total', 'paid', 'due'] }; }],
   ['pharm_purchase_return', 'Purchase returns', (q) => { const rows = all(`SELECT r.return_no, date(r.created_at) d, s.name supplier, m.name item, b.batch_no, r.qty, r.value, round(r.cgst+r.sgst+r.igst,2) gst, r.reason
@@ -202,7 +206,7 @@ const receptionBills = (where, extra = []) => (q) => {
 const receipts = (desk) => (q) => {
   const rows = all(`SELECT p.pay_date d, p.created_at, p.receipt_no, pt.name patient, b.bill_no, b.bill_type, p.mode, coalesce(p.transaction_id, p.reference) ref, p.amount, u.name collected_by
     FROM payments p JOIN bills b ON b.id=p.bill_id JOIN patients pt ON pt.id=p.patient_id LEFT JOIN users u ON u.id=p.received_by
-    WHERE p.cancelled=0 AND p.pay_date BETWEEN ? AND ? ${desk === 'reception' ? "AND b.bill_type<>'PHARM'" : desk === 'pharmacy' ? "AND b.bill_type='PHARM'" : ''} ORDER BY p.id DESC`, q.from, q.to)
+    WHERE p.cancelled=0 AND p.pay_date BETWEEN ? AND ? ${desk === 'reception' ? `AND ${receiptDeskSql()}='reception'` : desk === 'pharmacy' ? `AND ${receiptDeskSql()}='pharmacy'` : ''} ORDER BY p.id DESC`, q.from, q.to)
     .map((r) => ({ ...r, mode: MODE[r.mode] || r.mode }));
   const c = M.collections({ ...q, desk });
   return { kpis: [kpi('Cash', c.byMode.cash), kpi('UPI', c.byMode.upi), kpi('Card', c.byMode.card), kpi('Bank / other', r2(c.byMode.bank + c.byMode.other)), kpi('Net collected', c.net)],
@@ -290,8 +294,8 @@ const EXECUTIVE = [
       rows, total: ['billed', 'revenue', 'collected', 'refunds', 'expense', 'due', 'op', 'admissions'],
       chart: { type: 'line', x: 'd', series: [{ key: 'revenue', label: 'Revenue' }, { key: 'collected', label: 'Collected' }, { key: 'expense', label: 'Expense' }] } }; }],
   ['exe_revenue', 'Daily revenue summary', (q) => { const r = M.revenue(q);
-    return { kpis: [kpi('Gross', r.gross), kpi('Discount', r.discount), kpi('Free', r.free), kpi('Returns', r.returns), kpi('Net revenue', r.net)],
-      columns: [col('label', 'Department'), money('gross', 'Gross'), money('discount', 'Discount'), money('free', 'Free'), money('returns', 'Returns'), money('net', 'Net')], rows: r.departments, total: ['gross', 'discount', 'free', 'returns', 'net'],
+    return { kpis: [kpi('Gross', r.gross), kpi('Discount', r.discount), kpi('Free', r.free), kpi('Returns', r.returns), kpi('Package adjustments', r.package_adj), kpi('Net revenue', r.net)],
+      columns: [col('label', 'Department'), money('gross', 'Gross'), money('discount', 'Discount'), money('free', 'Free'), money('returns', 'Returns'), money('package_adj', 'Package adj.'), money('net', 'Net')], rows: r.departments, total: ['gross', 'discount', 'free', 'returns', 'package_adj', 'net'],
       chart: { type: 'hbar', x: 'label', series: [{ key: 'net', label: 'Net' }] } }; }],
   ['exe_collection', 'Daily collection summary', (q) => { const rows = M.dayList(q.from, q.to, 120).map((d) => { const c = M.collections({ from: d, to: d }); return { d, ...c.byMode, refunded: c.refunded, net: c.net }; });
     return { kpis: M.MODE_GROUPS.map((g) => kpi(g === 'upi' ? 'UPI' : g[0].toUpperCase() + g.slice(1), sum(rows, g))), columns: [date('d', 'Date'), ...M.MODE_GROUPS.map((g) => money(g, g === 'upi' ? 'UPI' : g[0].toUpperCase() + g.slice(1))), money('refunded', 'Refunds'), money('net', 'Net collected')],
@@ -549,6 +553,39 @@ EXTRA_REPORTS.push(
 let visitingLedger = null;
 export function useVisitingLedger(fn) { visitingLedger = fn; }
 EXTRA_REPORTS.push(
+  {id:'referral_analytics',group:'Reception',title:'Outside referrals — patients, admissions and clinical revenue',perm:R,filters:['range'],run:q=>{
+    const rows=all(`SELECT r.id,r.kind,r.name,r.hospital,r.speciality,r.mobile,
+      (SELECT count(*) FROM patients p WHERE (p.referral_doctor_id=r.id OR p.referral_hospital_id=r.id) AND date(p.created_at) BETWEEN ? AND ?) patients,
+      (SELECT count(*) FROM admissions a JOIN patients p ON p.id=a.patient_id WHERE (p.referral_doctor_id=r.id OR p.referral_hospital_id=r.id) AND date(a.admitted_at) BETWEEN ? AND ?) admissions,
+      (SELECT count(*) FROM ot_bookings o JOIN patients p ON p.id=o.patient_id WHERE (p.referral_doctor_id=r.id OR p.referral_hospital_id=r.id) AND o.status='completed' AND date(o.ended_at) BETWEEN ? AND ?) procedures,
+      (SELECT coalesce(round(sum(b.total),2),0) FROM bills b JOIN patients p ON p.id=b.patient_id WHERE (p.referral_doctor_id=r.id OR p.referral_hospital_id=r.id) AND b.status<>'cancelled' AND b.bill_date BETWEEN ? AND ?) revenue
+      FROM referral_sources r ORDER BY r.kind,r.name`,q.from,q.to,q.from,q.to,q.from,q.to,q.from,q.to);
+    return {subtitle:'A patient may have both a referring doctor and hospital; source rows overlap. No referral payments are generated.',columns:[col('kind','Source type'),col('name','Source'),col('hospital','Hospital'),col('speciality','Speciality'),col('mobile','Contact'),num('patients','Patients'),num('admissions','Admissions'),num('procedures','Completed procedures'),money('revenue','Attributed billed revenue')],rows};
+  }},
+  {id:'visiting_doctor_work',group:'Finance',title:'Treating doctors — patient and procedure fee register',perm:F,filters:['range','patient'],run:q=>{
+    const rows=all('SELECT id FROM visiting_doctors ORDER BY name').flatMap(d=>{const ledger=visitingLedger(d.id);return ledger.lines.map(l=>({...l,doctor:ledger.doctor.name}));})
+      .filter(l=>String(l.service_date || l.bill_date).slice(0,10)>=q.from && String(l.service_date || l.bill_date).slice(0,10)<=q.to && (!q.patient || `${l.patient} ${l.uhid}`.toLowerCase().includes(q.patient.toLowerCase())));
+    return {columns:[col('doctor','Treating doctor'),date('service_date','Service date'),col('patient','Patient'),col('uhid','UHID'),col('ip_no','IP number'),col('bill_type','OP / IP'),col('bill_no','Bill'),col('description','Clinical service'),col('visiting_role','Role'),col('visiting_agreement','Agreement'),money('base','Clinical fee'),col('rule','Stored fee rule'),money('share_full','Contract fee'),num('collected_pct','Bill collected %'),money('earned','Earned on collections')],rows,total:['base','share_full','earned']};
+  }},
+  {id:'visiting_doctor_payments',group:'Finance',title:'Treating doctor payouts and deductions',perm:F,filters:['range'],run:q=>({columns:[col('payout_no','Voucher'),date('paid_at','Paid at'),col('doctor','Doctor'),money('gross','Gross fee'),money('tds','TDS deduction'),money('net','Net paid'),col('mode','Payment mode'),col('reference','Payment reference'),col('approved_by','Approved / paid by'),col('notes','Notes')],rows:all(`SELECT p.*,d.name doctor,u.name approved_by FROM visiting_payouts p JOIN visiting_doctors d ON d.id=p.doctor_id LEFT JOIN users u ON u.id=p.paid_by WHERE p.status='paid' AND date(p.paid_at) BETWEEN ? AND ? ORDER BY p.id DESC`,q.from,q.to),total:['gross','tds','net']})},
+  {id:'pharmacy_patient_register',group:'Pharmacy',title:'Pharmacy — patient, batch, tax and payment register',perm:P,filters:['range','patient','medicine','manufacturer','doctor','mode','encounter_type'],run:q=>{
+    const clauses=["i.revenue_head='PHARMACY'","b.status<>'cancelled'","date(coalesce(i.created_at,b.created_at)) BETWEEN ? AND ?"],args=[q.from,q.to];
+    if(q.patient){clauses.push('(p.name LIKE ? OR p.uhid LIKE ?)');args.push('%'+q.patient+'%','%'+q.patient+'%');}
+    if(q.medicine){clauses.push('(m.name LIKE ? OR m.generic LIKE ?)');args.push('%'+q.medicine+'%','%'+q.medicine+'%');}
+    if(q.manufacturer){clauses.push('m.manufacturer LIKE ?');args.push('%'+q.manufacturer+'%');}
+    if(q.doctor_id){clauses.push('coalesce(b.doctor_id,e.doctor_id)=?');args.push(q.doctor_id);}
+    if(q.encounter_type){clauses.push(q.encounter_type==='IP'?"b.bill_type='IP'":"b.bill_type<>'IP'");}
+    if(q.mode){clauses.push('EXISTS(SELECT 1 FROM payments pm WHERE pm.bill_id=b.id AND pm.cancelled=0 AND pm.mode=?)');args.push(q.mode);}
+    const rows=all(`SELECT i.id,b.id bill_id,b.bill_no,b.bill_type,coalesce(i.created_at,b.created_at) d,p.id patient_id,p.uhid,p.name patient,
+      (SELECT ip_no FROM admissions a WHERE a.encounter_id=b.encounter_id ORDER BY a.id DESC LIMIT 1) ip_no,u.name doctor,m.name medicine,m.generic,m.manufacturer,bt.batch_no,bt.expiry,bt.mrp,i.qty,i.rate,i.gst_pct,i.amount,b.total bill_total,b.paid bill_paid,b.balance bill_balance,
+      (SELECT group_concat(DISTINCT mode) FROM payments pm WHERE pm.bill_id=b.id AND pm.cancelled=0) modes,
+      (SELECT coalesce(sum(s.amount-s.settled_amount-s.written_off-s.transferred_to_patient),0) FROM bill_settlements s WHERE s.bill_id=b.id AND s.status<>'cancelled' AND s.mode='credit') bill_credit
+      FROM bill_items i JOIN bills b ON b.id=i.bill_id JOIN patients p ON p.id=b.patient_id LEFT JOIN medicine_batches bt ON bt.id=i.batch_id LEFT JOIN medicines m ON m.id=bt.medicine_id LEFT JOIN encounters e ON e.id=b.encounter_id LEFT JOIN users u ON u.id=coalesce(b.doctor_id,e.doctor_id) WHERE ${clauses.join(' AND ')} ORDER BY i.id DESC`,...args)
+      .map(r=>({...r,gst:r2(r.amount-r.amount/(1+(r.gst_pct||0)/100)),collected:r2(r.bill_total>0?r.bill_paid*r.amount/r.bill_total:0),pending:r2(r.bill_total>0?Math.max(0,r.bill_balance)*r.amount/r.bill_total:0),credit:r2(r.bill_total>0?r.bill_credit*r.amount/r.bill_total:0)}));
+    return {subtitle:'Collections, credit and patient dues are proportionally allocated by line value on consolidated bills; bill totals are not repeated as sales.',kpis:[kpi('Patients',new Set(rows.map(r=>r.patient_id)).size,'number'),kpi('Bills',new Set(rows.map(r=>r.bill_id)).size,'number'),kpi('Medicine sales',sum(rows.filter(r=>r.amount>0),'amount')),kpi('GST',sum(rows,'gst')),kpi('Allocated collection',sum(rows,'collected')),kpi('Refund / return value',-sum(rows.filter(r=>r.amount<0),'amount')),kpi('Allocated credit',sum(rows,'credit')),kpi('Allocated patient dues',sum(rows,'pending'))],columns:[date('d','Date'),col('patient','Patient'),col('uhid','UHID'),col('ip_no','IP number'),col('doctor','Doctor'),col('bill_type','Type'),col('bill_no','Bill'),col('medicine','Medicine'),col('generic','Generic'),col('manufacturer','Manufacturer'),num('qty','Qty'),col('batch_no','Batch'),date('expiry','Expiry'),money('mrp','MRP'),money('rate','Selling price'),num('gst_pct','GST %'),money('gst','GST included'),money('amount','Line total'),col('modes','Payment modes'),money('collected','Allocated collection'),money('credit','Allocated credit'),money('pending','Allocated patient due')],rows,total:['qty','gst','amount','collected','credit','pending']};
+  }}
+);
+EXTRA_REPORTS.push(
  {id:'visiting_doctor_share',group:'Revenue',title:'Visiting doctors — share earned, accrued and paid',perm:'finance.view',filters:[],run:()=>{
    const rows=all('SELECT id FROM visiting_doctors ORDER BY name').map(d=>{const l=visitingLedger(d.id);return {name:l.doctor.name,speciality:l.doctor.speciality,rule:l.doctor.share_type==='fixed'?'₹'+l.doctor.share_value+' per case':l.doctor.share_value+'%',
      cases:l.lines.length,billed:l.lines.reduce((s,x)=>s+x.base,0),earned:l.earned,accrued:l.accrued,paid:l.paid,payable:l.payable,pending:l.not_yet_accrued};});
@@ -591,3 +628,12 @@ EXTRA_REPORTS.push(
      rows,total:['cost','charged']};
  }},
 );
+
+// Stock-book style registers: batch stock, product master, company summary, sales GST/profit, GRN costing
+EXTRA_REPORTS.push(...PHARMACY_REGISTERS);
+
+// Outsourced investigations: margin, turnaround, centre payables
+EXTRA_REPORTS.push(...OUTSOURCING_REPORTS);
+
+// Laboratory: consumables per test, critical-result call log
+EXTRA_REPORTS.push(...LAB_REPORTS);

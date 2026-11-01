@@ -1,4 +1,7 @@
 import express from 'express';
+import { preloadLabTestInfo } from './lab-test-info.js';
+import { preloadLabCatalog } from './lab-catalog.js';
+import { preloadLabCatalog2026 } from './lab-catalog-2026-11.js';
 import { backfillPayerCases, syncClaimToBills, releaseApprovedOrders } from './payer-cases.js';
 import { billCaseToPayer } from './payer-billing.js';
 import { audit } from './auth.js';
@@ -20,9 +23,14 @@ import { opd } from './routes/opd.js';
 import { billing } from './routes/billing.js';
 import { clinical } from './routes/clinical.js';
 import { diagnostics } from './routes/diagnostics.js';
+import { operations } from './routes/operations.js';
+import { outsourcing } from './routes/outsourcing.js';
+import { labops } from './routes/labops.js';
+import { casedocs } from './routes/casedocs.js';
 import { pharmacy } from './routes/pharmacy.js';
 import { ipd } from './routes/ipd.js';
 import { backoffice } from './routes/backoffice.js';
+import {schemePayments} from './routes/scheme-payments.js';
 import { inventory } from './routes/inventory.js';
 import { wardReplacements } from './routes/ward-replacements.js';
 import { accounts } from './routes/accounts.js';
@@ -34,6 +42,7 @@ import { messages } from './routes/messages.js';
 import { demo, addMissingDemoAccounts } from './routes/demo.js';
 import { consumption } from './routes/consumption.js';
 import { visiting } from './routes/visiting.js';
+import { referrals } from './routes/referrals.js';
 import { maintenance } from './routes/maintenance.js';
 import { stores } from './routes/stores.js';
 import { priceAlerts, escalatePriceAlerts } from './routes/price-alerts.js';
@@ -45,6 +54,7 @@ import { packageUsage } from './packages.js';
 usePackageEngine(packageUsage);
 useVisitingLedger(doctorLedger);
 import { sendQueued } from './messages.js';
+import { runDailyReminders } from './reminders.js';
 import { dailyBackup } from './backup.js';
 import { accrueAll } from './ipd-charges.js';
 import { ensureChart } from './accounting.js';
@@ -65,6 +75,9 @@ if (!isSeeded()) {
 
 ensureHospitalDepartments();
 ensureOPDServices();
+preloadLabTestInfo(db);
+preloadLabCatalog(db);
+preloadLabCatalog2026(db);
 
 // every admission billed to a payer has a case on the Insurance & Payer desk
 {
@@ -88,15 +101,22 @@ ensureOPDServices();
 { const added = addMissingDemoAccounts(); if (added.length) { console.log(`  demo logins added: ${added.join(', ')}`); audit(null, 'demo.accounts_added', 'users', null, { after: { added }, reason: 'New demo roles while demo mode is on' }); } }
 
 // daily database copy (kept 30 days) and the patient message sender
-{ const f = dailyBackup(); if (f) console.log(`  daily backup written: ${f}`); }
+dailyBackup().then(f => { if (f) console.log(`  daily backup written: ${f}`); });
 setInterval(dailyBackup, 60 * 60 * 1000).unref();
 setInterval(() => { try { escalatePriceAlerts(); } catch (e) { console.error('[price-alerts]', e); } }, 60 * 60 * 1000).unref();
 setInterval(() => { sendQueued().catch(() => {}); }, 60 * 1000).unref();
+// daily reminder texts (Settings → Reminder texts): checked every 10 minutes, sent once a day
+setInterval(() => { try { runDailyReminders(); } catch (e) { console.error('[reminders]', e); } }, 10 * 60 * 1000).unref();
 
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', process.env.HMS_TRUST_PROXY === '1' ? 'loopback' : false);
 const APP_VERSION = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf8')).version;
+const deploymentId = `${APP_VERSION}-${Date.now()}`;
+app.get('/api/app-revision', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({ revision: deploymentId });
+});
 /**
  * Health for uptime monitors and the demo tunnel. Says which part failed — application, database or
  * file storage — without paths, URLs or secrets. 200 when healthy, 503 otherwise.
@@ -116,7 +136,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 // Image uploads are larger than ordinary API bodies; they get their own limit.
-app.use('/api/attachments', express.json({ limit: '60mb' }));
+// A streamed video is the body itself, so it must reach its route unparsed —
+// handing it to the JSON parser would buffer the whole clip and then reject it.
+const attachmentJson = express.json({ limit: '60mb' });
+app.use('/api/attachments', (req, res, next) => (req.path.endsWith('/stream') ? next() : attachmentJson(req, res, next)));
 app.use(express.json({ limit: '4mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(authMiddleware);
@@ -128,11 +151,16 @@ app.use('/api', opd);
 app.use('/api', billing);
 app.use('/api', clinical);
 app.use('/api', diagnostics);
+app.use('/api', operations);
+app.use('/api', outsourcing);
+app.use('/api', labops);
+app.use('/api', casedocs);
 app.use('/api/pharmacy', pharmacy);
 app.use('/api/pharmacy', inventory);
 app.use('/api/pharmacy', wardReplacements);
 app.use('/api/ipd', ipd);
 app.use('/api', backoffice);
+app.use('/api',schemePayments);
 app.use('/api', accounts);
 app.use('/api', attachments);
 app.use('/api', approvals);
@@ -142,6 +170,7 @@ app.use('/api', messages);
 app.use('/api', demo);
 app.use('/api', consumption);
 app.use('/api', visiting);
+app.use('/api', referrals);
 app.use('/api', maintenance);
 app.use('/api', stores);
 app.use('/api', priceAlerts);

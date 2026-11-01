@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#39171D">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('hms_theme')||'calm';}catch{document.documentElement.dataset.theme='calm';}</script>
 <title>MGM HMS — Hospital Information System</title>
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/app.css">
@@ -72,7 +73,7 @@
             <span class="live-dot" id="conn-dot"></span>
             <span class="font-data-mono text-label-sm text-on-surface" id="conn-text">live</span>
           </button>
-          <button id="sync-chip" class="hidden sm:flex items-center gap-1.5 px-2.5 h-8 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-surface-container transition-colors" title="Cloud sync queue">
+          <button id="sync-chip" class="hidden items-center gap-1.5 px-2.5 h-8 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-surface-container transition-colors" title="Cloud sync queue">
             <span class="material-symbols-outlined text-[15px] text-on-surface-variant">cloud_sync</span>
             <span class="font-data-mono text-label-sm" id="sync-text">0</span>
           </button>

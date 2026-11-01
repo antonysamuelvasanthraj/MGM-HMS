@@ -1,5 +1,6 @@
 /** Doctor fees & service tariff master. */
 import { loadMeta } from '../store.js';
+import { loadLabUnits, labUnitField, wireLabUnits } from '../lab-units.js';
 import {
   page, eyebrow, liveChip, kpiRow, tableCard, filterBar, wireFilters, live, mountPage, card,
   apiError, busy, api, qs, state, can, deptOptions, downloadCSV, compactMoney,
@@ -50,7 +51,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Masters', 'price_change')} ${liveChip()}`,
     title: 'Doctor Fees & Service Tariff',
-    subtitle: 'Doctor fees price OP registration. Service prices apply to new orders and bills; payer agreements may override them. Existing bills and admission charge plans retain their recorded rates.',
+    subtitle: 'Consultation fees, service prices and payer rates.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
       ${can('admin.view') ? `<button class="btn-primary" data-new-svc><span class="material-symbols-outlined text-[18px]">add</span> Add a service</button>` : ''}`,
     body: `
@@ -139,7 +140,7 @@ function paint(root) {
 const CATEGORY_DEFINITIONS = [
   { value: 'consultation', label: 'Doctor Consultation', desc: 'OP & Specialist Consultation', primaryDept: 'GEN' },
   { value: 'lab', label: 'Laboratory & Pathology', desc: 'Blood, Urine, Biochem & Micro Tests', primaryDept: 'LAB' },
-  { value: 'imaging', label: 'Radiology & Imaging', desc: 'X-Ray, Ultrasound, CT, MRI, ECG', primaryDept: 'RAD' },
+  { value: 'imaging', label: 'Radiology & Imaging', desc: 'X-Ray, Ultrasound, Doppler, CT, ECG', primaryDept: 'RAD' },
   { value: 'procedure', label: 'Procedures & Surgeries', desc: 'Minor OPD Procedures & Major OT Surgeries', primaryDept: 'OT' },
   { value: 'emergency', label: 'Emergency & Casualty', desc: 'ER Triage & Trauma Procedures', primaryDept: 'EMER' },
   { value: 'ipd', label: 'Inpatient Daily Charges', desc: 'Nursing Care & Daily Doctor Rounds', primaryDept: 'NURS' },
@@ -267,6 +268,7 @@ function editService(s, after) {
       // 2. Render Category-specific tailored settings
       const renderSettings = async (cat) => {
         if (cat === 'lab') {
+          await loadLabUnits();
           settingsHost.innerHTML = `
             <div class="flex items-center justify-between border-b border-outline-variant pb-2">
               <div class="font-label-lg text-label-lg font-bold text-primary flex items-center gap-1.5">
@@ -299,6 +301,8 @@ function editService(s, after) {
             </div>
 
             <!-- Lab Result Parameters Template -->
+            <div><label class="field-label">Laboratory section (optional)</label><input class="field" name="lab_section" maxlength="100" value="${esc(s?.lab_section || '')}" placeholder="e.g. Biochemistry"></div>
+            <div><label class="field-label">Description / test information (optional)</label><textarea class="field" name="description" rows="4" maxlength="5000" placeholder="Prints below this test’s results">${esc(s?.description || '')}</textarea></div>
             <div class="pt-2 border-t border-outline-variant space-y-2">
               <div class="flex items-center justify-between">
                 <div>
@@ -311,7 +315,7 @@ function editService(s, after) {
               </div>
               <div class="p-2.5 rounded-lg bg-surface border border-outline-variant grid grid-cols-1 md:grid-cols-5 gap-2 items-center">
                 <input class="field field-sm" data-new-param-name placeholder="Parameter name (e.g. Haemoglobin)">
-                <input class="field field-sm" data-new-param-unit placeholder="Unit (e.g. g/dL)">
+                ${labUnitField('', 'data-new-param-unit')}
                 <input class="field field-sm" type="number" step="0.01" data-new-param-low placeholder="Ref Min (e.g. 13)">
                 <input class="field field-sm" type="number" step="0.01" data-new-param-high placeholder="Ref Max (e.g. 17)">
                 <button type="button" class="btn-secondary btn-sm" data-add-param-btn>
@@ -321,6 +325,7 @@ function editService(s, after) {
             </div>
           `;
 
+          wireLabUnits(settingsHost);
           // Wire Lab chips
           settingsHost.querySelectorAll('[data-chip-sample]').forEach(b => {
             b.onclick = () => { settingsHost.querySelector('[data-sample-input]').value = b.dataset.chipSample; };
@@ -382,6 +387,8 @@ function editService(s, after) {
               });
               settingsHost.querySelector('[data-new-param-name]').value = '';
               settingsHost.querySelector('[data-new-param-unit]').value = '';
+              settingsHost.querySelector('[data-unit-select]').value = '';
+              settingsHost.querySelector('[data-new-param-unit]').hidden = true;
               settingsHost.querySelector('[data-new-param-low]').value = '';
               settingsHost.querySelector('[data-new-param-high]').value = '';
               toast(`Parameter ${pName} added`, 'success');

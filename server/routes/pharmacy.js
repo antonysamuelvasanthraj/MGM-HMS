@@ -1,7 +1,9 @@
 import { Router } from 'express';
+import { invoiceOCR } from '../local-invoice-ocr.js';
+import {visitBillingCategory} from '../payer-context.js';
 import {
   h, fail, all, get, one, insert, update, run, nextNo, today, where, emit, num, money,
-  recalcBill, tx, dateAgo, nowIso,
+  recalcBill, tx, dateAgo, nowIso, patientCard, setting,
 } from '../lib.js';
 import { recordPriceAlerts } from './price-alerts.js';
 import { billNewToPayer } from '../payer-billing.js';
@@ -9,10 +11,27 @@ import { activeAssignment, applyPackage, packageUsage } from '../packages.js';
 import { collectionPolicy } from '../collection-policy.js';
 import { requireAuth, requirePerm, can } from '../auth.js';
 import { takePayment } from '../payments.js';
-import { postPurchase, postCostOfSale, postStockAdjustment } from '../accounting.js';
+import { postPurchase, postCostOfSale, postStockAdjustment, reverseSource } from '../accounting.js';
 
 export const pharmacy = Router();
 const TOPICS = ['pharmacy', 'inventory', 'dashboard'];
+let invoiceOCRQueue = Promise.resolve(), invoiceOCRPending = 0;
+pharmacy.post('/invoice-ocr', requirePerm('purchase.write'), async (req, res) => {
+  if (invoiceOCRPending >= 4) return res.status(429).json({error:'ocr_queue_full_try_again'});
+  invoiceOCRPending++;
+  const previous=invoiceOCRQueue;
+  let release;
+  invoiceOCRQueue=new Promise(resolve=>{release=resolve;});
+  await previous;
+  try {
+    const result = await invoiceOCR(req.body);
+    emit(req,{topics:['inventory'],event:'invoice.scanned',action:'invoice.scan',entity:'purchases',detail:{review_required:true,posted:false}});
+    return res.json(result);
+  } catch (err) {
+    console.error('[invoice-ocr]', err.message);
+    return res.status(err.status || 500).json({error:err.status === 400 ? err.message : 'invoice_ocr_failed'});
+  } finally { invoiceOCRPending--; release(); }
+});
 
 pharmacy.get('/patient-package/:patientId', requireAuth, h(req => {
   if (!can(req.user,'pharmacy.view') && !can(req.user,'billing.view') && !can(req.user,'ipd.view')) fail(403,'forbidden');
@@ -63,24 +82,25 @@ pharmacy.get('/medicines', requireAuth, h((req) => {
   const extra = [], args = [];
   if (req.query.q) {
     // starts-with matches rank first, so typing one letter lists the right drugs on top
-    extra.push('(m.name LIKE ? OR m.generic LIKE ? OR m.brand LIKE ? OR m.code LIKE ?)'); const l = `%${req.query.q}%`; args.push(l, l, l, l);
+    extra.push('(m.name LIKE ? OR m.generic LIKE ? OR m.brand LIKE ? OR m.code LIKE ? OR m.hsn LIKE ?)'); const l = `%${req.query.q}%`; args.push(l, l, l, l, l);
   }
   if (req.query.active === '1') extra.push('m.active = 1');
+  if (req.query.active === '0') extra.push('m.active = 0');
   if (req.query.form && req.query.form !== 'all') { extra.push('m.form = ?'); args.push(req.query.form); }
   if (req.query.schedule && req.query.schedule !== 'all') { extra.push('m.schedule = ?'); args.push(req.query.schedule); }
   const w = extra.length ? `WHERE ${extra.join(' AND ')}` : '';
   const rows = all(
     `SELECT m.*,
-            coalesce((SELECT sum(qty) FROM medicine_batches b WHERE b.medicine_id=m.id),0) stock,
-            coalesce((SELECT sum(qty) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.location='Central'),0) central_stock,
-            coalesce((SELECT sum(qty) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.location=?),0) location_stock,
-            (SELECT min(expiry) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.qty>0) next_expiry,
-            (SELECT max(mrp) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.qty>0) mrp,
-            (SELECT coalesce(b.selling_price, b.mrp) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.qty>0 AND b.location=?
-              ORDER BY b.expiry LIMIT 1) next_price,
-            (SELECT count(*) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.qty>0) batch_count
+            coalesce((SELECT sum(qty) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.qty>0 AND b.expiry > date('now','localtime')),0) stock,
+            coalesce((SELECT sum(qty) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.location='Central' AND b.qty>0 AND b.expiry > date('now','localtime')),0) central_stock,
+            coalesce((SELECT sum(qty) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.location=? AND b.qty>0 AND b.expiry > date('now','localtime')),0) location_stock,
+            (SELECT min(expiry) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.location=? AND b.qty>0 AND b.expiry > date('now','localtime')) next_expiry,
+            (SELECT max(mrp) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.qty>0 AND b.expiry > date('now','localtime')) mrp,
+            (SELECT coalesce(b.selling_price, b.mrp) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.qty>0 AND b.location=? AND b.expiry > date('now','localtime')
+              ORDER BY b.expiry, b.id LIMIT 1) next_price,
+            (SELECT count(*) FROM medicine_batches b WHERE b.medicine_id=m.id AND b.qty>0 AND b.expiry > date('now','localtime')) batch_count
        FROM medicines m ${w} ORDER BY ${req.query.q ? '(m.name LIKE ? OR m.brand LIKE ? OR m.generic LIKE ?) DESC, ' : ''}m.name LIMIT ?`,
-    req.query.location || 'OP', req.query.location || 'OP', ...args, ...(req.query.q ? [`${req.query.q}%`, `${req.query.q}%`, `${req.query.q}%`] : []), Math.min(num(req.query.limit, 300), 1000));
+    req.query.location || 'OP', req.query.location || 'OP', req.query.location || 'OP', ...args, ...(req.query.q ? [`${req.query.q}%`, `${req.query.q}%`, `${req.query.q}%`] : []), Math.min(num(req.query.limit, 300), 1000));
   for (const r of rows) r.low = r.stock <= r.reorder_level;
   if (req.query.low === '1') return { rows: rows.filter((r) => r.low) };
   return { rows };
@@ -117,6 +137,7 @@ pharmacy.get('/medicines/:id', requireAuth, h((req) => {
   if (!m) fail(404, 'medicine_not_found');
   m.batches = all('SELECT b.*, s.name supplier_name FROM medicine_batches b LEFT JOIN suppliers s ON s.id=b.supplier_id WHERE b.medicine_id=? ORDER BY b.expiry', m.id);
   m.stock = m.batches.reduce((s, b) => s + b.qty, 0);
+  m.usable_stock = m.batches.filter(b => b.qty > 0 && b.expiry > today()).reduce((s,b) => s+b.qty,0);
   m.moves = all(`SELECT sm.*, u.name by_name FROM stock_moves sm LEFT JOIN users u ON u.id=sm.created_by
                   WHERE sm.medicine_id=? ORDER BY sm.id DESC LIMIT 60`, m.id);
   return m;
@@ -192,6 +213,18 @@ pharmacy.patch('/medicines/:id', requirePerm('inventory.write'), h((req) => {
 
 /* ------------------------------------------------------------------ stock */
 
+pharmacy.get('/supplier-stock-summary', requirePerm('inventory.view'), h(() => all(`
+  SELECT s.id, s.name supplier_name,
+    count(DISTINCT b.medicine_id) products,
+    count(DISTINCT CASE WHEN b.qty>0 THEN b.medicine_id END) products_in_stock,
+    count(CASE WHEN b.qty>0 THEN 1 END) batches,
+    round(coalesce(sum(CASE WHEN b.qty>0 THEN b.qty*b.purchase_rate ELSE 0 END),0),2) cost_value,
+    round(coalesce(sum(CASE WHEN b.qty>0 THEN b.qty*coalesce(nullif(b.selling_price,0),b.mrp) ELSE 0 END),0),2) selling_value,
+    round(coalesce(sum(CASE WHEN b.qty>0 AND b.expiry<date('now','localtime') THEN b.qty*b.purchase_rate ELSE 0 END),0),2) expired_cost
+  FROM suppliers s LEFT JOIN medicine_batches b ON b.supplier_id=s.id
+  GROUP BY s.id ORDER BY s.name
+`)));
+
 pharmacy.get('/stock', requireAuth, h((req) => {
   const extra = [], args = [];
   if (req.query.location) { extra.push('b.location=?'); args.push(req.query.location); }
@@ -202,6 +235,8 @@ pharmacy.get('/stock', requireAuth, h((req) => {
   const w = extra.length ? `WHERE ${extra.join(' AND ')}` : '';
   const rows = all(
     `SELECT b.*, m.name medicine_name, m.code medicine_code, m.form, m.rack, m.reorder_level,
+            m.hsn medicine_hsn, m.schedule medicine_schedule, m.manufacturer medicine_manufacturer,
+            m.units_per_pack medicine_units_per_pack, m.gst_pct medicine_gst_pct,
             s.name supplier_name,
             cast(julianday(b.expiry) - julianday('now','localtime') AS int) days_to_expiry,
             round(b.qty * b.purchase_rate, 2) stock_value
@@ -211,14 +246,14 @@ pharmacy.get('/stock', requireAuth, h((req) => {
   return {
     rows,
     summary: {
-      batches: one('SELECT count(*) FROM medicine_batches WHERE qty>0') || 0,
-      value: money(one('SELECT coalesce(sum(qty*purchase_rate),0) FROM medicine_batches WHERE qty>0') || 0),
-      mrp_value: money(one('SELECT coalesce(sum(qty*mrp),0) FROM medicine_batches WHERE qty>0') || 0),
-      expiring_90: one(`SELECT count(*) FROM medicine_batches WHERE qty>0 AND expiry <= date('now','localtime','+90 day') AND expiry >= date('now','localtime')`) || 0,
-      expired: one(`SELECT count(*) FROM medicine_batches WHERE qty>0 AND expiry < date('now','localtime')`) || 0,
-      expiry_value: money(one(`SELECT coalesce(sum(qty*purchase_rate),0) FROM medicine_batches WHERE qty>0 AND expiry <= date('now','localtime','+90 day')`) || 0),
-      low_stock: one(`SELECT count(*) FROM (SELECT m.id FROM medicines m LEFT JOIN medicine_batches b ON b.medicine_id=m.id
-                        GROUP BY m.id HAVING coalesce(sum(b.qty),0) <= m.reorder_level)`) || 0,
+      ...get(`SELECT count(*) batches,round(coalesce(sum(b.qty*b.purchase_rate),0),2) value,
+        round(coalesce(sum(b.qty*b.mrp),0),2) mrp_value,
+        coalesce(sum(CASE WHEN b.expiry BETWEEN date('now','localtime') AND date('now','localtime','+90 day') THEN 1 ELSE 0 END),0) expiring_90,
+        coalesce(sum(CASE WHEN b.expiry < date('now','localtime') THEN 1 ELSE 0 END),0) expired,
+        round(coalesce(sum(CASE WHEN b.expiry<=date('now','localtime','+90 day') THEN b.qty*b.purchase_rate ELSE 0 END),0),2) expiry_value
+        FROM medicine_batches b JOIN medicines m ON m.id=b.medicine_id WHERE b.qty>0 ${extra.length?'AND '+extra.join(' AND '):''}`, ...args),
+      low_stock: one(`SELECT count(*) FROM (SELECT m.id FROM medicine_batches b JOIN medicines m ON m.id=b.medicine_id ${w}
+        GROUP BY m.id,m.reorder_level HAVING sum(b.qty)<=m.reorder_level)`,...args) || 0,
     },
   };
 }));
@@ -227,8 +262,8 @@ pharmacy.get('/stock/moves', requirePerm('inventory.view'), h((req) => all(
   `SELECT sm.*, m.name medicine_name, b.batch_no, u.name by_name
      FROM stock_moves sm JOIN medicines m ON m.id=sm.medicine_id
      LEFT JOIN medicine_batches b ON b.id=sm.batch_id LEFT JOIN users u ON u.id=sm.created_by
-    ${req.query.medicine_id ? 'WHERE sm.medicine_id=?' : ''}
-    ORDER BY sm.id DESC LIMIT 300`, ...(req.query.medicine_id ? [+req.query.medicine_id] : []))));
+    WHERE 1=1 ${req.query.medicine_id ? 'AND sm.medicine_id=?' : ''} ${req.query.location ? 'AND sm.location=?' : ''}
+    ORDER BY sm.id DESC LIMIT 300`, ...(req.query.medicine_id ? [+req.query.medicine_id] : []),...(req.query.location ? [req.query.location] : []))));
 
 pharmacy.post('/stock/adjust', requirePerm('inventory.write'), h((req) => {
   const b = req.body;
@@ -236,6 +271,15 @@ pharmacy.post('/stock/adjust', requirePerm('inventory.write'), h((req) => {
   if (!batch) fail(404, 'batch_not_found');
   const delta = Number(b.qty);
   if (!Number.isFinite(delta)||!String(b.reason||'').trim()) fail(400,'quantity_and_reason_required');
+  if (delta === 0) fail(400, 'stock_adjustment_zero');
+  // the administrator can switch off one-off corrections; a counted Excel / bulk stock take always posts
+  if (b.source !== 'bulk_count' && setting('manual_stock_adjust', '1') !== '1') fail(403, 'manual_stock_adjust_disabled');
+  // A reviewed physical count must not silently overwrite subsequent dispensing.
+  if (b.expected_qty !== undefined) {
+    const expected = Number(b.expected_qty);
+    if (b.expected_qty === null || b.expected_qty === '' || !Number.isFinite(expected) || expected < 0) fail(400, 'expected_stock_invalid');
+    if (expected !== batch.qty) fail(409, 'stock_changed_since_review', { expected_qty: expected, current_qty: batch.qty });
+  }
   if (!['adjust','expiry','damage','disposal','loss'].includes(b.move_type || 'adjust') || (delta>0 && (b.move_type || 'adjust')!=='adjust')) fail(400,'stock_adjustment_type_invalid');
   const after = batch.qty + delta;
   if (after < 0) fail(400, 'insufficient_stock');
@@ -262,6 +306,32 @@ pharmacy.post('/stock/adjust', requirePerm('inventory.write'), h((req) => {
 }));
 
 /* ------------------------------------------------------- dispensing / POS */
+
+pharmacy.get('/held-bills', requirePerm('pharmacy.view'), h(req => all(`SELECT h.id,h.patient_id,h.notes,h.created_at,p.name patient_name,p.uhid,u.name held_by FROM pharmacy_held_bills h JOIN patients p ON p.id=h.patient_id JOIN users u ON u.id=h.created_by WHERE h.status='held' ORDER BY h.id DESC`)));
+pharmacy.post('/held-bills', requirePerm('pharmacy.dispense'), h(req => {
+  const b = req.body || {};
+  if (!get('SELECT id FROM patients WHERE id=? AND merged_into IS NULL', num(b.patient_id))) fail(400,'patient_required');
+  if (!Array.isArray(b.items) || !b.items.length || b.items.length>200 || b.items.some(i => !Number.isFinite(Number(i.qty)) || Number(i.qty)<=0)) fail(400,'items_required');
+  if (Number(b.discount || 0)!==0 || b.items.some(i=>Number(i.discount || 0)!==0)) fail(400,'pharmacy_discounts_disabled');
+  const cart = {items:b.items, prescription_id:b.prescription_id || null, admission_id:b.admission_id || null, ip_no:b.ip_no || null};
+  const id = insert('pharmacy_held_bills',{patient_id:num(b.patient_id),cart_json:JSON.stringify(cart),notes:String(b.notes||'').slice(0,4000),created_by:req.user.id});
+  emit(req,{topics:TOPICS,event:'pharmacy.held',action:'pharmacy.hold',entity:'pharmacy_held_bills',entityId:id,detail:{patient_id:b.patient_id,lines:b.items.length}});
+  return {id};
+}));
+pharmacy.post('/held-bills/:id/resume', requirePerm('pharmacy.dispense'), h(req => tx(()=>{
+  const row = get("SELECT * FROM pharmacy_held_bills WHERE id=? AND status='held'",+req.params.id)||fail(409,'held_bill_unavailable');
+  const cart = JSON.parse(row.cart_json);
+  if (cart.admission_id && !get("SELECT id FROM admissions WHERE id=? AND status<>'discharged'",cart.admission_id)) { cart.admission_id=null;cart.ip_no=null; }
+  const location=cart.admission_id?'IP':'OP';
+  cart.items=cart.items.map(item=>{
+    const batches=all("SELECT * FROM medicine_batches WHERE medicine_id=? AND location=? AND qty>0 AND expiry>date('now','localtime') ORDER BY expiry,id",num(item.medicine_id),location);
+    const batch=batches.find(b=>b.id===item.batch_id)||batches[0];
+    return {...item,batches,batch_id:batch?.id||null,batch_no:batch?.batch_no||'',expiry:batch?.expiry||'',stock:batch?.qty||0,rate:batch?money(batch.selling_price || batch.mrp):item.rate};
+  });
+  update('pharmacy_held_bills',row.id,{status:'resumed',resumed_by:req.user.id,resumed_at:nowIso()});
+  emit(req,{topics:TOPICS,event:'pharmacy.held',action:'pharmacy.resume',entity:'pharmacy_held_bills',entityId:row.id,detail:{patient_id:row.patient_id}});
+  return {...cart,patient:patientCard(row.patient_id),notes:row.notes};
+})));
 
 pharmacy.get('/dispense/queue', requirePerm('pharmacy.view'), h((req) => {
   // Older prescriptions typed as free text: link any that now match the master.
@@ -301,7 +371,7 @@ pharmacy.get('/batches', requireAuth, h((req) => all(
   `SELECT b.*, m.name medicine_name, m.gst_pct,
           cast(julianday(b.expiry) - julianday('now','localtime') AS int) days_to_expiry
      FROM medicine_batches b JOIN medicines m ON m.id=b.medicine_id
-    WHERE b.medicine_id = ? AND b.qty > 0 AND b.location=? ORDER BY b.expiry`, num(req.query.medicine_id), req.query.location || 'OP')));
+    WHERE b.medicine_id = ? AND b.qty > 0 AND b.location=? AND b.expiry > date('now','localtime') ORDER BY b.expiry, b.id`, num(req.query.medicine_id), req.query.location || 'OP')));
 
 /**
  * Pharmacy sale. FEFO batch pick unless a batch is named. Creates the bill,
@@ -309,10 +379,22 @@ pharmacy.get('/batches', requireAuth, h((req) => all(
  */
 export function dispense(req, b = {}) {
   const items = b.items || [];
+  if (Number(b.discount || 0) !== 0 || Number(b.discount_pct || 0) !== 0 || items.some(it => Number(it.discount || 0) !== 0 || Number(it.discount_pct || 0) !== 0)) fail(400, 'pharmacy_discounts_disabled');
   if (!items.length) fail(400, 'items_required');
   if (items.some(it => !Number.isFinite(Number(it.qty)) || Number(it.qty) <= 0)) fail(400, 'positive_quantity_required');
   const patientId = num(b.patient_id, null);
   if (!patientId) fail(400, 'patient_required');
+  // Drugs & Cosmetics Rules: Schedule H / H1 / X medicines are sold only against a prescription.
+  // A counter sale needs the e-prescription, the prescribing doctor, or the paper prescription reference;
+  // inpatient issues (doctor-ordered, on the IP bill) and emergency visits already have one. An OP visit
+  // counts only once the doctor has seen the patient — a visit that is merely registered has no prescription yet.
+  const rxVisit = b.encounter_id ? get(`SELECT 1 FROM encounters WHERE id=? AND (kind IN ('EMG','IP','DAYCARE') OR stage IN ('in_consult','consulted','services_pending','closed'))`, num(b.encounter_id)) : null;
+  if (!b.prescription_id && !b.admission_id && !rxVisit && !num(b.rx_doctor_id, 0) && !String(b.rx_note || '').trim()
+      && setting('schedule_h_requires_rx', '1') !== '0') {
+    const restricted = items.map((it) => get('SELECT name, schedule FROM medicines WHERE id=?', num(it.medicine_id)))
+      .filter((m) => m && ['H', 'H1', 'X'].includes(String(m.schedule || '').toUpperCase()));
+    if (restricted.length) fail(400, 'prescription_required_for_schedule', { medicines: restricted.map((m) => `${m.name} (Schedule ${m.schedule})`) });
+  }
 
   return tx(() => {
     // Admitted patients are charged to their running IP bill; everyone else gets a pharmacy bill.
@@ -322,12 +404,19 @@ export function dispense(req, b = {}) {
       num(b.admission_id)) : null;
     if (b.admission_id && !ipBill) fail(409, 'ip_bill_not_found');
     const rxEnc = b.prescription_id ? get('SELECT encounter_id FROM prescriptions WHERE id=?', num(b.prescription_id))?.encounter_id : null;
+    // manual dispensing from a paper prescription: name the prescriber, and file the sale under today's visit
+    const rxDoctor = b.rx_doctor_id ? get("SELECT id, name FROM users WHERE id=? AND role='doctor'", num(b.rx_doctor_id)) : null;
+    if (b.rx_doctor_id && !rxDoctor) fail(400, 'doctor_not_found');
+    const rxNote = [rxDoctor ? `Paper Rx: ${rxDoctor.name}` : '', String(b.rx_note || '').trim()].filter(Boolean).join(' · ').slice(0, 300) || null;
+    const todayVisit = !b.encounter_id && !rxEnc && (rxDoctor || rxNote)
+      ? get(`SELECT id FROM encounters WHERE patient_id=? AND kind='OP' AND visit_date=date('now','localtime') AND stage NOT IN ('cancelled') ORDER BY (doctor_id=?) DESC, id DESC LIMIT 1`, patientId, rxDoctor?.id || 0)?.id : null;
     const bid = ipBill ? ipBill.id : insert('bills', {
-      bill_no: nextNo('bill'), patient_id: patientId, encounter_id: b.encounter_id || rxEnc || null,
-      source: b.prescription_id ? 'prescription' : null, source_id: b.prescription_id ? num(b.prescription_id) : null,
-      bill_type: 'PHARM', status: 'unpaid', payer_type: get('SELECT payer_type FROM patients WHERE id=?', patientId)?.payer_type || 'self',
+      bill_no: nextNo('bill'), patient_id: patientId, encounter_id: b.encounter_id || rxEnc || todayVisit || null,
+      doctor_id: rxDoctor?.id || null, rx_note: rxNote,
+      source: b.prescription_id ? 'prescription' : rxNote ? 'paper_rx' : null, source_id: b.prescription_id ? num(b.prescription_id) : null,
+      bill_type: 'PHARM', status: 'unpaid', payer_type: visitBillingCategory(patientId,b.encounter_id || rxEnc || todayVisit || null),
       counter_id: req.user.counter_id || null, created_by: req.user.id,
-      discount: money(num(b.discount, 0)), notes: b.notes,
+      discount: 0, notes: b.notes,
     });
     let cost = 0;
     const location = b.location || (ipBill ? 'IP' : 'OP');
@@ -337,6 +426,7 @@ export function dispense(req, b = {}) {
       if (qty <= 0) continue;
       const med = get('SELECT * FROM medicines WHERE id=?', num(it.medicine_id));
       if (!med) fail(400, `unknown_medicine_${it.medicine_id}`);
+      if (!med.active) fail(409, 'medicine_archived');
       // a different brand against a prescription line must be a true equivalent (same composition and form)
       const rxLine = it.prescription_item_id ? get('SELECT * FROM prescription_items WHERE id=?', num(it.prescription_item_id)) : null;
       const prescribed = rxLine?.medicine_id && rxLine.medicine_id !== med.id ? get('SELECT * FROM medicines WHERE id=?', rxLine.medicine_id) : null;
@@ -357,6 +447,8 @@ export function dispense(req, b = {}) {
           balance_after: batch.qty - take, ref_type: 'bill', ref_id: bid, created_by: req.user.id,
         });
         const rate = money(it.rate !== undefined ? num(it.rate) : (batch.selling_price || batch.mrp));
+        const sellingPrice=money(batch.selling_price || batch.mrp);
+        if (!Number.isFinite(Number(it.rate ?? sellingPrice)) || rate < 0 || Math.abs(rate-sellingPrice)>0.005) fail(400,'pharmacy_selling_price_required',{medicine:med.name,selling_price:sellingPrice});
         if (rate > batch.mrp + 0.005 && batch.mrp > 0) fail(400, 'rate_above_mrp', { medicine: med.name, mrp: batch.mrp });
         cost += take * batch.purchase_rate;
         insert('bill_items', {
@@ -374,6 +466,8 @@ export function dispense(req, b = {}) {
         if (pi) update('prescription_items', pi.id, { dispensed_qty: (pi.dispensed_qty || 0) + qty });
       }
     }
+    const note = String(b.notes || '').trim();
+    if (ipBill && note) update('bills', bid, { notes: [ipBill.notes, `${nowIso()} · ${req.user.name || req.user.username} · IP pharmacy: ${note}`].filter(Boolean).join('\n') });
     const bill = recalcBill(bid);
     postCostOfSale({ billId: bid, cost: money(cost), narration: `Cost of medicines · bill ${bill.bill_no} @ ${location}` });
     if (b.prescription_id) {
@@ -392,7 +486,7 @@ export function dispense(req, b = {}) {
       topics: [...TOPICS, 'billing', 'accounts', `patient:${patientId}`], event: 'pharmacy.dispensed',
       data: { bill: view, payment },
       action: 'pharmacy.dispense', entity: 'bills', entityId: bid,
-      detail: { bill_no: view.bill_no, total: view.total, lines: items.length },
+      detail: { bill_no: view.bill_no, total: view.total, lines: items.length, after: { notes: note || null, location, admission_id: b.admission_id || null, rx_note: view.rx_note || null } },
     });
     return { bill: view, payment };
   });
@@ -464,9 +558,9 @@ pharmacy.post('/purchase-requests/:id/status', requirePerm('purchase.write'), h(
 /* -------------------------------------------------------------- suppliers */
 
 pharmacy.get('/suppliers', requirePerm('purchase.view'), h((req) => all(
-  `SELECT s.*, (SELECT count(*) FROM purchases p WHERE p.supplier_id=s.id) grn_count,
-          (SELECT coalesce(sum(total),0) FROM purchases p WHERE p.supplier_id=s.id) purchase_value,
-          (SELECT max(received_at) FROM purchases p WHERE p.supplier_id=s.id) last_supply
+  `SELECT s.*, (SELECT count(*) FROM purchases p WHERE p.supplier_id=s.id AND p.status<>'corrected') grn_count,
+          (SELECT coalesce(sum(total),0) FROM purchases p WHERE p.supplier_id=s.id AND p.status<>'corrected') purchase_value,
+          (SELECT max(received_at) FROM purchases p WHERE p.supplier_id=s.id AND p.status<>'corrected') last_supply
      FROM suppliers s ${req.query.q ? 'WHERE s.name LIKE ? OR s.code LIKE ?' : ''}
     ORDER BY s.name`, ...(req.query.q ? [`%${req.query.q}%`, `%${req.query.q}%`] : []))));
 
@@ -479,6 +573,7 @@ pharmacy.post('/suppliers', requirePerm('supplier.write'), h((req) => {
   if (fields.gstin && get('SELECT id FROM suppliers WHERE upper(gstin)=? AND id<>?', fields.gstin, b.id || 0)) fail(409, 'supplier_gstin_exists');
   const before = b.id ? get('SELECT * FROM suppliers WHERE id=?', num(b.id)) : null;
   if (b.id && !before) fail(404, 'supplier_not_found');
+  if ('active' in b) fields.active = b.active === false || b.active === 0 || b.active === '0' ? 0 : 1;
   const id = b.id ? (update('suppliers', before.id, fields), before.id) : insert('suppliers', {
     code: b.code || `SUP${Date.now().toString().slice(-5)}`, ...fields,
   });
@@ -491,21 +586,35 @@ pharmacy.post('/suppliers', requirePerm('supplier.write'), h((req) => {
 /* ------------------------------------------------------------ GRN / purchases */
 
 pharmacy.get('/purchases', requirePerm('purchase.view'), h((req) => {
+  const conditions = [], args = [];
+  if (req.query.status && req.query.status !== 'all') { conditions.push('p.status=?'); args.push(req.query.status); }
+  else conditions.push("p.status<>'corrected'");
+  if (req.query.q) { conditions.push('(p.grn_no LIKE ? OR p.invoice_no LIKE ? OR s.name LIKE ?)'); args.push(...Array(3).fill(`%${req.query.q}%`)); }
+  if (req.query.supplier) { conditions.push('s.name LIKE ?'); args.push(`%${req.query.supplier}%`); }
+  if (req.query.medicine_id) { conditions.push('EXISTS(SELECT 1 FROM purchase_items i WHERE i.purchase_id=p.id AND i.medicine_id=?)'); args.push(num(req.query.medicine_id)); }
+  for (const [key, operator] of [['from', '>='], ['to', '<=']]) if (req.query[key]) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(req.query[key])) fail(400, 'date_invalid');
+    conditions.push(`date(p.received_at) ${operator} ?`); args.push(req.query[key]);
+  }
+  const clause = `WHERE ${conditions.join(' AND ')}`;
+  const limit = Math.max(1, Math.min(num(req.query.limit, 50), 200)), offset = Math.max(0, num(req.query.offset));
+  const summary = get(`SELECT count(*) count, coalesce(sum(p.total),0) value,
+    coalesce(sum(p.total-p.paid),0) unpaid, coalesce(sum(p.paid),0) paid
+    FROM purchases p JOIN suppliers s ON s.id=p.supplier_id ${clause}`, ...args);
   const rows = all(
     `SELECT p.*, s.name supplier_name, u.name received_by_name,
             (SELECT count(*) FROM purchase_items i WHERE i.purchase_id=p.id) line_count
        FROM purchases p JOIN suppliers s ON s.id=p.supplier_id
        LEFT JOIN users u ON u.id=p.received_by
-      ${req.query.status && req.query.status !== 'all' ? 'WHERE p.status=?' : ''}
-      ORDER BY p.id DESC LIMIT 200`, ...(req.query.status && req.query.status !== 'all' ? [req.query.status] : []));
+      ${clause} ORDER BY p.id DESC LIMIT ? OFFSET ?`, ...args, limit, offset);
   return {
     rows,
     summary: {
-      count: rows.length,
-      value: money(rows.reduce((s, r) => s + r.total, 0)),
-      unpaid: money(rows.filter((r) => r.status !== 'paid').reduce((s, r) => s + (r.total - r.paid), 0)),
+      count: summary.count,
+      value: money(summary.value), paid: money(summary.paid),
+      unpaid: money(summary.unpaid),
       payable: money(one('SELECT coalesce(sum(outstanding),0) FROM suppliers') || 0),
-    },
+    }, pagination: { limit, offset, total: summary.count },
   };
 }));
 
@@ -520,14 +629,17 @@ pharmacy.get('/purchases/:id', requireAuth, h((req) => {
 
 /** Receive goods: creates/updates batches and posts stock-in moves. */
 pharmacy.get('/price-history/:medicineId', requirePerm('purchase.view'), h(req => all(
-  `SELECT pi.*, p.grn_no, p.received_at, s.name supplier_name
+  `SELECT pi.*, p.grn_no, p.invoice_no, p.invoice_date, p.received_at, s.name supplier_name
    FROM purchase_items pi JOIN purchases p ON p.id=pi.purchase_id JOIN suppliers s ON s.id=p.supplier_id
-   WHERE pi.medicine_id=? ORDER BY p.id DESC,pi.id DESC LIMIT 20`, +req.params.medicineId)));
+   WHERE pi.medicine_id=? AND p.status<>'corrected' ORDER BY p.id DESC,pi.id DESC LIMIT ? OFFSET ?`, +req.params.medicineId,
+   Math.max(1, Math.min(num(req.query.limit,20),200)), Math.max(0,num(req.query.offset)))));
 
-pharmacy.post('/purchases', requirePerm('purchase.write'), h((req) => {
+pharmacy.post('/purchases', requirePerm('purchase.write'), h((req) => receivePurchase(req)));
+
+function receivePurchase(req) {
   const b = req.body || {};
   if (!get('SELECT id FROM suppliers WHERE id=? AND active=1', num(b.supplier_id))) fail(400, 'supplier_required');
-  if (b.invoice_no && get('SELECT id FROM purchases WHERE supplier_id=? AND invoice_no=?',num(b.supplier_id),String(b.invoice_no).trim())) fail(409,'supplier_invoice_exists');
+  if (b.invoice_no && get("SELECT id FROM purchases WHERE supplier_id=? AND invoice_no=? AND status<>'corrected'",num(b.supplier_id),String(b.invoice_no).trim())) fail(409,'supplier_invoice_exists');
   const items = b.items || [];
   if (!items.length) fail(400, 'items_required');
   // expiry may come as the printed MM/YYYY ("2028-06"): a month means its last day
@@ -578,7 +690,7 @@ pharmacy.post('/purchases', requirePerm('purchase.write'), h((req) => {
       const share = baseValue > 0 ? adjust * amount / baseValue : 0;
       const unitCost = unitsReceived ? Math.max(0, amount + share) / unitsReceived : 0;
       const previous = get(`SELECT pi.*,p.grn_no,s.name supplier_name FROM purchase_items pi JOIN purchases p ON p.id=pi.purchase_id
-        JOIN suppliers s ON s.id=p.supplier_id WHERE pi.medicine_id=? AND pi.purchase_id<>? ORDER BY p.id DESC,pi.id DESC LIMIT 1`,med.id,pid);
+        JOIN suppliers s ON s.id=p.supplier_id WHERE pi.medicine_id=? AND pi.purchase_id<>? AND p.status<>'corrected' ORDER BY p.id DESC,pi.id DESC LIMIT 1`,med.id,pid);
       if (previous) for (const [price_type, oldPrice, newPrice] of [
         ['Net purchase cost',previous.unit_cost,unitCost],
         ['MRP',previous.mrp/(previous.pack_size*previous.units_per_pack),num(it.mrp)/(pack_size*units_per_pack)],
@@ -598,7 +710,7 @@ pharmacy.post('/purchases', requirePerm('purchase.write'), h((req) => {
         package_type:it.package_type||med.package_type,units_received:unitsReceived,unit_cost:unitCost,
       });
       const piId = one('SELECT max(id) FROM purchase_items WHERE purchase_id=?', pid);
-      let batch = get("SELECT * FROM medicine_batches WHERE medicine_id=? AND batch_no=? AND location='Central'", med.id, it.batch_no);
+      let batch = get("SELECT b.* FROM medicine_batches b WHERE medicine_id=? AND batch_no=? AND location='Central' AND NOT EXISTS(SELECT 1 FROM purchases p WHERE p.id=b.purchase_id AND p.status='corrected') ORDER BY b.id DESC LIMIT 1", med.id, it.batch_no);
       const total = unitsReceived;
       const perUnit = (v) => Math.round(num(v) / (pack_size * units_per_pack) * 10000) / 10000; // qty, rate and MRP are all per purchase unit
       if(batch && batch.expiry!==it.expiry)fail(409,'batch_expiry_mismatch');
@@ -644,12 +756,96 @@ pharmacy.post('/purchases', requirePerm('purchase.write'), h((req) => {
     });
     return row;
   });
-}));
+}
+
+/** Replace an untouched receipt atomically; original receipt, movements and vouchers remain in history. */
+pharmacy.post('/purchases/:id/correct', requirePerm('purchase.write'), h(req => tx(() => {
+  if (!can(req.user, 'inventory.approve')) fail(403, 'inventory_approval_required');
+  const before = get('SELECT * FROM purchases WHERE id=?', +req.params.id);
+  if (!before) fail(404, 'grn_not_found');
+  const reason = String(req.body.reason || '').trim();
+  if (!reason) fail(400, 'correction_reason_required');
+  if (before.status === 'corrected') fail(409, 'grn_already_corrected');
+  if (before.paid > 0 || get('SELECT id FROM supplier_payments WHERE purchase_id=?', before.id)) fail(409, 'grn_has_payments_use_return_workflow');
+  const lines = all('SELECT * FROM purchase_items WHERE purchase_id=?', before.id);
+  if (!lines.length) fail(409, 'grn_has_no_items');
+  const batches = new Map();
+  for (const line of lines) {
+    if (!line.batch_id || !Number.isFinite(line.units_received) || line.units_received <= 0) fail(409, 'grn_stock_already_used_use_return_workflow');
+    batches.set(line.batch_id, (batches.get(line.batch_id) || 0) + line.units_received);
+  }
+  for (const [id, units] of batches) {
+    const batch = get('SELECT * FROM medicine_batches WHERE id=?', id);
+    if (!batch || batch.location !== 'Central' || Math.abs(batch.qty - units) > 0.0001 ||
+      get("SELECT id FROM stock_moves WHERE batch_id=? AND NOT(move_type='purchase' AND ref_type='grn' AND ref_id=?)", id, before.id) ||
+      get('SELECT id FROM purchase_items WHERE batch_id=? AND purchase_id<>?', id, before.id))
+      fail(409, 'grn_stock_already_used_use_return_workflow');
+    update('medicine_batches', id, { qty: 0 });
+    insert('stock_moves', { medicine_id: batch.medicine_id, batch_id: id, location: 'Central', move_type: 'grn_correction',
+      qty: -units, balance_after: 0, ref_type: 'grn', ref_id: before.id, reason, created_by: req.user.id });
+  }
+  reverseSource('purchase', before.id, reason);
+  run('UPDATE suppliers SET outstanding=round(outstanding-?,2) WHERE id=?', before.total, before.supplier_id);
+  update('purchases', before.id, { status: 'corrected' });
+  const supersededAlerts = all("SELECT * FROM price_alerts WHERE purchase_id=? AND status IN ('open','escalated')", before.id);
+  run("UPDATE price_alerts SET status='superseded', acknowledged_by=?, acknowledged_at=?, ack_note=? WHERE purchase_id=? AND status IN ('open','escalated')", req.user.id, nowIso(), reason, before.id);
+  const after = receivePurchase({ ...req, body: { ...req.body, remarks: [req.body.remarks, `Correction of ${before.grn_no}: ${reason}`].filter(Boolean).join('\n') } });
+  update('purchases', before.id, { remarks: [before.remarks, `Replaced by ${after.grn_no}: ${reason}`].filter(Boolean).join('\n') });
+  emit(req, { topics: [...TOPICS, 'accounts'], event: 'purchase.corrected', data: { original_id: before.id, replacement_id: after.id },
+    action: 'grn.correct', entity: 'purchases', entityId: before.id,
+    detail: { before: { ...before, items: lines, price_alerts: supersededAlerts }, after: { replacement_id: after.id, grn_no: after.grn_no, total: after.total, superseded_alert_ids: supersededAlerts.map(a=>a.id) }, reason } });
+  return after;
+})));
+
+pharmacy.get('/purchase-deletions', requirePerm('purchase.view'), h(req=>all("SELECT r.*,p.grn_no,u.name requested_by_name FROM grn_deletion_requests r JOIN purchases p ON p.id=r.purchase_id JOIN users u ON u.id=r.requested_by WHERE r.status='pending' ORDER BY r.id")));
+pharmacy.get('/purchases/:id/deletion', requirePerm('purchase.view'), h(req=>get('SELECT r.*,u.name requested_by_name FROM grn_deletion_requests r JOIN users u ON u.id=r.requested_by WHERE purchase_id=? ORDER BY r.id DESC LIMIT 1',+req.params.id)));
+pharmacy.post('/purchases/:id/request-deletion', requirePerm('inventory.approve'), h(req=>tx(()=>{
+  if(!can(req.user,'purchase.write'))fail(403,'forbidden');
+  const p=get('SELECT * FROM purchases WHERE id=?',+req.params.id);
+  if(!p)fail(404,'grn_not_found');
+  if(['corrected','cancelled'].includes(p.status))fail(409,'grn_already_reversed');
+  const reason=String(req.body.reason || '').trim();if(!reason)fail(400,'reason_required');
+  if(get("SELECT id FROM grn_deletion_requests WHERE purchase_id=? AND status='pending'",p.id))fail(409,'deletion_already_pending');
+  const id=insert('grn_deletion_requests',{purchase_id:p.id,requested_by:req.user.id,reason});
+  emit(req,{topics:TOPICS,event:'purchase.deletion_requested',action:'grn.deletion_request',entity:'purchases',entityId:p.id,detail:{before:p,after:{request_id:id,status:'pending'},reason}});
+  return {id,status:'pending'};
+})));
+pharmacy.post('/purchases/:id/review-deletion', requireAuth, h(req=>tx(()=>{
+  if(!['manager','admin'].includes(req.user.role))fail(403,'manager_or_admin_required');
+  const request=get("SELECT * FROM grn_deletion_requests WHERE purchase_id=? AND status='pending'",+req.params.id);
+  if(!request)fail(409,'no_pending_deletion');
+  if(request.requested_by===req.user.id)fail(403,'requester_cannot_approve');
+  const decision=req.body.decision,reason=String(req.body.reason || '').trim();
+  if(!['approved','rejected'].includes(decision) || !reason)fail(400,'decision_and_reason_required');
+  const p=get('SELECT * FROM purchases WHERE id=?',request.purchase_id);
+  if(decision==='approved') {
+    if(['corrected','cancelled'].includes(p.status))fail(409,'grn_already_reversed');
+    if(p.paid>0 || get('SELECT id FROM supplier_payments WHERE purchase_id=?',p.id))fail(409,'grn_has_payments_use_return_workflow');
+    const lines=all('SELECT * FROM purchase_items WHERE purchase_id=?',p.id),batches=new Map();
+    if(!lines.length)fail(409,'grn_has_no_items');
+    for(const line of lines){if(!line.batch_id || !(line.units_received>0))fail(409,'grn_stock_already_used_use_return_workflow');batches.set(line.batch_id,(batches.get(line.batch_id)||0)+line.units_received);}
+    for(const [id,units] of batches){
+      const batch=get('SELECT * FROM medicine_batches WHERE id=?',id);
+      if(!batch || batch.location!=='Central' || Math.abs(batch.qty-units)>.0001 || get("SELECT id FROM stock_moves WHERE batch_id=? AND NOT(move_type='purchase' AND ref_type='grn' AND ref_id=?)",id,p.id) || get('SELECT id FROM purchase_items WHERE batch_id=? AND purchase_id<>?',id,p.id))fail(409,'grn_stock_already_used_use_return_workflow');
+      update('medicine_batches',id,{qty:0});
+      insert('stock_moves',{medicine_id:batch.medicine_id,batch_id:id,location:'Central',move_type:'grn_deletion',qty:-units,balance_after:0,ref_type:'grn',ref_id:p.id,reason,created_by:req.user.id});
+    }
+    reverseSource('purchase',p.id,reason);
+    run('UPDATE suppliers SET outstanding=round(outstanding-?,2) WHERE id=?',p.total,p.supplier_id);
+    // Reversed GRNs use the existing historical status so every register excludes them.
+    update('purchases',p.id,{status:'corrected',remarks:[p.remarks,`Deleted after approval: ${reason}`].filter(Boolean).join('\n')});
+    run("UPDATE price_alerts SET status='superseded',acknowledged_by=?,acknowledged_at=?,ack_note=? WHERE purchase_id=? AND status IN ('open','escalated')",req.user.id,nowIso(),reason,p.id);
+  }
+  update('grn_deletion_requests',request.id,{status:decision,reviewed_by:req.user.id,review_reason:reason,reviewed_at:nowIso()});
+  emit(req,{topics:[...TOPICS,'accounts'],event:'purchase.deletion_reviewed',action:'grn.deletion_review',entity:'purchases',entityId:p.id,detail:{before:{purchase:p,request},after:{decision,purchase:get('SELECT * FROM purchases WHERE id=?',p.id)},reason}});
+  return {status:decision};
+})));
 
 /** GRN verification by the store in-charge: goods, batches and invoice checked against the bill. */
 pharmacy.post('/purchases/:id/verify', requirePerm('inventory.approve'), h((req) => {
   const p = get('SELECT * FROM purchases WHERE id=?', +req.params.id);
   if (!p) fail(404, 'grn_not_found');
+  if (p.status === 'corrected') fail(409, 'grn_already_corrected');
   if (p.verified_at) fail(409, 'already_verified');
   update('purchases', p.id, { verified_by: req.user.id, verified_at: nowIso(), status: p.status === 'received' ? 'verified' : p.status });
   emit(req, { topics: TOPICS, event: 'purchase.verified', data: { id: p.id }, action: 'grn.verify', entity: 'purchases', entityId: p.id,
@@ -686,7 +882,7 @@ pharmacy.get('/analytics', requirePerm('pharmacy.view'), h((req) => {
         WHERE b.qty>0 AND b.expiry <= date('now','localtime','+120 day') ORDER BY b.expiry LIMIT 30`),
     supplier_spend: all(
       `SELECT s.name, count(p.id) grns, round(coalesce(sum(p.total),0),2) value
-         FROM suppliers s LEFT JOIN purchases p ON p.supplier_id=s.id AND date(p.received_at) BETWEEN ? AND ?
+         FROM suppliers s LEFT JOIN purchases p ON p.supplier_id=s.id AND p.status<>'corrected' AND date(p.received_at) BETWEEN ? AND ?
         GROUP BY s.id ORDER BY value DESC`, from, to),
   };
 }));

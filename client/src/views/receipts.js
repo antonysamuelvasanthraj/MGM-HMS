@@ -12,13 +12,15 @@ let f = { from: shiftDate(todayISO(), -6), to: todayISO(), mode: 'all', counter_
 let cache = [];
 
 export async function mount(ctx) {
+  f={from:todayISO(),to:todayISO(),mode:'all',counter_id:'',q:'',include_cancelled:''};
   const root = mountPage(ctx, layout());
   wireFilters(root, (v) => { f = { ...f, ...v }; load(); });
 
   async function load() {
-    const [pay, refunds] = await Promise.all([
+    const [pay, refundRows] = await Promise.all([
       api.get(`/payments${qs({ ...f, limit: 500 })}`), api.get('/refunds'),
     ]);
+    const refunds=refundRows.filter(row=>(!f.from || String(row.created_at).slice(0,10)>=f.from)&&(!f.to || String(row.created_at).slice(0,10)<=f.to));
     cache = pay.rows;
     const refundTotal = refunds.reduce((s, r) => s + r.amount, 0);
     $('[data-kpis]', root).innerHTML = [

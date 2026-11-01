@@ -1,0 +1,4 @@
+import {DatabaseSync,backup} from 'node:sqlite';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {spawnSync} from 'node:child_process';
+const directory=fs.mkdtempSync(path.join(os.tmpdir(),'hms-mohan-history-'));const source=new DatabaseSync('data/surelyhms.db',{readOnly:true});await backup(source,path.join(directory,'surelyhms.db'));source.close();
+for(let attempt=0;attempt<2;attempt++){const result=spawnSync(process.execPath,['tools/demo-mohan-history.mjs'],{env:{...process.env,HMS_ENV:'demo',SURELY_DATA:directory},windowsHide:true,encoding:'utf8'});console.log(result.stdout);if(result.status!==0)throw Error(result.stderr);}
+console.log('PASS: dated demo bills, paid/partial/unpaid split, accounting, patient isolation and repeat safety on '+directory);

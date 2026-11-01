@@ -57,7 +57,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Administration', 'manage_accounts')} ${liveChip()}`,
     title: 'Users, Roles & Access Control',
-    subtitle: 'Staff accounts and what each role may do. A doctor’s consultation tariff lives here — that is the figure OP registration charges.',
+    subtitle: 'Staff logins, roles and permissions.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
       ${(can('admin.write') || can('staff.manage')) ? `<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">person_add</span> Add staff</button>` : ''}`,
     body: `
@@ -75,7 +75,7 @@ function layout() {
           { label: 'Department' }, { label: 'OP fee', cls: 'text-right' }, { label: 'Contact' },
           { label: 'Last seen' }, { label: 'Status' }, { label: '', width: '140px' }],
       })}
-      ${card({ title: 'Role permissions', subtitle: 'What each role can reach in the sidebar and the API — changed only by an administrator, every change audited',
+      ${card({ title: 'Role permissions', subtitle: 'What each role can open. Only an administrator can change it.',
         actions: state.user?.role === 'admin' ? '<button class="btn-secondary btn-sm" data-new-role><span class="material-symbols-outlined text-[16px]">add</span>New role</button>' : '',
         body: `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" data-roles></div>` })}`,
   });

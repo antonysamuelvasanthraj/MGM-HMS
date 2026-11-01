@@ -4,6 +4,8 @@
  * `preMigrate` runs before schema.sql, for the rare change the schema's
  * CREATE IF NOT EXISTS cannot express. `migrate` runs after it and only adds.
  */
+import { migrateUpgrade } from './migrations-upgrade.js';
+
 const columns = (db, table) => db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
 const tableExists = (db, table) =>
   !!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table);
@@ -21,6 +23,52 @@ export function migrate(db) {
   const add = (table, name, definition) => {
     if (!columns(db, table).includes(name)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`);
   };
+
+  /* direct-to-doctor OP visits (vitals skipped by an explicit desk choice) */
+  add('encounters', 'direct_to_doctor', 'INTEGER NOT NULL DEFAULT 0');
+  add('encounters', 'direct_by', 'INTEGER REFERENCES users(id)');
+  add('encounters', 'direct_at', 'TEXT');
+  db.exec("INSERT OR IGNORE INTO settings (key,value) VALUES ('op_direct_doctor_option','1')");
+
+  /* appearance: 'calm' (blue) or 'maroon' (MGM brand) */
+  db.exec("INSERT OR IGNORE INTO settings (key,value) VALUES ('ui_theme','calm')");
+  /* scheduled reminder texts (appointments tomorrow, dues) */
+  db.exec("INSERT OR IGNORE INTO settings (key,value) VALUES ('reminders_enabled','0')");
+  db.exec("INSERT OR IGNORE INTO settings (key,value) VALUES ('reminder_hour','18')");
+  /* department workflow: portal or manual (paper) per department */
+  db.exec("INSERT OR IGNORE INTO settings (key,value) VALUES ('workflow_doctor','portal')");
+  db.exec("INSERT OR IGNORE INTO settings (key,value) VALUES ('workflow_pharmacy','eprescription')");
+  db.exec("INSERT OR IGNORE INTO settings (key,value) VALUES ('workflow_lab','doctor')");
+  add('orders', 'referred_by', 'TEXT');            // paper prescription / outside doctor, when reception ordered it
+  add('bills', 'rx_note', 'TEXT');                 // pharmacy: paper prescription reference
+  /* lab report: per-test interpretation / comments, per-report remarks, footer */
+  add('services', 'report_comment', 'TEXT');
+  add('services', 'report_comment_title', 'TEXT');
+  add('orders', 'lab_comment', 'TEXT');
+  add('orders', 'lab_comment_title', 'TEXT');
+  add('orders', 'lab_remarks', 'TEXT');
+  db.exec(`INSERT OR IGNORE INTO settings (key,value) VALUES ('lab_report_disclaimer','1) Results relate only to the sample received and tested. 2) Results depend on the quality of the sample. 3) Laboratory investigations support, but do not by themselves establish, a diagnosis — please correlate clinically. 4) Not valid for medico-legal purposes. 5) This is a computer-generated report validated by an authorised signatory; it does not need a physical signature.')`);
+
+  /* payer change requests (request → approve) and the Aarogyasri checklist */
+  db.exec(`CREATE TABLE IF NOT EXISTS payer_change_requests (
+    id INTEGER PRIMARY KEY,
+    request_no TEXT UNIQUE,
+    encounter_id INTEGER NOT NULL REFERENCES encounters(id),
+    admission_id INTEGER REFERENCES admissions(id),
+    patient_id INTEGER NOT NULL REFERENCES patients(id),
+    from_category TEXT, to_category TEXT NOT NULL, payer_id INTEGER REFERENCES payers(id),
+    body_json TEXT NOT NULL, reason TEXT NOT NULL,
+    refund_allowed INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','cancelled')),
+    requested_by INTEGER REFERENCES users(id), requested_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    decided_by INTEGER REFERENCES users(id), decided_at TEXT, decision_note TEXT, result_json TEXT)`);
+  db.exec("CREATE INDEX IF NOT EXISTS idx_pcr_status ON payer_change_requests(status, encounter_id)");
+  add('insurance_claims', 'scheme_card_no', 'TEXT');
+  add('insurance_claims', 'eligibility_proof', 'TEXT');
+  add('insurance_claims', 'eligibility_verified', 'INTEGER NOT NULL DEFAULT 0');
+  add('insurance_claims', 'preauth_no', 'TEXT');
+  db.exec("INSERT OR IGNORE INTO settings (key,value) VALUES ('payer_change_requires_approval','1')");
+  db.exec("INSERT OR IGNORE INTO settings (key,value) VALUES ('scheme_checklist_required','1')");
 
   /* payments & bills ------------------------------------------------ */
   add('bill_items','patient_pay_amount','REAL CHECK(patient_pay_amount IS NULL OR patient_pay_amount >= 0)');
@@ -242,6 +290,9 @@ export function migrate(db) {
     ['child_max_age','REAL'],['crit_low','REAL'],['crit_high','REAL'],['result_type',"TEXT NOT NULL DEFAULT 'numeric'"],['options','TEXT']]) add('lab_params', col, def);
   add('services', 'container', 'TEXT');
   add('services', 'report_format', 'TEXT');
+  add('services', 'description', 'TEXT');
+  add('services', 'lab_section', 'TEXT');
+  add('orders', 'lab_description', 'TEXT');
   // bed master: where the bed is and who it is for
   for (const [col, def] of [['building','TEXT'],['room','TEXT'],['gender','TEXT']]) add('beds', col, def);
   // maintenance & assets (equipment register and repair tickets)
@@ -258,6 +309,22 @@ export function migrate(db) {
     raised_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), assigned_to INTEGER REFERENCES users(id),
     resolution TEXT, vendor_reference TEXT, cost REAL, resolved_at TEXT, closed_at TEXT, updated_at TEXT)`);
   db.exec('CREATE INDEX IF NOT EXISTS idx_mt_status ON maintenance_tickets(status)');
+  db.exec(`CREATE TABLE IF NOT EXISTS preventive_maintenance (
+    id INTEGER PRIMARY KEY, asset_id INTEGER NOT NULL REFERENCES assets(id), title TEXT NOT NULL,
+    scheduled_date TEXT NOT NULL, interval_days INTEGER, checklist TEXT, status TEXT NOT NULL DEFAULT 'scheduled',
+    assigned_to INTEGER REFERENCES users(id), completed_at TEXT, completed_by INTEGER REFERENCES users(id),
+    work_done TEXT, vendor_reference TEXT, cost REAL, next_service_date TEXT, cancellation_reason TEXT,
+    created_by INTEGER REFERENCES users(id), created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), updated_at TEXT)`);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_pm_asset_status ON preventive_maintenance(asset_id,status,scheduled_date)');
+  // Signed imaging reports stay immutable: every amendment snapshots the prior signed version.
+  add('reports', 'version_no', 'INTEGER NOT NULL DEFAULT 1');
+  add('reports', 'amendment_reason', 'TEXT');
+  db.exec(`CREATE TABLE IF NOT EXISTS report_versions (
+    id INTEGER PRIMARY KEY, report_id INTEGER NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+    version_no INTEGER NOT NULL, kind TEXT NOT NULL DEFAULT 'imaging', technique TEXT, findings TEXT, impression TEXT, advice TEXT,
+    status TEXT NOT NULL, author_id INTEGER REFERENCES users(id), signed_by INTEGER REFERENCES users(id), signed_at TEXT,
+    amendment_reason TEXT, created_at TEXT, updated_at TEXT, superseded_by INTEGER REFERENCES users(id), superseded_at TEXT,
+    UNIQUE(report_id,version_no))`);
   // inpatient charges that belong to a kind of ward (monitor and ventilator in ICU…): on a transfer they stop / start
   if (!columns(db, 'services').includes('ward_kinds')) {
     add('services', 'ward_kinds', 'TEXT');
@@ -360,9 +427,68 @@ export function migrate(db) {
   add('cash_handovers', 'retained_cash', 'REAL NOT NULL DEFAULT 0');
   add('services', 'consumables_included', 'INTEGER NOT NULL DEFAULT 0');  // the procedure's price already includes its consumables
   add('bill_items', 'consumption_id', 'INTEGER REFERENCES procedure_consumptions(id)');                      // medicines / consumables covered up to this value
+  /* Integrated clinical and financial upgrade: additive, preserving historical records. */
+  for (const [name, definition] of Object.entries({ hospital: 'TEXT', doctor_type: "TEXT NOT NULL DEFAULT 'visiting'", schedule: 'TEXT', consultation_fee: 'REAL NOT NULL DEFAULT 0', procedure_fee: 'REAL NOT NULL DEFAULT 0', session_fee: 'REAL NOT NULL DEFAULT 0', day_fee: 'REAL NOT NULL DEFAULT 0', settlement_terms: 'TEXT', agreement_reference: 'TEXT' })) add('visiting_doctors', name, definition);
+  for (const [name, definition] of Object.entries({ visiting_fee_type: 'TEXT', visiting_fee_value: 'REAL', visiting_agreement: 'TEXT', visiting_assigned_at: 'TEXT', visiting_assigned_by: 'INTEGER REFERENCES users(id)' })) add('bill_items', name, definition);
+  for (const [name, definition] of Object.entries({ method: 'TEXT', interpretation: 'TEXT', reference_rules: 'TEXT', active: 'INTEGER NOT NULL DEFAULT 1' })) add('lab_params', name, definition);
+  add('lab_results', 'method', 'TEXT');
+  add('lab_results', 'interpretation', 'TEXT');
+  add('patients', 'pregnant', 'INTEGER NOT NULL DEFAULT 0');
+  db.exec(`CREATE TABLE IF NOT EXISTS referral_sources (
+    id INTEGER PRIMARY KEY, kind TEXT NOT NULL CHECK(kind IN ('doctor','hospital')), name TEXT NOT NULL,
+    hospital TEXT, speciality TEXT, mobile TEXT, remarks TEXT, active INTEGER NOT NULL DEFAULT 1,
+    created_by INTEGER REFERENCES users(id), created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')));
+    CREATE INDEX IF NOT EXISTS idx_referral_sources_kind ON referral_sources(kind, active, name);`);
+  add('patients', 'referral_doctor_id', 'INTEGER REFERENCES referral_sources(id)');
+  add('patients', 'referral_hospital_id', 'INTEGER REFERENCES referral_sources(id)');
+  add('patients', 'referral_reason', 'TEXT');
+  add('patients', 'referral_remarks', 'TEXT');
+  db.exec(`CREATE TABLE IF NOT EXISTS pharmacy_held_bills (
+    id INTEGER PRIMARY KEY, patient_id INTEGER NOT NULL REFERENCES patients(id), cart_json TEXT NOT NULL,
+    notes TEXT, status TEXT NOT NULL DEFAULT 'held', created_by INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), resumed_by INTEGER REFERENCES users(id), resumed_at TEXT);
+    CREATE INDEX IF NOT EXISTS idx_pharmacy_held_status ON pharmacy_held_bills(status,created_at);`);
+  db.exec(`CREATE TABLE IF NOT EXISTS visiting_fee_adjustments (
+    id INTEGER PRIMARY KEY, doctor_id INTEGER NOT NULL REFERENCES visiting_doctors(id), amount REAL NOT NULL,
+    reason TEXT NOT NULL, reference TEXT, approved_by INTEGER NOT NULL REFERENCES users(id),
+    approved_at TEXT NOT NULL DEFAULT (datetime('now','localtime')));`);
+  // Freeze existing rules once, before later master edits can alter historical earnings.
+  db.exec(`UPDATE bill_items SET visiting_fee_type=coalesce((SELECT r.share_type FROM visiting_doctor_rates r WHERE r.doctor_id=bill_items.visiting_doctor_id AND r.service_id=bill_items.service_id),(SELECT d.share_type FROM visiting_doctors d WHERE d.id=bill_items.visiting_doctor_id)),
+    visiting_fee_value=coalesce((SELECT r.share_value FROM visiting_doctor_rates r WHERE r.doctor_id=bill_items.visiting_doctor_id AND r.service_id=bill_items.service_id),(SELECT d.share_value FROM visiting_doctors d WHERE d.id=bill_items.visiting_doctor_id)),
+    visiting_assigned_at=coalesce(created_at,datetime('now','localtime')) WHERE visiting_doctor_id IS NOT NULL AND visiting_fee_type IS NULL;`);
+  /* Diagnostics performed outside the hospital ------------------------
+     Two different arrangements, and the difference is the money:
+       billing='hospital'  a tie-up lab (Thyrocare, Apollo …). Reception bills
+                           the patient as usual and the hospital settles with
+                           the lab separately. The sample is collected here; a
+                           report comes back instead of typed results.
+       billing='outside'   the patient pays the outside centre directly — an MRI
+                           the hospital has no machine for. The hospital bills
+                           nothing, so the order must raise no charge at all and
+                           exists only to carry the report for the doctor. */
+  db.exec(`CREATE TABLE IF NOT EXISTS diagnostic_providers (
+    id INTEGER PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('lab','imaging')),
+    billing TEXT NOT NULL CHECK(billing IN ('hospital','outside')),
+    contact_person TEXT, phone TEXT, address TEXT, notes TEXT, active INTEGER NOT NULL DEFAULT 1,
+    created_by INTEGER REFERENCES users(id), created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')));
+    CREATE INDEX IF NOT EXISTS idx_diagnostic_providers ON diagnostic_providers(kind, active, name);`);
+  // the provider a test normally goes to, and the one this particular order actually went to
+  add('services', 'provider_id', 'INTEGER REFERENCES diagnostic_providers(id)');
+  add('orders', 'provider_id', 'INTEGER REFERENCES diagnostic_providers(id)');
+
   // attendance reports for roles an administrator has customised (additive: nothing is taken away)
   for (const row of db.prepare("SELECT role, perms FROM role_permissions WHERE role IN ('hr','medical_superintendent','reception_admin','pharmacy_admin','lab_admin','imaging_admin','nursing_incharge','cleaning_incharge')").all()) {
     const perms = JSON.parse(row.perms || '[]');
     if (!perms.includes('reports.attendance') && !perms.includes('*')) db.prepare('UPDATE role_permissions SET perms=? WHERE role=?').run(JSON.stringify([...perms, 'reports.attendance']), row.role);
   }
+  migrateUpgrade(db);
+  add('packages','excluded_categories',"TEXT NOT NULL DEFAULT '[]'");
+  add('bill_items','ot_booking_id','INTEGER REFERENCES ot_bookings(id)');
+  db.exec(`CREATE TABLE IF NOT EXISTS grn_deletion_requests (
+    id INTEGER PRIMARY KEY, purchase_id INTEGER NOT NULL REFERENCES purchases(id),
+    requested_by INTEGER NOT NULL REFERENCES users(id), reason TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected')),
+    reviewed_by INTEGER REFERENCES users(id), review_reason TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), reviewed_at TEXT);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_grn_delete_pending ON grn_deletion_requests(purchase_id) WHERE status='pending';`);
 }

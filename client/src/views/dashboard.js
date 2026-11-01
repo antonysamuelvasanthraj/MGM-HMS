@@ -20,7 +20,8 @@ const CATS = [['', 'All categories'], ['self', 'Normal / cash'], ['insurance', '
 const SEGS = [['', 'All departments'], ['OP', 'Outpatient'], ['IP', 'Inpatient'], ['ER', 'Emergency'], ['LAB', 'Laboratory'], ['IMAGING', 'Imaging'], ['PHARMACY', 'Pharmacy'], ['PROCEDURE', 'Procedures'], ['OT', 'OT'], ['ICU', 'ICU'], ['ROOM', 'Room charges'], ['NURSING', 'Nursing'], ['OTHER', 'Other']];
 const MODES = [['', 'All payment modes'], ['cash', 'Cash'], ['upi', 'UPI'], ['card', 'Card'], ['bank', 'Bank / cheque']];
 const n0 = (v) => Number(v || 0).toLocaleString('en-IN');
-const m2 = (v) => money(v || 0, 2);
+/** Figures on tiles: whole rupees, paise only when there are paise. */
+const m2 = (v) => { const n = +v || 0; return money(n, Math.abs(n - Math.round(n)) > 0.004 ? 2 : 0); };
 const MODE_NAME = { cash: 'Cash', upi: 'UPI', debit_card: 'Debit card', credit_card: 'Credit card', bank_transfer: 'Bank', cheque: 'Cheque' };
 const DAY_VIEWS = ['pharmacy', 'reception', 'doctor', 'lab', 'nurse', 'insurance', 'quality'];
 
@@ -102,7 +103,7 @@ export async function mount(ctx) {
       ${f.preset === 'custom' ? `<input type="date" class="field field-sm !h-9 !w-auto" data-from value="${esc(f.from || d.from)}" aria-label="From">
         <input type="date" class="field field-sm !h-9 !w-auto" data-to value="${esc(f.to || d.to)}" aria-label="To">` : ''}
       ${sel('data-segment', SEGS, f.segment, 'Department')}
-      ${sel('data-doctor', [['', 'All doctors'], ...doctors().map((x) => [x.id, x.name])], f.doctor_id, 'Doctor')}
+      ${sel('data-doctor', [['', 'All doctors'], ...doctors().filter((x) => x.role === 'doctor').map((x) => [x.id, x.name])], f.doctor_id, 'Doctor')}
       ${sel('data-mode', MODES, f.mode, 'Payment mode')}
       ${sel('data-category', CATS, f.category, 'Patient category')}
       <span class="text-body-sm text-on-surface-variant">${d.from === d.to ? fmtDate(d.from) : `${fmtDate(d.from)} – ${fmtDate(d.to)}`}</span>`
@@ -116,6 +117,11 @@ export async function mount(ctx) {
 
   bind(root, 'click', '[data-view]', (e, b) => { f.view = b.dataset.view; f.preset = ''; f.tab = 'overview'; load(); });
   bind(root, 'click', '[data-go]', (e, b) => navigate(b.dataset.go));
+  // a ready report opens straight away — lab and imaging each print their own
+  bind(root, 'click', '[data-open-report]', async (e, b) => {
+    if (b.dataset.cat === 'imaging') (await import('./imaging.js')).printImagingReport(+b.dataset.openReport);
+    else (await import('./laboratory.js')).printReport(+b.dataset.openReport);
+  });
   bind(root, 'click', '[data-collect]', (e, b) => collectBill(+b.dataset.collect, load));
   bind(root, 'click', '[data-remind]', (e, b) => remindBill(+b.dataset.remind));
   bind(root, 'click', '[data-print]', () => window.print());
@@ -197,7 +203,7 @@ function shell() {
   const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const name = state.user?.name || '';
   // Address people by name; a role-named account ("Hospital Administrator") gets no name.
-  const first = /administrator|reception|pharmacy|laboratory|owner/i.test(name) ? '' : name.replace(/^(Dr|Sr|Mr|Ms|Mrs)\.?\s*/i, '').split(' ')[0];
+  const first = /administrator|reception|pharmacy|laboratory|owner/i.test(name) ? '' : name.replace(/^(Mrs|Mr|Ms|Miss|Dr|Sr|Prof)\b\.?\s*/i, '').split(' ')[0];
   return page({
     wide: true,
     eyebrow: `${eyebrow(setting('hospital_name', 'Hospital'), 'apartment')} ${liveChip()}`,
@@ -223,7 +229,7 @@ function roleIntro(d) {
     quality: ['Quality workspace', 'Incidents, overdue actions and sensitive changes', [['quality.view', '/quality', 'Quality register'], ['audit.view', '/audit', 'Audit trail']]],
   };
   const [title, subtitle, actions] = configs[d.view];
-  return `<div class="dashboard-intro"><div><h2>${title}</h2><p>${subtitle}</p></div><div class="flex flex-wrap gap-2">${actions.filter(([permission]) => can(permission)).map(([, route, label]) => go(route, label)).join('')}</div></div>`;
+  return `<div class="dashboard-intro"><div><h2>${title}</h2><p>${subtitle}</p></div><div class="flex flex-wrap gap-2">${actions.filter(([permission, route]) => can(permission) && !(route === '/doctor-queue' && typeof paperDoctors === 'function' && paperDoctors())).map(([, route, label]) => go(route, label)).join('')}</div></div>`;
 }
 
 const tiles = (list, cols = 4) => `<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-${cols} gap-3">${list.map(kpi).join('')}</div>`;
@@ -241,7 +247,9 @@ const listCard = (title, rows, render, { empty = 'Nothing here', action = '', su
   body: rows.length ? `<div class="overflow-auto max-h-[420px]"><table class="tbl"><tbody>${rows.map(render).join('')}</tbody></table></div>`
     : `<div class="p-6 text-center text-body-md text-on-surface-variant">${esc(empty)}</div>`,
 });
-const go = (route, label) => `<button class="btn-ghost btn-sm" data-go="${route}">${esc(label)}<span class="material-symbols-outlined text-[16px]">chevron_right</span></button>`;
+/** Paper mode: doctors write on paper and the doctor queue screen is hidden. */
+const paperDoctors = () => setting('workflow_doctor', 'portal') === 'manual';
+const go = (route, label) => route === '/doctor-queue' && paperDoctors() ? '' : `<button class="btn-ghost btn-sm" data-go="${route}">${esc(label)}<span class="material-symbols-outlined text-[16px]">chevron_right</span></button>`;
 /** A table with a header row; cols = [label, align?]. */
 const tbl = (cols, rows, empty = 'Nothing to show', max = '460px') => `<div class="overflow-auto" style="max-height:${max}"><table class="tbl"><thead><tr>${cols.map(([l, a]) => `<th class="${a === 'r' ? 'num' : ''}">${l}</th>`).join('')}</tr></thead>
   <tbody>${rows.length ? rows.join('') : `<tr><td colspan="${cols.length}" class="text-center py-8 text-on-surface-variant">${esc(empty)}</td></tr>`}</tbody></table></div>`;
@@ -312,15 +320,12 @@ function pharmacy(d, f) {
   return `${sessionDueCard(d)}
     ${minis([
       { label: 'Sales today (net)', value: m2(k.sales), sub: `${n0(k.bills)} bills · returns ${compactMoney(k.returns)}` },
-      { label: 'OP sales', value: m2(k.op_sales), sub: 'Counter bills' },
+      { label: 'OP sales', value: m2(k.op_sales) },
       { label: 'IP consumption', value: m2(k.ip_consumption), sub: 'Charged to IP bills' },
-      { label: 'Cash collected', value: m2(k.cash), tone: 'success' },
-      { label: 'UPI collected', value: m2(k.upi), tone: 'success' },
-      { label: 'Card collected', value: m2(k.card), tone: 'success' },
+      { label: 'Collected today', value: m2((+k.cash || 0) + (+k.upi || 0) + (+k.card || 0)), tone: 'success', sub: `Cash ${compactMoney(k.cash)} · UPI ${compactMoney(k.upi)} · Card ${compactMoney(k.card)}` },
       { label: 'Due today', value: m2(k.due_today), tone: k.due_today ? 'danger' : '', sub: 'Billed, not yet paid' },
-      { label: 'Insurance value', value: m2(k.insurance), sub: 'Receivable, not cash' },
-      { label: 'Aarogyasri value', value: m2(k.aarogyasri), sub: 'Receivable, not cash' },
-      { label: 'Medicines dispensed', value: n0(k.units), sub: 'Units today' },
+      { label: 'Billed to payers', value: m2((+k.insurance || 0) + (+k.aarogyasri || 0)), sub: `Insurance ${compactMoney(k.insurance)} · Aarogyasri ${compactMoney(k.aarogyasri)}` },
+      { label: 'Medicines dispensed', value: n0(k.units) },
       { label: 'Stock value', value: compactMoney(k.stock_value), sub: 'At cost, all stores', go: '/stock' },
       { label: 'Low stock', value: n0(k.low_stock), tone: k.low_stock ? 'warning' : '', sub: 'At or below minimum' },
       { label: 'Out of stock', value: n0(k.out_of_stock), tone: k.out_of_stock ? 'danger' : '' },
@@ -328,7 +333,6 @@ function pharmacy(d, f) {
       { label: 'Expired', value: n0(k.expired), tone: k.expired ? 'danger' : '', sub: 'Batches still in stock' },
       { label: 'GRNs to verify', value: n0(k.pending_grn), tone: k.pending_grn ? 'warning' : '', go: '/grn' },
       { label: 'Supplier outstanding', value: compactMoney(k.supplier_outstanding), go: '/suppliers' },
-      { label: 'Bills today', value: n0(k.bills), sub: 'Excluding cancelled' },
     ])}
     ${k.emergency_pending ? `<div class="rounded-lg border border-danger/40 bg-danger-bg px-4 py-3 text-body-md text-danger flex items-center gap-2"><span class="material-symbols-outlined">warning</span>
       ${k.emergency_pending} emergency stock move(s) are waiting for the in-charge's approval. <button class="btn-secondary btn-xs ml-auto" data-go="/stock-transfers">Open transfers</button></div>` : ''}
@@ -429,7 +433,8 @@ function payTable(rows) {
     <td class="text-right">${can('payment.collect') ? `<button class="btn-primary btn-xs" data-collect="${o.bill_id}">Collect</button>` : ''}</td></tr>`), 'Nothing waiting for payment.');
 }
 
-function sessionDueCard(d){const rows=d.session_dues||[];return card({title:`Patient dues for this day / session (${rows.length})`,subtitle:'Collectible patient share only. Pending TPA, Aarogyasri, corporate and trust amounts stay with the payer.',pad:false,body:tbl([['Patient / bill'],['Type'],['Patient due','r'],['Payer pending','r'],['']],rows.map(b=>`<tr><td>${esc(b.patient_name)} · ${esc(b.uhid)}<div>${esc(b.bill_no)}</div></td><td>${esc(b.kind||b.bill_type)} · ${esc(b.payer_type)}</td><td class="num">${m2(b.patient_due)}</td><td class="num">${m2((b.payer_pending||0)+(b.payer_receivable||0))}</td><td>${can('payment.collect')?`<button class="btn-primary btn-xs" data-collect="${b.id}">Collect patient share</button>`:''}</td></tr>`),'No patient amount is due for this day.')});}
+function sessionDueCard(d){const rows=d.session_dues||[];if(!rows.length)return '';   // nothing due: no empty table
+  return card({title:`Patient dues for this day / session (${rows.length})`,subtitle:'Collectible patient share only. Pending TPA, Aarogyasri, corporate and trust amounts stay with the payer.',pad:false,body:tbl([['Patient / bill'],['Type'],['Patient due','r'],['Payer pending','r'],['']],rows.map(b=>`<tr><td>${esc(b.patient_name)} · ${esc(b.uhid)}<div>${esc(b.bill_no)}</div></td><td>${esc(b.kind||b.bill_type)} · ${esc(b.payer_type)}</td><td class="num">${m2(b.patient_due)}</td><td class="num">${m2((b.payer_pending||0)+(b.payer_receivable||0))}</td><td>${can('payment.collect')?`<button class="btn-primary btn-xs" data-collect="${b.id}">Collect patient share</button>`:''}</td></tr>`),'No patient amount is due for this day.')});}
 function reception(d, f) {
   const k = d.kpis, c = d.collection, Q = d.queues;
   const tabs = [['registration', 'Registration', Q.registration.length], ['vitals', 'Vitals', Q.vitals.length], ['doctor', 'Doctor', Q.doctor.length],
@@ -453,19 +458,16 @@ function reception(d, f) {
   return `${sessionDueCard(d)}
     ${minis([
       { label: 'OP registrations', value: n0(k.op), go: '/visit-tracking' },
-      { label: 'Paid OP', value: n0(k.paid_op), tone: 'success' },
-      { label: 'Free OP', value: n0(k.free_op) },
+      { label: 'Paid / free OP', value: `${n0(k.paid_op)} / ${n0(k.free_op)}`, tone: 'success' },
       { label: 'Follow-ups', value: n0(k.followups) },
-      { label: 'New patients', value: n0(k.new_patients) },
-      { label: 'Returning patients', value: n0(k.returning) },
+      { label: 'New / returning', value: `${n0(k.new_patients)} / ${n0(k.returning)}` },
       { label: 'Admissions', value: n0(k.admissions), sub: `${n0(k.in_house)} in house` },
       { label: 'Discharges', value: n0(k.discharges) },
       { label: 'Pending admissions', value: n0(k.pending_admissions), tone: k.pending_admissions ? 'warning' : '' },
       { label: 'Vitals queue', value: n0(k.vitals_queue), tone: k.vitals_queue ? 'warning' : '' },
       { label: 'Doctor queue', value: n0(k.doctor_queue) },
-      { label: 'Lab payment queue', value: n0(k.lab_queue), sub: m2(k.lab_queue_amount), tone: k.lab_queue ? 'warning' : '' },
-      { label: 'Imaging payment queue', value: n0(k.imaging_queue), sub: m2(k.imaging_queue_amount), tone: k.imaging_queue ? 'warning' : '' },
-      { label: 'Collected today', value: m2(k.collected), tone: 'success', sub: 'Money received' },
+      { label: 'Tests awaiting payment', value: n0((+k.lab_queue || 0) + (+k.imaging_queue || 0)), sub: `Lab ${n0(k.lab_queue)} · Imaging ${n0(k.imaging_queue)} · ${m2((+k.lab_queue_amount || 0) + (+k.imaging_queue_amount || 0))}`, tone: (k.lab_queue || k.imaging_queue) ? 'warning' : '', go: '/service-payments' },
+      { label: 'Collected today', value: m2(k.collected), tone: 'success' },
       { label: 'Due today', value: m2(k.due_today), tone: k.due_today ? 'danger' : '', sub: 'Billed today, unpaid' },
       { label: 'Patient receivables', value: m2(k.receivables), sub: 'All open patient dues', tone: k.receivables ? 'warning' : '' },
       { label: 'Free / due approvals', value: n0(k.approvals), go: can('payment.approve_free') ? '/approvals' : '' },
@@ -524,7 +526,7 @@ function doctor(d) {
         { empty: 'Nobody is waiting for you right now.', action: go('/doctor-queue', 'Full queue') }),
       listCard('Reports ready', d.reports, (r) => `<tr><td><div class="font-label-lg">${esc(r.label)}</div><div class="text-body-sm text-on-surface-variant">${esc(r.patient_name)} · ${esc(r.uhid)}</div></td>
         <td>${r.critical ? '<span class="pill-danger pill-dot">Critical</span>' : pill('verified')}</td><td class="text-body-sm">${ago(r.verified_at)}</td>
-        <td class="text-right">${go(`/patient/${r.patient_id}`, 'View')}</td></tr>`, { empty: 'No new results.' }),
+        <td class="text-right whitespace-nowrap"><button class="btn-secondary btn-xs" data-open-report="${r.id}" data-cat="${esc(r.category)}">Report</button> ${go(`/patient/${r.patient_id}`, 'Patient')}</td></tr>`, { empty: 'No new results.' }),
     )}
     ${grid2(
       listCard('My inpatients', d.inpatients, (a) => `<tr><td><div class="font-label-lg">${esc(a.patient_name)}</div><div class="text-body-sm text-on-surface-variant">${esc(a.ip_no)} · ${esc(a.ward || '')} ${esc(a.bed_no || '')}</div></td>
@@ -619,8 +621,8 @@ function owner(d) {
     <div class="flex flex-wrap items-baseline justify-between gap-2"><h2 class="text-title-lg font-semibold">Today · ${fmtDate(d.as_of)}</h2>
       <span class="text-body-sm text-on-surface-variant">Cards show the day; sections below use the selected period (${period}).</span></div>
     <div class="dashboard-primary-grid">
-      ${ownerCard('Revenue (earned)', m2(c.revenue), cmp.revenue, { sub: 'Recognised income, net of discounts' })}
-      ${ownerCard('Collection (received)', m2(c.collection), cmp.collection, { sub: 'Money in, all modes' })}
+      ${ownerCard('Revenue (earned)', m2(c.revenue), cmp.revenue)}
+      ${ownerCard('Collection (received)', m2(c.collection), cmp.collection)}
       ${ownerCard('Expense', m2(c.expense), cmp.expense, { good: 'down', sub: 'Booked today, incl. cost of medicines' })}
       ${ownerCard('OP visits', n0(c.op), cmp.op, { isMoney: false })}
       ${ownerCard('Admissions', n0(c.admissions), cmp.admissions, { isMoney: false, sub: `${n0(c.discharges)} discharged · ${n0(c.current_ip)} in house` })}
@@ -630,21 +632,19 @@ function owner(d) {
       { label: 'Total outstanding', value: m2(c.outstanding), tone: c.outstanding ? 'warning' : '', sub: 'All receivables' },
       { label: 'Current inpatients', value: n0(c.current_ip) },
       { label: 'Bed occupancy', value: `${c.occupancy}%`, sub: 'Blocked beds excluded' },
-      { label: 'Insurance receivable', value: m2(c.insurance) },
-      { label: 'Aarogyasri receivable', value: m2(c.aarogyasri) },
-      { label: 'Corporate receivable', value: m2(c.corporate) },
+      { label: 'Payer receivables', value: m2((+c.insurance || 0) + (+c.aarogyasri || 0) + (+c.corporate || 0)), sub: `Ins ${compactMoney(c.insurance)} · Aarogyasri ${compactMoney(c.aarogyasri)} · Corp ${compactMoney(c.corporate)}` },
       { label: 'Revenue MTD', value: compactMoney(t.mtd.revenue), sub: `FYTD ${compactMoney(t.fytd.revenue)}` },
       { label: 'Collection MTD', value: compactMoney(t.mtd.collection), sub: `FYTD ${compactMoney(t.fytd.collection)}` },
       { label: 'Expense MTD', value: compactMoney(t.mtd.expense), sub: `FYTD ${compactMoney(t.fytd.expense)}` },
-      { label: 'Refunds MTD', value: compactMoney(t.mtd.refunds), sub: `FYTD ${compactMoney(t.fytd.refunds)}` },
-      { label: 'Financial year from', value: fmtDate(t.fytd.from), sub: `Month from ${fmtDate(t.mtd.from)}` },
+      { label: 'Refunds MTD', value: compactMoney(t.mtd.refunds), sub: `FYTD ${compactMoney(t.fytd.refunds)} · FY from ${fmtDate(t.fytd.from)}` },
     ])}
 
 <div class="dashboard-tabs" role="tablist" aria-label="Owner dashboard reports"><button type="button" role="tab" data-owner-tab="overview">Overview</button><button type="button" role="tab" data-owner-tab="finance">Finance &amp; dues</button><button type="button" role="tab" data-owner-tab="patients">Patients &amp; beds</button><button type="button" role="tab" data-owner-tab="performance">Performance</button></div>
+    ${d.professional_fees ? section('Doctor professional fees',`${period} · clinical work only; separate from referral analytics`,`${minis([{label:'Fees accrued',value:m2(d.professional_fees.accrued)},{label:'Gross paid',value:m2(d.professional_fees.paid)},{label:'Payable as of today',value:m2(d.professional_fees.payable)}])}<a class="btn-secondary btn-sm" href="/visiting-doctors">Doctor ledger and approved payouts</a>`) : ''}
     ${section('Revenue', `${period} · earned income by department, from the books (not cash received)`, `
-      ${minis([{ label: 'Gross', value: m2(rv.gross) }, { label: 'Discounts', value: m2(rv.discount) }, { label: 'Free treatment', value: m2(rv.free) }, { label: 'Returns', value: m2(rv.returns) }, { label: 'Net revenue', value: m2(rv.net), tone: 'success' }], 'grid-cols-2 md:grid-cols-5')}
-      ${grid2(`<div data-chart="odepts" class="min-h-[240px]"></div>`, tbl([['Department'], ['Gross', 'r'], ['Discount', 'r'], ['Free', 'r'], ['Returns', 'r'], ['Net', 'r']],
-        rv.departments.map((x) => `<tr><td>${esc(x.label)}</td><td class="num">${m2(x.gross)}</td><td class="num">${m2(x.discount)}</td><td class="num">${m2(x.free)}</td><td class="num">${m2(x.returns)}</td><td class="num font-semibold">${m2(x.net)}</td></tr>`), 'No revenue in this period.'))}
+      ${minis([{ label: 'Gross', value: m2(rv.gross) }, { label: 'Discounts', value: m2(rv.discount) }, { label: 'Free treatment', value: m2(rv.free) }, { label: 'Returns', value: m2(rv.returns) }, ...(rv.package_adj ? [{ label: 'Package adjustments', value: m2(rv.package_adj) }] : []), { label: 'Net revenue', value: m2(rv.net), tone: 'success' }], rv.package_adj ? 'grid-cols-2 md:grid-cols-6' : 'grid-cols-2 md:grid-cols-5')}
+      ${grid2(`<div data-chart="odepts" class="min-h-[240px]"></div>`, tbl([['Department'], ['Gross', 'r'], ['Discount', 'r'], ['Free', 'r'], ['Returns', 'r'], ['Package adj.', 'r'], ['Net', 'r']],
+        rv.departments.map((x) => `<tr><td>${esc(x.label)}</td><td class="num">${m2(x.gross)}</td><td class="num">${m2(x.discount)}</td><td class="num">${m2(x.free)}</td><td class="num">${m2(x.returns)}</td><td class="num">${m2(x.package_adj || 0)}</td><td class="num font-semibold">${m2(x.net)}</td></tr>`), 'No revenue in this period.'))}
       <div><div class="font-label-md text-label-md uppercase text-on-surface-variant mb-1">Revenue, collection and expense by day</div><div data-chart="otrend" class="min-h-[240px]"></div></div>`)}
 
     ${section('Collections', `${period} · money actually received — ${esc(col.note)}`, grid2(`<div data-chart="omodes" class="min-h-[220px]"></div>`, dl([
@@ -818,9 +818,9 @@ const DRAW = {
   quality: (d, draw) => draw('[data-chart="qstatus"]', { type: 'hbar', data: d.by_status, money: false, empty: 'No incidents recorded' }),
   reception: (d, draw) => {
     draw('[data-chart="rmodes"]', { type: 'donut', data: d.collection.modes, label: 'Collections by mode', empty: 'No money received yet today' });
-    draw('[data-chart="rflow"]', { type: 'bar', data: d.hourly, money: false, series: [{ key: 'value', label: 'Patients' }], label: 'Patients by hour', empty: 'No registrations yet today' });
+    draw('[data-chart="rflow"]', { type: 'bar', data: d.hourly, money: false, series: [{ key: 'value', label: 'Patients' }], label: 'Patients by hour', peak: true, empty: 'No registrations yet today' });
   },
-  doctor: (d, draw) => draw('[data-chart="visits"]', { type: 'bar', data: d.visits, x: 'd', series: [{ key: 'v', label: 'Visits' }], money: false, label: 'Visits per day' }),
+  doctor: (d, draw) => draw('[data-chart="visits"]', { type: 'bar', data: d.visits, x: 'd', series: [{ key: 'v', label: 'Visits' }], money: false, label: 'Visits per day', avg: true, stats: true }),
   pharmacy: (d, draw) => {
     draw('[data-chart="psales"]', { type: d.series.rows.length > 16 ? 'line' : 'bar', data: d.series.rows, x: 'd', height: 240,
       series: [{ key: 'sales', label: 'Sales' }, { key: 'collections', label: 'Collections' }, { key: 'due', label: 'Due' }, { key: 'returns', label: 'Returns' }], empty: 'No pharmacy sales in this period' });
@@ -828,16 +828,17 @@ const DRAW = {
   },
   lab: (d, draw) => {
     draw('[data-chart="status"]', { type: 'hbar', data: d.by_status, money: false, label: 'Orders by status' });
-    draw('[data-chart="volume"]', { type: 'bar', data: d.volume, x: 'd', series: [{ key: 'v', label: 'Orders' }], money: false, label: 'Orders per day' });
+    draw('[data-chart="volume"]', { type: 'area', data: d.volume, x: 'd', series: [{ key: 'v', label: 'Orders' }], money: false, label: 'Orders per day', avg: true, peak: true, stats: true });
   },
   nurse: (d, draw) => draw('[data-chart="wards"]', { type: 'hbar', data: d.wards.map((w) => ({ label: w.ward, value: w.occupied || 0 })), money: false, label: 'Occupied beds by ward', empty: 'No wards set up' }),
   owner: (d, draw) => {
     draw('[data-chart="odepts"]', { type: 'hbar', data: d.revenue.departments.map((x) => ({ label: x.label, value: x.net })), empty: 'No revenue in this period' });
-    draw('[data-chart="otrend"]', { type: d.trend.length > 16 ? 'line' : 'bar', data: d.trend, x: 'd', height: 240, series: [{ key: 'revenue', label: 'Revenue' }, { key: 'collected', label: 'Collected' }, { key: 'expense', label: 'Expense' }] });
+    draw('[data-chart="otrend"]', { type: 'combo', data: d.trend, x: 'd', height: 250, stats: true, avg: true, label: 'Revenue, collection and expense by day',
+      series: [{ key: 'revenue', label: 'Revenue' }, { key: 'collected', label: 'Collected' }, { key: 'expense', label: 'Expense', as: 'line', dashed: true }] });
     draw('[data-chart="omodes"]', { type: 'donut', data: d.collections.modes, empty: 'No money received in this period' });
-    draw('[data-chart="ophour"]', { type: 'bar', data: d.op.hourly, money: false, series: [{ key: 'value', label: 'Visits' }], empty: 'No visits' });
+    draw('[data-chart="ophour"]', { type: 'bar', data: d.op.hourly, money: false, series: [{ key: 'value', label: 'Visits' }], peak: true, empty: 'No visits' });
     draw('[data-chart="optrend"]', { type: 'bar', stacked: true, data: d.op_trend.map((r) => ({ d: r.d, new: r.visits - r.followups, followups: r.followups })), x: 'd', money: false,
-      series: [{ key: 'new', label: 'New visits' }, { key: 'followups', label: 'Follow-ups' }] });
+      series: [{ key: 'new', label: 'New visits' }, { key: 'followups', label: 'Follow-ups' }], stats: true, per: 'day' });
   },
 };
 

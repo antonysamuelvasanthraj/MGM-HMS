@@ -12,6 +12,7 @@ import {
   fmtDate, fmtDateTime, kpi, emptyState, printDocument,
 } from './_kit.js';
 import { collectBill } from '../collect.js';
+import { openPayerChange, canChangePayer } from '../payer-change.js';
 import { openDischargeSummary } from '../discharge-summary.js';
 import {printStay} from '../patient-print.js';
 
@@ -60,6 +61,7 @@ export async function mount(ctx) {
   bind(root, 'click', '[data-act]', async (e, b) => {
     const id = +b.closest('tr').dataset.id;
     const row = cache.find((x) => x.id === id);
+    if (['collect', 'discharge'].includes(b.dataset.act) && row?.payer_warning && !(await payerGate(row, load))) return;
     if (b.dataset.act === 'collect') {
       const full = await api.get(`/ipd/admissions/${id}`);
       const open = stayBills(full).filter((x) => x.balance > 0.005 && x.status !== 'cancelled');
@@ -90,7 +92,7 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Discharge desk', 'logout')} ${liveChip()}`,
     title: 'Discharge Coordination',
-    subtitle: 'Clinical clearance, open services, discharge summary, financial clearance and insurance — each a separate gate, all visible at once.',
+    subtitle: 'Patients ready to go home, and what is still pending.',
     body: `
       ${kpiRow([], 4)}
       ${tableCard({
@@ -119,7 +121,8 @@ function rowHTML(r) {
   return `
     <td class="font-data-mono text-body-sm">${esc(r.ip_no)}</td>
     <td><div class="font-label-lg text-label-lg">${esc(r.patient_name)}</div>
-      <div class="font-data-mono text-label-sm text-on-surface-variant">${esc(r.uhid)} · ${r.age_years ?? '—'}y ${esc((r.gender || '')[0] || '')}</div></td>
+      <div class="font-data-mono text-label-sm text-on-surface-variant">${esc(r.uhid)} · ${r.age_years ?? '—'}y ${esc((r.gender || '')[0] || '')}</div>
+      ${r.payer_warning ? `<div class="mt-1 text-body-sm text-warning flex items-start gap-1" role="note"><span class="material-symbols-outlined text-[15px]">warning</span>Payer on record — billed self-pay</div>` : ''}</td>
     <td><div class="text-body-md">${esc(r.ward_name || '—')}</div>
       <div class="font-data-mono text-label-sm text-on-surface-variant">${esc(r.bed_no || '')}</div></td>
     <td><div class="font-data-mono">${r.los_days}d</div>
@@ -151,6 +154,39 @@ const stayBills = (full) => [...(full.bills || []), ...(full.er_bill && !full.bi
 const PAYER_CATS = ['insurance', 'aarogyasri', 'corporate', 'trust'];
 const APPROVED = ['preauth_approved', 'claim_submitted', 'settled'];
 
+/**
+ * Discharge, asking for what the server says is missing: the doctor's clinical clearance and the
+ * discharge summary. In Paper / Hybrid mode the desk may record the paper clearance and summary.
+ */
+async function postDischarge(row, body) {
+  try { return await api.post(`/ipd/admissions/${row.id}/discharge`, body); }
+  catch (err) {
+    if (err?.payload?.error !== 'clinical_clearance_pending') throw err;
+    const miss = err.payload.missing || [];
+    const label = { clinical_clearance: 'the treating doctor’s clinical clearance', discharge_summary: 'the discharge summary' };
+    if (!err.payload.paper_allowed) {
+      toast(`Before discharge: ${miss.map((m) => label[m]).join(' and ')}. The doctor clears the patient and signs the summary in the admission.`, 'warning', { title: 'Not ready for discharge', timeout: 9000 });
+      const e = new Error('handled'); e.handled = true; throw e;
+    }
+    const extra = await new Promise((resolve) => modal({ title: `Not ready to discharge ${row.patient_name}`, size: 'sm', stack: true,
+      body: `<p class="text-body-md">Still needed: <b>${miss.map((m) => label[m]).join(' and ')}</b>.</p>
+        <p class="text-body-sm text-on-surface-variant mt-1">If it was done on paper, record it here; otherwise ask the doctor.</p>
+        ${miss.includes('clinical_clearance') ? '<label class="field-label mt-3">Cleared on paper by (doctor) *</label><input class="field" data-pc placeholder="e.g. Dr. Suresh Babu, 10:30 am">' : ''}
+        ${miss.includes('discharge_summary') ? '<label class="field-label mt-3">Paper discharge summary — reference *</label><input class="field" data-ps placeholder="e.g. Summary signed, copy given to patient">' : ''}`,
+      footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-ok>Record and discharge</button>',
+      onMount(root, close) {
+        root.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => resolve(null)));
+        root.querySelector('[data-ok]').onclick = () => {
+          const pc = root.querySelector('[data-pc]')?.value.trim(), ps = root.querySelector('[data-ps]')?.value.trim();
+          if ((root.querySelector('[data-pc]') && !pc) || (root.querySelector('[data-ps]') && !ps)) { toast('Fill in what was done on paper', 'warning'); return; }
+          close(); resolve({ paper_clearance: pc || undefined, paper_summary: ps || undefined });
+        };
+      } }));
+    if (!extra) { const e = new Error('cancelled'); e.handled = true; throw e; }
+    return api.post(`/ipd/admissions/${row.id}/discharge`, { ...body, ...extra });
+  }
+}
+
 async function doDischarge(row, after) {
   const full = await api.get(`/ipd/admissions/${row.id}`);
   // payer stays: the approved case pays at discharge (the server bills it); only an unapproved case holds the patient
@@ -161,8 +197,8 @@ async function doDischarge(row, after) {
     }
     const ok = await confirmDialog({ title: `Discharge ${row.patient_name}?`, message: `The stay is billed to ${esc(full.claim.tpa || 'the payer')} on case ${esc(full.claim.claim_no)} and claimed later. Anything the payer does not cover stays with the patient. Bed ${esc(row.bed_no || '')} is released for cleaning.`, confirmLabel: 'Discharge' });
     if (!ok) return;
-    try { await api.post(`/ipd/admissions/${row.id}/discharge`, { discharge_type: 'routine' }); toast(`${row.patient_name} discharged · billed to ${full.claim.tpa || 'payer'}`, 'success'); after(); }
-    catch (e) { apiError(e, 'Could not complete the discharge'); }
+    try { await postDischarge(row, { discharge_type: 'routine' }); toast(`${row.patient_name} discharged · billed to ${full.claim.tpa || 'payer'}`, 'success'); after(); }
+    catch (e) { if (!e.handled) apiError(e, 'Could not complete the discharge'); }
     return;
   }
   const due = stayBills(full).filter((x) => x.status !== 'cancelled' && x.balance > 0.5 && x.authorization_status !== 'approved');
@@ -178,8 +214,8 @@ async function doDischarge(row, after) {
     });
     if (!r) return;
     if (!isAdmin) { collectBill(due[0].id, after); return; }
-    try { await api.post(`/ipd/admissions/${row.id}/discharge`, { force: true, reason: r.reason, discharge_type: 'routine' }); toast(`${row.patient_name} discharged with dues recorded`, 'warning'); after(); offerPrintPack(row); }
-    catch (e) { apiError(e, 'Could not complete the discharge'); }
+    try { await postDischarge(row, { force: true, reason: r.reason, discharge_type: 'routine' }); toast(`${row.patient_name} discharged with dues recorded`, 'warning'); after(); offerPrintPack(row); }
+    catch (e) { if (!e.handled) apiError(e, 'Could not complete the discharge'); }
     return;
   }
   const excess = -full.balance;
@@ -190,11 +226,11 @@ async function doDischarge(row, after) {
   });
   if (!r) return;
   try {
-    await api.post(`/ipd/admissions/${row.id}/discharge`, { discharge_type: 'routine' });
+    await postDischarge(row, { discharge_type: 'routine' });
     toast(`${row.patient_name} discharged · bed released`, 'success');
     after();
     offerPrintPack(row);
-  } catch (e) { apiError(e, 'Could not complete the discharge'); }
+  } catch (e) { if (!e.handled) apiError(e, 'Could not complete the discharge'); }
 }
 
 function offerPrintPack(row){if(!can('billing.view'))return;const clinical=row.access?.clinical||(row.summary_status==='final'&&can('ipd.discharge'));modal({title:'Discharge documents — '+row.patient_name,body:`<p>Print the complete stay bill, including pharmacy, laboratory and all added charges. The original bill numbers and receipts are retained.</p>${clinical?'<label class="flex gap-2 mt-3"><input type="checkbox" checked data-include-clinical>Include diagnosis, released diagnostic reports and clinical discharge record</label>':'<p class="mt-3">Reception can include the clinical record after the doctor signs the final discharge summary. Draft clinical notes stay restricted.</p>'}`,footer:'<button class="btn-secondary" data-close>Close</button><button class="btn-primary" data-print-pack>Print discharge documents</button>',onMount(root){root.querySelector('[data-print-pack]').onclick=()=>printStay(row.id,!!root.querySelector('[data-include-clinical]')?.checked);}});}
@@ -217,3 +253,17 @@ async function refundExcess(row, after) {
     },
   });
 }
+
+/** Payer details on the patient record but the stay is self-pay: ask before final settlement / discharge. */
+function payerGate(r, reload) {
+  return new Promise((resolve) => {
+    modal({ title: 'Check the payer first', size: 'sm',
+      body: `<p class="text-body-md">${esc(r.payer_warning)}.</p><p class="text-body-sm text-on-surface-variant mt-2">Change payer moves the open bills to the payer case (money already collected is kept or refunded as you choose).</p>`,
+      footer: `<button class="btn-secondary" data-continue>Continue as self-pay</button>${canChangePayer(true) ? '<button class="btn-primary" data-change>Change payer</button>' : ''}`,
+      onMount(root, close) {
+        root.querySelector('[data-continue]').onclick = () => { close(); resolve(true); };
+        root.querySelector('[data-change]')?.addEventListener('click', () => { close(); resolve(false); openPayerChange(r.encounter_id, reload, { category: r.patient_payer_type === 'scheme' ? 'aarogyasri' : r.patient_payer_type }); });
+      } });
+  });
+}
+

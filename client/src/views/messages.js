@@ -12,7 +12,7 @@ export const waLink = (number, text) => `https://wa.me/${encodeURIComponent(numb
 export async function mount(ctx) {
   const root = mountPage(ctx, page({
     wide: true, eyebrow: `${eyebrow('Communication', 'sms')} ${liveChip()}`, title: 'Patient Messages',
-    subtitle: 'Report-ready notices and due reminders. They send automatically when an SMS / WhatsApp gateway is set in Hospital Settings; otherwise send each one through WhatsApp and mark it sent.',
+    subtitle: 'Report-ready notices and due reminders to patients.',
     actions: '<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> New message</button>',
     body: '<div data-kpis class="grid grid-cols-2 md:grid-cols-4 gap-3"></div><div data-list></div>',
   }));

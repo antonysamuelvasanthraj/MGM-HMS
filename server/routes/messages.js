@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { h, fail, all, get, update, emit, nowIso, money } from '../lib.js';
 import { requireAuth, requirePerm, can } from '../auth.js';
 import { queueMessage, normaliseMobile, gatewayConfigured, sendQueued } from '../messages.js';
-import { backupStatus, dailyBackup } from '../backup.js';
+import { backupStatus, manualBackup } from '../backup.js';
 import { billScope } from './billing.js';
 
 export const messages = Router();
@@ -68,8 +68,10 @@ messages.post('/messages/:id/retry', requireAuth, need(canSee), h((req) => {
 }));
 
 messages.get('/system/backups', requirePerm('admin.view'), h(() => backupStatus()));
-messages.post('/system/backups/now', requirePerm('admin.write'), h((req) => {
-  const f = dailyBackup();
-  emit(req, { topics: ['system'], event: 'backup.made', data: {}, action: 'backup.daily', entity: 'system', detail: { after: { file: f } } });
-  return { made: !!f, ...backupStatus() };
-}));
+messages.post('/system/backups/now', requirePerm('admin.write'), async (req, res, next) => {
+  try {
+    const f = await manualBackup();
+    emit(req, { topics: ['system'], event: 'backup.made', data: {}, action: 'backup.manual', entity: 'system', detail: { after: { file: f } } });
+    res.json({ made: !!f, ...backupStatus() });
+  } catch (error) { next(error); }
+});

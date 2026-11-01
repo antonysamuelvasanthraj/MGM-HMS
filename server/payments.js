@@ -28,6 +28,8 @@ export const MONEY = Object.keys(MONEY_MODES).filter((m) => m !== 'card');
 export const PAYERS = Object.keys(PAYER_MODES);
 export const CATEGORIES = ['self', 'free', 'aarogyasri', 'insurance', 'credit', 'trust', 'corporate', 'due'];
 export const ALL_MODES = [...MONEY, ...PAYERS, 'free', 'due'];
+/** The categories an admission names its payer with. 'free' / 'due' approve one bill, they do not change who the payer is. */
+const ADMISSION_CATEGORIES = ['self', 'credit'];
 
 export const MODE_LABEL = {
   cash: 'Cash', upi: 'UPI', debit_card: 'Debit card', credit_card: 'Credit card', card: 'Card',
@@ -123,6 +125,28 @@ function defaultPayer(mode, bill) {
 }
 
 /**
+ * An inpatient's running bill and the admission it belongs to must name the same
+ * payer. The desk used to change only the bill, so a patient moved to credit at
+ * the counter still read as self-pay on the ward card, the IP census and the IP
+ * register — all of which read admissions.financial_category, not the bill.
+ *
+ * Only self <-> credit is carried over. Moving an admission onto a real payer
+ * (insurance / Aarogyasri / corporate / trust) stays with
+ * PATCH /ipd/admissions/:id/payer, which also records the payer master, the
+ * policy number and a reason, and opens the case for approval — none of which a
+ * payment window collects. Returns the change for the audit entry, or null.
+ */
+function syncAdmissionCategory(bill, category) {
+  if (bill.bill_type !== 'IP' || !bill.encounter_id || !ADMISSION_CATEGORIES.includes(category)) return null;
+  const adm = get("SELECT id, financial_category FROM admissions WHERE encounter_id=? AND status<>'discharged' ORDER BY id DESC LIMIT 1", bill.encounter_id);
+  const from = adm?.financial_category || 'self';
+  // An admission already on a payer is left alone: unlinking it is the payer screen's job, with a reason.
+  if (!adm || from === category || !ADMISSION_CATEGORIES.includes(from)) return null;
+  update('admissions', adm.id, { financial_category: category });
+  return { admission_id: adm.id, from, to: category };
+}
+
+/**
  * Settle a bill with split lines. The lines must add up to what is entered;
  * if a Due line is present they must add up to the whole outstanding balance.
  * Repeating the same request key returns the first response, so a double
@@ -167,10 +191,11 @@ export function settleBill(req, { bill_id, lines, category, notes, request_key, 
     if (parts.some((p) => p.mode === 'due') && Math.abs(total - balance) > 0.005) {
       fail(400, 'split_must_equal_balance_when_due', { balance, total });
     }
+    let admissionChange = null;
     if (category) {
       if (!CATEGORIES.includes(category)) fail(400, 'category_invalid');
       if(category!==bill.payer_type&&(PAYERS.includes(category)||PAYERS.includes(bill.payer_type))&&!byApprovedCase&&!can(req.user,'insurance.write')&&!can(req.user,'admin.write'))fail(403,'payer_allocation_requires_insurance');
-      if (category !== bill.payer_type) update('bills', bill.id, { payer_type: category });
+      if (category !== bill.payer_type) { update('bills', bill.id, { payer_type: category }); admissionChange = syncAdmissionCategory(bill, category); }
     }
     // Settlements first (they reduce the balance the receipts are measured against).
     const settlements = [];
@@ -188,6 +213,7 @@ export function settleBill(req, { bill_id, lines, category, notes, request_key, 
     const response = {
       bill: after, receipts, settlements, amount: total, received: moneyTotal,
       summary: parts.map((p) => ({ mode: p.mode, label: MODE_LABEL[p.mode], amount: p.amount })),
+      ...(admissionChange ? { admission_category: admissionChange } : {}),
     };
     insert('collection_requests', { request_key: key, bill_id: bill.id, response: JSON.stringify(response) });
     return response;

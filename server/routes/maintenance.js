@@ -11,7 +11,7 @@
  * shows "maintenance"; closing the last one puts it back to active. Every change is audited.
  */
 import { Router } from 'express';
-import { h, fail, all, get, insert, update, emit, nowIso, today, num } from '../lib.js';
+import { h, fail, all, get, insert, update, emit, nowIso, today, num, tx } from '../lib.js';
 import { requireAuth, requirePerm, can } from '../auth.js';
 
 export const maintenance = Router();
@@ -23,12 +23,17 @@ const PRIORITY = ['low', 'normal', 'high', 'critical'];
 const mayManage = (u) => can(u, 'maintenance.write');
 
 const assetView = (id) => get(`SELECT a.*, d.name department_name,
-    (SELECT count(*) FROM maintenance_tickets t WHERE t.asset_id=a.id AND t.status NOT IN ('resolved','closed')) open_tickets
+    (SELECT count(*) FROM maintenance_tickets t WHERE t.asset_id=a.id AND t.status NOT IN ('resolved','closed')) open_tickets,
+    (SELECT count(*) FROM preventive_maintenance p WHERE p.asset_id=a.id AND p.status='scheduled') open_pm
   FROM assets a LEFT JOIN departments d ON d.id=a.department_id WHERE a.id=?`, id);
 const ticketView = (id) => get(`SELECT t.*, a.asset_code, a.name asset_name, a.location asset_location, d.name department_name,
     r.name raised_by_name, s.name assigned_to_name
   FROM maintenance_tickets t LEFT JOIN assets a ON a.id=t.asset_id LEFT JOIN departments d ON d.id=t.department_id
   LEFT JOIN users r ON r.id=t.raised_by LEFT JOIN users s ON s.id=t.assigned_to WHERE t.id=?`, id);
+const pmView = (id) => get(`SELECT p.*, a.asset_code, a.name asset_name, a.location, s.name assigned_to_name,
+    c.name completed_by_name, u.name created_by_name
+  FROM preventive_maintenance p JOIN assets a ON a.id=p.asset_id
+  LEFT JOIN users s ON s.id=p.assigned_to LEFT JOIN users c ON c.id=p.completed_by LEFT JOIN users u ON u.id=p.created_by WHERE p.id=?`, id);
 
 maintenance.get('/maintenance/summary', requireAuth, h(() => ({
   assets: get(`SELECT count(*) total, sum(status='active') active, sum(status='maintenance') maintenance, sum(status='out_of_service') out_of_service,
@@ -36,6 +41,8 @@ maintenance.get('/maintenance/summary', requireAuth, h(() => ({
     sum(amc_until IS NOT NULL AND amc_until < date('now','localtime') AND status<>'retired') amc_expired FROM assets`),
   tickets: get(`SELECT sum(status='open') open, sum(status='assigned') assigned, sum(status='in_progress') in_progress,
     sum(status='resolved') resolved, sum(status NOT IN ('resolved','closed') AND priority='critical') critical FROM maintenance_tickets`),
+  preventive: get(`SELECT sum(status='scheduled') scheduled, sum(status='scheduled' AND scheduled_date<date('now','localtime')) overdue,
+    sum(status='completed') completed FROM preventive_maintenance`),
   types: ASSET_TYPES,
 })));
 
@@ -45,7 +52,8 @@ maintenance.get('/maintenance/assets', requireAuth, h((req) => {
   if (req.query.type) { where.push('a.asset_type=?'); args.push(req.query.type); }
   if (req.query.q) { where.push('(a.asset_code LIKE ? OR a.name LIKE ? OR a.location LIKE ? OR a.vendor LIKE ?)'); const l = `%${req.query.q}%`; args.push(l, l, l, l); }
   return all(`SELECT a.*, d.name department_name,
-      (SELECT count(*) FROM maintenance_tickets t WHERE t.asset_id=a.id AND t.status NOT IN ('resolved','closed')) open_tickets
+      (SELECT count(*) FROM maintenance_tickets t WHERE t.asset_id=a.id AND t.status NOT IN ('resolved','closed')) open_tickets,
+      (SELECT count(*) FROM preventive_maintenance p WHERE p.asset_id=a.id AND p.status='scheduled') open_pm
     FROM assets a LEFT JOIN departments d ON d.id=a.department_id ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
     ORDER BY a.status='retired', a.asset_code LIMIT 1000`, ...args);
 }));
@@ -147,5 +155,76 @@ maintenance.patch('/maintenance/tickets/:id', requirePerm('maintenance.write'), 
   const row = ticketView(before.id);
   emit(req, { topics: TOPICS, event: 'maintenance.ticket', data: row, action: 'maintenance.ticket.update', entity: 'maintenance_tickets', entityId: before.id,
     detail: { before: Object.fromEntries(Object.keys(f).map((k) => [k, before[k]])), after: f, reason: b.resolution || b.reason } });
+  return row;
+}));
+
+/* Preventive maintenance: planned work, completion evidence and service history. */
+maintenance.get('/maintenance/pm', requirePerm('maintenance.view'), h((req) => {
+  const where = [], args = [];
+  if (req.query.asset_id) { where.push('p.asset_id=?'); args.push(num(req.query.asset_id)); }
+  if (req.query.status === 'open') where.push("p.status='scheduled'");
+  else if (req.query.status && req.query.status !== 'all') { where.push('p.status=?'); args.push(req.query.status); }
+  return all(`SELECT p.*, a.asset_code, a.name asset_name, a.location, s.name assigned_to_name,
+      c.name completed_by_name, u.name created_by_name
+    FROM preventive_maintenance p JOIN assets a ON a.id=p.asset_id
+    LEFT JOIN users s ON s.id=p.assigned_to LEFT JOIN users c ON c.id=p.completed_by LEFT JOIN users u ON u.id=p.created_by
+    ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+    ORDER BY CASE p.status WHEN 'scheduled' THEN 0 ELSE 1 END, p.scheduled_date, p.id DESC LIMIT 500`, ...args);
+}));
+
+maintenance.post('/maintenance/pm', requirePerm('maintenance.write'), h((req) => {
+  const b = req.body || {}, asset = get('SELECT * FROM assets WHERE id=?', num(b.asset_id)) || fail(404, 'asset_not_found');
+  if (asset.status === 'retired') fail(409, 'asset_retired');
+  const title = String(b.title || '').trim(), scheduledDate = String(b.scheduled_date || '');
+  if (!title) fail(400, 'title_required');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(scheduledDate)) fail(400, 'scheduled_date_invalid');
+  const interval = b.interval_days === '' || b.interval_days == null ? null : num(b.interval_days);
+  if (interval !== null && (!Number.isInteger(interval) || interval < 1 || interval > 3650)) fail(400, 'interval_invalid');
+  if (get("SELECT 1 FROM preventive_maintenance WHERE asset_id=? AND scheduled_date=? AND title=? AND status='scheduled'", asset.id, scheduledDate, title)) fail(409, 'pm_already_scheduled');
+  const id = insert('preventive_maintenance', {
+    asset_id: asset.id, title, scheduled_date: scheduledDate, interval_days: interval,
+    checklist: String(b.checklist || '').trim() || null, assigned_to: b.assigned_to ? num(b.assigned_to) : null,
+    status: 'scheduled', created_by: req.user.id, created_at: nowIso(),
+  });
+  if (!asset.next_service || asset.next_service > scheduledDate) update('assets', asset.id, { next_service: scheduledDate, updated_at: nowIso() });
+  const row = pmView(id);
+  emit(req, { topics: TOPICS, event: 'maintenance.pm', data: row, action: 'maintenance.pm.schedule', entity: 'preventive_maintenance', entityId: id,
+    detail: { before: null, after: row, reason: 'Preventive maintenance scheduled' } });
+  return row;
+}));
+
+maintenance.post('/maintenance/pm/:id/complete', requirePerm('maintenance.write'), h((req) => tx(() => {
+  const before = get('SELECT * FROM preventive_maintenance WHERE id=?', +req.params.id) || fail(404, 'pm_not_found');
+  if (before.status !== 'scheduled') fail(409, 'pm_not_open');
+  const b = req.body || {}, workDone = String(b.work_done || '').trim();
+  if (!workDone) fail(400, 'work_done_required');
+  const serviceDate = String(b.service_date || today());
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(serviceDate)) fail(400, 'service_date_invalid');
+  let next = String(b.next_service_date || '') || null;
+  if (!next && before.interval_days) next = new Date(`${serviceDate}T00:00:00Z`).getTime() + before.interval_days * 864e5;
+  if (typeof next === 'number') next = new Date(next).toISOString().slice(0, 10);
+  if (next && !/^\d{4}-\d{2}-\d{2}$/.test(next)) fail(400, 'next_service_date_invalid');
+  const cost = b.cost === '' || b.cost == null ? null : num(b.cost);
+  if (cost !== null && cost < 0) fail(400, 'cost_invalid');
+  update('preventive_maintenance', before.id, {
+    status: 'completed', completed_at: nowIso(), completed_by: req.user.id, work_done: workDone,
+    vendor_reference: String(b.vendor_reference || '').trim() || null, cost, next_service_date: next, updated_at: nowIso(),
+  });
+  update('assets', before.asset_id, { last_service: serviceDate, next_service: next, updated_at: nowIso() });
+  const row = pmView(before.id);
+  emit(req, { topics: TOPICS, event: 'maintenance.pm', data: row, action: 'maintenance.pm.complete', entity: 'preventive_maintenance', entityId: before.id,
+    detail: { before, after: row, reason: workDone } });
+  return row;
+})));
+
+maintenance.post('/maintenance/pm/:id/cancel', requirePerm('maintenance.write'), h((req) => {
+  const before = get('SELECT * FROM preventive_maintenance WHERE id=?', +req.params.id) || fail(404, 'pm_not_found');
+  if (before.status !== 'scheduled') fail(409, 'pm_not_open');
+  const reason = String(req.body?.reason || '').trim();
+  if (!reason) fail(400, 'reason_required');
+  update('preventive_maintenance', before.id, { status: 'cancelled', cancellation_reason: reason, updated_at: nowIso() });
+  const row = pmView(before.id);
+  emit(req, { topics: TOPICS, event: 'maintenance.pm', data: row, action: 'maintenance.pm.cancel', entity: 'preventive_maintenance', entityId: before.id,
+    detail: { before, after: row, reason } });
   return row;
 }));

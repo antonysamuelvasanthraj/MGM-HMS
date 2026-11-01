@@ -2,9 +2,10 @@
 import {
   page, eyebrow, liveChip, card, kpiRow, tableCard, filterBar, wireFilters, live, mountPage,
   api, qs, state, can, navigate, downloadCSV,
-  $, $$, esc, bind, toast, renderRows, pill, money, fmtDate, ago, kpi, optionList,
+  $, $$, esc, bind, toast, renderRows, pill, money, fmtDate, ago, kpi, optionList, headCount,
 } from './_kit.js';
 import { openNewPatient } from './op-registration.js';
+import { openReferralMasters } from '../referrals.js';
 
 let f = { q: '', gender: '', payer: '', created: '' };
 let cache = [];
@@ -28,11 +29,13 @@ export async function mount(ctx) {
     ].map(kpi).join('');
     renderRows($('[data-rows]', root), rows, rowHTML, { empty: f.q ? `No patient matches “${f.q}”.` : 'No patients yet.' });
     $('[data-count]', root).textContent = `${rows.length} shown${total > rows.length ? ` of ${total}` : ''}`;
+    headCount(root, `${total.toLocaleString('en-IN')} patients · ${stats.today} today`);
   }
 
   bind(root, 'click', '[data-act="open"]', (e, b) => navigate(`/patient/${b.closest('tr').dataset.id}`));
   bind(root, 'click', '[data-act="register"]', (e, b) => navigate(`/op-registration?patient=${b.closest('tr').dataset.id}`));
-  bind(root, 'click', '[data-new]', () => openNewPatient((p) => { toast(`${p.name} created as ${p.uhid}`, 'success'); navigate(`/patient/${p.id}`); }));
+  bind(root, 'click', '[data-new]', () => openNewPatient((p, how) => { toast(how?.existing ? `${p.name} · ${p.uhid} — existing record opened` : `${p.name} created as ${p.uhid}`, how?.existing ? 'info' : 'success'); navigate(`/patient/${p.id}`); }));
+  bind(root, 'click', '[data-referral-masters]', () => openReferralMasters().catch(()=>toast('Could not load referral masters','warning')));
   bind(root, 'click', '[data-export]', () => downloadCSV('patients.csv', cache.map((p) => ({
     uhid: p.uhid, name: p.name, gender: p.gender, age: p.age_years, mobile: p.mobile,
     blood_group: p.blood_group, city: p.city, payer: p.payer_type, visits: p.visit_count,
@@ -46,8 +49,10 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Master patient index', 'folder_shared')} ${liveChip()}`,
     title: 'Patient Search & Registration',
-    subtitle: 'Search before you register. A returning patient keeps the same UHID for life — a new visit is not a new patient.',
+    subtitle: 'Find a patient, or register a new one.',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
+      ${can('patient.edit') ? '<button class="btn-secondary" data-referral-masters>Referrers</button>' : ''}
+      ${can('reports.reception') ? '<a class="btn-secondary" href="/reports?report=referral_analytics">Referral report</a>' : ''}
       ${can('patient.create') ? `<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">person_add</span> New patient</button>` : ''}`,
     body: `
       ${kpiRow([], 4)}

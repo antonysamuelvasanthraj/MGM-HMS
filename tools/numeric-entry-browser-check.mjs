@@ -1,0 +1,23 @@
+import {DatabaseSync} from 'node:sqlite';
+const db=new DatabaseSync('data/surelyhms.db',{readOnly:true});
+const session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
+db.close();
+const targets=await fetch('http://127.0.0.1:9559/json').then(r=>r.json());
+const target=targets.find(t=>t.type==='page' && t.url.startsWith('http://localhost:4300'));
+const ws=new WebSocket(target.webSocketDebuggerUrl);
+await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+let seq=0;const pending=new Map();
+ws.addEventListener('message',event=>{const d=JSON.parse(event.data);if(pending.has(d.id)){pending.get(d.id)(d);pending.delete(d.id);}});
+const send=(method,params={})=>new Promise(resolve=>{const id=++seq;pending.set(id,resolve);ws.send(JSON.stringify({id,method,params}));});
+await send('Runtime.evaluate',{expression:`localStorage.setItem('surely_token',${JSON.stringify(session.token)})`});
+await send('Page.reload',{ignoreCache:true});
+await new Promise(resolve=>setTimeout(resolve,1500));
+
+await send('Runtime.evaluate',{expression: "const n=document.createElement('input');n.type='number';n.step='any';n.id='actual-number-check';n.value='0';document.body.append(n);n.focus();n.click();"});
+await send('Input.insertText',{text:'5'});
+const digit=await send('Runtime.evaluate',{expression:"document.getElementById('actual-number-check').value",returnByValue:true});
+await send('Runtime.evaluate',{expression:"document.getElementById('actual-number-check').value='0';document.getElementById('actual-number-check').focus();document.getElementById('actual-number-check').click();"});
+for(const text of ['0','.','0','5'])await send('Input.insertText',{text});
+const decimal=await send('Runtime.evaluate',{expression:"document.getElementById('actual-number-check').value",returnByValue:true});
+await send('Runtime.evaluate',{expression:"document.getElementById('actual-number-check').remove()"});
+console.log({digit:digit.result?.result?.value,decimal:decimal.result?.result?.value});ws.close();if(digit.result?.result?.value!=='5'||decimal.result?.result?.value!=='0.05')throw Error('Numeric entry failed');
