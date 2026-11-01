@@ -1,0 +1,5 @@
+# Replace hms.example.duckdns.org with your free DuckDNS name (see README-FREE-SERVER.md).
+hms.example.duckdns.org {
+    encode gzip
+    reverse_proxy 127.0.0.1:4300
+}
