@@ -1,0 +1,3 @@
+﻿Cause: the prior run ended without a durable execution disposition; current operator evidence confirms reception access and `/patients` availability after natural cooldown.
+Recovery: no app records, accounts, roles, permissions, or runtime settings changed; last recorded counts remain 0/10 assigned patients and 0 operational records, with app-side marker verification pending.
+Hand-back: MGM HMS Billing Accounts QA—resume in the existing authenticated UI session; verify markers 041–050 in Patients and the shared ledger, then create/reopen one assigned patient via UI and record its persisted ID before continuing; stop on an exact UI blocker and post updated counts.

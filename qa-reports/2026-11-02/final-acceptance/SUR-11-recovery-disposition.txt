@@ -1,0 +1,3 @@
+﻿Cause: prior run parked after session loss; owner has since cleared cooldown and authorized port 4300.
+Action: Restored the execution path; this recovery made no app or account changes and did not attempt login.
+Hand-back: MGM HMS Pharmacy Stock QA resumes on port 4300; retain its single permitted Pharmacy UI session, check markers 031–040, then continue UI-only QA. Counts remain 0 patients, 0 operational records, 0 workflows tested.

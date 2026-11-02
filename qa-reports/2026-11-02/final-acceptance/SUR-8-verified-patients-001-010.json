@@ -1,0 +1,76 @@
+{
+  "campaign": "SUR-8",
+  "block": 1,
+  "title": "Patient Registration Block 1 (001–010) - OPERATOR VERIFIED",
+  "status": "complete",
+  "verification_method": "Independent read-only database check on port 4300",
+  "verification_timestamp": "2026-11-02T12:50:46Z",
+  "environment": "http://127.0.0.1:4300",
+  "total_patients": 10,
+  "patients": [
+    {
+      "marker": "TEST-MGM-QA-001",
+      "patient_id": 4,
+      "uhid": "SHMS-2627-0004",
+      "status": "verified_in_db"
+    },
+    {
+      "marker": "TEST-MGM-QA-002",
+      "patient_id": 5,
+      "uhid": "SHMS-2627-0005",
+      "status": "verified_in_db"
+    },
+    {
+      "marker": "TEST-MGM-QA-003",
+      "patient_id": 8,
+      "uhid": "SHMS-2627-0008",
+      "status": "verified_in_db"
+    },
+    {
+      "marker": "TEST-MGM-QA-004",
+      "patient_id": 9,
+      "uhid": "SHMS-2627-0009",
+      "status": "verified_in_db"
+    },
+    {
+      "marker": "TEST-MGM-QA-005",
+      "patient_id": 10,
+      "uhid": "SHMS-2627-0010",
+      "status": "verified_in_db"
+    },
+    {
+      "marker": "TEST-MGM-QA-006",
+      "patient_id": 11,
+      "uhid": "SHMS-2627-0011",
+      "status": "verified_in_db"
+    },
+    {
+      "marker": "TEST-MGM-QA-007",
+      "patient_id": 12,
+      "uhid": "SHMS-2627-0012",
+      "status": "verified_in_db"
+    },
+    {
+      "marker": "TEST-MGM-QA-008",
+      "patient_id": 13,
+      "uhid": "SHMS-2627-0013",
+      "status": "verified_in_db"
+    },
+    {
+      "marker": "TEST-MGM-QA-009",
+      "patient_id": 14,
+      "uhid": "SHMS-2627-0014",
+      "status": "verified_in_db"
+    },
+    {
+      "marker": "TEST-MGM-QA-010",
+      "patient_id": 15,
+      "uhid": "SHMS-2627-0015",
+      "status": "verified_in_db"
+    }
+  ],
+  "instructions": {
+    "do_not": "Do NOT recreate patients 001–010. These are independently verified as persisted in the application database.",
+    "downstream_blocks": "Use these same patient IDs for all downstream workflows (Blocks 2–5). Each specialist creates only NEW records for their assigned 10-patient range (011–020, 021–030, 031–040, 041–050)."
+  }
+}
