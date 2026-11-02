@@ -1,0 +1,48 @@
+﻿Sanitized browser evidence — 2026-11-02
+
+Environment
+- Browser: headless Chrome via Playwright; Node v24.16.0.
+- App: http://127.0.0.1:4388, isolated data directory only.
+- Browser smoke: login route HTTP 200; title and login form rendered.
+- No credential values, tokens, patient identifiers, or non-synthetic patient details are included here.
+
+Interactions
+- Initial admin sign-in succeeded; Users & Roles page rendered. Admin UI created a synthetic receptionist account.
+- Synthetic receptionist sign-in succeeded. Dashboard, Patients, Appointments, Reception Billing, and Admissions routes rendered without a load-error message.
+- Patients page initially showed its empty state. New patient form rejected malformed synthetic mobile input with validation feedback; corrected synthetic input created a synthetic record and navigating/reloading showed the record persisted. Screenshot of the created patient was intentionally excluded from this evidence set.
+- Appointments empty-state screenshots captured at desktop and 400 px widths. At 400 px, document client width and scroll width were both 400 px and scrollX was 0.
+- No confirmed UI defect during these completed interactions. No live DB or port 4300 accessed.
+
+Evidence images
+- evidence-reception-patients-empty-400px.png — empty patient search/registration state at 400 px.
+- evidence-appointments-empty-desktop.png — appointments empty state at 1280 px.
+- evidence-appointments-empty-400px.png — appointments empty state at 400 px.
+
+Additional route sweep — admin session
+- Reviewed 52 menu routes: all returned HTTP 200, rendered a page heading, and showed no generic load-failure text during this pass.
+- Sweep covered staff workspace/attendance/stores/maintenance, reception and clinical queues, IPD/emergency, diagnostics, pharmacy/OT, billing/insurance, finance/reports, and administration modules.
+- This checks route rendering only. It does not establish that every screen's controls, permissions, data workflows, or role-specific access work correctly.
+
+Follow-up role access check — 2026-11-02
+- Restarted the isolated server only against the existing assigned synthetic data directory, requiring the DB to already exist. No initialization or seeding was run.
+- Tried existing role entries from the private demo-login sheet without outputting login values. None of 41 entries authenticated. The login screen displayed a ten-minute lockout message; attempts stopped and no account was changed, reset, created, or deleted.
+- Login surface at 1280, 768, and 400 px: HTTP 200, inputs and submit visible, no horizontal document overflow, no page errors. Keyboard Tab focused a password input; complete focus/accessibility behavior remains untested.
+- Authenticated workflows and role permissions remain blocked pending owner/admin direction on isolated demo accounts. Screenshot `evidence-login-400px.png` contains only the unauthenticated login surface.
+
+Cross-task coordination update — 2026-11-02
+- SUR-8 now owns the coordinated 50-patient acceptance campaign. This UI audit has not entered any campaign patients.
+- Required before campaign entry: SUR-8 role assignments and patient-ID ranges, plus working unchanged credentials in the isolated instance. Previous account attempts caused lockout; no further login attempts were made.
+- Existing partial browser evidence is not campaign acceptance evidence. No live system or business APIs were used.
+
+Current continuation reachability check — 2026-11-02
+- Latest assignment allocated synthetic patient IDs TEST-MGM-QA-001 through TEST-MGM-QA-010. No browser entry was performed in this continuation.
+- Operator clarified port 4388 has three unrelated test accounts and prohibited account/role copying or creation. The earlier isolated login check triggered a lockout; no further sign-in attempt was made.
+- Read-only HTTP checks to ports 4388, 4300, and 3100 received no response. No database was opened and no business records were written.
+- Port 4300 business-record entry remains pending explicit owner approval. Isolated campaign entry is blocked until port 4388 is running and an existing unchanged login works.
+- No new screenshots or confirmed UI defects were produced in this continuation.
+
+Owner-authorized campaign continuation — 2026-11-02
+- Target checked: http://127.0.0.1:4300/login. Port 4300 and 4388 health endpoints returned HTTP 200; browser check was on port 4300 only.
+- Login page at 1280, 768, and 400 px had no horizontal overflow or page errors; 400 px screenshot saved as `evidence-login-4300-400px.png`.
+- One existing reception credential was used privately for a single UI sign-in attempt. URL remained `/login`; no session established. Stopped without retrying or changing accounts.
+- No campaign records were entered. TEST-MGM-QA-001–010 and authenticated patient workflows remain blocked pending identification of a working unchanged account. No credential values or patient data are included.
