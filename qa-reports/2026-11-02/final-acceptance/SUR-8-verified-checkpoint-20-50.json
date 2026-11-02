@@ -1,0 +1,130 @@
+{
+  "campaign": "SUR-8 Complete 50-Patient Acceptance Campaign",
+  "target": "http://127.0.0.1:4300",
+  "checkpoint": "2026-11-02T13:06:31Z",
+  "campaignProgress": "40% Complete (20/50 patients verified)",
+  "verificationMethod": "operator_read_only_database_check",
+
+  "verified_blocks": {
+    "block1": {
+      "owner": "SUR-3 (UI Tester)",
+      "status": "✅ COMPLETE",
+      "markers": ["TEST-MGM-QA-001 through TEST-MGM-QA-010"],
+      "patientIds": [4, 5, 8, 9, 10, 11, 12, 13, 14, 15],
+      "uhidPrefix": "SHMS-2627-",
+      "uhids": ["SHMS-2627-0004", "SHMS-2627-0005", "SHMS-2627-0008", "SHMS-2627-0009", "SHMS-2627-0010", "SHMS-2627-0011", "SHMS-2627-0012", "SHMS-2627-0013", "SHMS-2627-0014", "SHMS-2627-0015"],
+      "verifiedDate": "2026-11-02T12:50:46Z",
+      "patientCount": 10,
+      "workflows_tested": ["registration", "reception_login", "patient_list_visibility", "op_visit_creation"],
+      "workflows_untested": ["appointment_booking", "fee_collection", "receipt_persistence"],
+      "notes": "All 10 patients independently verified in port 4300 database. OP visit workflow tested and working. No defects found."
+    },
+    "block2": {
+      "owner": "SUR-9 (Clinical QA)",
+      "status": "✅ COMPLETE",
+      "markers": ["TEST-MGM-QA-011 through TEST-MGM-QA-020"],
+      "patientIds": [17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
+      "uhidPrefix": "SHMS-2627-",
+      "uhids": ["SHMS-2627-0017", "SHMS-2627-0018", "SHMS-2627-0019", "SHMS-2627-0020", "SHMS-2627-0021", "SHMS-2627-0022", "SHMS-2627-0023", "SHMS-2627-0024", "SHMS-2627-0025", "SHMS-2627-0026"],
+      "verifiedDate": "2026-11-02T13:00:31Z",
+      "patientCount": 10,
+      "reuseFromBlock1": [4, 5, 8, 9, 10, 11, 12, 13, 14, 15],
+      "workflows_tested": ["patient_registration", "op_encounters", "vitals_entry"],
+      "workflows_untested": ["doctor_consultation_notes", "clinical_orders", "prescriptions", "doctor_role_login", "nurse_role_login"],
+      "notes": "All 10 new patients created and verified. OP encounters and vitals saved for all Block 1 patients. Doctor role credential unverified; existing admin role used for testing."
+    }
+  },
+
+  "in_progress_blocks": {
+    "block3": {
+      "owner": "SUR-10 (Lab & Imaging QA)",
+      "status": "🟡 IN PROGRESS",
+      "markers": ["TEST-MGM-QA-021 through TEST-MGM-QA-030"],
+      "reuseFromBlock1": [4, 5, 8, 9, 10, 11, 12, 13, 14, 15],
+      "targetWorkflows": ["lab_orders", "sample_collection", "result_entry", "verification", "radiology_imaging"],
+      "notes": "Specialist is actively creating patients. Will create lab orders on Block 1 patients."
+    },
+    "block4": {
+      "owner": "SUR-11 (Pharmacy & Stock QA)",
+      "status": "🟡 READY/IN PROGRESS",
+      "markers": ["TEST-MGM-QA-031 through TEST-MGM-QA-040"],
+      "reuseFromBlock1": [4, 5, 8, 9, 10, 11, 12, 13, 14, 15],
+      "targetWorkflows": ["grn_creation", "stock_transfers", "prescription_dispensing", "returns", "inventory_reconciliation"],
+      "notes": "Ready to create patient records and test GRN/stock/dispensing workflows."
+    },
+    "block5": {
+      "owner": "SUR-12 (Billing & Accounts QA)",
+      "status": "🟡 READY/IN PROGRESS",
+      "markers": ["TEST-MGM-QA-041 through TEST-MGM-QA-050"],
+      "reuseFromBlock1": [4, 5, 8, 9, 10, 11, 12, 13, 14, 15],
+      "targetWorkflows": ["ip_admission", "running_bills", "fee_collection", "settlement", "refunds"],
+      "notes": "Ready to create patient records and test billing/payment/accounting workflows."
+    }
+  },
+
+  "codeFixesReadyForValidation": {
+    "scheme_payment_idempotency": {
+      "fix": "Require exact match of item, user, amount, reason, authorization_ref on replay",
+      "validationWorkflow": "Block 5 scheme payment testing with test patients",
+      "regressionTestsPassed": true,
+      "testCount": 61
+    },
+    "scheme_collection_reference": {
+      "fix": "Non-cash payments must have reference; validate mode and amount on replay",
+      "validationWorkflow": "Block 5 cash/card/UPI collection with test records",
+      "regressionTestsPassed": true,
+      "testCount": 61
+    },
+    "numeric_validation": {
+      "fix": "Strict finite-number guard for scheme amounts (reject empty strings)",
+      "validationWorkflow": "Any workflow with amount entry fields",
+      "regressionTestsPassed": true,
+      "testCount": 279
+    },
+    "billing_permission_check": {
+      "fix": "Payment receipt endpoint requires billing/payment/finance view permissions",
+      "validationWorkflow": "Block 5 receipt access testing across roles",
+      "regressionTestsPassed": true,
+      "testCount": 279
+    }
+  },
+
+  "ceoWorkstreams": {
+    "completed": [
+      "Comprehensive 6-phase CEO Final Acceptance Plan",
+      "Downstream Workflow Quick Reference Guide",
+      "Master patient ledger maintenance",
+      "Specialist coordination and recovery",
+      "Rate limiter tracking and clearance",
+      "Code fix staging and regression testing"
+    ],
+    "in_progress": [
+      "Monitor specialist progress via Paperclip",
+      "Prepare downstream workflow validation procedures",
+      "Prepare admin control testing matrix",
+      "Document code fix validation approach"
+    ],
+    "pending_next_phase": [
+      "Verify all 50 patients in actual database",
+      "Execute end-to-end workflow validation (lab → pharmacy → billing)",
+      "Reconcile financial and stock entries",
+      "Test admin/manager/HR controls independently",
+      "Deliver final go/no-go assessment"
+    ]
+  },
+
+  "summary": {
+    "total_patients_authorized": 50,
+    "verified_complete": 20,
+    "in_progress": 30,
+    "verification_date": "2026-11-02T13:00:31Z",
+    "target_environment": "http://127.0.0.1:4300",
+    "rate_limiter_status": "cleared",
+    "regression_suites_passed": true,
+    "api_smoke_tests_passed": 1321,
+    "integration_tests_passed": 279,
+    "scheme_tests_passed": 61
+  },
+
+  "nextCheckpoint": "When SUR-10, SUR-11, SUR-12 complete patient creation for blocks 3-5, CEO will verify all 50 patients in database and begin downstream workflow validation."
+}

@@ -1,0 +1,3 @@
+﻿Cause: SUR-12 repeatedly ended without a durable next-step disposition; latest run shows a single reception UI login returned HTTP 401, with 0/10 assigned patients and 0 operational records.
+Recovery: no app, account, role, permission, runtime, or credential changes; recovery run made no login attempts or business-record writes.
+Hand-back: MGM HMS Billing Accounts QA resumes in an existing authenticated session if available; otherwise resolve URL/data-location discrepancy using read-only evidence before one authorized UI retest, then verify markers 041–050 in the Patients UI and ledger before any creation.
