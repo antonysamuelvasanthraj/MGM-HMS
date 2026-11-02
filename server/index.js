@@ -47,6 +47,7 @@ import { maintenance } from './routes/maintenance.js';
 import { stores } from './routes/stores.js';
 import { priceAlerts, escalatePriceAlerts } from './routes/price-alerts.js';
 import { portal } from './routes/portal.js';
+import { reportShare } from './routes/report-share.js';
 import { counselling, resumeTranscriptions } from './routes/counselling.js';
 import { usePackageEngine, useVisitingLedger } from './report-defs.js';
 import { doctorLedger } from './routes/visiting.js';
@@ -175,6 +176,7 @@ app.use('/api', maintenance);
 app.use('/api', stores);
 app.use('/api', priceAlerts);
 app.use('/api', portal);
+app.use('/api', reportShare);
 app.use('/api', counselling);
 resumeTranscriptions();
 
@@ -206,6 +208,8 @@ if (process.env.NODE_ENV !== 'production' && !['demo', 'staging'].includes(proce
 const ASSET_PREFIX = /^\/(src|views|assets)\//;
 // the patient portal is its own page — patients never load the staff application
 app.get(['/my-health', '/my-health/*'], (req, res) => res.sendFile(path.join(CLIENT, 'my-health.html')));
+// a lab report opened from its QR: read-only, no staff application, no login
+app.get('/r/:token', (req, res) => { res.set('Cache-Control', 'no-store'); res.sendFile(path.join(CLIENT, 'report-view.html')); });
 app.get('*', (req, res) => {
   if (ASSET_PREFIX.test(req.path) || path.extname(req.path)) return res.status(404).type('text/plain').send('not found');
   res.sendFile(path.join(CLIENT, 'index.html'));

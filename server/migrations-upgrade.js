@@ -39,6 +39,15 @@ export function migrateUpgrade(db) {
   defaultSetting(db, 'transfer_self_approve', '1');
   /* discharge needs the doctor's clearance and a discharge summary (paper allowed in Paper / Hybrid mode) */
   defaultSetting(db, 'discharge_requires_clearance', '1');
+  // Lab report QR: a printed report always carries a QR; the link works on the hospital network, or on the cloud when one is connected
+  defaultSetting(db, 'report_qr_download', '1');          // patients may open / download a released report through the QR
+  defaultSetting(db, 'report_qr_retention_days', '90');   // the link stays valid this long after the report is released
+  defaultSetting(db, 'cloud_enabled', '0');               // optional cloud connection (reports only, never the whole HMS)
+  defaultSetting(db, 'cloud_base_url', '');
+  db.exec(`CREATE TABLE IF NOT EXISTS report_shares (
+    id INTEGER PRIMARY KEY, token TEXT UNIQUE NOT NULL, order_ids TEXT NOT NULL, patient_id INTEGER,
+    created_at TEXT DEFAULT (datetime('now','localtime')), created_by INTEGER, revoked INTEGER NOT NULL DEFAULT 0,
+    opens INTEGER NOT NULL DEFAULT 0, last_opened TEXT, cloud_status TEXT)`);
   defaultSetting(db, 'require_digital_reference', '1');   // every UPI / card / bank / cheque payment needs its reference (handbook §6)
 
   /* ---------------------------------------------- Phase 1: order source, destination, statuses */

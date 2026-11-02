@@ -22,6 +22,7 @@ import { mountAttachments } from '../attachments.js';
 import { recordReportDialog } from '../outsource.js';
 import { printTubeLabel } from '../labels.js';
 import { printsBarcodeLabels } from '../store.js';
+import { qrSVG } from '../qr.js';
 let f = { status: 'open', priority: '', q: '', date: '' };
 /** Settings → Investigation release → Straight away: tests start before reception collects. */
 const startNow = () => setting('release_op_rule', 'payment') === 'immediate';
@@ -296,6 +297,14 @@ export async function printReports(orderIds) {
   const all = await Promise.all(orderIds.map((id) => api.get(`/lab/report/${id}`)));
   const tests = all.map((d, i) => ({ d, i })).sort((a, b) => sectionRank(a.d.lab_section) - sectionRank(b.d.lab_section) || a.i - b.i).map((x) => x.d);
   const d = tests[0], s = d.settings || {};
+  // QR on every printed report: a random link to the released report (hospital network, or the cloud when one is connected)
+  let qr = '';
+  try {
+    const share = await api.post('/lab/shares', { order_ids: orderIds.map(Number) });
+    const when = share.expires_at ? new Date(`${share.expires_at}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+    qr = `<td rowspan="3" style="border:0;padding:0 0 0 8px;width:92px;text-align:center;vertical-align:top">${qrSVG(share.url, { size: 84 })}
+      <div style="font-size:8px;color:#526176;line-height:1.25">${share.download_enabled ? 'Scan to view / download' : 'Scan to verify'}${share.scope === 'cloud' ? '' : '<br>(hospital network)'}${when && share.download_enabled ? `<br>valid until ${when}` : ''}</div></td>`;
+  } catch { /* the report prints without it */ }
   const cell = 'padding:6px;border-bottom:1px solid #EEF2F7';
   // the unit has its own column: drop a trailing unit from the reference text
   const refOnly = (r) => { const ref = String(r.ref_range || '').trim(), u = String(r.unit || '').trim(); return u && ref.endsWith(u) ? ref.slice(0, -u.length).trim() : ref; };
@@ -349,7 +358,7 @@ export async function printReports(orderIds) {
         ${printLetterhead('LABORATORY REPORT', tests.length === 1 ? d.order_no : d.encounter_no || d.order_no)}
         <table style="width:100%;font-size:11px;margin:6px 0 4px;border-collapse:collapse">
           <tr><td style="border:0;padding:1px 4px;color:#526176;width:80px">Patient</td><td style="border:0;padding:1px 4px"><b>${esc(d.patient_name)}</b></td>
-              <td style="border:0;padding:1px 4px;color:#526176;width:80px">UHID</td><td style="border:0;padding:1px 4px;font-family:monospace">${esc(d.uhid)}</td></tr>
+              <td style="border:0;padding:1px 4px;color:#526176;width:80px">UHID</td><td style="border:0;padding:1px 4px;font-family:monospace">${esc(d.uhid)}</td>${qr}</tr>
           <tr><td style="border:0;padding:1px 4px;color:#526176">Age / sex</td><td style="border:0;padding:1px 4px">${d.age_years ?? '—'} / ${esc(d.gender || '')}</td>
               <td style="border:0;padding:1px 4px;color:#526176">Sample</td><td style="border:0;padding:1px 4px;font-family:monospace">${esc([...new Set(tests.map((t) => t.sample_id).filter(Boolean))].join(', ') || '—')}</td></tr>
           <tr><td style="border:0;padding:1px 4px;color:#526176">Referred by</td><td style="border:0;padding:1px 4px">${esc(d.referred_by_name || '—')}</td>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Laboratory report</title>
+<link rel="icon" href="/assets/favicon.svg">
+<style>
+  :root { --ink:#172B4D; --muted:#526176; --line:#D8DFE8; --band:#EEF2F7; --accent:#12619b; --danger:#B91C1C; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Inter,Segoe UI,system-ui,sans-serif; color:var(--ink); background:#F3F6FA; }
+  .bar { position:sticky; top:0; background:#fff; border-bottom:1px solid var(--line); padding:10px 16px; display:flex; gap:12px; align-items:center; justify-content:space-between; z-index:5; }
+  .bar b { font-size:15px; }
+  .btn { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:9px 16px; font-size:14px; font-weight:600; cursor:pointer; }
+  .sheet { max-width:820px; margin:16px auto; background:#fff; border:1px solid var(--line); border-radius:10px; padding:24px 28px; }
+  .head { text-align:center; border-bottom:2px solid var(--accent); padding-bottom:10px; }
+  .head h1 { margin:0; font-size:20px; color:var(--accent); }
+  .head p { margin:3px 0 0; font-size:12px; color:var(--muted); }
+  .strip { display:grid; grid-template-columns:1fr 1fr; gap:2px 16px; font-size:13px; margin:12px 0; }
+  .strip span { color:var(--muted); }
+  .cat { margin:18px 0 0; padding:5px 10px; background:var(--band); font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  h2 { margin:12px 0 4px; font-size:15px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; background:#F5F7FA; padding:6px; border-bottom:1px solid var(--line); }
+  td { padding:6px; border-bottom:1px solid #EEF2F7; vertical-align:top; }
+  td.num { text-align:right; font-family:ui-monospace,Consolas,monospace; }
+  .flag { font-weight:700; white-space:nowrap; } .crit { color:var(--danger); font-weight:700; }
+  .note { margin-top:10px; font-size:12px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .sign { margin-top:30px; text-align:right; font-size:12px; }
+  .foot { margin-top:16px; font-size:11px; color:var(--muted); line-height:1.5; }
+  .msg { max-width:520px; margin:60px auto; background:#fff; border:1px solid var(--line); border-radius:12px; padding:28px; text-align:center; }
+  .msg h1 { font-size:18px; margin:0 0 8px; }
+  .keep { font-size:12px; color:var(--muted); text-align:center; margin:6px 0 20px; }
+  @media print { body { background:#fff; } .bar, .keep { display:none; } .sheet { border:0; margin:0; padding:0; max-width:none; } .sheet + .sheet { page-break-before:always; } }
+</style>
+</head>
+<body>
+<div id="root"><div class="msg"><h1>Opening your report…</h1></div></div>
+<script type="module" src="/src/report-view.js"></script>
+</body>
+</html>

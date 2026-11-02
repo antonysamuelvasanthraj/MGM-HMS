@@ -146,6 +146,16 @@ function view(s) {
         actions: can('admin.write') ? '<button type="button" class="btn-secondary" data-new-clinic>Add clinic session</button>' : '',
         body: '<div data-clinics class="overflow-auto">Loading clinic sessions…</div>' })}
 
+      ${card({ title: 'Lab reports — QR & cloud', subtitle: 'Every printed lab report carries a QR. These settings decide where it points and how long it works.',
+        body: `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          ${toggle('report_qr_download', 'Patients may open and download released reports through the QR',
+            'Off: the QR still prints but only says the report must be collected from the laboratory. Only verified (released) results are ever shown.')}
+          ${text('report_qr_retention_days', 'Keep the link working for (days)', 'Counted from the day the report is released. Default 90 days (3 months); after that the link shows "expired".')}
+          ${toggle('cloud_enabled', 'Connect a cloud (optional)',
+            'Off: the QR points at this server and works on the hospital network. On: it points at the cloud address below, so patients can open it from anywhere. Only reports and summary analysis are sent, never the whole HMS.')}
+          ${text('cloud_base_url', 'Cloud address', 'For example https://reports.yourhospital.in — needed only when the cloud connection is on.')}
+        </div>` })}
+
       ${card({ title: 'Local server & sync', body: `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         ${text('lan_ip', 'LAN address of this server', 'What other desks connect to.')}
         ${text('cloud_endpoint', 'Cloud receiver reference', 'Reference address only. This installation has no cloud delivery receiver; records remain queued. See Local Setup & Sync for queue export.')}

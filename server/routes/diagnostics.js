@@ -271,8 +271,8 @@ diagnostics.get('/lab/encounter/:id/reports', requirePerm('lab.view'), h((req) =
   `SELECT o.id, o.label, o.status, s.lab_section FROM orders o LEFT JOIN services s ON s.id=o.service_id
     WHERE o.encounter_id=? AND o.category='lab' AND o.status IN ('reported','verified','completed') ORDER BY o.id`, +req.params.id)));
 
-diagnostics.get('/lab/report/:id', requirePerm('lab.view'), h((req) => {
-  const id = +req.params.id;
+/** Everything one lab report prints: patient, test, results in template order, comments and the hospital header. */
+export function buildLabReport(id) {
   const o = get(
     `SELECT o.*, p.uhid, p.name patient_name, p.gender, p.age_years, p.mobile,
             s.name service_name, s.code service_code, s.sample_type, coalesce(o.lab_description,s.description,'') test_description, s.lab_section, u.name ordered_by_name, v.name verified_by_name,
@@ -291,7 +291,8 @@ diagnostics.get('/lab/report/:id', requirePerm('lab.view'), h((req) => {
   // only what a report needs — never gateway or other secrets
   o.settings = Object.fromEntries(all("SELECT key,value FROM settings WHERE key IN ('hospital_name','address','phone','email','nabh_no','gstin','website','lab_report_disclaimer','lab_head_name')").map((r) => [r.key, r.value]));
   return o;
-}));
+}
+diagnostics.get('/lab/report/:id', requirePerm('lab.view'), h((req) => buildLabReport(+req.params.id)));
 
 /* ------------------------------------------------------- imaging reports */
 

@@ -5,7 +5,6 @@ import {
   $, $$, esc, bind, toast, modal, drawer, renderRows, pill, money, fmtDate, kpi, optionList, emptyState,
 } from './_kit.js';
 import { compositionEditor, wireComposition, compositionText } from '../composition.js';
-import { bulkMedicines } from '../medicine-import.js';
 
 let f = { q: '', form: '', schedule: '', low: '', active: '1' };
 let cache = [];
@@ -28,8 +27,6 @@ export async function mount(ctx) {
   }
 
   bind(root, 'click', '[data-act="open"]', (e, b) => openMedicine(b.closest('tr').dataset.id, load));
-  bind(root, 'click', '[data-new]', () => editMedicine(null, load));
-  bind(root, 'click', '[data-bulk]', () => bulkMedicines(load));
   bind(root, 'click', '[data-export]', () => downloadCSV('medicine-master.csv', cache.map((m) => ({
     code: m.code, name: m.name, generic: m.generic, form: m.form, strength: m.strength,
     manufacturer: m.manufacturer, schedule: m.schedule, gst: m.gst_pct, rack: m.rack,
@@ -43,9 +40,9 @@ function layout() {
   return page({
     eyebrow: `${eyebrow('Formulary', 'pill')} ${liveChip()}`,
     title: 'Medicine Master Catalog',
-    subtitle: 'The single formulary behind prescriptions, dispensing, stock and purchasing.',
+    subtitle: 'The single formulary behind prescriptions, dispensing, stock and purchasing. New products are added only from a GRN (Purchases → New GRN → New medicine).',
     actions: `<button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
-      ${can('inventory.write') ? `<button class="btn-secondary" data-bulk>Bulk import medicines</button><button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> Add medicine</button>` : ''}`,
+`,
     body: `
       ${kpiRow([], 4)}
       ${filterBar([
