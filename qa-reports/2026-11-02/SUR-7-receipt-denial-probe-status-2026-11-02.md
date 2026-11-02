@@ -6,6 +6,8 @@ The receipt authorization probe remains **open / not run**. The latest available
 
 The most recent Pharmacy report also records zero operational records. The ledger's 20/50 checkpoint is earlier than the SUR-11 and SUR-12 reports and cannot establish a newer receipt exists.
 
+During this review, the shared workspace received newer SUR-12 UI evidence files for patient markers 041, 042, and 044. These show concurrent patient-entry activity, but no current report or ledger evidence of a bill, payment, or receipt was found. SUR-12 remains the owner of those records and was not interrupted.
+
 ## Authorization and safety
 
 The owner authorized a read-only denial check with an existing working non-billing role, after verifying its actual effective permissions. No login or app navigation was performed in this pass because the required campaign receipt is unavailable. This avoids probing an unrelated or pre-existing receipt and avoids creating campaign data owned by other tasks.
