@@ -203,9 +203,14 @@ labops.get('/scan/:code', requireAuth, h((req) => {
 /** Data for a tube label (order) or a wristband / file sticker (patient). */
 labops.get('/labels/order/:id', requireAuth, h((req) => {
   if (!can(req.user, 'lab.view') && !can(req.user, 'imaging.view') && !can(req.user, 'nursing.view')) fail(403, 'forbidden');
-  const o = get(`SELECT o.id, o.order_no, o.label, o.sample_id, o.accession_no, o.collected_at, o.priority, s.sample_type, s.container,
+  const o = get(`SELECT o.id, o.category, o.order_no, o.label, o.sample_id, o.accession_no, o.collected_at, o.priority, s.sample_type, s.container,
       p.name, p.uhid, p.gender, p.age_years, e.kind, (SELECT ip_no FROM admissions a WHERE a.encounter_id=o.encounter_id) ip_no
     FROM orders o JOIN patients p ON p.id=o.patient_id JOIN encounters e ON e.id=o.encounter_id LEFT JOIN services s ON s.id=o.service_id WHERE o.id=?`, +req.params.id) || fail(404, 'order_not_found');
+  // every test going into the same container (same visit, same sample type) so one label can tick them all
+  o.tests = o.category === 'lab' ? all(`SELECT x.id, x.label, x.order_no FROM orders x LEFT JOIN services sx ON sx.id=x.service_id
+      WHERE x.encounter_id=(SELECT encounter_id FROM orders WHERE id=?) AND x.category='lab' AND x.status IN ('ordered','collected','in_progress')
+        AND coalesce(sx.sample_type,'')=coalesce(?,'') ORDER BY x.id`, o.id, o.sample_type) : [];
+  if (!o.tests.some((t) => t.id === o.id)) o.tests.unshift({ id: o.id, label: o.label, order_no: o.order_no });
   return o;
 }));
 labops.get('/labels/patient/:id', requireAuth, h((req) => {

@@ -85,6 +85,12 @@ function view(s) {
           <span class="material-symbols-outlined text-[17px]">info</span>
           Emergency encounters bypass both gates. Triage and treatment never wait for money.</div>` })}
 
+      ${card({ title: 'Laboratory sample labels', subtitle: 'Small container labels with the patient, tests and a tick box per test. Available in paper, paperless and hybrid.',
+        body: `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          ${toggle('lab_label_auto', 'Print the sample label automatically when a sample is collected',
+            'Off (default): staff press Label on a collected sample when they want one. On: the label dialog opens at collection. The Label button is always available.')}
+        </div>` })}
+
       ${card({ title: 'Pharmacy & stock', subtitle: 'How stock may be corrected and moved between stores.',
         body: `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           ${toggle('manual_stock_adjust', 'Allow single-batch stock adjustment',

@@ -923,7 +923,7 @@ billing.post('/services', requireAuth, h((req) => {
     if (rawParams.length > 80) fail(400, 'too_many_parameters');
     const names = new Set();
     for (const p of rawParams) {
-      if (!p || typeof p !== 'object' || !String(p.name || '').trim() || !['numeric', 'text'].includes(p.result_type || 'numeric')) fail(400, 'parameter_invalid');
+      if (!p || typeof p !== 'object' || !String(p.name || '').trim() || !['numeric', 'text', 'heading'].includes(p.result_type || 'numeric')) fail(400, 'parameter_invalid');
       const name = String(p.name).trim().slice(0, 120);
       if (names.has(name.toLowerCase())) fail(400, 'parameter_duplicate');
       names.add(name.toLowerCase());

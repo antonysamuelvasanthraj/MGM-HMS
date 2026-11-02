@@ -81,7 +81,7 @@ reportShare.get('/public/report/:token', h((req, res) => {
     // a public page needs the report and nothing else: no staff names beyond the signatory, no internal ids
     const { settings, results, result_guidance, patient_name, uhid, age_years, gender, service_name, lab_section, sample_type, completed_at, verified_at,
       verified_by_name, verified_by_qual, verified_by_reg, test_comment, test_comment_title, test_description, lab_remarks, order_no, referred_by_name } = r;
-    return { settings, results: results.map((x) => ({ name: x.name, value: x.value, unit: x.unit, ref_range: x.ref_range, flag: x.flag, method: x.method })), result_guidance,
+    return { settings, results: results.map((x) => ({ name: x.name, value: x.value, unit: x.unit, ref_range: x.ref_range, flag: x.flag, method: x.method, heading: x.param_type === 'heading' })), result_guidance,
       patient_name, uhid, age_years, gender, service_name, lab_section, sample_type, completed_at, verified_at, verified_by_name, verified_by_qual, verified_by_reg,
       test_comment, test_comment_title, test_description, lab_remarks, order_no, referred_by_name };
   });

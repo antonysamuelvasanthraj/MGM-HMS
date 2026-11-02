@@ -12,14 +12,14 @@ export async function openLabTemplates() {
   modal({ title: 'Laboratory templates and validated reference ranges', size: 'xl',
     body: `<label class="field-label">Test</label><select class="field" data-test>${services.map(s=>`<option value="${s.id}">${esc(s.name)} · ${esc(s.code)}</option>`).join('')}</select>
       <div class="mt-3 p-3 rounded border border-outline-variant" data-test-info></div><div data-parameters class="mt-3"></div>`,
-    footer: `<button class="btn-secondary" data-close>Close</button>${canAddLabTest() ? '<button class="btn-secondary" data-add-test>Add test</button>' : ''}<button class="btn-primary" data-add>Add parameter</button>`,
+    footer: `<button class="btn-secondary" data-close>Close</button>${canAddLabTest() ? '<button class="btn-secondary" data-add-test>Add test</button>' : ''}<button class="btn-secondary" data-add-heading title="A sub-heading such as Differential Leucocyte Count, printed between parameters">Add heading</button><button class="btn-primary" data-add>Add parameter</button>`,
     async onMount(root) {
       let rows = [], loadVersion = 0;
       async function load() {
         const version=++loadVersion;
         const serviceId = +root.querySelector('[data-test]').value;
         const service = state.meta.services.find(s => s.id === serviceId);
-        root.querySelector('[data-add]').disabled = !service;
+        root.querySelector('[data-add]').disabled = !service; root.querySelector('[data-add-heading]').disabled = !service;
         const info = root.querySelector('[data-test-info]');
         info.innerHTML = service ? `<div class="flex items-center justify-between"><b>Test information · ${esc(service.lab_section || 'Laboratory')}</b><button class="btn-secondary btn-sm" data-edit-info>Edit report instructions</button></div><p class="mt-2 text-body-sm whitespace-pre-wrap" style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(service.description || 'No description. Optional information can be added and printed below this test’s results.')}</p>` : 'Add your first laboratory test to begin.';
         if (service) info.insertAdjacentHTML('beforeend', `<p class="mt-2 text-body-sm"><b>${esc(service.report_comment_title || 'Interpretation')}:</b> ${service.report_comment ? esc(service.report_comment.slice(0, 220)) + (service.report_comment.length > 220 ? '…' : '') : '<span class="text-on-surface-variant">none yet — use Edit description</span>'}</p>`);
@@ -37,7 +37,7 @@ export async function openLabTemplates() {
         rows=loaded;
         // drag a row (or use ↑ ↓) to set the order the parameters print on the report
         const canSort = canEditLabTemplates() && rows.length > 1;
-        root.querySelector('[data-parameters]').innerHTML = `${canSort ? '<p class="text-body-sm text-on-surface-variant mb-1">Drag rows by ⇅ (or use ↑ ↓) to set the print order on the report.</p>' : ''}<table class="tbl"><thead><tr><th>Order</th><th>Parameter</th><th>Method / unit</th><th>Reference range</th><th>Status</th><th></th></tr></thead><tbody data-sort-body>${rows.map((p, i)=>`<tr data-row="${p.id}" ${canSort ? 'draggable="true"' : ''}><td class="whitespace-nowrap">${canSort ? `<span class="cursor-grab select-none text-on-surface-variant" title="Drag to reorder" aria-hidden="true">⇅</span> ` : ''}${i + 1}.${canSort ? ` <button type="button" class="btn-ghost btn-xs" data-move="-1" aria-label="Move ${esc(p.name)} up" ${i ? '' : 'disabled'}>↑</button><button type="button" class="btn-ghost btn-xs" data-move="1" aria-label="Move ${esc(p.name)} down" ${i < rows.length - 1 ? '' : 'disabled'}>↓</button>` : ''}</td><td>${esc(p.name)}</td><td>${esc(p.method || '')} · ${esc(p.unit || '')}</td><td>${esc(p.ref_text || `${p.ref_low ?? ''} - ${p.ref_high ?? ''}`)}</td><td>${p.active ? 'Active' : 'Archived'}</td><td><div class="flex gap-2"><button class="btn-secondary btn-xs" data-param="${p.id}">Edit</button>${canEditLabTemplates()?`<button type="button" class="btn-secondary btn-xs" data-param-toggle="${p.id}">${p.active?'Archive':'Reactivate'}</button>`:''}</div></td></tr>`).join('')}</tbody></table>`;
+        root.querySelector('[data-parameters]').innerHTML = `${canSort ? '<p class="text-body-sm text-on-surface-variant mb-1">Drag rows by ⇅ (or use ↑ ↓) to set the print order on the report.</p>' : ''}<table class="tbl"><thead><tr><th>Order</th><th>Parameter</th><th>Method / unit</th><th>Reference range</th><th>Status</th><th></th></tr></thead><tbody data-sort-body>${rows.map((p, i)=>`<tr data-row="${p.id}" ${canSort ? 'draggable="true"' : ''}><td class="whitespace-nowrap">${canSort ? `<span class="cursor-grab select-none text-on-surface-variant" title="Drag to reorder" aria-hidden="true">⇅</span> ` : ''}${i + 1}.${canSort ? ` <button type="button" class="btn-ghost btn-xs" data-move="-1" aria-label="Move ${esc(p.name)} up" ${i ? '' : 'disabled'}>↑</button><button type="button" class="btn-ghost btn-xs" data-move="1" aria-label="Move ${esc(p.name)} down" ${i < rows.length - 1 ? '' : 'disabled'}>↓</button>` : ''}</td>${p.result_type === 'heading' ? `<td colspan="3"><b class="uppercase">${esc(p.name)}</b> <span class="text-body-sm text-on-surface-variant">· sub-heading</span></td>` : `<td>${esc(p.name)}</td><td>${esc(p.method || '')} · ${esc(p.unit || '')}</td><td>${esc(p.ref_text || `${p.ref_low ?? ''} - ${p.ref_high ?? ''}`)}</td>`}<td>${p.active ? 'Active' : 'Archived'}</td><td><div class="flex gap-2"><button class="btn-secondary btn-xs" data-param="${p.id}">Edit</button>${canEditLabTemplates()?`<button type="button" class="btn-secondary btn-xs" data-param-toggle="${p.id}">${p.active?'Archive':'Reactivate'}</button>`:''}</div></td></tr>`).join('')}</tbody></table>`;
         if (canSort) wireReorder(root.querySelector('[data-sort-body]'), serviceId, load);
       }
       root.querySelector('[data-test]').onchange = load;
@@ -47,6 +47,7 @@ export async function openLabTemplates() {
         root.querySelector('[data-test]').value = service.id;
         await load();
       }));
+      root.querySelector('[data-add-heading]').onclick = () => editParameter({ service_id: +root.querySelector('[data-test]').value, result_type: 'heading' }, load);
       root.querySelector('[data-add]').onclick = () => editParameter({service_id:+root.querySelector('[data-test]').value}, load);
       root.querySelector('[data-parameters]').onclick = async e => {
         const toggle=e.target.closest('[data-param-toggle]');
@@ -235,6 +236,22 @@ async function editParameter(p, after) {
   const rules = JSON.parse(p.reference_rules || '[]');
   const textFields = [['name','Parameter name'],['unit','Unit'],['method','Test method'],['ref_text','General reference text'],['interpretation','Interpretation / report note']];
   const numericFields = [['seq','Display order'],['ref_low','General low'],['ref_high','General high'],['ref_low_m','Male low'],['ref_high_m','Male high'],['ref_low_f','Female low'],['ref_high_f','Female high'],['ref_low_child','Child low'],['ref_high_child','Child high'],['child_max_age','Child age limit'],['crit_low','Critical low'],['crit_high','Critical high']];
+  if (p.result_type === 'heading') {
+    modal({ title: p.id ? 'Edit sub-heading' : 'Add sub-heading', size: 'sm', stack: true,
+      body: `<form data-form class="space-y-3"><div><label class="field-label">Heading text</label><input class="field" name="name" value="${esc(p.name || '')}" required maxlength="120" placeholder="e.g. Differential Leucocyte Count"></div>
+        <label class="flex items-center gap-2"><input type="checkbox" name="active" ${p.active !== 0 ? 'checked' : ''}>Active</label>
+        <p class="text-body-sm text-on-surface-variant">A heading has no result. It prints between parameters in the order set here; use ↑ ↓ or drag to place it.</p></form>`,
+      footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Save heading</button>',
+      onMount(root, close) {
+        root.querySelector('[data-save]').onclick = async () => {
+          const form = root.querySelector('form'); if (!form.reportValidity()) return;
+          const body = { name: form.name.value.trim(), result_type: 'heading', active: form.active.checked };
+          try { p.id ? await api.patch(`/lab/params/${p.id}`, body) : await api.post('/lab/params', { ...body, service_id: p.service_id }); close(); await after(); toast('Heading saved', 'success'); }
+          catch (e) { toast(e.payload?.error || 'Could not save heading', 'warning'); }
+        };
+      } });
+    return;
+  }
   modal({title:p.id?'Edit lab parameter':'Add lab parameter',size:'lg',stack:true,
     body:`<form class="grid grid-cols-2 gap-3" data-form><div><label class="field-label">Result type</label><select class="field" name="result_type"><option value="numeric" ${p.result_type !== 'text' ? 'selected' : ''}>Number</option><option value="text" ${p.result_type === 'text' ? 'selected' : ''}>Text / qualitative</option></select></div>${[...textFields,...numericFields].map(([k,label])=>`<div><label class="field-label">${label}</label>${k==='unit'?labUnitField(p.unit,'name="unit"'):`<input class="field" name="${k}" value="${esc(p[k] ?? '')}" ${numericFields.some(([n])=>n===k)?'type="number" step="any"':''} ${k==='name'?'required':''}>`}</div>`).join('')}
       <div class="col-span-2"><label class="field-label">Age / sex / pregnancy ranges</label><div data-rules></div><button type="button" class="btn-secondary btn-sm mt-2" data-add-range>Add reference range</button><p class="text-body-sm">The first matching range applies. Enter only ranges validated by the lab in-charge. Age starts at the minimum and ends before the maximum.</p></div>

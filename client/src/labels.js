@@ -26,15 +26,18 @@ function printRaw(title, css, body) {
 export async function printTubeLabel(orderId, copies = 1) {
   const o = await api.get(`/labels/order/${orderId}`);
   const code = o.sample_id || o.order_no;
+  const tests = o.tests?.length ? o.tests : [{ label: o.label }];
+  // small container label: who, when, and one tick box per test going into this tube
   const one = `<div class="lbl"><div class="row"><b class="nm">${esc(o.name)}</b><span>${o.age_years ?? ''}${esc(String(o.gender || '').slice(0, 1))}</span></div>
-    <div class="row sm"><span>${esc(o.uhid)}</span><span>${esc(o.ip_no || o.kind || '')}</span></div>
-    <div class="bc">${barcodeSVG(code, { height: 30, module: 1.1, fontSize: 9 })}</div>
-    <div class="row sm"><span class="t">${esc(o.label)}</span><span>${o.priority !== 'routine' ? `<b>${esc(o.priority.toUpperCase())}</b>` : ''}</span></div>
-    <div class="row sm"><span>${esc(o.sample_type || '')}${o.container ? ` · ${esc(o.container)}` : ''}</span><span>${o.accession_no ? esc(o.accession_no) : ''}</span></div>
-    <div class="row xs"><span>${o.collected_at ? esc(fmtDateTime(o.collected_at)) : 'Collected: ________'}</span></div></div>`;
-  printRaw(`Tube label ${code}`, `@page{size:50mm 25mm;margin:0}.lbl{width:50mm;height:25mm;padding:1mm 1.5mm;page-break-after:always;overflow:hidden}
-    .row{display:flex;justify-content:space-between;gap:2mm;line-height:1.15}.nm{font-size:9pt;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38mm}
-    .sm{font-size:7pt}.xs{font-size:6pt}.t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:36mm}.bc svg{display:block;margin:0 auto;max-width:47mm;height:auto}`,
+    <div class="row sm"><span>${esc(o.uhid)}${o.ip_no ? ` · IP ${esc(o.ip_no)}` : ''}</span><span>${o.priority && o.priority !== 'routine' ? `<b>${esc(o.priority.toUpperCase())}</b>` : esc(o.sample_type || '')}</span></div>
+    <div class="tests">${tests.map((t) => `<div class="tk"><i></i><span>${esc(t.label)}</span></div>`).join('')}</div>
+    <div class="bc">${barcodeSVG(code, { height: 16, module: 0.95, fontSize: 7 })}</div>
+    <div class="row xs"><span>${o.container ? esc(o.container) : ''}</span><span>${o.collected_at ? esc(fmtDateTime(o.collected_at)) : 'Collected: ______'}</span></div></div>`;
+  printRaw(`Sample label ${code}`, `@page{size:50mm 30mm;margin:0}.lbl{width:50mm;height:30mm;padding:.8mm 1.5mm;page-break-after:always;overflow:hidden;font-family:Arial,sans-serif}
+    .row{display:flex;justify-content:space-between;gap:2mm;line-height:1.15}.nm{font-size:8.5pt;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38mm}
+    .sm{font-size:6.5pt}.xs{font-size:5.5pt}.tests{columns:2;column-gap:2mm;margin:.4mm 0;font-size:6.5pt;line-height:1.2}
+    .tk{display:flex;gap:1mm;align-items:center;break-inside:avoid;white-space:nowrap;overflow:hidden}.tk i{flex:none;width:2mm;height:2mm;border:.25mm solid #000}.tk span{overflow:hidden;text-overflow:ellipsis}
+    .bc svg{display:block;margin:0 auto;max-width:44mm;height:auto}`,
     Array.from({ length: Math.max(1, Math.min(6, copies)) }, () => one).join(''));
 }
 

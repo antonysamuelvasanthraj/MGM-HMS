@@ -35,6 +35,8 @@ export function migrateUpgrade(db) {
   defaultSetting(db, 'schedule_h_requires_rx', '1');
   // single-batch stock corrections can be switched off by the administrator; Excel / bulk stock counts are never blocked
   defaultSetting(db, 'manual_stock_adjust', '1');
+  // sample container labels: always available by button in every mode; automatic print at collection is optional
+  defaultSetting(db, 'lab_label_auto', '0');
   // a small pharmacy with one in-charge may approve its own transfer request (audited); off = a second person approves
   defaultSetting(db, 'transfer_self_approve', '1');
   /* discharge needs the doctor's clearance and a discharge summary (paper allowed in Paper / Hybrid mode) */
@@ -243,5 +245,22 @@ export function migrateUpgrade(db) {
         JSON.stringify({ active: 1 }), JSON.stringify({ active: 0 }), 'MRI is not an active radiology modality (Oct 2026 upgrade); history kept');
     }
     setFlag(db, 'mri_retired_2026_10');
+  }
+
+  /* ---------------------------------------------- sub-headings inside a test (e.g. Differential Leucocyte Count) */
+  if (!flag(db, 'lab_subheadings_2026_11')) {
+    const addHeading = (serviceId, before, title) => {
+      const rows = db.prepare('SELECT id, name, result_type FROM lab_params WHERE service_id=? ORDER BY seq, id').all(serviceId);
+      const at = rows.findIndex((r) => r.name.trim().toLowerCase() === before);
+      if (at < 0 || rows.some((r) => r.result_type === 'heading' && r.name.toLowerCase() === title.toLowerCase())) return;
+      const ins = db.prepare("INSERT INTO lab_params (service_id, name, seq, result_type, active) VALUES (?,?,0,'heading',1)").run(serviceId, title);
+      const order = rows.map((r) => r.id); order.splice(at, 0, Number(ins.lastInsertRowid));
+      order.forEach((id, i) => db.prepare('UPDATE lab_params SET seq=? WHERE id=?').run(i + 1, id));
+    };
+    for (const s of db.prepare("SELECT id FROM services WHERE category='lab'").all()) {
+      addHeading(s.id, 'neutrophils', 'Differential Leucocyte Count');
+      addHeading(s.id, 'absolute neutrophil count', 'Absolute Counts');
+    }
+    setFlag(db, 'lab_subheadings_2026_11');
   }
 }

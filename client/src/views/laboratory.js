@@ -21,7 +21,7 @@ import { departmentEntersTests, openDiagnosticsBilling } from '../reception-diag
 import { mountAttachments } from '../attachments.js';
 import { recordReportDialog } from '../outsource.js';
 import { printTubeLabel } from '../labels.js';
-import { printsBarcodeLabels } from '../store.js';
+import { autoPrintsSampleLabels } from '../store.js';
 import { qrSVG } from '../qr.js';
 let f = { status: 'open', priority: '', q: '', date: '' };
 /** Settings → Investigation release → Straight away: tests start before reception collects. */
@@ -67,7 +67,7 @@ export async function mount(ctx) {
       try {
         const r = await api.post(`/lab/orders/${id}/collect`, {});
         toast(`Sample ${r.sample_id || ''} collected${r.accession_no ? ` · ${r.accession_no}` : ''}${r.consumables_short?.length ? ` — not in LAB store: ${r.consumables_short.map((x) => x.name).join(', ')}` : ''}`, r.consumables_short?.length ? 'warning' : 'success');
-        load(); if (printsBarcodeLabels()) printTubeLabel(id).catch(() => {});
+        load(); if (autoPrintsSampleLabels()) printTubeLabel(id).catch(() => {});
       } catch (err) { apiError(err, 'Cannot collect this sample yet'); }
     }
     if (act === 'label') printTubeLabel(id).catch((err) => apiError(err));
@@ -168,7 +168,7 @@ function rowHTML(r) {
       ${['unpaid', 'part_paid'].includes(r.clearance) && !['verified'].includes(r.status) ? `<span class="text-body-sm ${startNow() ? 'text-on-surface-variant' : 'text-danger'}">${startNow() ? 'Patient pays at reception' : 'Send to reception'}</span>` : ''}
       ${r.status === 'ordered' && can('lab.collect') && (startNow() || !['unpaid', 'part_paid'].includes(r.clearance)) ? `<button class="btn-primary btn-xs" data-act="collect">Collect</button>` : ''}
       ${['reported', 'verified', 'completed'].includes(r.status) && r.encounter_id ? `<button class="btn-ghost btn-xs" data-act="visitreport" data-enc="${r.encounter_id}" title="Print every reported test of this visit on one report, by category"><span class="material-symbols-outlined text-[15px]">print</span> Visit report</button>` : ''}
-      ${['ordered', 'collected', 'in_progress'].includes(r.status) && can('lab.collect') && printsBarcodeLabels() ? `<button class="btn-ghost btn-xs" data-act="label" title="Print the tube label"><span class="material-symbols-outlined text-[15px]">barcode</span></button>` : ''}
+      ${['ordered', 'collected', 'in_progress'].includes(r.status) && can('lab.collect') ? `<button class="btn-ghost btn-xs" data-act="label" title="Print the tube label"><span class="material-symbols-outlined text-[15px]">barcode</span></button>` : ''}
       ${['collected', 'in_progress'].includes(r.status) && can('lab.collect') ? `<button class="btn-ghost btn-xs" data-act="recollect" title="Sample rejected — collect again">Recollect</button>` : ''}
       ${r.status === 'collected' && can('lab.result') ? `<button class="btn-secondary btn-xs" data-act="start">Start</button>` : ''}
       ${['collected', 'in_progress'].includes(r.status) && can('lab.result') ? `<button class="btn-primary btn-xs" data-act="enter">Enter results</button>` : ''}
@@ -204,6 +204,7 @@ function openResultEntry(orderId, after, readOnly = false) {
           <thead><tr><th>Parameter</th><th style="width:150px">Result</th><th style="width:90px">Unit</th>
             <th style="width:140px">Reference</th><th style="width:110px">Flag</th><th style="width:130px">Previous</th></tr></thead>
           <tbody>${params.map((p) => {
+            if (p.result_type === 'heading') return `<tr data-p="${p.id}" data-name="${esc(p.name)}" data-heading="1"><td colspan="6" class="bg-surface-container-low font-label-lg text-label-lg uppercase tracking-wide">${esc(p.name)}</td></tr>`;
             const r = byParam.get(p.id ?? p.name) || {};
             const prior = priorFor(p.name);
             return `<tr data-p="${p.id ?? ''}" data-name="${esc(p.name)}">
@@ -253,9 +254,9 @@ function openResultEntry(orderId, after, readOnly = false) {
           });
         });
         const collect = () => [...root.querySelectorAll('[data-rt] tbody tr')].map((tr) => ({
-          param_id: tr.dataset.p || null, name: tr.dataset.name,
-          value: tr.querySelector('[data-v]').value,
-        })).filter((r) => r.value !== '');
+          param_id: tr.dataset.p || null, name: tr.dataset.name, heading: !!tr.dataset.heading,
+          value: tr.dataset.heading ? '' : tr.querySelector('[data-v]').value,
+        })).filter((r) => r.heading || r.value !== '');
         const post = async (verify, btn) => {
           busy(btn, true, 'Saving');
           try {
@@ -320,7 +321,7 @@ export async function printReports(orderIds) {
           <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Flag</th>
           <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Unit</th>
           <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Bio. ref. interval</th></tr></thead>
-        <tbody>${t.results.map((r) => `<tr>
+        <tbody>${t.results.map((r) => r.param_type === 'heading' ? `<tr><td colspan="5" style="${cell};font-weight:700;padding-top:9px">${esc(r.name)}</td></tr>` : `<tr>
           <td style="${cell}">${esc(r.name)}${r.method ? `<div style="font-size:10px;color:#526176">Method: ${esc(r.method)}</div>` : ''}${r.interpretation ? `<div style="font-size:10px">${esc(r.interpretation)}</div>` : ''}</td>
           <td style="${cell};text-align:right;font-family:monospace;${flagStyle(r)}">${esc(r.value)}</td>
           <td style="${cell};white-space:nowrap;${flagStyle(r)}">${r.flag === 'high' ? '↑ HIGH' : r.flag === 'low' ? '↓ LOW' : r.flag === 'critical' ? '‼ CRITICAL' : ''}</td>

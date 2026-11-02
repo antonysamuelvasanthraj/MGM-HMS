@@ -44,7 +44,7 @@ export function goLiveCheck() {
 
   // 5. lab reference ranges
   const noRange = all(`SELECT s.code, s.name, count(*) n FROM lab_params p JOIN services s ON s.id=p.service_id
-      WHERE s.active=1 AND p.active=1 AND coalesce(p.result_type,'numeric')<>'text' AND p.ref_low IS NULL AND p.ref_high IS NULL
+      WHERE s.active=1 AND p.active=1 AND coalesce(p.result_type,'numeric') NOT IN ('text','heading') AND p.ref_low IS NULL AND p.ref_high IS NULL
         AND coalesce(p.ref_low_m, p.ref_high_m, p.ref_low_f, p.ref_high_f, p.ref_low_child, p.ref_high_child) IS NULL
         AND coalesce(trim(p.ref_text),'')='' AND coalesce(p.reference_rules,'[]') IN ('[]','')
       GROUP BY s.id ORDER BY s.name`);

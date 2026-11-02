@@ -84,6 +84,8 @@ export const counters = () => state.meta?.counters || [];
 export const services = (cat) => (state.meta?.services || []).filter((s) => !cat || s.category === cat);
 export const setting = (k, d = '') => state.meta?.settings?.[k] ?? d;
 /** Barcode wristbands and sample tube labels belong to Paperless / Hybrid working; Paper mode writes them by hand. */
+/** Sample labels are optional in every mode (paper, paperless, hybrid): printed on demand, or automatically at collection when Settings says so. */
+export const autoPrintsSampleLabels = () => setting('lab_label_auto', '0') === '1';
 export const printsBarcodeLabels = () => setting('hospital_mode', 'paperless') !== 'paper';
 export const doctorById = (id) => doctors().find((d) => d.id === +id);
 export const deptById = (id) => departments().find((d) => d.id === +id);

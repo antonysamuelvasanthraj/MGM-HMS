@@ -114,7 +114,7 @@ diagnostics.get('/lab/orders/:id', requirePerm('lab.view'), h((req) => {
       WHERE o.id=?`, id);
   if (!o) fail(404, 'order_not_found');
   o.params = all('SELECT * FROM lab_params WHERE service_id=? AND active=1 ORDER BY seq', o.service_id);
-  o.results = all('SELECT r.*,u.name technician FROM lab_results r LEFT JOIN users u ON u.id=r.entered_by LEFT JOIN lab_params lp ON lp.id=r.param_id WHERE r.order_id=? ORDER BY coalesce(lp.seq, 100000), r.id', id);
+  o.results = all('SELECT r.*,u.name technician,lp.result_type param_type FROM lab_results r LEFT JOIN users u ON u.id=r.entered_by LEFT JOIN lab_params lp ON lp.id=r.param_id WHERE r.order_id=? ORDER BY coalesce(lp.seq, 100000), r.id', id);
   o.patient = patientCard(o.patient_id);
   o.params = o.params.map(p => { const range = rangeFor(p, o.patient); return {...p, ref_low: range.low, ref_high: range.high, ref_text: range.text || p.ref_text}; });
   // report header and footer only — never gateway keys
@@ -183,6 +183,8 @@ diagnostics.post('/lab/orders/:id/results', requirePerm('lab.result'), h((req) =
     for (const r of results) {
       const p = r.param_id ? get('SELECT * FROM lab_params WHERE id=?', num(r.param_id)) : null;
       if (r.param_id && (!p || p.service_id !== o.service_id)) fail(400,'lab_parameter_service_mismatch');
+      // a sub-heading carries no value: it is stored only so the report keeps its place in the print order
+      if (p?.result_type === 'heading') { insert('lab_results', { order_id: id, param_id: p.id, name: p.name, value: '', flag: '', entered_by: req.user.id }); continue; }
       let flag = r.flag ?? '';
       if (!['','low','high','critical'].includes(flag)) fail(400,'result_flag_invalid');
       const range = p ? rangeFor(p, pt) : null;
@@ -284,7 +286,7 @@ export function buildLabReport(id) {
        LEFT JOIN encounters e ON e.id=o.encounter_id LEFT JOIN users ed ON ed.id=e.doctor_id
        LEFT JOIN users v ON v.id=o.verified_by WHERE o.id=?`, id);
   if (!o) fail(404, 'order_not_found');
-  o.results = all('SELECT r.*,u.name technician FROM lab_results r LEFT JOIN users u ON u.id=r.entered_by LEFT JOIN lab_params lp ON lp.id=r.param_id WHERE r.order_id=? ORDER BY coalesce(lp.seq, 100000), r.id', id);
+  o.results = all('SELECT r.*,u.name technician,lp.result_type param_type FROM lab_results r LEFT JOIN users u ON u.id=r.entered_by LEFT JOIN lab_params lp ON lp.id=r.param_id WHERE r.order_id=? ORDER BY coalesce(lp.seq, 100000), r.id', id);
   o.result_guidance=resultGuidance(o.results,o.service_code);
   // "Referred by": the paper prescription / outside doctor when reception ordered it, else the ordering doctor
   o.referred_by_name = o.referred_by || (o.ordered_by_role === 'doctor' ? o.ordered_by_name : o.visit_doctor_name || o.visit_referred_by || o.ordered_by_name);
@@ -412,7 +414,7 @@ diagnostics.patch('/lab/tests/:id', requireAuth, h(req => {
 function parameterFields(b, before = {}) {
   const row = {};
   if ('result_type' in b) {
-    if (!['numeric', 'text'].includes(b.result_type)) fail(400, 'result_type_invalid');
+    if (!['numeric', 'text', 'heading'].includes(b.result_type)) fail(400, 'result_type_invalid');
     row.result_type = b.result_type;
   }
   for (const k of ['name','unit','ref_text','method','interpretation']) if (k in b) row[k] = String(b[k] || '').trim() || null;

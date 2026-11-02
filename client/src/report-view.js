@@ -33,7 +33,7 @@ else {
     const comment = r.test_comment ? `<div class="note"><b>${esc(r.test_comment_title || 'Interpretation')}</b>\n${esc(r.test_comment)}</div>` : '';
     return `${band}<h2>${esc(r.service_name)}</h2>
       <table><thead><tr><th>Test</th><th style="text-align:right">Result</th><th>Flag</th><th>Unit</th><th>Reference</th></tr></thead><tbody>
-      ${r.results.map((x) => `<tr><td>${esc(x.name)}${x.method ? `<div style="font-size:11px;color:var(--muted)">Method: ${esc(x.method)}</div>` : ''}</td>
+      ${r.results.map((x) => x.heading ? `<tr><td colspan="5" style="font-weight:700;padding-top:10px">${esc(x.name)}</td></tr>` : `<tr><td>${esc(x.name)}${x.method ? `<div style="font-size:11px;color:var(--muted)">Method: ${esc(x.method)}</div>` : ''}</td>
         <td class="num ${x.flag === 'critical' ? 'crit' : ''}">${esc(x.value)}</td><td class="flag ${x.flag === 'critical' ? 'crit' : ''}">${flagText(x.flag)}</td>
         <td>${esc(x.unit)}</td><td>${esc(refOnly(x))}</td></tr>`).join('')}
       </tbody></table>${r.lab_remarks ? `<div class="note"><b>Remarks</b>\n${esc(r.lab_remarks)}</div>` : ''}${comment}`;

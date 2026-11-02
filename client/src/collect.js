@@ -123,6 +123,14 @@ export async function collectBill(billId, after, { mode: preferMode = null, refe
           <button type="button" class="btn-secondary btn-sm" data-quick="cash">Full balance in cash</button>
           <button type="button" class="btn-secondary btn-sm" data-quick="upi">Full balance by UPI</button>
         </div>
+        ${!ip && due0 > 0.5 && can('payment.authorize') ? `<div class="mt-2 flex items-end gap-2 flex-wrap rounded-lg border border-outline-variant p-2.5" data-part-row>
+          <div><label class="field-label !mb-0.5">Patient pays only part now</label>
+            <input class="field field-sm !h-9 !w-32 text-right font-data-mono" type="number" min="0.01" step="0.01" max="${due0}" data-part placeholder="Amount" aria-label="Amount paid now"></div>
+          <select class="field field-sm !h-9 !w-auto" data-part-mode aria-label="Mode for the part payment"><option value="cash">Cash</option><option value="upi">UPI</option><option value="debit_card">Debit card</option><option value="credit_card">Credit card</option></select>
+          <button type="button" class="btn-secondary btn-sm" data-half>Half now</button>
+          <button type="button" class="btn-secondary btn-sm" data-part-go>Pay this, rest as approved due</button>
+          <span class="w-full text-body-sm text-on-surface-variant">The rest is recorded as an approved due (audited with your reason) and the services proceed; the balance stays on the patient's bill until collected.</span>
+        </div>` : ''}
       </div>
       <div class="flex items-center justify-between mb-1.5">
         <label class="field-label !mb-0">Payment lines</label>
@@ -248,6 +256,17 @@ export async function collectBill(billId, after, { mode: preferMode = null, refe
         setExtra(host.firstElementChild);
         validate();
       }));
+      const part = q('[data-part]');
+      q('[data-half]')?.addEventListener('click', () => { part.value = r2(due0 / 2); part.dispatchEvent(new Event('input')); });
+      q('[data-part-go]')?.addEventListener('click', () => {
+        const amt = r2(+part.value || 0);
+        if (!(amt > 0) || amt >= due0 - 0.005) { toast(`Enter an amount above 0 and below ${money(due0, 2)}`, 'warning'); part.focus(); return; }
+        host.innerHTML = lineHTML(q('[data-part-mode]').value, amt) + lineHTML('due', r2(due0 - amt));
+        [...host.children].forEach(setExtra);
+        const why = host.lastElementChild.querySelector('[data-reason]');
+        if (why) why.value = 'Patient paid part now; balance approved as due';
+        validate();
+      });
       const save = async () => {
         if (!validate()) return;
         const btn = q('[data-save]');
