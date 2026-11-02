@@ -114,11 +114,21 @@
                                                     "radiology_imaging",
                                                     "report_signing"
                                                 ],
-                                  "status":  "blocked",
-                                  "notes":  "Live reception Patients index showed 36 records and no 021-030 markers in loaded text. No allocated patients/workflows were written. Two successful login submissions occurred in separate contexts during this run; no further authentication planned. See SUR-10-lab-imaging-report.md.",
-                                  "createdPatients":  0,
-                                  "persistedLabImagingWorkflows":  0,
+                                  "status":  "partial",
+                                  "notes":  "UI-created and reopened 021-030 (10/10). One paper CBC for 021 was billed and paid with synthetic cash, sample collected, processed, 18 results entered and verified. One paper X-Ray Chest PA for 022 was billed and paid with synthetic cash; imaging remains ordered. Medical Superintendent imaging row exposed a denied Scan room control (reported to SUR-7). Doctor result visibility and radiology reporting/sign-off remain untested because the corresponding existing credentials were not verified. See SUR-10-lab-imaging-report.md and SUR-10-results.json.",
+                                  "createdPatients":  10,
+                                  "persistedLabImagingWorkflows":  2,
                                   "persistedIds":  [
+                                                       "SHMS-2627-0038",
+                                                       "SHMS-2627-0039",
+                                                       "SHMS-2627-0040",
+                                                       "SHMS-2627-0041",
+                                                       "SHMS-2627-0042",
+                                                       "SHMS-2627-0043",
+                                                       "SHMS-2627-0044",
+                                                       "SHMS-2627-0045",
+                                                       "SHMS-2627-0046",
+                                                       "SHMS-2627-0048"
 
                                                    ]
                               },
@@ -214,11 +224,11 @@
                                             "follow_up":  "pending"
                                         },
                             "021-030":  {
-                                            "registration":  "blocked",
-                                            "lab_orders":  "not_tested",
-                                            "sample_collection":  "not_tested",
-                                            "result_entry_verification":  "not_tested",
-                                            "imaging_signing":  "not_tested"
+                                            "registration":  "complete",
+                                            "lab_orders":  "partial: one CBC order created and paid",
+                                            "sample_collection":  "partial: one sample collected",
+                                            "result_entry_verification":  "partial: 18 CBC values saved and verified",
+                                            "imaging_signing":  "partial: one X-ray order created and paid; report/signing not tested"
                                         }
                         },
     "codeFixesUnderTest":  {

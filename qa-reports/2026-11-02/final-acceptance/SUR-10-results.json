@@ -1,0 +1,87 @@
+{
+  "task": "SUR-10",
+  "target": "http://127.0.0.1:4300",
+  "updatedAt": "2026-11-02T13:22:00Z",
+  "status": "partial",
+  "registration": {
+    "allocatedMarkers": [
+      "TEST-MGM-QA-021",
+      "TEST-MGM-QA-022",
+      "TEST-MGM-QA-023",
+      "TEST-MGM-QA-024",
+      "TEST-MGM-QA-025",
+      "TEST-MGM-QA-026",
+      "TEST-MGM-QA-027",
+      "TEST-MGM-QA-028",
+      "TEST-MGM-QA-029",
+      "TEST-MGM-QA-030"
+    ],
+    "createdAndReopened": 10,
+    "patients": [
+      {"marker":"TEST-MGM-QA-021","patientId":38,"uhid":"SHMS-2627-0038","encounter":"ENC-261102-00016"},
+      {"marker":"TEST-MGM-QA-022","patientId":39,"uhid":"SHMS-2627-0039","encounter":"ENC-261102-00018"},
+      {"marker":"TEST-MGM-QA-023","patientId":40,"uhid":"SHMS-2627-0040"},
+      {"marker":"TEST-MGM-QA-024","patientId":41,"uhid":"SHMS-2627-0041"},
+      {"marker":"TEST-MGM-QA-025","patientId":42,"uhid":"SHMS-2627-0042"},
+      {"marker":"TEST-MGM-QA-026","patientId":43,"uhid":"SHMS-2627-0043"},
+      {"marker":"TEST-MGM-QA-027","patientId":44,"uhid":"SHMS-2627-0044"},
+      {"marker":"TEST-MGM-QA-028","patientId":45,"uhid":"SHMS-2627-0045"},
+      {"marker":"TEST-MGM-QA-029","patientId":46,"uhid":"SHMS-2627-0046"},
+      {"marker":"TEST-MGM-QA-030","patientId":48,"uhid":"SHMS-2627-0048"}
+    ],
+    "liveIndexMarkersVerified": 10,
+    "preexistingMarkersBeforeCreation": 0
+  },
+  "diagnostics": {
+    "lab": {
+      "marker":"TEST-MGM-QA-021",
+      "orderNo":"ORD-261102-00003",
+      "billNo":"BL-261102-00004-SELF",
+      "amount":350,
+      "paymentMode":"cash",
+      "sampleId":"S2549288652",
+      "encounter":"ENC-261102-00016",
+      "consumablesConfigured":0,
+      "sampleCollected":true,
+      "processingStarted":true,
+      "resultParametersEntered":18,
+      "verified":true,
+      "printMode":"paper; no automatic barcode printing"
+    },
+    "imaging": {
+      "marker":"TEST-MGM-QA-022",
+      "orderNo":"ORD-261102-00004",
+      "billNo":"BL-261102-00006-SELF",
+      "encounter":"ENC-261102-00018",
+      "study":"X-Ray Chest PA",
+      "amount":400,
+      "paymentMode":"cash",
+      "paid":true,
+      "status":"ordered",
+      "reportAndSign":false
+    }
+  },
+  "confirmedBugs": [
+    {
+      "title":"Medical Superintendent imaging worklist exposes denied Scan room action",
+      "orderNo":"ORD-261102-00004",
+      "observation":"Existing Medical Superintendent session saw Scan room for an ORDERED study; one UI click showed Action could not be completed — forbidden and left the row ORDERED.",
+      "httpStatus":"not captured",
+      "evidence":"SUR-10-imaging-unauthorized-control.png",
+      "reportedTo":"SUR-7"
+    }
+  ],
+  "notTested": [
+    "doctor-facing released-result view (doctor credential unmatched)",
+    "imaging acquisition, report entry, sign-off and print preview (no verified radiology role login)",
+    "other nine allocated patients through lab/imaging orders"
+  ],
+  "screenshots": {
+    "patients":"SUR-10-021-patient.png through SUR-10-030-patient.png; SUR-10-patient-index-after.png",
+    "lab":"SUR-10-investigation-queue-before-payment.png; SUR-10-cash-collection-ready.png; SUR-10-cash-collection-saved.png; SUR-10-sample-collected.png; SUR-10-result-entry-filled.png; SUR-10-verified-result.png",
+    "imaging":"SUR-10-imaging-payment-saved.png; SUR-10-imaging-role-index.png; SUR-10-imaging-unauthorized-control.png"
+  },
+  "accountsOrRolesChanged":false,
+  "preexistingRecordsEdited":false,
+  "externalPaymentsOrPrinting":false
+}
