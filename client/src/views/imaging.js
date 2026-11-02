@@ -99,7 +99,7 @@ function rowHTML(r) {
     <td>${pill(r.status)}${r.report_status && r.report_status !== 'final' ? ` ${pill(r.report_status)}` : ''}</td>
     <td class="text-right whitespace-nowrap">
       ${r.status === 'ordered' && can('imaging.schedule') ? `<button class="btn-secondary btn-xs" data-act="schedule">Schedule</button>` : ''}
-      ${['ordered', 'scheduled'].includes(r.status) ? `<button class="btn-secondary btn-xs" data-act="start">Scan room</button>` : ''}
+      ${['ordered', 'scheduled'].includes(r.status) && can('order.update') ? `<button class="btn-secondary btn-xs" data-act="start">Scan room</button>` : ''}
       ${['in_progress', 'scheduled', 'reported'].includes(r.status) && can('imaging.report') ? `<button class="btn-primary btn-xs" data-act="report">${r.status === 'reported' ? (r.can_sign ? 'Edit / sign' : 'Edit draft') : 'Report'}</button>` : ''}
       ${r.status === 'verified' ? `<button class="btn-secondary btn-xs" data-act="print">Report</button>${r.can_sign ? '<button class="btn-primary btn-xs" data-act="report">Amend</button>' : ''}` : ''}
     </td>`;
