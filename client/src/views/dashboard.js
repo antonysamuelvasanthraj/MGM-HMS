@@ -1,3 +1,4 @@
+import { vitalsStation } from '../store.js';
 /**
  * Role dashboards. Each role lands on its own board, drawn from
  * /api/dashboard/role; the server decides what each role may see. Owners and
@@ -439,7 +440,7 @@ function reception(d, f) {
   const k = d.kpis, c = d.collection, Q = d.queues;
   const tabs = [['registration', 'Registration', Q.registration.length], ['vitals', 'Vitals', Q.vitals.length], ['doctor', 'Doctor', Q.doctor.length],
     ['lab', 'Lab payment', Q.lab.length], ['imaging', 'Imaging payment', Q.imaging.length], ['admission', 'Admission', Q.admission.length],
-    ['discharge', 'Discharge billing', Q.discharge.length], ['pending', 'Pending payments', Q.pending.length]];
+    ['discharge', 'Discharge billing', Q.discharge.length], ['pending', 'Pending payments', Q.pending.length]].filter(([k]) => k !== 'vitals' || vitalsStation());
   const ipRow = (a, bill) => `<tr><td class="font-data-mono text-body-sm">${esc(a.ip_no || '—')}</td><td>${who(a)}</td><td class="text-body-sm">${esc(a.doctor_name || '—')}</td>
     <td class="text-body-sm">${esc(a.ward || '')} ${esc(a.bed_no || '')}</td><td>${catPill(a.category)}</td><td>${pill(a.status)}</td>
     ${bill ? `<td class="num">${m2(a.total)}</td><td class="num">${m2(a.paid)}</td><td class="num font-semibold ${a.balance > 0 ? 'text-danger' : 'text-success'}">${a.balance < 0 ? `Adv ${m2(-a.balance)}` : m2(a.balance)}</td>` : ''}

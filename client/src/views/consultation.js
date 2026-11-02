@@ -1,3 +1,4 @@
+import { vitalsStation } from '../store.js';
 /**
  * Clinical consultation workspace.
  *
@@ -90,7 +91,7 @@ async function picker() {
           <div class="text-body-sm text-on-surface-variant">${esc(r.uhid)} · ${r.age_years ?? '—'}y ${esc(r.gender || '')}</div>
           <div class="text-body-sm text-on-surface-variant mt-1">${esc(r.doctor_name || '')}</div>
           <div class="flex items-center gap-1.5 mt-2">${pill(r.payment_status)}
-            ${r.vitals_count ? '<span class="pill-success pill-dot">Vitals</span>' : '<span class="pill-warning pill-dot">No vitals</span>'}
+            ${!vitalsStation() ? '' : r.vitals_count ? '<span class="pill-success pill-dot">Vitals</span>' : '<span class="pill-warning pill-dot">No vitals</span>'}
             ${r.allergy_count ? '<span class="pill-danger pill-dot">Allergy</span>' : ''}</div>
         </button>`).join('')}</div>`
       : emptyState('event_busy', 'No patients in your queue today', 'Registrations appear here as reception opens visits.',

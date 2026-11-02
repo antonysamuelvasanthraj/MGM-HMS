@@ -11,7 +11,7 @@
 import { api } from './api.js';
 import { modal, esc, money, toast, printDocument, uid, pill } from './ui.js';
 import { busy, apiError } from './views/_kit.js';
-import { can, setting, state } from './store.js';
+import { can, setting, state, vitalsStation } from './store.js';
 import { openPayerChange, canChangePayer } from './payer-change.js';
 
 export const MODES = {
@@ -83,7 +83,7 @@ export async function collectBill(billId, after, { mode: preferMode = null, refe
   const due0 = ip&&bill.package_usage?0:Math.max(0, bill.payer_pending > 0 ? bill.patient_due : bill.balance);
   // Optional direct-to-doctor: offered on an OP visit still waiting for vitals, when Settings allows it.
   // Unticked (the default) keeps the usual registration → vitals → doctor flow.
-  const directOffer = setting('op_direct_doctor_option', '1') !== '0' && setting('vitals_strict', '1') !== '1' && bill.encounter_id && bill.encounter_kind === 'OP'
+  const directOffer = setting('op_direct_doctor_option', '1') !== '0' && setting('vitals_strict', '1') !== '1' && vitalsStation() && bill.encounter_id && bill.encounter_kind === 'OP'
     && ['registered', 'vitals_pending'].includes(bill.encounter_stage) && !bill.direct_to_doctor;
   const key = `pay-${uid(12)}`;
   const patient = { payer_name: bill.payer_name };

@@ -83,6 +83,8 @@ export const departments = () => state.meta?.departments || [];
 export const counters = () => state.meta?.counters || [];
 export const services = (cat) => (state.meta?.services || []).filter((s) => !cat || s.category === cat);
 export const setting = (k, d = '') => state.meta?.settings?.[k] ?? d;
+/** Paper mode has no vitals station: nothing is recorded, shown or required before the doctor. */
+export const vitalsStation = () => setting('workflow_doctor', 'portal') !== 'manual';
 /** Barcode wristbands and sample tube labels belong to Paperless / Hybrid working; Paper mode writes them by hand. */
 /** Sample labels are optional in every mode (paper, paperless, hybrid): printed on demand, or automatically at collection when Settings says so. */
 export const autoPrintsSampleLabels = () => setting('lab_label_auto', '0') === '1';

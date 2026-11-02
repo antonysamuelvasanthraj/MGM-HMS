@@ -1,3 +1,4 @@
+import { vitalsStation } from '../store.js';
 /**
  * Visit Tracking — the reception board.
  *
@@ -133,7 +134,7 @@ function rowHTML(r) {
       <div class="text-label-sm text-on-surface-variant">${ago(r.opened_at)}</div></td>
     <td class="text-right whitespace-nowrap">
       ${r.due > 0 && can('payment.collect') ? `<button class="btn-secondary btn-xs" data-act="collect">Collect</button>` : ''}
-      ${!r.vitals_count && can('vitals.record') && !['closed', 'cancelled'].includes(r.stage)
+      ${!r.vitals_count && can('vitals.record') && vitalsStation() && !['closed', 'cancelled'].includes(r.stage)
         ? `<button class="btn-secondary btn-xs" data-act="vitals">Vitals</button>` : ''}
       <button class="btn-ghost btn-xs" data-act="open" title="Open visit"><span class="material-symbols-outlined text-[15px]">open_in_new</span></button>
     </td>`;

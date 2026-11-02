@@ -1,3 +1,4 @@
+import { vitalsStation } from '../store.js';
 /**
  * Doctor Queue — outpatient routing.
  *
@@ -168,7 +169,7 @@ function rowHTML(r) {
       <div class="text-label-sm text-on-surface-variant">${fmtTime(r.opened_at)}</div></td>
     <td class="text-right whitespace-nowrap">
       ${reasons.includes('Fee pending') && can('payment.collect') ? `<button class="btn-secondary btn-xs" data-act="collect">Collect fee</button>` : ''}
-      ${reasons.includes('Vitals not recorded') && can('vitals.record') ? `<button class="btn-secondary btn-xs" data-act="vitals">Vitals</button>` : ''}
+      ${reasons.includes('Vitals not recorded') && can('vitals.record') && vitalsStation() ? `<button class="btn-secondary btn-xs" data-act="vitals">Vitals</button>` : ''}
       ${!reasons.length && canCall() ? `<button class="btn-primary btn-xs" data-act="call">Call in</button>` : ''}
       <button class="btn-ghost btn-xs" data-act="visit" title="Open visit"><span class="material-symbols-outlined text-[15px]">open_in_new</span></button>
     </td>`;

@@ -1,3 +1,4 @@
+import { vitalsStation } from '../store.js';
 /**
  * Visit detail — the single place where one encounter's four state axes,
  * money, clinical record and service orders are all visible together.
@@ -80,7 +81,7 @@ function view(e) {
         <div class="space-y-5">
           ${card({
             title: 'Vitals',
-            actions: can('vitals.record') ? `<button class="btn-secondary btn-sm" data-vitals>
+            actions: can('vitals.record') && vitalsStation() ? `<button class="btn-secondary btn-sm" data-vitals>
               <span class="material-symbols-outlined text-[15px]">add</span> Record</button>` : '',
             body: e.vitals ? vitalsGrid(e.vitals) :
               `<p class="text-body-md text-on-surface-variant">No vitals recorded for this visit yet.</p>`,

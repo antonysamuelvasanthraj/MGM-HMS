@@ -210,7 +210,8 @@ export function callGate(enc) {
   if (enc.kind === 'EMG' || enc.priority === 'emergency') return { ok: true, reasons };
   const gatePay = setting('gate_doctor_on_payment') === '1';
   // strict vitals (default on): the doctor is never called before observations, in every mode
-  const gateVit = setting('gate_doctor_on_vitals') === '1' || setting('vitals_strict', '1') === '1';
+  // paper mode has no vitals station, so nothing is required there
+  const gateVit = (setting('gate_doctor_on_vitals') === '1' || setting('vitals_strict', '1') === '1') && setting('workflow_doctor', 'portal') !== 'manual';
   if (gatePay && !['paid', 'free', 'waived'].includes(enc.payment_status)
       && !one(`SELECT count(*) FROM bills WHERE encounter_id=? AND bill_type IN ('OP','IP') AND status<>'cancelled' AND authorization_status='approved'`, enc.id)) {
     reasons.push('Payment pending');
