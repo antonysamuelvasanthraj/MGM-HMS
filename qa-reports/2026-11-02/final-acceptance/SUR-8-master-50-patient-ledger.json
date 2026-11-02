@@ -17,8 +17,12 @@
       "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
       "newRecords": ["TEST-MGM-QA-011", "TEST-MGM-QA-012", "TEST-MGM-QA-013", "TEST-MGM-QA-014", "TEST-MGM-QA-015", "TEST-MGM-QA-016", "TEST-MGM-QA-017", "TEST-MGM-QA-018", "TEST-MGM-QA-019", "TEST-MGM-QA-020"],
       "workflows": ["opd_queue", "vitals", "doctor_consultation", "clinical_orders", "follow_up"],
-      "status": "ready",
-      "notes": "Reuse Block 1 patients for consultation, create new records for 011-020"
+      "status": "partial",
+      "createdPatients": 10,
+      "persistedOpEncounters": 10,
+      "persistedVitals": 10,
+      "persistedIds": ["SHMS-2627-0017", "SHMS-2627-0018", "SHMS-2627-0019", "SHMS-2627-0020", "SHMS-2627-0021", "SHMS-2627-0022", "SHMS-2627-0023", "SHMS-2627-0024", "SHMS-2627-0025", "SHMS-2627-0026"],
+      "notes": "011-020 created via UI; 10 OP encounters and vitals saved under admin-exercised functional coverage. Doctor notes, prescriptions, orders, follow-up, and doctor/nurse role verification remain untested. No OP fee configured; encounters registered approved free. See SUR-9-clinical-qa-report.md and SUR-9-results.json."
     },
     "block3": {
       "owner": "SUR-10 (Lab & Imaging QA)",
@@ -52,6 +56,15 @@
       "block3_lab_orders": "pending",
       "block4_prescriptions": "pending",
       "block5_billing": "pending"
+    },
+    "011-020": {
+      "registration": "complete",
+      "op_encounters": "complete",
+      "vitals": "complete",
+      "doctor_consultation_notes": "blocked",
+      "clinical_orders": "pending",
+      "prescriptions": "pending",
+      "follow_up": "pending"
     }
   },
   "codeFixesUnderTest": {

@@ -1,41 +1,55 @@
 {
   "task": "SUR-9",
-  "assignedMarkers": [
-    "TEST-MGM-QA-011",
-    "TEST-MGM-QA-020"
-  ],
-  "targetPerLatestParentDirective": "http://127.0.0.1:4388",
-  "isolatedTargetHttp": 200,
-  "isolatedAssignedMarkerCount": 0,
-  "patientsCreated": 0,
-  "operationalRecordsCreated": 0,
-  "persistedIds": [],
-  "campaignAccountRolePermissionChanges": false,
-  "live4300ReceptionRetest": {
-    "attempts": 1,
-    "result": "existing lockout message; stopped",
-    "evidence": [
-      "SUR-9-reception-retest-before.png",
-      "SUR-9-reception-retest-result.png"
-    ]
+  "target": "http://127.0.0.1:4300",
+  "updatedAt": "2026-11-02",
+  "status": "in_progress",
+  "assignment": {
+    "markers": ["TEST-MGM-QA-011", "TEST-MGM-QA-020"],
+    "markerSearchBeforeCreation": "No assigned markers found in Patients UI search",
+    "patientsCreatedThroughUi": 10,
+    "patientsPersistedAfterReload": 10,
+    "opEncountersCreatedThroughUi": 10,
+    "vitalsRecordsSavedThroughUi": 10,
+    "accountsRolesPermissionsChanged": false,
+    "preexistingRecordsModifiedByCampaign": false
   },
-  "isolatedRolesPresent": [
-    "admin",
-    "reception-test",
-    "nurse-test"
-  ],
-  "doctorAvailable": false,
-  "workflows": {
-    "registration": "blocked",
-    "nursingVitals": "blocked",
-    "consultation": "blocked",
-    "prescriptions": "blocked",
-    "clinicalOrders": "blocked",
-    "followUp": "blocked"
+  "roles": {
+    "reception": {"login": "passed", "httpStatus": 200, "landing": "/dashboard", "patientRegistration": "passed"},
+    "admin": {"login": "passed", "httpStatus": 200, "landing": "/dashboard", "clinicalUiCoverage": "admin-exercised within existing permissions"},
+    "doctor": {"loginOrPermissionVerification": "blocked; approved doctor credential remains unmatched"},
+    "nurse": {"loginOrPermissionVerification": "not tested; no approved current nurse credential row"}
   },
-  "rootCause": "unconfirmed; prior target/data-location divergence observed",
-  "latestOwnerDirection": "After natural cooldown, existing authorized admin may exercise clinical UI within current permissions; doctor-role login and permissions remain separate and blocked.",
-  "currentRunTarget": "http://127.0.0.1:4300",
-  "port4300LoginPage": {"httpStatus": 200, "usernameFieldRendered": true, "passwordFieldRendered": true, "credentialsSubmitted": false, "screenshot": "SUR-9-port4300-login-no-submit.png"},
-  "cooldown": {"lastCounted401Time": "unknown", "naturalExpiryConfirmed": false, "loginAttemptsThisUpdate": 0}
+  "records": [
+    {"marker":"TEST-MGM-QA-011","patientId":17,"uhid":"SHMS-2627-0017","encounter":"ENC-261102-00005","visitStage":"IN CONSULTATION","vitals":"saved"},
+    {"marker":"TEST-MGM-QA-012","patientId":18,"uhid":"SHMS-2627-0018","encounter":"ENC-261102-00006","visitStage":"READY FOR DOCTOR","vitals":"saved"},
+    {"marker":"TEST-MGM-QA-013","patientId":19,"uhid":"SHMS-2627-0019","encounter":"ENC-261102-00007","visitStage":"READY FOR DOCTOR","vitals":"saved"},
+    {"marker":"TEST-MGM-QA-014","patientId":20,"uhid":"SHMS-2627-0020","encounter":"ENC-261102-00008","visitStage":"READY FOR DOCTOR","vitals":"saved"},
+    {"marker":"TEST-MGM-QA-015","patientId":21,"uhid":"SHMS-2627-0021","encounter":"ENC-261102-00009","visitStage":"READY FOR DOCTOR","vitals":"saved"},
+    {"marker":"TEST-MGM-QA-016","patientId":22,"uhid":"SHMS-2627-0022","encounter":"ENC-261102-00010","visitStage":"READY FOR DOCTOR","vitals":"saved"},
+    {"marker":"TEST-MGM-QA-017","patientId":23,"uhid":"SHMS-2627-0023","encounter":"ENC-261102-00011","visitStage":"READY FOR DOCTOR","vitals":"saved"},
+    {"marker":"TEST-MGM-QA-018","patientId":24,"uhid":"SHMS-2627-0024","encounter":"ENC-261102-00012","visitStage":"READY FOR DOCTOR","vitals":"saved"},
+    {"marker":"TEST-MGM-QA-019","patientId":25,"uhid":"SHMS-2627-0025","encounter":"ENC-261102-00013","visitStage":"READY FOR DOCTOR","vitals":"saved"},
+    {"marker":"TEST-MGM-QA-020","patientId":26,"uhid":"SHMS-2627-0026","encounter":"ENC-261102-00014","visitStage":"READY FOR DOCTOR","vitals":"saved"}
+  ],
+  "workflowCoverage": {
+    "patientRegistrationAndReloadPersistence": "passed 10/10",
+    "opVisitRegistration": "passed 10/10; approved free because no OP fee is configured for selected doctor",
+    "vitalsEntry": "passed 10/10 through admin UI; values reopened and displayed on visit detail",
+    "queueReadiness": "passed; 9/10 ready for doctor, 011 was called in and remains in consultation",
+    "doctorConsultationNotes": "blocked/not completed; doctor role unavailable and admin view showed no note entry control",
+    "prescriptions": "not tested",
+    "clinicalOrders": "not tested",
+    "followUp": "not tested",
+    "nurseRoleCoverage": "not tested",
+    "billingOrPayments": "not created; no payment gateway used"
+  },
+  "observations": [
+    "New OP visit flow showed no OP fee configured for Consultant Doctor — General Medicine and registered the visits as approved free.",
+    "No consultation notes, prescriptions, clinical orders, or follow-up records were created.",
+    "An admin-exercised Call in action moved encounter ENC-261102-00005 to IN CONSULTATION; no consultation was documented."
+  ],
+  "evidenceDirectory": "E:/MGM HMS/qa-reports/2026-11-02/final-acceptance",
+  "evidence": ["SUR-9-login-dashboard.png", "SUR-9-admin-dashboard.png", "SUR-9-patients-before.png", "SUR-9-visit-queue-final.png", "SUR-9-patient-012-vitals-persisted.png", "SUR-9-patient-011-vitals-saved.png"],
+  "confirmedBugs": [],
+  "loginAttemptsAfterCooldownClearance": {"reception": 1, "admin": 1, "failed": 0}
 }
