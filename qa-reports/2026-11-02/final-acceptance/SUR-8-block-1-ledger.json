@@ -1,0 +1,91 @@
+{
+  "campaignId": "SUR-8-Block-1",
+  "timestamp": "2026-11-02T12:32:01.544Z",
+  "results": [
+    {
+      "marker": "TEST-MGM-QA-001",
+      "timestamp": "2026-11-02T12:31:18.760Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    },
+    {
+      "marker": "TEST-MGM-QA-002",
+      "timestamp": "2026-11-02T12:31:23.071Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    },
+    {
+      "marker": "TEST-MGM-QA-003",
+      "timestamp": "2026-11-02T12:31:27.401Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    },
+    {
+      "marker": "TEST-MGM-QA-004",
+      "timestamp": "2026-11-02T12:31:31.725Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    },
+    {
+      "marker": "TEST-MGM-QA-005",
+      "timestamp": "2026-11-02T12:31:35.991Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    },
+    {
+      "marker": "TEST-MGM-QA-006",
+      "timestamp": "2026-11-02T12:31:40.217Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    },
+    {
+      "marker": "TEST-MGM-QA-007",
+      "timestamp": "2026-11-02T12:31:44.465Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    },
+    {
+      "marker": "TEST-MGM-QA-008",
+      "timestamp": "2026-11-02T12:31:48.760Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    },
+    {
+      "marker": "TEST-MGM-QA-009",
+      "timestamp": "2026-11-02T12:31:53.075Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    },
+    {
+      "marker": "TEST-MGM-QA-010",
+      "timestamp": "2026-11-02T12:31:57.320Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "registered": 10,
+    "failed": 0
+  }
+}

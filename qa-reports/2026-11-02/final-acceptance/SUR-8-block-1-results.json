@@ -1,0 +1,26 @@
+[
+  {
+    "marker": "TEST-MGM-QA-001",
+    "timestamp": "2026-11-02T12:29:35.296Z",
+    "patientId": null,
+    "uhid": "when",
+    "status": "registered",
+    "error": null
+  },
+  {
+    "marker": "TEST-MGM-QA-002",
+    "timestamp": "2026-11-02T12:29:39.141Z",
+    "patientId": null,
+    "uhid": null,
+    "status": "failed",
+    "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"New patient\")').first()\u001b[22m\n\u001b[2m    - locator resolved to <button data-new=\"\" class=\"btn-primary\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-close=\"\" class=\"absolute inset-0 bg-[#172B4D]/45\"></div> from <div id=\"modal-root\" class=\"fixed inset-0 z-[80]\" data-modal-token=\"5ff75f640736899731a61c5c22e842e1\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-close=\"\" class=\"absolute inset-0 bg-[#172B4D]/45\"></div> from <div id=\"modal-root\" class=\"fixed inset-0 z-[80]\" data-modal-token=\"5ff75f640736899731a61c5c22e842e1\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    55 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div data-close=\"\" class=\"absolute inset-0 bg-[#172B4D]/45\"></div> from <div id=\"modal-root\" class=\"fixed inset-0 z-[80]\" data-modal-token=\"5ff75f640736899731a61c5c22e842e1\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+  },
+  {
+    "marker": "TEST-MGM-QA-003",
+    "timestamp": "2026-11-02T12:30:09.404Z",
+    "patientId": null,
+    "uhid": null,
+    "status": "failed",
+    "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"New patient\")').first()\u001b[22m\n\u001b[2m    - locator resolved to <button data-new=\"\" class=\"btn-primary\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-close=\"\" class=\"absolute inset-0 bg-[#172B4D]/45\"></div> from <div id=\"modal-root\" class=\"fixed inset-0 z-[80]\" data-modal-token=\"5ff75f640736899731a61c5c22e842e1\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-close=\"\" class=\"absolute inset-0 bg-[#172B4D]/45\"></div> from <div id=\"modal-root\" class=\"fixed inset-0 z-[80]\" data-modal-token=\"5ff75f640736899731a61c5c22e842e1\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    55 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div data-close=\"\" class=\"absolute inset-0 bg-[#172B4D]/45\"></div> from <div id=\"modal-root\" class=\"fixed inset-0 z-[80]\" data-modal-token=\"5ff75f640736899731a61c5c22e842e1\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+  }
+]

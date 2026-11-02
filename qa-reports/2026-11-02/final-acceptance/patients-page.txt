@@ -1,0 +1,351 @@
+
+
+
+
+
+
+
+  
+  
+    
+      
+        
+      
+      
+        MGM HMS
+        Srikalahasthi · Multi-speciality
+      
+    
+
+    
+      Overviewexpand_more
+      
+      
+          space_dashboard
+          Dashboard
+          
+        
+          forum
+          Team Chat & Tasks
+          
+        
+          badge
+          Roster & Attendance
+          
+        
+          handyman
+          Stores & Materials
+          
+        
+          build
+          Maintenance & Assets
+          
+        
+      
+    
+      Reception & OPDexpand_more
+      
+      
+          point_of_sale
+          Reception Billing
+          
+        
+          person_search
+          Patients
+          
+        
+          calendar_month
+          Appointments
+          
+        
+          timeline
+          Visit Tracking
+          
+        
+      
+    
+      Clinicalexpand_more
+      
+      
+          assignment
+          Clinical Orders
+          
+        
+          verified_user
+          Certificates
+          
+        
+      
+    
+      IPDexpand_more
+      
+      
+          hotel
+          Admissions & Beds
+          
+        
+          logout
+          Discharge
+          
+        
+          cleaning_services
+          Beds to clean
+          
+        
+      
+    
+      Diagnosticsexpand_more
+      
+      
+          science
+          Laboratory
+          
+        
+          local_shipping
+          Outsourcing
+          
+        
+          crisis_alert
+          Critical Results
+          
+        
+          inventory_2
+          Lab Store
+          
+        
+          radiology
+          Imaging
+          
+        
+      
+    
+      Billing & Insuranceexpand_more
+      
+      
+          summarize
+          Day Close & Handover
+          
+        
+          summarize
+          Reception Reports
+          
+        
+          health_and_safety
+          Insurance & Payers
+          
+        
+          handshake
+          Payers & TPAs
+          
+        
+          sms
+          Patient Messages
+          
+        
+          inventory
+          Packages
+          
+        
+      
+    
+      Financeexpand_more
+      
+      
+          balance
+          Counter Closing
+          
+        
+      
+    
+      Administrationexpand_more
+      
+      
+          key
+          My Access
+          
+        
+      
+    
+
+    
+      
+        left_panel_close
+        Collapse
+      
+    
+  
+
+  
+  
+
+    
+      
+        
+          menu
+        
+
+        
+          Reception & OPD
+    chevron_right
+    Patients
+          Patients
+        
+
+        
+          search
+          
+          Ctrl K
+          
+        
+
+        
+          
+            scienceDemo environment
+          
+            schedule
+            02 Nov, 05:59 pm
+          
+          
+            
+            Live · 1 online
+          
+          
+            cloud_sync
+            0
+          
+          
+            notifications
+            
+          
+          
+          
+            FO
+            
+              Front Office
+              Front Office — Reception, Billing & Cashier
+            
+            expand_more
+          
+        
+      
+    
+
+    
+  
+    
+      
+        
+     folder_sharedMaster patient index Live
+        Patient Search & Registration· 0 patients · 0 today
+        Find a patient, or register a new one.
+      
+      download Export
+      Referrers
+      Referral report
+      person_add New patient
+    
+    
+    
+      
+    
+      
+        Patients on file
+        0
+      
+      
+        groups
+    
+    
+      0 total UHIDs
+      
+    
+  
+    
+      
+        Registered today
+        0
+      
+      
+        person_add
+    
+    
+      0 this month
+      
+    
+  
+    
+      
+        Non self-pay
+        0
+      
+      
+        health_and_safety
+    
+    
+      Insurance, corporate or scheme
+      
+    
+  
+    
+      
+        ABHA linked
+        0
+      
+      
+        qr_code
+    
+    
+      0% of records
+      
+    
+  
+      
+    
+      Search
+      
+        search
+        
+      
+    Gender
+    
+      AnyMaleFemaleOther
+    
+    Payer
+    
+      Any payerSelf payInsuranceCorporateAarogyasri / schemeCreditTrust
+    
+    Registered
+    
+      Any timeToday
+    
+    
+    
+  
+      
+    
+      
+        Patients
+        
+      
+      0 shown
+    
+    
+      
+        UHIDPatientContactPayerVisitsLast visitOutstanding
+        
+      inboxNo patients yet.
+      
+  
+  
+  
+
+
+
+
+
+
+
+
+
+
+

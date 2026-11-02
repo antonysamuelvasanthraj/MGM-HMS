@@ -1,0 +1,15 @@
+﻿import { chromium } from 'file:///C:/Users/SAMUEL/Documents/Codex/2026-11-02/referenced-chatgpt-conversation-this-is-an/work/mgm-browser/node_modules/playwright-core/index.mjs';
+import fs from 'node:fs';
+const lines=fs.readFileSync('DEMO-LOGINS.local.md','utf8').split(/\r?\n/);
+const row=[...lines].reverse().find(x=>x.includes('`reception`')&&x.includes('`Reception@123`'));
+const password=row?.match(/`reception`\s*\|\s*`([^`]+)`/)?.[1];
+if(!password) throw new Error('Could not resolve reception credential privately');
+const b=await chromium.launch({channel:'chrome',headless:true});const c=await b.newContext();const p=await c.newPage();
+await p.goto('http://127.0.0.1:4300',{waitUntil:'domcontentloaded'});
+const inputs=await p.locator('input').evaluateAll(es=>es.map(e=>({type:e.type,placeholder:e.placeholder,name:e.name,id:e.id,aria:e.getAttribute('aria-label')})));console.log('inputs',JSON.stringify(inputs));
+const login=p.locator('input').filter({hasNot:p.locator('x')});
+const user=p.locator('input').nth(0);const pass=p.locator('input[type=password]');
+await user.fill('reception');await pass.fill(password);await p.getByRole('button',{name:/sign in/i}).click();
+await p.waitForTimeout(900);console.log('url',p.url());console.log((await p.locator('body').innerText()).slice(0,1500));
+await p.screenshot({path:'qa-reports/2026-11-02/final-acceptance/SUR-12-reception-login.png',fullPage:true});
+await b.close();

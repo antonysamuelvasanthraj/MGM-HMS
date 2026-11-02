@@ -1,0 +1,363 @@
+<!DOCTYPE html><html lang="en" class="h-full" data-theme="calm"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#062F5C">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('hms_theme')||'calm';}catch{document.documentElement.dataset.theme='calm';}</script>
+<title>Patients · MGM HMS</title>
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body class="h-full">
+
+<!-- Sign-in gate; the shell only renders once a session exists -->
+<div id="auth-gate" class="hidden fixed inset-0 z-[100] bg-brand-dark"></div>
+
+<div id="app-shell" class="">
+
+  <!-- ------------------------------------------------------------ rail -->
+  <aside id="sidebar" class="text-white">
+    <div class="h-16 flex items-center gap-2.5 px-4 border-b border-white/10 shrink-0">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(195,162,86,0.18);border:1px solid rgba(195,162,86,0.35)">
+        <img src="/assets/mgm-hospital-logo.png" alt="MGM Hospitals" style="width:32px;height:24px;object-fit:contain;background:white;border-radius:3px">
+      </div>
+      <div class="nav-label min-w-0">
+        <div class="font-headline-md text-headline-md leading-none tracking-tight">MGM HMS</div>
+        <div class="font-label-sm text-label-sm truncate mt-0.5" style="color:rgba(195,162,86,0.75)" id="rail-campus">Srikalahasthi · Multi-speciality</div>
+      </div>
+    </div>
+
+    <nav id="nav" class="flex-1 overflow-y-auto py-1" aria-label="Main" data-render-signature="[&quot;&lt;div class=\&quot;nav-group\&quot; data-group=\&quot;Overview\&quot;&gt;\n      &lt;button type=\&quot;button\&quot; class=\&quot;nav-section nav-fold\&quot; data-fold aria-expanded=\&quot;true\&quot;&gt;Overview&lt;span class=\&quot;material-symbols-outlined nav-chevron\&quot;&gt;expand_more&lt;/span&gt;&lt;/button&gt;\n      &lt;div class=\&quot;nav-items\&quot;&gt;&lt;div&gt;\n      &lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/dashboard\&quot; \n                   href=\&quot;/dashboard\&quot; title=\&quot;Dashboard\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;space_dashboard&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Dashboard&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/staff-workspace\&quot; \n                   href=\&quot;/staff-workspace\&quot; title=\&quot;Team Chat &amp;amp; Tasks\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;forum&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Team Chat &amp;amp; Tasks&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/attendance\&quot; \n                   href=\&quot;/attendance\&quot; title=\&quot;Roster &amp;amp; Attendance\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;badge&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Roster &amp;amp; Attendance&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/stores\&quot; \n                   href=\&quot;/stores\&quot; title=\&quot;Stores &amp;amp; Materials\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;handyman&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Stores &amp;amp; Materials&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/maintenance\&quot; \n                   href=\&quot;/maintenance\&quot; title=\&quot;Maintenance &amp;amp; Assets\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;build&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Maintenance &amp;amp; Assets&lt;/span&gt;\n          \n        &lt;/a&gt;\n      &lt;/div&gt;&lt;/div&gt;\n    &lt;/div&gt;&lt;div class=\&quot;nav-group is-folded\&quot; data-group=\&quot;Reception &amp;amp; OPD\&quot;&gt;\n      &lt;button type=\&quot;button\&quot; class=\&quot;nav-section nav-fold\&quot; data-fold aria-expanded=\&quot;false\&quot;&gt;Reception &amp;amp; OPD&lt;span class=\&quot;material-symbols-outlined nav-chevron\&quot;&gt;expand_more&lt;/span&gt;&lt;/button&gt;\n      &lt;div class=\&quot;nav-items\&quot;&gt;&lt;div&gt;\n      &lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/billing-desk?desk=reception\&quot; \n                   href=\&quot;/billing-desk?desk=reception\&quot; title=\&quot;Reception Billing\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;point_of_sale&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Reception Billing&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/patients\&quot; \n                   href=\&quot;/patients\&quot; title=\&quot;Patients\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;person_search&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Patients&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/appointments\&quot; \n                   href=\&quot;/appointments\&quot; title=\&quot;Appointments\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;calendar_month&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Appointments&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/visit-tracking\&quot; \n                   href=\&quot;/visit-tracking\&quot; title=\&quot;Visit Tracking\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;timeline&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Visit Tracking&lt;/span&gt;\n          \n        &lt;/a&gt;\n      &lt;/div&gt;&lt;/div&gt;\n    &lt;/div&gt;&lt;div class=\&quot;nav-group is-folded\&quot; data-group=\&quot;Clinical\&quot;&gt;\n      &lt;button type=\&quot;button\&quot; class=\&quot;nav-section nav-fold\&quot; data-fold aria-expanded=\&quot;false\&quot;&gt;Clinical&lt;span class=\&quot;material-symbols-outlined nav-chevron\&quot;&gt;expand_more&lt;/span&gt;&lt;/button&gt;\n      &lt;div class=\&quot;nav-items\&quot;&gt;&lt;div&gt;\n      &lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/orders\&quot; \n                   href=\&quot;/orders\&quot; title=\&quot;Clinical Orders\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;assignment&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Clinical Orders&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/certificates\&quot; \n                   href=\&quot;/certificates\&quot; title=\&quot;Certificates\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;verified_user&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Certificates&lt;/span&gt;\n          \n        &lt;/a&gt;\n      &lt;/div&gt;&lt;/div&gt;\n    &lt;/div&gt;&lt;div class=\&quot;nav-group is-folded\&quot; data-group=\&quot;IPD\&quot;&gt;\n      &lt;button type=\&quot;button\&quot; class=\&quot;nav-section nav-fold\&quot; data-fold aria-expanded=\&quot;false\&quot;&gt;IPD&lt;span class=\&quot;material-symbols-outlined nav-chevron\&quot;&gt;expand_more&lt;/span&gt;&lt;/button&gt;\n      &lt;div class=\&quot;nav-items\&quot;&gt;&lt;div&gt;\n      &lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/admissions\&quot; \n                   href=\&quot;/admissions\&quot; title=\&quot;Admissions &amp;amp; Beds\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;hotel&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Admissions &amp;amp; Beds&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/discharge\&quot; \n                   href=\&quot;/discharge\&quot; title=\&quot;Discharge\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;logout&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Discharge&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/housekeeping\&quot; \n                   href=\&quot;/housekeeping\&quot; title=\&quot;Beds to clean\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;cleaning_services&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Beds to clean&lt;/span&gt;\n          \n        &lt;/a&gt;\n      &lt;/div&gt;&lt;/div&gt;\n    &lt;/div&gt;&lt;div class=\&quot;nav-group is-folded\&quot; data-group=\&quot;Diagnostics\&quot;&gt;\n      &lt;button type=\&quot;button\&quot; class=\&quot;nav-section nav-fold\&quot; data-fold aria-expanded=\&quot;false\&quot;&gt;Diagnostics&lt;span class=\&quot;material-symbols-outlined nav-chevron\&quot;&gt;expand_more&lt;/span&gt;&lt;/button&gt;\n      &lt;div class=\&quot;nav-items\&quot;&gt;&lt;div&gt;\n      &lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/laboratory\&quot; \n                   href=\&quot;/laboratory\&quot; title=\&quot;Laboratory\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;science&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Laboratory&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/outsourcing\&quot; \n                   href=\&quot;/outsourcing\&quot; title=\&quot;Outsourcing\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;local_shipping&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Outsourcing&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/critical-results\&quot; \n                   href=\&quot;/critical-results\&quot; title=\&quot;Critical Results\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;crisis_alert&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Critical Results&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/lab-store\&quot; \n                   href=\&quot;/lab-store\&quot; title=\&quot;Lab Store\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;inventory_2&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Lab Store&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/imaging\&quot; \n                   href=\&quot;/imaging\&quot; title=\&quot;Imaging\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;radiology&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Imaging&lt;/span&gt;\n          \n        &lt;/a&gt;\n      &lt;/div&gt;&lt;/div&gt;\n    &lt;/div&gt;&lt;div class=\&quot;nav-group\&quot; data-group=\&quot;Billing &amp;amp; Insurance\&quot;&gt;\n      &lt;button type=\&quot;button\&quot; class=\&quot;nav-section nav-fold\&quot; data-fold aria-expanded=\&quot;true\&quot;&gt;Billing &amp;amp; Insurance&lt;span class=\&quot;material-symbols-outlined nav-chevron\&quot;&gt;expand_more&lt;/span&gt;&lt;/button&gt;\n      &lt;div class=\&quot;nav-items\&quot;&gt;&lt;div&gt;\n      &lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/day-report\&quot; \n                   href=\&quot;/day-report\&quot; title=\&quot;Day Close &amp;amp; Handover\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;summarize&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Day Close &amp;amp; Handover&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/reports?group=Reception\&quot; \n                   href=\&quot;/reports?group=Reception\&quot; title=\&quot;Reception Reports\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;summarize&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Reception Reports&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/insurance\&quot; \n                   href=\&quot;/insurance\&quot; title=\&quot;Insurance &amp;amp; Payers\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;health_and_safety&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Insurance &amp;amp; Payers&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/payers\&quot; \n                   href=\&quot;/payers\&quot; title=\&quot;Payers &amp;amp; TPAs\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;handshake&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Payers &amp;amp; TPAs&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/messages\&quot; \n                   href=\&quot;/messages\&quot; title=\&quot;Patient Messages\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;sms&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Patient Messages&lt;/span&gt;\n          \n        &lt;/a&gt;&lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/packages\&quot; \n                   href=\&quot;/packages\&quot; title=\&quot;Packages\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;inventory&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Packages&lt;/span&gt;\n          \n        &lt;/a&gt;\n      &lt;/div&gt;&lt;/div&gt;\n    &lt;/div&gt;&lt;div class=\&quot;nav-group is-folded\&quot; data-group=\&quot;Finance\&quot;&gt;\n      &lt;button type=\&quot;button\&quot; class=\&quot;nav-section nav-fold\&quot; data-fold aria-expanded=\&quot;false\&quot;&gt;Finance&lt;span class=\&quot;material-symbols-outlined nav-chevron\&quot;&gt;expand_more&lt;/span&gt;&lt;/button&gt;\n      &lt;div class=\&quot;nav-items\&quot;&gt;&lt;div&gt;\n      &lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/counter-reconciliation\&quot; \n                   href=\&quot;/counter-reconciliation\&quot; title=\&quot;Counter Closing\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;balance&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;Counter Closing&lt;/span&gt;\n          \n        &lt;/a&gt;\n      &lt;/div&gt;&lt;/div&gt;\n    &lt;/div&gt;&lt;div class=\&quot;nav-group is-folded\&quot; data-group=\&quot;Administration\&quot;&gt;\n      &lt;button type=\&quot;button\&quot; class=\&quot;nav-section nav-fold\&quot; data-fold aria-expanded=\&quot;false\&quot;&gt;Administration&lt;span class=\&quot;material-symbols-outlined nav-chevron\&quot;&gt;expand_more&lt;/span&gt;&lt;/button&gt;\n      &lt;div class=\&quot;nav-items\&quot;&gt;&lt;div&gt;\n      &lt;a class=\&quot;nav-item\&quot; data-route=\&quot;/my-access\&quot; \n                   href=\&quot;/my-access\&quot; title=\&quot;My Access\&quot;&gt;\n          &lt;span class=\&quot;material-symbols-outlined text-[18px] shrink-0\&quot;&gt;key&lt;/span&gt;\n          &lt;span class=\&quot;nav-label flex-1 truncate\&quot;&gt;My Access&lt;/span&gt;\n          \n        &lt;/a&gt;\n      &lt;/div&gt;&lt;/div&gt;\n    &lt;/div&gt;&quot;,null]"><div class="nav-group" data-group="Overview">
+      <button type="button" class="nav-section nav-fold" data-fold="" aria-expanded="true">Overview<span class="material-symbols-outlined nav-chevron">expand_more</span></button>
+      <div class="nav-items"><div>
+      <a class="nav-item" data-route="/dashboard" href="/dashboard" title="Dashboard">
+          <span class="material-symbols-outlined text-[18px] shrink-0">space_dashboard</span>
+          <span class="nav-label flex-1 truncate">Dashboard</span>
+          
+        </a><a class="nav-item" data-route="/staff-workspace" href="/staff-workspace" title="Team Chat &amp; Tasks">
+          <span class="material-symbols-outlined text-[18px] shrink-0">forum</span>
+          <span class="nav-label flex-1 truncate">Team Chat &amp; Tasks</span>
+          
+        </a><a class="nav-item" data-route="/attendance" href="/attendance" title="Roster &amp; Attendance">
+          <span class="material-symbols-outlined text-[18px] shrink-0">badge</span>
+          <span class="nav-label flex-1 truncate">Roster &amp; Attendance</span>
+          
+        </a><a class="nav-item" data-route="/stores" href="/stores" title="Stores &amp; Materials">
+          <span class="material-symbols-outlined text-[18px] shrink-0">handyman</span>
+          <span class="nav-label flex-1 truncate">Stores &amp; Materials</span>
+          
+        </a><a class="nav-item" data-route="/maintenance" href="/maintenance" title="Maintenance &amp; Assets">
+          <span class="material-symbols-outlined text-[18px] shrink-0">build</span>
+          <span class="nav-label flex-1 truncate">Maintenance &amp; Assets</span>
+          
+        </a>
+      </div></div>
+    </div><div class="nav-group" data-group="Reception &amp; OPD">
+      <button type="button" class="nav-section nav-fold" data-fold="" aria-expanded="true">Reception &amp; OPD<span class="material-symbols-outlined nav-chevron">expand_more</span></button>
+      <div class="nav-items"><div>
+      <a class="nav-item" data-route="/billing-desk?desk=reception" href="/billing-desk?desk=reception" title="Reception Billing">
+          <span class="material-symbols-outlined text-[18px] shrink-0">point_of_sale</span>
+          <span class="nav-label flex-1 truncate">Reception Billing</span>
+          
+        </a><a class="nav-item active" data-route="/patients" href="/patients" title="Patients">
+          <span class="material-symbols-outlined text-[18px] shrink-0">person_search</span>
+          <span class="nav-label flex-1 truncate">Patients</span>
+          
+        </a><a class="nav-item" data-route="/appointments" href="/appointments" title="Appointments">
+          <span class="material-symbols-outlined text-[18px] shrink-0">calendar_month</span>
+          <span class="nav-label flex-1 truncate">Appointments</span>
+          
+        </a><a class="nav-item" data-route="/visit-tracking" href="/visit-tracking" title="Visit Tracking">
+          <span class="material-symbols-outlined text-[18px] shrink-0">timeline</span>
+          <span class="nav-label flex-1 truncate">Visit Tracking</span>
+          
+        </a>
+      </div></div>
+    </div><div class="nav-group is-folded" data-group="Clinical">
+      <button type="button" class="nav-section nav-fold" data-fold="" aria-expanded="false">Clinical<span class="material-symbols-outlined nav-chevron">expand_more</span></button>
+      <div class="nav-items"><div>
+      <a class="nav-item" data-route="/orders" href="/orders" title="Clinical Orders">
+          <span class="material-symbols-outlined text-[18px] shrink-0">assignment</span>
+          <span class="nav-label flex-1 truncate">Clinical Orders</span>
+          
+        </a><a class="nav-item" data-route="/certificates" href="/certificates" title="Certificates">
+          <span class="material-symbols-outlined text-[18px] shrink-0">verified_user</span>
+          <span class="nav-label flex-1 truncate">Certificates</span>
+          
+        </a>
+      </div></div>
+    </div><div class="nav-group is-folded" data-group="IPD">
+      <button type="button" class="nav-section nav-fold" data-fold="" aria-expanded="false">IPD<span class="material-symbols-outlined nav-chevron">expand_more</span></button>
+      <div class="nav-items"><div>
+      <a class="nav-item" data-route="/admissions" href="/admissions" title="Admissions &amp; Beds">
+          <span class="material-symbols-outlined text-[18px] shrink-0">hotel</span>
+          <span class="nav-label flex-1 truncate">Admissions &amp; Beds</span>
+          
+        </a><a class="nav-item" data-route="/discharge" href="/discharge" title="Discharge">
+          <span class="material-symbols-outlined text-[18px] shrink-0">logout</span>
+          <span class="nav-label flex-1 truncate">Discharge</span>
+          
+        </a><a class="nav-item" data-route="/housekeeping" href="/housekeeping" title="Beds to clean">
+          <span class="material-symbols-outlined text-[18px] shrink-0">cleaning_services</span>
+          <span class="nav-label flex-1 truncate">Beds to clean</span>
+          
+        </a>
+      </div></div>
+    </div><div class="nav-group is-folded" data-group="Diagnostics">
+      <button type="button" class="nav-section nav-fold" data-fold="" aria-expanded="false">Diagnostics<span class="material-symbols-outlined nav-chevron">expand_more</span></button>
+      <div class="nav-items"><div>
+      <a class="nav-item" data-route="/laboratory" href="/laboratory" title="Laboratory">
+          <span class="material-symbols-outlined text-[18px] shrink-0">science</span>
+          <span class="nav-label flex-1 truncate">Laboratory</span>
+          
+        </a><a class="nav-item" data-route="/outsourcing" href="/outsourcing" title="Outsourcing">
+          <span class="material-symbols-outlined text-[18px] shrink-0">local_shipping</span>
+          <span class="nav-label flex-1 truncate">Outsourcing</span>
+          
+        </a><a class="nav-item" data-route="/critical-results" href="/critical-results" title="Critical Results">
+          <span class="material-symbols-outlined text-[18px] shrink-0">crisis_alert</span>
+          <span class="nav-label flex-1 truncate">Critical Results</span>
+          
+        </a><a class="nav-item" data-route="/lab-store" href="/lab-store" title="Lab Store">
+          <span class="material-symbols-outlined text-[18px] shrink-0">inventory_2</span>
+          <span class="nav-label flex-1 truncate">Lab Store</span>
+          
+        </a><a class="nav-item" data-route="/imaging" href="/imaging" title="Imaging">
+          <span class="material-symbols-outlined text-[18px] shrink-0">radiology</span>
+          <span class="nav-label flex-1 truncate">Imaging</span>
+          
+        </a>
+      </div></div>
+    </div><div class="nav-group" data-group="Billing &amp; Insurance">
+      <button type="button" class="nav-section nav-fold" data-fold="" aria-expanded="true">Billing &amp; Insurance<span class="material-symbols-outlined nav-chevron">expand_more</span></button>
+      <div class="nav-items"><div>
+      <a class="nav-item" data-route="/day-report" href="/day-report" title="Day Close &amp; Handover">
+          <span class="material-symbols-outlined text-[18px] shrink-0">summarize</span>
+          <span class="nav-label flex-1 truncate">Day Close &amp; Handover</span>
+          
+        </a><a class="nav-item" data-route="/reports?group=Reception" href="/reports?group=Reception" title="Reception Reports">
+          <span class="material-symbols-outlined text-[18px] shrink-0">summarize</span>
+          <span class="nav-label flex-1 truncate">Reception Reports</span>
+          
+        </a><a class="nav-item" data-route="/insurance" href="/insurance" title="Insurance &amp; Payers">
+          <span class="material-symbols-outlined text-[18px] shrink-0">health_and_safety</span>
+          <span class="nav-label flex-1 truncate">Insurance &amp; Payers</span>
+          
+        </a><a class="nav-item" data-route="/payers" href="/payers" title="Payers &amp; TPAs">
+          <span class="material-symbols-outlined text-[18px] shrink-0">handshake</span>
+          <span class="nav-label flex-1 truncate">Payers &amp; TPAs</span>
+          
+        </a><a class="nav-item" data-route="/messages" href="/messages" title="Patient Messages">
+          <span class="material-symbols-outlined text-[18px] shrink-0">sms</span>
+          <span class="nav-label flex-1 truncate">Patient Messages</span>
+          
+        </a><a class="nav-item" data-route="/packages" href="/packages" title="Packages">
+          <span class="material-symbols-outlined text-[18px] shrink-0">inventory</span>
+          <span class="nav-label flex-1 truncate">Packages</span>
+          
+        </a>
+      </div></div>
+    </div><div class="nav-group is-folded" data-group="Finance">
+      <button type="button" class="nav-section nav-fold" data-fold="" aria-expanded="false">Finance<span class="material-symbols-outlined nav-chevron">expand_more</span></button>
+      <div class="nav-items"><div>
+      <a class="nav-item" data-route="/counter-reconciliation" href="/counter-reconciliation" title="Counter Closing">
+          <span class="material-symbols-outlined text-[18px] shrink-0">balance</span>
+          <span class="nav-label flex-1 truncate">Counter Closing</span>
+          
+        </a>
+      </div></div>
+    </div><div class="nav-group is-folded" data-group="Administration">
+      <button type="button" class="nav-section nav-fold" data-fold="" aria-expanded="false">Administration<span class="material-symbols-outlined nav-chevron">expand_more</span></button>
+      <div class="nav-items"><div>
+      <a class="nav-item" data-route="/my-access" href="/my-access" title="My Access">
+          <span class="material-symbols-outlined text-[18px] shrink-0">key</span>
+          <span class="nav-label flex-1 truncate">My Access</span>
+          
+        </a>
+      </div></div>
+    </div></nav>
+
+    <div class="shrink-0 border-t border-white/10 p-2">
+      <button id="nav-collapse" class="nav-item w-auto" title="Collapse sidebar (Ctrl+B)">
+        <span class="material-symbols-outlined text-[18px]" id="nav-collapse-icon">left_panel_close</span>
+        <span class="nav-label">Collapse</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- --------------------------------------------------------- content -->
+  <div id="view-area" class="flex flex-col">
+
+    <header id="topbar" class="h-16 shrink-0 bg-white border-b border-outline-variant sticky top-0 z-40">
+      <div class="h-16 px-5 flex items-center gap-4">
+        <button id="mobile-nav" class="btn-ghost lg:hidden !h-9 !w-9 !px-0" aria-label="Menu">
+          <span class="material-symbols-outlined text-[20px]">menu</span>
+        </button>
+
+        <div class="min-w-0 hidden md:block">
+          <nav class="flex items-center gap-1 font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant" id="breadcrumb"><span>Reception &amp; OPD</span>
+    <span class="material-symbols-outlined text-[13px] opacity-50">chevron_right</span>
+    <span class="text-on-surface">Patients</span></nav>
+          <h1 class="font-headline-md text-headline-md text-on-surface truncate leading-tight" id="page-title">Patients</h1>
+        </div>
+
+        <div class="flex-1 max-w-xl mx-auto relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">search</span>
+          <input id="global-search" type="text" autocomplete="off" spellcheck="false" class="field field-sm !h-9 !pl-9 !pr-16 bg-surface-container-low" placeholder="Search UHID / mobile / patient / bill / token…" style="">
+          <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 font-data-mono text-label-sm px-1.5 py-0.5 rounded bg-white border border-outline-variant text-on-surface-variant pointer-events-none">Ctrl K</kbd>
+          <div id="search-results" class="hidden absolute left-0 right-0 top-11 z-50 card shadow-md overflow-hidden max-h-[420px] overflow-y-auto"></div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="env-badge" class="hidden items-center gap-1 px-2.5 h-8 rounded-lg border border-warning/40 bg-warning-bg text-warning font-label-sm text-label-sm uppercase tracking-wider" title="Demonstration copy — fictional patients only">
+            <span class="material-symbols-outlined text-[15px]">science</span>Demo environment</span>
+          <div class="hidden xl:flex items-center gap-1.5 px-2.5 h-8 rounded-lg border border-outline-variant text-on-surface-variant bg-surface-container-low">
+            <span class="material-symbols-outlined text-[15px]">schedule</span>
+            <span class="font-data-mono text-body-sm" id="clock">02 Nov, 05:59 pm</span>
+          </div>
+          <button id="conn-chip" class="hidden sm:flex items-center gap-1.5 px-2.5 h-8 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-surface-container transition-colors" title="Realtime link to the hospital server">
+            <span class="live-dot" id="conn-dot" style="background: rgb(22, 163, 74);"></span>
+            <span class="font-data-mono text-label-sm text-on-surface" id="conn-text">Live · 1 online</span>
+          </button>
+          <button id="sync-chip" class="hidden items-center gap-1.5 px-2.5 h-8 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-surface-container transition-colors" title="Cloud sync queue">
+            <span class="material-symbols-outlined text-[15px] text-on-surface-variant">cloud_sync</span>
+            <span class="font-data-mono text-label-sm" id="sync-text">0</span>
+          </button>
+          <button id="notif-btn" class="relative btn-ghost !h-9 !w-9 !px-0" aria-label="Notifications" title="Notifications">
+            <span class="material-symbols-outlined text-[20px]">notifications</span>
+            <span id="notif-dot" class="hidden absolute top-1 right-1 w-[9px] h-[9px] rounded-full bg-danger ring-2 ring-white"></span>
+          </button>
+          <div class="h-6 w-px bg-outline-variant"></div>
+          <button id="user-chip" class="flex items-center gap-2 pl-1 pr-2 h-10 rounded-lg hover:bg-surface-container-low transition-colors" title="Your profile">
+            <span class="w-8 h-8 rounded-full bg-primary text-white grid place-items-center font-label-lg text-[13px] shadow-sm" id="user-initials">FO</span>
+            <span class="hidden lg:block text-left leading-tight">
+              <span class="block font-label-lg text-label-lg text-on-surface" id="user-name">Front Office</span>
+              <span class="block font-label-sm text-label-sm text-on-surface-variant" id="user-role">Front Office — Reception, Billing &amp; Cashier</span>
+            </span>
+            <span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_more</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="view" class="flex-1 min-w-0"><div class="view-root view-enter">
+  <div class="p-6 space-y-5 max-w-content mx-auto w-full">
+    <div class="page-head flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 flex-wrap"><span class="inline-flex items-center gap-1 font-label-sm text-label-sm uppercase tracking-widest
+     text-primary bg-primary-fixed px-2 py-0.5 rounded">
+     <span class="material-symbols-outlined text-[13px]">folder_shared</span>Master patient index</span> <span class="inline-flex items-center gap-1.5 font-label-sm text-label-sm uppercase tracking-wider
+     text-on-surface-variant"><span class="live-dot"></span>Live</span></div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface mt-1">Patient Search &amp; Registration<span class="head-count" data-head-count="">· 0 patients · 0 today</span></h1>
+        <p class="text-body-lg text-on-surface-variant mt-1 max-w-3xl">Find a patient, or register a new one.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 shrink-0"><button class="btn-secondary" data-export=""><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
+      <button class="btn-secondary" data-referral-masters="">Referrers</button>
+      <a class="btn-secondary" href="/reports?report=referral_analytics">Referral report</a>
+      <button class="btn-primary" data-new=""><span class="material-symbols-outlined text-[18px]">person_add</span> New patient</button></div>
+    </div>
+    
+    
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4" data-kpis=""><div class="card  p-4 flex flex-col justify-between min-h-[104px]" style="border-left: 3px solid color-mix(in srgb, rgb(var(--c-primary)) 13%, transparent)">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <div class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Patients on file</div>
+        <div class="font-display-lg text-display-lg text-on-surface mt-1 tnum">0</div>
+      </div>
+      <div class="w-9 h-9 rounded-lg grid place-items-center shrink-0 text-primary bg-primary-fixed shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">groups</span></div>
+    </div>
+    <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-outline-variant/70">
+      <span class="text-body-sm text-on-surface-variant">0 total UHIDs</span>
+      
+    </div>
+  </div><div class="card  p-4 flex flex-col justify-between min-h-[104px]" style="border-left: 3px solid color-mix(in srgb, #166534 13%, transparent)">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <div class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Registered today</div>
+        <div class="font-display-lg text-display-lg text-on-surface mt-1 tnum">0</div>
+      </div>
+      <div class="w-9 h-9 rounded-lg grid place-items-center shrink-0 text-success bg-success-bg shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">person_add</span></div>
+    </div>
+    <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-outline-variant/70">
+      <span class="text-body-sm text-on-surface-variant">0 this month</span>
+      
+    </div>
+  </div><div class="card  p-4 flex flex-col justify-between min-h-[104px]" style="border-left: 3px solid color-mix(in srgb, #1E40AF 13%, transparent)">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <div class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Non self-pay</div>
+        <div class="font-display-lg text-display-lg text-on-surface mt-1 tnum">0</div>
+      </div>
+      <div class="w-9 h-9 rounded-lg grid place-items-center shrink-0 text-info bg-info-bg shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">health_and_safety</span></div>
+    </div>
+    <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-outline-variant/70">
+      <span class="text-body-sm text-on-surface-variant">Insurance, corporate or scheme</span>
+      
+    </div>
+  </div><div class="card  p-4 flex flex-col justify-between min-h-[104px]" style="border-left: 3px solid color-mix(in srgb, rgb(var(--c-primary)) 13%, transparent)">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <div class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">ABHA linked</div>
+        <div class="font-display-lg text-display-lg text-on-surface mt-1 tnum">0</div>
+      </div>
+      <div class="w-9 h-9 rounded-lg grid place-items-center shrink-0 text-primary bg-primary-fixed shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">qr_code</span></div>
+    </div>
+    <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-outline-variant/70">
+      <span class="text-body-sm text-on-surface-variant">0% of records</span>
+      
+    </div>
+  </div></div>
+      <div class="card p-3 flex flex-wrap items-end gap-2.5" data-filters="">
+    <div class="min-w-[260px] flex-1 max-w-md">
+      <label class="field-label" data-linked="1">Search</label>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[17px] text-on-surface-variant pointer-events-none">search</span>
+        <input class="field !pl-9" data-f="q" placeholder="UHID, name, mobile or ABHA" value="" autocomplete="off" aria-label="Search" style="">
+      </div></div><div class="min-w-[150px]">
+    <label class="field-label" data-linked="1">Gender</label>
+    <select class="field" data-f="gender" aria-label="Gender">
+      <option value="" selected="">Any</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+    </select></div><div class="min-w-[150px]">
+    <label class="field-label" data-linked="1">Payer</label>
+    <select class="field" data-f="payer" aria-label="Payer">
+      <option value="" selected="">Any payer</option><option value="self">Self pay</option><option value="insurance">Insurance</option><option value="corporate">Corporate</option><option value="aarogyasri">Aarogyasri / scheme</option><option value="credit">Credit</option><option value="trust">Trust</option>
+    </select></div><div class="min-w-[150px]">
+    <label class="field-label" data-linked="1">Registered</label>
+    <select class="field" data-f="created" aria-label="Registered">
+      <option value="" selected="">Any time</option><option value="today">Today</option>
+    </select></div>
+    <div class="flex-1"></div>
+    
+  </div>
+      <section class="card ">
+    <header class="flex items-center justify-between gap-3 px-4 h-12 border-b border-outline-variant">
+      <div class="min-w-0">
+        <h2 class="panel-title truncate">Patients</h2>
+        
+      </div>
+      <div class="flex items-center gap-2 shrink-0"><span class="font-data-mono text-body-sm text-on-surface-variant" data-count="">0 shown</span></div>
+    </header>
+    <div class=""><div class="overflow-auto" style="max-height:62vh">
+      <table class="tbl" id="tbl">
+        <thead><tr><th class="" style="width:140px">UHID</th><th class="">Patient</th><th class="">Contact</th><th class="">Payer</th><th class="">Visits</th><th class="">Last visit</th><th class="text-right">Outstanding</th><th class="" style="width:150px"></th></tr></thead>
+        <tbody data-rows="" data-rows-signature="empty:No patients yet."><tr><td colspan="8" class="px-3 py-10 text-center text-on-surface-variant text-body-lg">
+      <span class="material-symbols-outlined text-[28px] opacity-40 block mb-1">inbox</span>No patients yet.</td></tr></tbody>
+      </table></div></div>
+  </section>
+  </div></div></main>
+  </div>
+</div>
+
+<!-- portals -->
+<div id="toasts" class="fixed top-3 left-3 right-3 md:top-auto md:left-auto md:bottom-5 md:right-5 z-[90] flex flex-col gap-2 items-stretch md:items-end pointer-events-none"></div>
+<div id="modal-root" class="fixed inset-0 z-[80] hidden"></div>
+<div id="drawer-root" class="fixed inset-0 z-[70] hidden"></div>
+<div id="menu-root" class="fixed inset-0 z-[85] hidden"></div>
+
+<script type="module" src="/src/main.js"></script>
+
+
+</body></html>
