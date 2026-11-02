@@ -102,16 +102,16 @@ Application contains 79 client view controllers and 32 server route modules (fil
 | Off-device backup and recovery | Not verified | Go-live checklist hard-codes offsite as informational false; conduct separate-system restore. |
 | SMS/WhatsApp gateway | Optional external integration | `messages.js` sends only when an SMS gateway URL is configured; external gateway behavior/configuration is outside this audit. |
 | Production readiness data | Previously reported incomplete | 1 Nov review notes demo mode/default Admin password, 15 lab range gaps, and demo records; current data not read. |
-| Whole-application role/UI coverage | Incomplete pending SUR-3 | Historical role/menu audits are automated checks; they do not prove every control under every login. Add UI Tester findings before closing. |
+| Whole-application role/UI coverage | Partial; SUR-3 resumed a bounded pass | Historical role/menu audits are automated checks; the browser pass covered admin setup and synthetic receptionist navigation, patient registration, and appointment empty states only. |
 | Physical devices/external integrations | Untested | No analyzer, printer/scanner, SMS provider, PACS/DICOM, or off-site cloud receiver was exercised. |
 
 ## UI testing results integrated from SUR-3
 
-- **Outcome:** The recovered read-only diagnostic now reaches the isolated login page in Chrome, but the full SUR-3 role-based workflow pass remains pending. This is incomplete coverage, not a clean UI pass.
+- **Outcome:** SUR-3 completed a bounded browser pass on the isolated instance. This is partial coverage, not a clean whole-application UI pass.
 - **Setup evidence:** In this SUR-7 run, Node v24.16.0 script execution succeeded; the prescribed diagnostic reported Paperclip health 200, isolated app navigation 200, and the expected MGM HMS login page. The previously reported Node initialization failure is no longer reproduced in this runner.
-- **Coverage:** Login/navigation, reception/patient workflows, OPD/IPD/clinical workflows, lab/imaging/pharmacy/inventory, billing/reports/admin, forms/CRUD, roles/errors/loading, accessibility/keyboard, responsive layouts, console/network all blocked. Full notes are in [the SUR-3 UI report](/E:/MGM%20HMS/qa-reports/2026-11-02/ui/ui-audit-report.md).
-- **UI findings:** None confirmed; no screenshots or patient data collected. Do not interpret this as evidence that UI behavior is correct.
-- **Unblock:** Provide a working Node runtime and browser or browser automation package, then repeat on a disposable synthetic database and loopback-only server.
+- **Coverage:** Admin sign-in and Users & Roles, synthetic receptionist sign-in/navigation, synthetic patient registration and validation, desktop/mobile appointment empty states, and a small responsive patient-list check were completed. OPD/IPD/clinical workflows, diagnostics, pharmacy, billing actions, role restrictions, accessibility, and most viewports remain untested. Full notes and sanitized evidence are in [the SUR-3 UI report](/E:/MGM%20HMS/qa-reports/2026-11-02/ui/ui-audit-report.md).
+- **UI findings:** No confirmed defect in completed checks. The 400 px patient view has a possible clipped-content usability concern that needs a fuller responsive pass. No real patient data was used.
+- **Account safety:** The UI report records creation of a synthetic receptionist account before the latest owner requirement. No account changes are authorized now; do not repeat account creation or modify users, roles, permissions, or authentication settings. Use an existing demo login only if already present and working in the isolated instance.
 
 ## Tests and evidence
 
@@ -120,7 +120,7 @@ Application contains 79 client view controllers and 32 server route modules (fil
 - **Current browser/runtime checks:** The assigned `mgm-browser-smoke.mjs` passed: Node v24.16.0, Paperclip API health 200, Chrome, isolated app status 200, MGM HMS title, and three login form inputs. This proves login-page navigation only, not role or workflow coverage.
 - **Isolation:** The test suites use synthetic fixtures and report live-data guards unchanged. No live database was inspected or changed; no request was sent to live port 4300.
 - **Historical evidence reviewed:** `APPLICATION-REVIEW-2026-11-01.md` reports isolated test passes, role/menu checks, browser route checks, and same-machine backup/restore. `OPERATIONS-REVIEW-2026-11-02.md` summarizes operational tests but includes statements that require current-state verification.
-- **Runtime checks blocked/not performed:** Current go-live checklist/database inspection; live API route behavior; portal and attachment access-control tests; deployment configuration; external integrations; all SUR-3 browser workflows; off-device recovery. The suite and UI pass must be rerun with a functioning supported Node installation and browser.
+- **Runtime checks blocked/not performed:** Current go-live checklist/database inspection; live API route behavior; portal and attachment access-control tests; deployment configuration; external integrations; remaining SUR-3 browser workflows; off-device recovery. Do not repeat user-management setup to expand UI testing.
 - **Privacy:** No credentials, tokens, patient rows, or screenshots are included.
 
 ## Ordered remediation backlog
@@ -130,8 +130,8 @@ Application contains 79 client view controllers and 32 server route modules (fil
 3. Set up off-device backups and document a successful isolated restore drill.
 4. Decide cloud sync scope; either implement receiver with delivery guarantees or formally document local-only operation.
 5. Complete synthetic, least-privilege portal and attachment authorization tests.
-6. Resume the SUR-3 role, workflow, and viewport checks now that login navigation is available; add confirmed or suspected findings to this register with deduplication. Do not count unrun workflows as tested.
+6. Continue SUR-3 role, workflow, and viewport checks using only already-existing isolated-instance logins; stop authenticated checks if none work. Add confirmed or suspected findings with deduplication. Do not count unrun workflows as tested.
 
 ## Consolidation note
 
-The SUR-3 evidence is integrated, but its UI checks remain blocked and require a successful rerun before audit completion. Keep unverified items labeled as such; no statement here means every bug has been found.
+The SUR-3 evidence is integrated; its remaining UI checks are incomplete. Keep unverified items labeled as such; no statement here means every bug has been found.
