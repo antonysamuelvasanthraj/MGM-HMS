@@ -39,6 +39,7 @@ export function migrateUpgrade(db) {
   defaultSetting(db, 'transfer_self_approve', '1');
   /* discharge needs the doctor's clearance and a discharge summary (paper allowed in Paper / Hybrid mode) */
   defaultSetting(db, 'discharge_requires_clearance', '1');
+  defaultSetting(db, 'require_digital_reference', '1');   // every UPI / card / bank / cheque payment needs its reference (handbook §6)
 
   /* ---------------------------------------------- Phase 1: order source, destination, statuses */
   add('orders', 'order_source', "TEXT NOT NULL DEFAULT 'doctor_portal'");   // doctor_portal | paper_prescription | department_entry | ward
