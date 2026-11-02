@@ -1,3 +1,3 @@
-﻿Cause: the earlier run parked after an unconfirmed reception session; the operator has since confirmed a successful UI login after natural cooldown, and the live ledger still shows 021–030 pending.
-Action: recovery checked the shared allocation and retained the existing owner; no app records or accounts were changed.
-Hand-back: resume now with one retained reception UI context, inspect the live marker list, create only missing 021–030 via visible forms, verify persisted IDs, then coordinate lab/imaging workflows and update evidence/counts.
+﻿Cause: SUR-10 cannot safely proceed because there is no retained authenticated reception browser context; prior runs made multiple login submissions and the most recent single attempt was rejected. The operator previously confirmed a successful login after cooldown, but that session is not available to this recovery run.
+Action: recorded a typed waiting disposition; did not touch the app, accounts, credentials, roles, permissions, or business records. SUR-7 concurrently holds the shared workspace, so this run made no workspace edits.
+Hand-back: MGM HMS Lab Imaging QA remains owner. Resume when the operator provides a retained valid reception UI session; first inspect live markers, then create only missing 021–030 through UI and continue permitted workflows. Counts remain 0/10 patients, 0 IDs/UHIDs, 0 workflows.

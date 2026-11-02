@@ -1,55 +1,163 @@
-{
-  "task": "SUR-9",
-  "target": "http://127.0.0.1:4300",
-  "updatedAt": "2026-11-02",
-  "status": "in_progress",
-  "assignment": {
-    "markers": ["TEST-MGM-QA-011", "TEST-MGM-QA-020"],
-    "markerSearchBeforeCreation": "No assigned markers found in Patients UI search",
-    "patientsCreatedThroughUi": 10,
-    "patientsPersistedAfterReload": 10,
-    "opEncountersCreatedThroughUi": 10,
-    "vitalsRecordsSavedThroughUi": 10,
-    "accountsRolesPermissionsChanged": false,
-    "preexistingRecordsModifiedByCampaign": false
-  },
-  "roles": {
-    "reception": {"login": "passed", "httpStatus": 200, "landing": "/dashboard", "patientRegistration": "passed"},
-    "admin": {"login": "passed", "httpStatus": 200, "landing": "/dashboard", "clinicalUiCoverage": "admin-exercised within existing permissions"},
-    "doctor": {"loginOrPermissionVerification": "blocked; approved doctor credential remains unmatched"},
-    "nurse": {"loginOrPermissionVerification": "not tested; no approved current nurse credential row"}
-  },
-  "records": [
-    {"marker":"TEST-MGM-QA-011","patientId":17,"uhid":"SHMS-2627-0017","encounter":"ENC-261102-00005","visitStage":"IN CONSULTATION","vitals":"saved"},
-    {"marker":"TEST-MGM-QA-012","patientId":18,"uhid":"SHMS-2627-0018","encounter":"ENC-261102-00006","visitStage":"READY FOR DOCTOR","vitals":"saved"},
-    {"marker":"TEST-MGM-QA-013","patientId":19,"uhid":"SHMS-2627-0019","encounter":"ENC-261102-00007","visitStage":"READY FOR DOCTOR","vitals":"saved"},
-    {"marker":"TEST-MGM-QA-014","patientId":20,"uhid":"SHMS-2627-0020","encounter":"ENC-261102-00008","visitStage":"READY FOR DOCTOR","vitals":"saved"},
-    {"marker":"TEST-MGM-QA-015","patientId":21,"uhid":"SHMS-2627-0021","encounter":"ENC-261102-00009","visitStage":"READY FOR DOCTOR","vitals":"saved"},
-    {"marker":"TEST-MGM-QA-016","patientId":22,"uhid":"SHMS-2627-0022","encounter":"ENC-261102-00010","visitStage":"READY FOR DOCTOR","vitals":"saved"},
-    {"marker":"TEST-MGM-QA-017","patientId":23,"uhid":"SHMS-2627-0023","encounter":"ENC-261102-00011","visitStage":"READY FOR DOCTOR","vitals":"saved"},
-    {"marker":"TEST-MGM-QA-018","patientId":24,"uhid":"SHMS-2627-0024","encounter":"ENC-261102-00012","visitStage":"READY FOR DOCTOR","vitals":"saved"},
-    {"marker":"TEST-MGM-QA-019","patientId":25,"uhid":"SHMS-2627-0025","encounter":"ENC-261102-00013","visitStage":"READY FOR DOCTOR","vitals":"saved"},
-    {"marker":"TEST-MGM-QA-020","patientId":26,"uhid":"SHMS-2627-0026","encounter":"ENC-261102-00014","visitStage":"READY FOR DOCTOR","vitals":"saved"}
-  ],
-  "workflowCoverage": {
-    "patientRegistrationAndReloadPersistence": "passed 10/10",
-    "opVisitRegistration": "passed 10/10; approved free because no OP fee is configured for selected doctor",
-    "vitalsEntry": "passed 10/10 through admin UI; values reopened and displayed on visit detail",
-    "queueReadiness": "passed; 9/10 ready for doctor, 011 was called in and remains in consultation",
-    "doctorConsultationNotes": "blocked/not completed; doctor role unavailable and admin view showed no note entry control",
-    "prescriptions": "not tested",
-    "clinicalOrders": "not tested",
-    "followUp": "not tested",
-    "nurseRoleCoverage": "not tested",
-    "billingOrPayments": "not created; no payment gateway used"
-  },
-  "observations": [
-    "New OP visit flow showed no OP fee configured for Consultant Doctor — General Medicine and registered the visits as approved free.",
-    "No consultation notes, prescriptions, clinical orders, or follow-up records were created.",
-    "An admin-exercised Call in action moved encounter ENC-261102-00005 to IN CONSULTATION; no consultation was documented."
-  ],
-  "evidenceDirectory": "E:/MGM HMS/qa-reports/2026-11-02/final-acceptance",
-  "evidence": ["SUR-9-login-dashboard.png", "SUR-9-admin-dashboard.png", "SUR-9-patients-before.png", "SUR-9-visit-queue-final.png", "SUR-9-patient-012-vitals-persisted.png", "SUR-9-patient-011-vitals-saved.png"],
-  "confirmedBugs": [],
-  "loginAttemptsAfterCooldownClearance": {"reception": 1, "admin": 1, "failed": 0}
+﻿{
+    "task":  "SUR-9",
+    "target":  "http://127.0.0.1:4300",
+    "updatedAt":  "2026-11-02",
+    "status":  "in_progress",
+    "assignment":  {
+                       "markers":  [
+                                       "TEST-MGM-QA-011",
+                                       "TEST-MGM-QA-020"
+                                   ],
+                       "markerSearchBeforeCreation":  "No assigned markers found in Patients UI search",
+                       "patientsCreatedThroughUi":  10,
+                       "patientsPersistedAfterReload":  10,
+                       "opEncountersCreatedThroughUi":  10,
+                       "vitalsRecordsSavedThroughUi":  10,
+                       "accountsRolesPermissionsChanged":  false,
+                       "preexistingRecordsModifiedByCampaign":  false
+                   },
+    "roles":  {
+                  "reception":  {
+                                    "login":  "passed",
+                                    "httpStatus":  200,
+                                    "landing":  "/dashboard",
+                                    "patientRegistration":  "passed"
+                                },
+                  "admin":  {
+                                "login":  "passed",
+                                "httpStatus":  200,
+                                "landing":  "/dashboard",
+                                "clinicalUiCoverage":  "admin-exercised through current clinical navigation; Consultation and Follow-up queues unavailable in Paper mode; Orders is read-only with 0 orders; no permission denial observed"
+                            },
+                  "doctor":  {
+                                 "loginOrPermissionVerification":  "blocked; approved doctor credential remains unmatched"
+                             },
+                  "nurse":  {
+                                "loginOrPermissionVerification":  "not tested; no approved current nurse credential row"
+                            }
+              },
+    "records":  [
+                    {
+                        "marker":  "TEST-MGM-QA-011",
+                        "patientId":  17,
+                        "uhid":  "SHMS-2627-0017",
+                        "encounter":  "ENC-261102-00005",
+                        "visitStage":  "IN CONSULTATION",
+                        "vitals":  "saved"
+                    },
+                    {
+                        "marker":  "TEST-MGM-QA-012",
+                        "patientId":  18,
+                        "uhid":  "SHMS-2627-0018",
+                        "encounter":  "ENC-261102-00006",
+                        "visitStage":  "READY FOR DOCTOR",
+                        "vitals":  "saved"
+                    },
+                    {
+                        "marker":  "TEST-MGM-QA-013",
+                        "patientId":  19,
+                        "uhid":  "SHMS-2627-0019",
+                        "encounter":  "ENC-261102-00007",
+                        "visitStage":  "READY FOR DOCTOR",
+                        "vitals":  "saved"
+                    },
+                    {
+                        "marker":  "TEST-MGM-QA-014",
+                        "patientId":  20,
+                        "uhid":  "SHMS-2627-0020",
+                        "encounter":  "ENC-261102-00008",
+                        "visitStage":  "READY FOR DOCTOR",
+                        "vitals":  "saved"
+                    },
+                    {
+                        "marker":  "TEST-MGM-QA-015",
+                        "patientId":  21,
+                        "uhid":  "SHMS-2627-0021",
+                        "encounter":  "ENC-261102-00009",
+                        "visitStage":  "READY FOR DOCTOR",
+                        "vitals":  "saved"
+                    },
+                    {
+                        "marker":  "TEST-MGM-QA-016",
+                        "patientId":  22,
+                        "uhid":  "SHMS-2627-0022",
+                        "encounter":  "ENC-261102-00010",
+                        "visitStage":  "READY FOR DOCTOR",
+                        "vitals":  "saved"
+                    },
+                    {
+                        "marker":  "TEST-MGM-QA-017",
+                        "patientId":  23,
+                        "uhid":  "SHMS-2627-0023",
+                        "encounter":  "ENC-261102-00011",
+                        "visitStage":  "READY FOR DOCTOR",
+                        "vitals":  "saved"
+                    },
+                    {
+                        "marker":  "TEST-MGM-QA-018",
+                        "patientId":  24,
+                        "uhid":  "SHMS-2627-0024",
+                        "encounter":  "ENC-261102-00012",
+                        "visitStage":  "READY FOR DOCTOR",
+                        "vitals":  "saved"
+                    },
+                    {
+                        "marker":  "TEST-MGM-QA-019",
+                        "patientId":  25,
+                        "uhid":  "SHMS-2627-0025",
+                        "encounter":  "ENC-261102-00013",
+                        "visitStage":  "READY FOR DOCTOR",
+                        "vitals":  "saved"
+                    },
+                    {
+                        "marker":  "TEST-MGM-QA-020",
+                        "patientId":  26,
+                        "uhid":  "SHMS-2627-0026",
+                        "encounter":  "ENC-261102-00014",
+                        "visitStage":  "READY FOR DOCTOR",
+                        "vitals":  "saved"
+                    }
+                ],
+    "workflowCoverage":  {
+                             "patientRegistrationAndReloadPersistence":  "passed 10/10",
+                             "opVisitRegistration":  "passed 10/10; approved free because no OP fee is configured for selected doctor",
+                             "vitalsEntry":  "passed 10/10 through admin UI; values reopened and displayed on visit detail",
+                             "queueReadiness":  "passed; 9/10 ready for doctor, 011 was called in and remains in consultation",
+                             "doctorConsultationNotes":  "not tested; /consultation UI explicitly reports digital queue turned off in Paper mode, with no note editor",
+                             "prescriptions":  "not tested; no prescription entry control available on admin-visible screens",
+                             "clinicalOrders":  "not tested; /orders loaded with 0 orders and no create action",
+                             "followUp":  "not tested; /follow-up UI explicitly reports digital queue turned off in Paper mode",
+                             "nurseRoleCoverage":  "not tested; /nursing loaded with 0 ward patients and no assigned patients",
+                             "billingOrPayments":  "not created; no payment gateway used"
+                         },
+    "observations":  [
+                         "New OP visit flow showed no OP fee configured for Consultant Doctor â€” General Medicine and registered the visits as approved free.",
+                         "No consultation notes, prescriptions, clinical orders, or follow-up records were created.",
+                         "An admin-exercised Call in action moved encounter ENC-261102-00005 to IN CONSULTATION; no consultation was documented.",
+                         "Admin UI pass checked /consultation, /visit-tracking, /orders, /follow-up, /consultation-history, and /nursing; Paper mode disables digital consultation/follow-up, and there are no orders or assigned ward patients."
+                     ],
+    "evidenceDirectory":  "E:/MGM HMS/qa-reports/2026-11-02/final-acceptance",
+    "evidence":  [
+                     "SUR-9-login-dashboard.png",
+                     "SUR-9-admin-dashboard.png",
+                     "SUR-9-patients-before.png",
+                     "SUR-9-visit-queue-final.png",
+                     "SUR-9-patient-012-vitals-persisted.png",
+                     "SUR-9-patient-011-vitals-saved.png",
+                     "SUR-9-current-admin-clinical-pass.png",
+                     "SUR-9-admin_consultation.png",
+                     "SUR-9-admin_visit-tracking.png",
+                     "SUR-9-admin_orders.png",
+                     "SUR-9-admin_follow-up.png",
+                     "SUR-9-admin_consultation-history.png",
+                     "SUR-9-admin_nursing.png"
+                 ],
+    "confirmedBugs":  [
+
+                      ],
+    "loginAttemptsAfterCooldownClearance":  {
+                                                "reception":  1,
+                                                "admin":  3,
+                                                "failed":  0
+                                            }
 }

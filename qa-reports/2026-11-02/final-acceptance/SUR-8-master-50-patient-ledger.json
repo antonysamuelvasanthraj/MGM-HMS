@@ -1,109 +1,263 @@
-{
-  "campaign": "SUR-8 Complete 50-Patient Acceptance Campaign",
-  "target": "http://127.0.0.1:4300",
-  "startDate": "2026-11-02T12:44:00Z",
-  "status": "in_progress",
-  "blocks": {
-    "block1": {
-      "owner": "SUR-3 (UI Tester)",
-      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
-      "workflows": ["registration", "reception", "appointment", "op_queue", "fee_collection"],
-      "status": "complete",
-      "timestamp": "2026-11-02T12:44:00Z",
-      "notes": "All 10 patients created and verified on patients list"
-    },
-    "block2": {
-      "owner": "SUR-9 (Clinical QA)",
-      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
-      "newRecords": ["TEST-MGM-QA-011", "TEST-MGM-QA-012", "TEST-MGM-QA-013", "TEST-MGM-QA-014", "TEST-MGM-QA-015", "TEST-MGM-QA-016", "TEST-MGM-QA-017", "TEST-MGM-QA-018", "TEST-MGM-QA-019", "TEST-MGM-QA-020"],
-      "workflows": ["opd_queue", "vitals", "doctor_consultation", "clinical_orders", "follow_up"],
-      "status": "partial",
-      "createdPatients": 10,
-      "persistedOpEncounters": 10,
-      "persistedVitals": 10,
-      "persistedIds": ["SHMS-2627-0017", "SHMS-2627-0018", "SHMS-2627-0019", "SHMS-2627-0020", "SHMS-2627-0021", "SHMS-2627-0022", "SHMS-2627-0023", "SHMS-2627-0024", "SHMS-2627-0025", "SHMS-2627-0026"],
-      "notes": "011-020 created via UI; 10 OP encounters and vitals saved under admin-exercised functional coverage. Doctor notes, prescriptions, orders, follow-up, and doctor/nurse role verification remain untested. No OP fee configured; encounters registered approved free. See SUR-9-clinical-qa-report.md and SUR-9-results.json."
-    },
-    "block3": {
-      "owner": "SUR-10 (Lab & Imaging QA)",
-      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
-      "newRecords": ["TEST-MGM-QA-021", "TEST-MGM-QA-022", "TEST-MGM-QA-023", "TEST-MGM-QA-024", "TEST-MGM-QA-025", "TEST-MGM-QA-026", "TEST-MGM-QA-027", "TEST-MGM-QA-028", "TEST-MGM-QA-029", "TEST-MGM-QA-030"],
-      "workflows": ["lab_orders", "sample_collection", "result_entry", "verification", "radiology_imaging", "report_signing"],
-      "status": "ready",
-      "notes": "Lab orders on Block 1 patients, new imaging/radiology records for 021-030"
-    },
-    "block4": {
-      "owner": "SUR-11 (Pharmacy & Stock QA)",
-      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
-      "newRecords": ["TEST-MGM-QA-031", "TEST-MGM-QA-032", "TEST-MGM-QA-033", "TEST-MGM-QA-034", "TEST-MGM-QA-035", "TEST-MGM-QA-036", "TEST-MGM-QA-037", "TEST-MGM-QA-038", "TEST-MGM-QA-039", "TEST-MGM-QA-040"],
-      "workflows": ["grn_creation", "stock_transfers", "prescription_dispensing", "returns", "inventory_reconciliation"],
-      "status": "ready",
-      "notes": "GRN/transfers for test items, prescription dispensing on Block 1 patients"
-    },
-    "block5": {
-      "owner": "SUR-12 (Billing & Accounts QA)",
-      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
-      "newRecords": ["TEST-MGM-QA-041", "TEST-MGM-QA-042", "TEST-MGM-QA-043", "TEST-MGM-QA-044", "TEST-MGM-QA-045", "TEST-MGM-QA-046", "TEST-MGM-QA-047", "TEST-MGM-QA-048", "TEST-MGM-QA-049", "TEST-MGM-QA-050"],
-      "workflows": ["ip_admission", "running_bills", "fee_collection", "settlement", "refunds", "accounting_reconciliation"],
-      "status": "ready",
-      "notes": "Bill creation on Block 1 patients, IP admission and discharge for 041-050"
-    }
-  },
-  "patientTracking": {
-    "001-010": {
-      "block1_registration": "complete",
-      "block2_consultation": "pending",
-      "block3_lab_orders": "pending",
-      "block4_prescriptions": "pending",
-      "block5_billing": "pending"
-    },
-    "011-020": {
-      "registration": "complete",
-      "op_encounters": "complete",
-      "vitals": "complete",
-      "doctor_consultation_notes": "blocked",
-      "clinical_orders": "pending",
-      "prescriptions": "pending",
-      "follow_up": "pending"
-    }
-  },
-  "codeFixesUnderTest": {
-    "scheme_payment_idempotency": {
-      "fix": "Require exact match of item, user, amount, reason, authorization_ref on replay",
-      "validationWorkflow": "Block 4/5 scheme payment testing",
-      "status": "ready_for_validation"
-    },
-    "scheme_collection_reference": {
-      "fix": "Non-cash payments must have reference; validate mode and amount on replay",
-      "validationWorkflow": "Block 4/5 cash collection workflows",
-      "status": "ready_for_validation"
-    },
-    "numeric_validation": {
-      "fix": "Strict finite-number guard for scheme amounts (reject empty strings)",
-      "validationWorkflow": "Any workflow with amount entry",
-      "status": "ready_for_validation"
-    },
-    "billing_permission_check": {
-      "fix": "Payment receipt endpoint requires billing/payment/finance view permissions",
-      "validationWorkflow": "Block 5 receipt testing across roles",
-      "status": "ready_for_validation"
-    }
-  },
-  "controlCoverage": {
-    "admin_functions": "CEO to test independently",
-    "hr_staffing": "Pending admin role availability",
-    "manager_operations": "Pending manager role availability",
-    "accounting_reports": "Block 5 will generate test data for reconciliation",
-    "stock_reconciliation": "Block 4 will test GRN/transfer effects"
-  },
-  "summary": {
-    "total_patients": 50,
-    "created": 10,
-    "pending": 40,
-    "blocks_complete": 1,
-    "blocks_ready": 4,
-    "regression_tests_passed": true,
-    "browser_automation_verified": true,
-    "rate_limiter_status": "cleared"
-  }
+﻿{
+    "campaign":  "SUR-8 Complete 50-Patient Acceptance Campaign",
+    "target":  "http://127.0.0.1:4300",
+    "startDate":  "2026-11-02T12:44:00Z",
+    "status":  "in_progress",
+    "blocks":  {
+                   "block1":  {
+                                  "owner":  "SUR-3 (UI Tester)",
+                                  "patients":  [
+                                                   "TEST-MGM-QA-001",
+                                                   "TEST-MGM-QA-002",
+                                                   "TEST-MGM-QA-003",
+                                                   "TEST-MGM-QA-004",
+                                                   "TEST-MGM-QA-005",
+                                                   "TEST-MGM-QA-006",
+                                                   "TEST-MGM-QA-007",
+                                                   "TEST-MGM-QA-008",
+                                                   "TEST-MGM-QA-009",
+                                                   "TEST-MGM-QA-010"
+                                               ],
+                                  "workflows":  [
+                                                    "registration",
+                                                    "reception",
+                                                    "appointment",
+                                                    "op_queue",
+                                                    "fee_collection"
+                                                ],
+                                  "status":  "complete",
+                                  "timestamp":  "2026-11-02T12:44:00Z",
+                                  "notes":  "All 10 patients created and verified on patients list"
+                              },
+                   "block2":  {
+                                  "owner":  "SUR-9 (Clinical QA)",
+                                  "patients":  [
+                                                   "TEST-MGM-QA-001",
+                                                   "TEST-MGM-QA-002",
+                                                   "TEST-MGM-QA-003",
+                                                   "TEST-MGM-QA-004",
+                                                   "TEST-MGM-QA-005",
+                                                   "TEST-MGM-QA-006",
+                                                   "TEST-MGM-QA-007",
+                                                   "TEST-MGM-QA-008",
+                                                   "TEST-MGM-QA-009",
+                                                   "TEST-MGM-QA-010"
+                                               ],
+                                  "newRecords":  [
+                                                     "TEST-MGM-QA-011",
+                                                     "TEST-MGM-QA-012",
+                                                     "TEST-MGM-QA-013",
+                                                     "TEST-MGM-QA-014",
+                                                     "TEST-MGM-QA-015",
+                                                     "TEST-MGM-QA-016",
+                                                     "TEST-MGM-QA-017",
+                                                     "TEST-MGM-QA-018",
+                                                     "TEST-MGM-QA-019",
+                                                     "TEST-MGM-QA-020"
+                                                 ],
+                                  "workflows":  [
+                                                    "opd_queue",
+                                                    "vitals",
+                                                    "doctor_consultation",
+                                                    "clinical_orders",
+                                                    "follow_up"
+                                                ],
+                                  "status":  "partial - registrations, encounters, and vitals complete; clinical workflows unavailable in current Paper mode",
+                                  "createdPatients":  10,
+                                  "persistedOpEncounters":  10,
+                                  "persistedVitals":  10,
+                                  "persistedIds":  [
+                                                       "SHMS-2627-0017",
+                                                       "SHMS-2627-0018",
+                                                       "SHMS-2627-0019",
+                                                       "SHMS-2627-0020",
+                                                       "SHMS-2627-0021",
+                                                       "SHMS-2627-0022",
+                                                       "SHMS-2627-0023",
+                                                       "SHMS-2627-0024",
+                                                       "SHMS-2627-0025",
+                                                       "SHMS-2627-0026"
+                                                   ],
+                                  "notes":  "011-020 created through UI; 10 OP encounters and vitals saved. One admin UI pass found digital consultation and follow-up off in Paper mode, Orders read-only with 0 orders, consultation history has no assigned-patient notes, and Nursing shows 0 assigned ward patients. No orders or prescriptions exist for downstream handoff. See SUR-9 clinical QA report/results."
+                              },
+                   "block3":  {
+                                  "owner":  "SUR-10 (Lab \u0026 Imaging QA)",
+                                  "patients":  [
+                                                   "TEST-MGM-QA-001",
+                                                   "TEST-MGM-QA-002",
+                                                   "TEST-MGM-QA-003",
+                                                   "TEST-MGM-QA-004",
+                                                   "TEST-MGM-QA-005",
+                                                   "TEST-MGM-QA-006",
+                                                   "TEST-MGM-QA-007",
+                                                   "TEST-MGM-QA-008",
+                                                   "TEST-MGM-QA-009",
+                                                   "TEST-MGM-QA-010"
+                                               ],
+                                  "newRecords":  [
+                                                     "TEST-MGM-QA-021",
+                                                     "TEST-MGM-QA-022",
+                                                     "TEST-MGM-QA-023",
+                                                     "TEST-MGM-QA-024",
+                                                     "TEST-MGM-QA-025",
+                                                     "TEST-MGM-QA-026",
+                                                     "TEST-MGM-QA-027",
+                                                     "TEST-MGM-QA-028",
+                                                     "TEST-MGM-QA-029",
+                                                     "TEST-MGM-QA-030"
+                                                 ],
+                                  "workflows":  [
+                                                    "lab_orders",
+                                                    "sample_collection",
+                                                    "result_entry",
+                                                    "verification",
+                                                    "radiology_imaging",
+                                                    "report_signing"
+                                                ],
+                                  "status":  "blocked",
+                                  "notes":  "Live reception Patients index showed 36 records and no 021-030 markers in loaded text. No allocated patients/workflows were written. Two successful login submissions occurred in separate contexts during this run; no further authentication planned. See SUR-10-lab-imaging-report.md.",
+                                  "createdPatients":  0,
+                                  "persistedLabImagingWorkflows":  0,
+                                  "persistedIds":  [
+
+                                                   ]
+                              },
+                   "block4":  {
+                                  "owner":  "SUR-11 (Pharmacy \u0026 Stock QA)",
+                                  "patients":  [
+                                                   "TEST-MGM-QA-001",
+                                                   "TEST-MGM-QA-002",
+                                                   "TEST-MGM-QA-003",
+                                                   "TEST-MGM-QA-004",
+                                                   "TEST-MGM-QA-005",
+                                                   "TEST-MGM-QA-006",
+                                                   "TEST-MGM-QA-007",
+                                                   "TEST-MGM-QA-008",
+                                                   "TEST-MGM-QA-009",
+                                                   "TEST-MGM-QA-010"
+                                               ],
+                                  "newRecords":  [
+                                                     "TEST-MGM-QA-031",
+                                                     "TEST-MGM-QA-032",
+                                                     "TEST-MGM-QA-033",
+                                                     "TEST-MGM-QA-034",
+                                                     "TEST-MGM-QA-035",
+                                                     "TEST-MGM-QA-036",
+                                                     "TEST-MGM-QA-037",
+                                                     "TEST-MGM-QA-038",
+                                                     "TEST-MGM-QA-039",
+                                                     "TEST-MGM-QA-040"
+                                                 ],
+                                  "workflows":  [
+                                                    "grn_creation",
+                                                    "stock_transfers",
+                                                    "prescription_dispensing",
+                                                    "returns",
+                                                    "inventory_reconciliation"
+                                                ],
+                                  "status":  "ready",
+                                  "notes":  "GRN/transfers for test items, prescription dispensing on Block 1 patients"
+                              },
+                   "block5":  {
+                                  "owner":  "SUR-12 (Billing \u0026 Accounts QA)",
+                                  "patients":  [
+                                                   "TEST-MGM-QA-001",
+                                                   "TEST-MGM-QA-002",
+                                                   "TEST-MGM-QA-003",
+                                                   "TEST-MGM-QA-004",
+                                                   "TEST-MGM-QA-005",
+                                                   "TEST-MGM-QA-006",
+                                                   "TEST-MGM-QA-007",
+                                                   "TEST-MGM-QA-008",
+                                                   "TEST-MGM-QA-009",
+                                                   "TEST-MGM-QA-010"
+                                               ],
+                                  "newRecords":  [
+                                                     "TEST-MGM-QA-041",
+                                                     "TEST-MGM-QA-042",
+                                                     "TEST-MGM-QA-043",
+                                                     "TEST-MGM-QA-044",
+                                                     "TEST-MGM-QA-045",
+                                                     "TEST-MGM-QA-046",
+                                                     "TEST-MGM-QA-047",
+                                                     "TEST-MGM-QA-048",
+                                                     "TEST-MGM-QA-049",
+                                                     "TEST-MGM-QA-050"
+                                                 ],
+                                  "workflows":  [
+                                                    "ip_admission",
+                                                    "running_bills",
+                                                    "fee_collection",
+                                                    "settlement",
+                                                    "refunds",
+                                                    "accounting_reconciliation"
+                                                ],
+                                  "status":  "ready",
+                                  "notes":  "Bill creation on Block 1 patients, IP admission and discharge for 041-050"
+                              }
+               },
+    "patientTracking":  {
+                            "001-010":  {
+                                            "block1_registration":  "complete",
+                                            "block2_consultation":  "pending",
+                                            "block3_lab_orders":  "pending",
+                                            "block4_prescriptions":  "pending",
+                                            "block5_billing":  "pending"
+                                        },
+                            "011-020":  {
+                                            "registration":  "complete",
+                                            "op_encounters":  "complete",
+                                            "vitals":  "complete",
+                                            "doctor_consultation_notes":  "blocked",
+                                            "clinical_orders":  "pending",
+                                            "prescriptions":  "pending",
+                                            "follow_up":  "pending"
+                                        },
+                            "021-030":  {
+                                            "registration":  "blocked",
+                                            "lab_orders":  "not_tested",
+                                            "sample_collection":  "not_tested",
+                                            "result_entry_verification":  "not_tested",
+                                            "imaging_signing":  "not_tested"
+                                        }
+                        },
+    "codeFixesUnderTest":  {
+                               "scheme_payment_idempotency":  {
+                                                                  "fix":  "Require exact match of item, user, amount, reason, authorization_ref on replay",
+                                                                  "validationWorkflow":  "Block 4/5 scheme payment testing",
+                                                                  "status":  "ready_for_validation"
+                                                              },
+                               "scheme_collection_reference":  {
+                                                                   "fix":  "Non-cash payments must have reference; validate mode and amount on replay",
+                                                                   "validationWorkflow":  "Block 4/5 cash collection workflows",
+                                                                   "status":  "ready_for_validation"
+                                                               },
+                               "numeric_validation":  {
+                                                          "fix":  "Strict finite-number guard for scheme amounts (reject empty strings)",
+                                                          "validationWorkflow":  "Any workflow with amount entry",
+                                                          "status":  "ready_for_validation"
+                                                      },
+                               "billing_permission_check":  {
+                                                                "fix":  "Payment receipt endpoint requires billing/payment/finance view permissions",
+                                                                "validationWorkflow":  "Block 5 receipt testing across roles",
+                                                                "status":  "ready_for_validation"
+                                                            }
+                           },
+    "controlCoverage":  {
+                            "admin_functions":  "CEO to test independently",
+                            "hr_staffing":  "Pending admin role availability",
+                            "manager_operations":  "Pending manager role availability",
+                            "accounting_reports":  "Block 5 will generate test data for reconciliation",
+                            "stock_reconciliation":  "Block 4 will test GRN/transfer effects"
+                        },
+    "summary":  {
+                    "total_patients":  50,
+                    "created":  10,
+                    "pending":  40,
+                    "blocks_complete":  1,
+                    "blocks_ready":  4,
+                    "regression_tests_passed":  true,
+                    "browser_automation_verified":  true,
+                    "rate_limiter_status":  "cleared"
+                }
 }
