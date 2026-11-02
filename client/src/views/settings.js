@@ -57,7 +57,7 @@ function view(s) {
         ${text('hospital_city', 'Hospital city', 'Default city when registering a patient.')}${text('hospital_state', 'Hospital state', 'Default state for new patient and supplier forms; used to select same-state or other-state GST on a GRN.')}
         <div class="md:col-span-2">${text('address', 'Address')}</div>
         ${text('gstin', 'GSTIN')}${text('nabh_no', 'NABH accreditation number')}${text('drug_license','Pharmacy drug licence number','Printed on bills and reports when provided.')}
-        ${text('hospital_capacity', 'Bed capacity')}${text('hospital_mission', 'Mission')}${text('hospital_about', 'About the hospital')}<div><label class="field-label">Financial year (April–March)</label><p class="field">${esc(s.server_financial_year || 'Current financial year')}</p><p class="text-body-sm mt-1">Calculated from the server date. Historical bills keep their original dates.</p></div><div><label class="field-label">Currency</label><p class="field">Indian rupee (INR / ₹)</p><p class="text-body-sm mt-1">This installation uses INR for billing, stock valuation and accounts.</p></div>
+        <div><label class="field-label">Financial year (April–March)</label><p class="field">${esc(s.server_financial_year || 'Current financial year')}</p><p class="text-body-sm mt-1">Calculated from the server date. Historical bills keep their original dates.</p></div><div><label class="field-label">Currency</label><p class="field">Indian rupee (INR / ₹)</p><p class="text-body-sm mt-1">This installation uses INR for billing, stock valuation and accounts.</p></div>
       </div>` })}
 
       ${card({
