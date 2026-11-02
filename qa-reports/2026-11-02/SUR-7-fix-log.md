@@ -24,8 +24,16 @@ These source changes were already present in the concurrently held SUR-3 checkou
 - `npm run build:css`: passed. Tailwind emitted only the existing outdated Browserslist database advisory.
 - `C:/Users/SAMUEL/Documents/Codex/2026-11-02/referenced-chatgpt-conversation-this-is-an/work/mgm-browser-smoke.mjs`: passed with Chrome and the isolated login route.
 
+### Fresh continuation rerun — 2026-11-02
+
+- `npm test`: passed; realtime-client checks passed, smoke suite passed with 1,320 API checks across 147 list endpoints, and integration regression passed 279 checks.
+- `node tools/scheme-line-payment-test.mjs`: passed 61 checks; stock and sales totals unchanged, no duplicate bill, live-data guard unchanged, and accounting balanced.
+- `npm run build:css`: completed successfully; only the existing outdated Browserslist database advisory was emitted.
+- No live port 4300 or `data/` database was accessed. CSS output `client/app.css` is ignored/generated and was not added.
+
 ## Open and blocked items
 
+- **SUR-8 campaign (owner authorization, 2026-11-02):** port 4300 has nine existing application accounts; port 4388 has three unrelated test accounts. The owner authorized SUR-8 to enter exactly 50 clearly marked synthetic patients and test GRNs, bills, and simulated payments through the UI at port 4300. SUR-8 owns the campaign; this SUR-7 run made no campaign entries and did not touch port 4300. Preserve all existing records and accounts; campaign actions must remain local and simulated.
 - Cloud sync receiver remains explicitly unimplemented and returns 503. The report describes it as a scope decision (local-only versus receiver contract); no owner decision authorizes inventing delivery semantics.
 - Off-device backup restore remains an operational task requiring an approved separate failure domain and restore drill; it is not a safe code-only fix.
 - Demo credentials/data and missing lab reference ranges remain unverified in current data. Do not read or mutate the live database; lab ranges require clinical validation.
