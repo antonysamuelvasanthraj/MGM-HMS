@@ -9,7 +9,8 @@ import { linkBillCase, isApprovedStage } from './payer-cases.js';
 export const h = (fn) => (req, res) => {
   try {
     const out = requestContext.run({ req, user: req.user }, () => fn(req, res));
-    if (out !== undefined && !res.headersSent) res.json(out);
+    // a handler that returns nothing still answers (null), so the browser never waits for a reply that never comes
+    if (!res.headersSent) res.json(out === undefined ? null : out);
   } catch (e) {
     if (e && e.http) return res.status(e.http).json({ error: e.message, ...e.extra });
     console.error('[api]', req.method, req.originalUrl, e);
@@ -208,12 +209,13 @@ export function callGate(enc) {
   const reasons = [];
   if (enc.kind === 'EMG' || enc.priority === 'emergency') return { ok: true, reasons };
   const gatePay = setting('gate_doctor_on_payment') === '1';
-  const gateVit = setting('gate_doctor_on_vitals') === '1';
+  // strict vitals (default on): the doctor is never called before observations, in every mode
+  const gateVit = setting('gate_doctor_on_vitals') === '1' || setting('vitals_strict', '1') === '1';
   if (gatePay && !['paid', 'free', 'waived'].includes(enc.payment_status)
       && !one(`SELECT count(*) FROM bills WHERE encounter_id=? AND bill_type IN ('OP','IP') AND status<>'cancelled' AND authorization_status='approved'`, enc.id)) {
     reasons.push('Payment pending');
   }
-  if (gateVit && !enc.direct_to_doctor) {
+  if (gateVit && (!enc.direct_to_doctor || setting('vitals_strict', '1') === '1')) {
     const v = one('SELECT count(*) FROM vitals WHERE encounter_id=?', enc.id);
     if (!v) reasons.push('Vitals not recorded');
   }
@@ -262,7 +264,8 @@ export function emit(req, { topics, event, data, action, entity, entityId, detai
 }
 
 function queueSync(entity, entityId, op) {
-  if (!entity) return;
+  // the cloud sync queue stays off until Settings → Local server & sync turns it on
+  if (!entity || setting('sync_queue_enabled', '0') !== '1') return;
   try { insert('sync_queue', { entity, entity_id: entityId, op: op || 'update', status: 'queued' }); } catch {}
 }
 

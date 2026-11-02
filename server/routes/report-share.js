@@ -53,7 +53,7 @@ reportShare.post('/lab/shares', requirePerm('lab.view'), h((req) => {
       cloud_status: setting('cloud_enabled', '0') === '1' ? 'queued' : null });
     share = get('SELECT * FROM report_shares WHERE id=?', id);
     // with a cloud connected the share is queued for it (the sync queue is exported / delivered by the cloud connector)
-    if (setting('cloud_enabled', '0') === '1') { try { insert('sync_queue', { entity: 'report_share', entity_id: share.id, op: 'publish', status: 'queued' }); } catch { /* queue is best effort */ } }
+    if (setting('cloud_enabled', '0') === '1' && setting('sync_queue_enabled', '0') === '1') { try { insert('sync_queue', { entity: 'report_share', entity_id: share.id, op: 'publish', status: 'queued' }); } catch { /* queue is best effort */ } }
   }
   const base = baseUrl(req), expires = expiryOf(orders);
   return { token: share.token, url: `${base.url}/r/${share.token}`, scope: base.scope, expires_at: expires ? iso(expires) : null, retention_days: days(),

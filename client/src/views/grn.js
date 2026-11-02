@@ -191,9 +191,16 @@ async function openGRN(id, after) {
     footer: `<button class="btn-secondary" data-close>Close</button>
       ${can('inventory.approve') && can('purchase.write') && g.status!=='corrected' && !pending ? '<button class="btn-secondary" data-request-delete>Request deletion</button>' : ''}
       ${pending && reviewer ? '<button class="btn-secondary" data-reject-delete>Reject deletion</button><button class="btn-primary" data-approve-delete>Approve deletion</button>' : ''}
+      ${can('inventory.approve') && g.status !== 'corrected' && !g.verified_at ? '<button class="btn-secondary" data-review>Mark reviewed</button>' : ''}
       ${can('purchase.write') && can('inventory.approve') && g.status !== 'corrected' ? '<button class="btn-primary" data-correct>Correct GRN</button>' : ''}`,
     onMount(root, close) {
       root.querySelector('[data-correct]')?.addEventListener('click', () => { close(); newGRN(after, g); });
+      // the in-charge checks the receipt against the invoice and says so; corrections still go through Correct GRN
+      root.querySelector('[data-review]')?.addEventListener('click', async (ev) => {
+        busy(ev.currentTarget, true, 'Saving');
+        try { await api.post(`/pharmacy/purchases/${g.id}/verify`, { note: 'Reviewed against invoice' }); toast('GRN marked reviewed', 'success'); close(); after?.(); }
+        catch (err) { apiError(err, 'Could not mark reviewed'); busy(ev.currentTarget, false); }
+      });
       const act=async(decision)=>{
         const title=decision==='request'?'Request GRN deletion':decision==='approved'?'Approve GRN deletion':'Reject GRN deletion';
         const result=await confirmDialog({title,message:decision==='approved'?'This reverses untouched stock and the purchase accounting entry. The original GRN remains in history.':'Enter the reason. Stock and accounts change only after manager/admin approval.',requireReason:true,confirmLabel:title});

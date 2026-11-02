@@ -44,6 +44,9 @@ export function migrateUpgrade(db) {
   // Lab report QR: a printed report always carries a QR; the link works on the hospital network, or on the cloud when one is connected
   defaultSetting(db, 'report_qr_download', '1');          // patients may open / download a released report through the QR
   defaultSetting(db, 'report_qr_retention_days', '90');   // the link stays valid this long after the report is released
+  // strict vitals: no patient reaches the doctor without recorded vitals (any mode); direct-to-doctor is then unavailable
+  defaultSetting(db, 'vitals_strict', '1');
+  defaultSetting(db, 'sync_queue_enabled', '0');       // cloud sync queue: off until enabled in Settings
   defaultSetting(db, 'cloud_enabled', '0');               // optional cloud connection (reports only, never the whole HMS)
   defaultSetting(db, 'cloud_base_url', '');
   db.exec(`CREATE TABLE IF NOT EXISTS report_shares (

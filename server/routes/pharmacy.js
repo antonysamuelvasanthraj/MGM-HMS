@@ -798,7 +798,7 @@ pharmacy.post('/purchases/:id/correct', requirePerm('purchase.write'), h(req => 
 })));
 
 pharmacy.get('/purchase-deletions', requirePerm('purchase.view'), h(req=>all("SELECT r.*,p.grn_no,u.name requested_by_name FROM grn_deletion_requests r JOIN purchases p ON p.id=r.purchase_id JOIN users u ON u.id=r.requested_by WHERE r.status='pending' ORDER BY r.id")));
-pharmacy.get('/purchases/:id/deletion', requirePerm('purchase.view'), h(req=>get('SELECT r.*,u.name requested_by_name FROM grn_deletion_requests r JOIN users u ON u.id=r.requested_by WHERE purchase_id=? ORDER BY r.id DESC LIMIT 1',+req.params.id)));
+pharmacy.get('/purchases/:id/deletion', requirePerm('purchase.view'), h(req=>get('SELECT r.*,u.name requested_by_name FROM grn_deletion_requests r JOIN users u ON u.id=r.requested_by WHERE purchase_id=? ORDER BY r.id DESC LIMIT 1',+req.params.id) ?? null));
 pharmacy.post('/purchases/:id/request-deletion', requirePerm('inventory.approve'), h(req=>tx(()=>{
   if(!can(req.user,'purchase.write'))fail(403,'forbidden');
   const p=get('SELECT * FROM purchases WHERE id=?',+req.params.id);

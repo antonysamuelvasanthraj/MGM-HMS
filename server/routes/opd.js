@@ -291,6 +291,8 @@ opd.post('/encounters/:id/stage', requireAuth, h((req) => {
 opd.post('/encounters/:id/direct-to-doctor', requireAuth, h((req) => {
   if (!can(req.user, 'queue.manage') && !can(req.user, 'op.register') && !can(req.user, 'payment.collect')) fail(403, 'forbidden', { need: 'op.register' });
   if (setting('op_direct_doctor_option') === '0') fail(409, 'direct_to_doctor_disabled');
+  // strict vitals: every OP patient is observed before the doctor, in every working mode
+  if (setting('vitals_strict', '1') === '1') fail(409, 'vitals_required_strict');
   const e = get('SELECT * FROM encounters WHERE id=?', +req.params.id);
   if (!e) fail(404, 'encounter_not_found');
   if (e.kind !== 'OP') fail(400, 'op_visit_only');

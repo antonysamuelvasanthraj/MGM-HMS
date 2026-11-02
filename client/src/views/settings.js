@@ -72,6 +72,8 @@ function view(s) {
             'A patient is not callable until the consultation fee is paid, waived or approved free.')}
           ${toggle('gate_doctor_on_vitals', 'Hold the doctor queue until vitals are recorded',
             'A patient is not callable until the nursing station has recorded observations.')}
+          ${toggle('vitals_strict', 'Strict vitals: no doctor call without vitals (all modes)',
+            'On (default): every OP patient is observed before the doctor, in paper, paperless and hybrid. The “Send directly to doctor” option is then not offered. Off: the desk may skip vitals.')}
           ${toggle('payer_change_requires_approval', 'Payer changes need Insurance desk approval',
             'Reception and billing send a request; the Insurance desk or an administrator approves it, then the bills move. Off: reception changes the payer directly (money received is still guarded).')}
           ${toggle('scheme_checklist_required', 'Aarogyasri cases need the full checklist before approval',
@@ -163,6 +165,8 @@ function view(s) {
         </div>` })}
 
       ${card({ title: 'Local server & sync', body: `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        ${toggle('sync_queue_enabled', 'Queue changes for cloud sync',
+          'Off (default): changes are not queued for any cloud. On: each change is queued in the sync queue for the cloud receiver. No receiver is set up here yet, so queued items wait.')}
         ${text('lan_ip', 'LAN address of this server', 'What other desks connect to.')}
         ${text('cloud_endpoint', 'Cloud receiver reference', 'Reference address only. This installation has no cloud delivery receiver; records remain queued. See Local Setup & Sync for queue export.')}
         <div><label class="field-label">Server timezone</label><p class="field">${esc(s.server_timezone || 'Server local time')}</p><p class="text-body-sm mt-1">Times follow the server’s local timezone. Configure the hospital server to Asia/Kolkata; changing a saved label does not change historical times.</p></div>
