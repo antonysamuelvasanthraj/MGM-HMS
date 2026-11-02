@@ -623,7 +623,10 @@ billing.get('/payments', requirePerm('billing.view'), h((req) => {
   return { rows, byMode, byCounter, summary: { count: rows.length, total: money(total) } };
 }));
 
-billing.get('/payments/:id/receipt', requireAuth, h((req) => receiptView(+req.params.id)));
+billing.get('/payments/:id/receipt', requireAuth, h((req) => {
+  if(!['billing.view','payment.view','payment.collect','finance.view'].some(p=>can(req.user,p)))fail(403,'forbidden');
+  return receiptView(+req.params.id);
+}));
 
 function receiptView(id) {
   const p = get(

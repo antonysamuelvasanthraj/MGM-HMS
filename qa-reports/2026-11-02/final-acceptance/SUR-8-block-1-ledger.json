@@ -4,88 +4,89 @@
   "results": [
     {
       "marker": "TEST-MGM-QA-001",
-      "timestamp": "2026-11-02T12:31:18.760Z",
+      "timestamp": "2026-11-02T12:31:18.76Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     },
     {
       "marker": "TEST-MGM-QA-002",
       "timestamp": "2026-11-02T12:31:23.071Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     },
     {
       "marker": "TEST-MGM-QA-003",
       "timestamp": "2026-11-02T12:31:27.401Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     },
     {
       "marker": "TEST-MGM-QA-004",
       "timestamp": "2026-11-02T12:31:31.725Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     },
     {
       "marker": "TEST-MGM-QA-005",
       "timestamp": "2026-11-02T12:31:35.991Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     },
     {
       "marker": "TEST-MGM-QA-006",
       "timestamp": "2026-11-02T12:31:40.217Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     },
     {
       "marker": "TEST-MGM-QA-007",
       "timestamp": "2026-11-02T12:31:44.465Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     },
     {
       "marker": "TEST-MGM-QA-008",
-      "timestamp": "2026-11-02T12:31:48.760Z",
+      "timestamp": "2026-11-02T12:31:48.76Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     },
     {
       "marker": "TEST-MGM-QA-009",
       "timestamp": "2026-11-02T12:31:53.075Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     },
     {
       "marker": "TEST-MGM-QA-010",
-      "timestamp": "2026-11-02T12:31:57.320Z",
+      "timestamp": "2026-11-02T12:31:57.32Z",
       "patientId": null,
       "uhid": "when",
-      "status": "registered",
-      "error": null
+      "status": "unverified_invalidated",
+      "error": "No saved patient ID; invalid UHID; final screenshot shows blank required fields, not successful registration. Verify actual app port 4300 before counting."
     }
   ],
   "summary": {
     "total": 10,
-    "registered": 10,
+    "registered": 0,
     "failed": 0
-  }
+  },
+  "operatorVerification": "Prior 10/10 success claim invalidated. Read-only port-4300 expected DB marker count 0. Screenshot shows native required-field validation. Original ledger preserved separately; this is not an application defect finding."
 }

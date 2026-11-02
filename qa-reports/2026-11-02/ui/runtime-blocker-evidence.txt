@@ -1,0 +1,10 @@
+# Sanitized environment evidence
+
+- Runtime version check: Node v24.16.0 (`node --version`) succeeds.
+- Isolated startup attempt: `server/index.js`, loopback host `127.0.0.1`, port `4388`, and a newly created empty directory assigned to `SURELY_DATA`.
+- Runtime stderr: `Assertion failed: ncrypto::CSPRNG(nullptr, 0)` during Node initialization.
+- Result: process exited before application startup; port 4388 did not listen; no browser session or database access occurred.
+- Chrome and Edge are installed. No Playwright/Puppeteer package or browser automation tool was available.- Follow-up: bundled Node v24.22.1 also aborts during native initialization, even for a trivial script (`ncrypto::CSPRNG(nullptr, 0)`).
+- Follow-up: user-supplied local billing desk route at localhost:4300 is unreachable from this run; treated as a route hint, not credentials.
+- Paperclip API reachability check failed; report could not yet be posted through the API.
+- Current-run recheck: `node --version` still succeeds (v24.16.0), but `node -e "console.log('script-runtime-ok')"` exits 134 with the same Node initialization assertion. No local browser automation tool or Playwright/Puppeteer package was found. The Paperclip API read-only check again failed to connect; no task comment was posted.

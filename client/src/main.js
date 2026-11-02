@@ -3,7 +3,7 @@ try { document.documentElement.dataset.theme = localStorage.getItem('hms_theme')
 document.querySelector('meta[name="theme-color"]')?.setAttribute('content', document.documentElement.dataset.theme === 'maroon' ? '#39171D' : '#062F5C');
 import { api, token, setToken } from './api.js';
 import { state, loadSession, loadMeta, refreshBadges, signIn, signOut, can, setting } from './store.js';
-import { $, $$, toast, esc, initials, debounce, fmtTime, modal, labelFields } from './ui.js';
+import { $, $$, toast, esc, initials, debounce, fmtTime, modal, labelFields, pageSkeleton } from './ui.js';
 import { connect, on, onState as onWsState, subscribe } from './ws.js';
 import { renderSidebar, initSidebarChrome } from './shell/sidebar.js';
 import { startRouter, navigate, render } from './router.js';
@@ -14,17 +14,29 @@ boot();
 watchAppUpdates();
 installInputBehavior();
 
+function openingSkeleton() {
+  const overlay = document.createElement('div');
+  overlay.className = 'session-loading';
+  overlay.innerHTML = pageSkeleton('your workspace');
+  document.body.append(overlay);
+  const gate = $('#auth-gate');
+  gate.inert = true;
+  return () => { overlay.remove(); gate.inert = false; };
+}
+
 async function boot() {
   if (!token()) return showSignIn();
+  const finish = openingSkeleton();
   try {
     await loadSession();
-  } catch {
-    setToken('');
-    return showSignIn();
-  }
-  await loadMeta();
-  await refreshBadges();
-  showShell();
+    await loadMeta();
+    await refreshBadges();
+    showShell();
+  } catch (e) {
+    if(e.status === 401) setToken('');
+    showSignIn();
+    if(e.status !== 401) toast('Could not open your workspace. Please try signing in again.', 'warning');
+  } finally { finish(); }
 }
 
 /* --------------------------------------------------------------- sign in */
@@ -167,6 +179,7 @@ async function showSignIn() {
     const btn = $('#si-submit');
     btn.disabled = true;
     $('#si-error').classList.add('hidden');
+    const finish = openingSkeleton();
     try {
       await signIn(user, pass, counter || null);
       await loadMeta(true);
@@ -180,7 +193,7 @@ async function showSignIn() {
         : err.status === 429 ? 'Too many wrong attempts. Wait 10 minutes and try again, or ask the administrator.'
         : `Sign-in failed: ${err.message}`;
       $('#si-error').classList.remove('hidden');
-    } finally { btn.disabled = false; }
+    } finally { finish(); btn.disabled = false; }
   };
 
   form.onsubmit = async (e) => {

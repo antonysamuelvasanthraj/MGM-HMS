@@ -20,7 +20,7 @@ export async function mount(ctx){
     busy=true;dispose?.();dispose=null;active=key;host.dataset.dirty='';
     root.querySelectorAll('[data-desk-tab]').forEach(button=>{button.classList.toggle('btn-primary',button.dataset.deskTab===key);button.setAttribute('aria-pressed',String(button.dataset.deskTab===key));});
     history.replaceState({},'',`/billing-desk?desk=${pharmacy?'pharmacy':'reception'}&tab=${key}`);
-    try{const view=await import(`./${tab[2]}.js`);if(disposed)return;host.innerHTML='<div class="view-root"></div>';const cleanup=await view.mount({...ctx,host,root:host.firstElementChild,query:pharmacy&&key==='bills'?{type:'PHARM'}:{}});if(disposed)cleanup?.();else dispose=cleanup;}
+    try{const view=await import(`./${tab[2]}.js`);if(disposed)return;host.innerHTML='<div class="view-root"></div>';const cleanup=await view.mount({...ctx,host,root:host.firstElementChild,query:pharmacy&&key==='bills'?{type:'PHARM'}:{}});if(disposed)cleanup?.();else {dispose=cleanup;if(cleanup?.ready)await cleanup.ready;}}
     catch(error){active=null;if(!disposed){host.textContent='Could not load this billing section. Select the tab to retry.';apiError(error);}}
     finally{busy=false;}
   }

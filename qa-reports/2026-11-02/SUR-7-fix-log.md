@@ -33,6 +33,12 @@ These source changes were already present in the concurrently held SUR-3 checkou
 
 ## Open and blocked items
 
+### Downstream acceptance blocker — existing staff authentication (SUR-9 / SUR-11)
+
+SUR-9 reported that the existing doctor and reception logins were rejected once each on the authorized local application at port 4300; a separate registration attempt then showed the app-wide ten-minute lockout. SUR-11 independently reported rejection of two existing pharmacy accounts. Both testers stopped immediately after the lockout/rejections. No credentials, accounts, roles, permissions, or records were changed. Evidence is in `final-acceptance/SUR-9-clinical-qa-report.md` and `final-acceptance/SUR-11-pharmacy-stock-qa.md`.
+
+This establishes an authentication/access blocker for those acceptance runs; it does not yet establish a code defect or prove all nine accounts fail. No further login attempts are authorized until the existing account owner verifies account state and coordinates a clean retest. Clinical and pharmacy workflows and the 50-record campaign remain untested; no patient records were created by those runs. Continue independent code work without touching port 4300 or credentials.
+
 - **SUR-8 campaign (owner authorization, 2026-11-02):** port 4300 has nine existing application accounts; port 4388 has three unrelated test accounts. The owner authorized SUR-8 to enter exactly 50 clearly marked synthetic patients and test GRNs, bills, and simulated payments through the UI at port 4300. SUR-8 owns the campaign; this SUR-7 run made no campaign entries and did not touch port 4300. Preserve all existing records and accounts; campaign actions must remain local and simulated.
 - Cloud sync receiver remains explicitly unimplemented and returns 503. The report describes it as a scope decision (local-only versus receiver contract); no owner decision authorizes inventing delivery semantics.
 - Off-device backup restore remains an operational task requiring an approved separate failure domain and restore drill; it is not a safe code-only fix.

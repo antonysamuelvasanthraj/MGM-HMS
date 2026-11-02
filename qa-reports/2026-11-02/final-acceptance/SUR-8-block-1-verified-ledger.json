@@ -1,0 +1,104 @@
+{
+  "campaign": "SUR-8 Block 1 Patient Registration",
+  "target": "http://127.0.0.1:4300",
+  "timestamp": "2026-11-02T12:44:00Z",
+  "method": "UI automation via Playwright",
+  "verification": "All 10 patients confirmed visible on /patients list",
+  "patients": [
+    {
+      "marker": "TEST-MGM-QA-001",
+      "name": "TEST-MGM-QA-001 - Test Patient 01",
+      "gender": "Male",
+      "age": 30,
+      "mobile": "9876543000",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    },
+    {
+      "marker": "TEST-MGM-QA-002",
+      "name": "TEST-MGM-QA-002 - Test Patient 02",
+      "gender": "Female",
+      "age": 32,
+      "mobile": "9876543001",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    },
+    {
+      "marker": "TEST-MGM-QA-003",
+      "name": "TEST-MGM-QA-003 - Test Patient 03",
+      "gender": "Male",
+      "age": 34,
+      "mobile": "9876543002",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    },
+    {
+      "marker": "TEST-MGM-QA-004",
+      "name": "TEST-MGM-QA-004 - Test Patient 04",
+      "gender": "Female",
+      "age": 36,
+      "mobile": "9876543003",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    },
+    {
+      "marker": "TEST-MGM-QA-005",
+      "name": "TEST-MGM-QA-005 - Test Patient 05",
+      "gender": "Male",
+      "age": 38,
+      "mobile": "9876543004",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    },
+    {
+      "marker": "TEST-MGM-QA-006",
+      "name": "TEST-MGM-QA-006 - Test Patient 06",
+      "gender": "Female",
+      "age": 40,
+      "mobile": "9876543005",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    },
+    {
+      "marker": "TEST-MGM-QA-007",
+      "name": "TEST-MGM-QA-007 - Test Patient 07",
+      "gender": "Male",
+      "age": 42,
+      "mobile": "9876543006",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    },
+    {
+      "marker": "TEST-MGM-QA-008",
+      "name": "TEST-MGM-QA-008 - Test Patient 08",
+      "gender": "Female",
+      "age": 44,
+      "mobile": "9876543007",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    },
+    {
+      "marker": "TEST-MGM-QA-009",
+      "name": "TEST-MGM-QA-009 - Test Patient 09",
+      "gender": "Male",
+      "age": 46,
+      "mobile": "9876543008",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    },
+    {
+      "marker": "TEST-MGM-QA-010",
+      "name": "TEST-MGM-QA-010 - Test Patient 10",
+      "gender": "Female",
+      "age": 48,
+      "mobile": "9876543009",
+      "status": "verified_exists",
+      "notes": "Confirmed on patients list UI"
+    }
+  ],
+  "summary": {
+    "total_created": 10,
+    "total_verified": 10,
+    "success_rate": "100%"
+  }
+}

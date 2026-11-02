@@ -7,6 +7,7 @@ import {patientLineAmount} from '../payer-lines.js';
 import {reversePayerBilling,billCaseToPayer} from '../payer-billing.js';
 import {collectionPolicy} from '../collection-policy.js';
 export const schemePayments=Router();
+const numeric=v=>(typeof v==='number'||typeof v==='string'&&v.trim()!=='')&&Number.isFinite(Number(v));
 const drug=(i,b)=>b.bill_type==='PHARM'||!!i.batch_id||i.revenue_head==='PHARMACY'||['pharmacy','medicine','drug','consumable'].includes(i.category);
 const allowed=(u,i,b)=>can(u,'scheme.patient_pay')&&(can(u,'admin.write')||can(u,'insurance.write')||(drug(i,b)?can(u,'pharmacy.dispense'):can(u,'op.collect')));
 schemePayments.get('/scheme/patients/:id/lines',requireAuth,h(req=>{
@@ -25,12 +26,12 @@ schemePayments.post('/scheme/items/:id/patient-payment',requireAuth,h(req=>tx(()
  const c=get('SELECT * FROM insurance_claims WHERE id=?',b.claim_id);if(!c?.admission_id||['settled','rejected','cancelled'].includes(c.status)||b.status==='cancelled')fail(409,'scheme_case_closed');
  if(isClosed(today())||isClosed(b.bill_date))fail(409,'books_closed');
  const body=req.body||{},key=String(body.request_key||'');if(!/^[\w-]{16,100}$/.test(key))fail(400,'request_key_required');
- const previous=get('SELECT * FROM scheme_patient_permissions WHERE request_key=?',key);if(previous){if(previous.item_id!==i.id||previous.requested_by!==req.user.id)fail(409,'request_key_conflict');return previous;}
+ const previous=get('SELECT * FROM scheme_patient_permissions WHERE request_key=?',key);if(previous){if(previous.item_id!==i.id||previous.requested_by!==req.user.id||money(Number(body.patient_amount))!==previous.patient_amount||String(body.reason||'').trim()!==previous.reason||String(body.authorization_ref||'').trim()!==previous.authorization_ref)fail(409,'request_key_conflict');return previous;}
  const amount=Number(body.patient_amount),reason=String(body.reason||'').trim(),reference=String(body.authorization_ref||'').trim(),before=patientLineAmount(i);
- if(!Number.isFinite(amount)||amount<0||amount>itemMoney(i).total)fail(400,'patient_amount_invalid');
+ if(!numeric(body.patient_amount)||amount<0||amount>itemMoney(i).total)fail(400,'patient_amount_invalid');
  if(reason.length<5||reference.length<3)fail(400,'reason_and_authorization_required');
  if(i.amount<=0||i.waiver_of||get('SELECT id FROM bill_items WHERE waiver_of=?',i.id))fail(409,'item_waived');
- if(body.expected_amount===undefined||!Number.isFinite(Number(body.expected_amount))||money(Number(body.expected_amount))!==before)fail(409,'allocation_changed_refresh');
+ if(!numeric(body.expected_amount)||money(Number(body.expected_amount))!==before)fail(409,'allocation_changed_refresh');
  if(b.paid>0.005&&amount<before)fail(409,'refund_review_required');
  if(get("SELECT id FROM bill_settlements WHERE claim_id=? AND status<>'cancelled' AND settled_amount>0.005",c.id))fail(409,'payer_receipts_require_adjustment');
  reversePayerBilling(req,c.id,'Authorized Aarogyasri patient-pay allocation');update('bill_items',i.id,{patient_pays:amount>0?1:0,patient_pay_amount:money(amount)});
@@ -56,10 +57,11 @@ schemePayments.post('/scheme/items/:id/collect',requireAuth,h(req=>tx(()=>{
  if(!get('SELECT admission_id FROM insurance_claims WHERE id=?',b.claim_id)?.admission_id)fail(400,'ipd_required');
  if(i.amount<=0||i.waiver_of||get('SELECT id FROM bill_items WHERE waiver_of=?',i.id))fail(409,'item_waived');
  const key=String(req.body?.request_key||'');if(!/^[\w-]{16,100}$/.test(key))fail(400,'request_key_required');
- const prior=get('SELECT * FROM scheme_line_collections WHERE request_key=?',key);if(prior){if(prior.item_id!==i.id||prior.collected_by!==req.user.id)fail(409,'request_key_conflict');return get('SELECT * FROM payments WHERE id=?',prior.payment_id);}
+ const prior=get('SELECT * FROM scheme_line_collections WHERE request_key=?',key);if(prior){if(prior.item_id!==i.id||prior.collected_by!==req.user.id||money(Number(req.body.amount))!==prior.amount||((req.body.mode==='card'?'debit_card':req.body.mode)!==get('SELECT mode FROM payments WHERE id=?',prior.payment_id).mode)||String(req.body.reference||'').trim()!==String(get('SELECT reference FROM payments WHERE id=?',prior.payment_id).reference||'').trim())fail(409,'request_key_conflict');return get('SELECT * FROM payments WHERE id=?',prior.payment_id);}
  const collected=Number(get('SELECT coalesce(sum(x.amount),0) n FROM scheme_line_collections x JOIN payments p ON p.id=x.payment_id WHERE x.item_id=? AND p.cancelled=0',i.id).n);
  const available=money(Math.max(0,Math.min(patientLineAmount(i)-collected,collectionPolicy(b).patient_due,b.balance)));
- const amount=Number(req.body.amount);if(!Number.isFinite(amount)||amount<=0||money(amount)>available)fail(400,'amount_exceeds_permitted_share',{available});
+ const amount=Number(req.body.amount);if(!numeric(req.body.amount)||amount<=0||money(amount)>available)fail(400,'amount_exceeds_permitted_share',{available});
+ if(req.body.mode!=='cash'&&!String(req.body.reference||'').trim())fail(400,'reference_required');
  const counter=get('SELECT id FROM counters WHERE code=? AND active=1',drug(i,b)?'PHAR':'OPC1')||fail(400,'collection_counter_not_configured');
  const payment=takePayment({...req,user:{...req.user,counter_id:counter.id}},{bill_id:b.id,amount:money(amount),mode:req.body.mode,reference:req.body.reference,transaction_id:key,remarks:'Authorized Aarogyasri line '+i.id,collection_group:key}).payment;
  insert('scheme_line_collections',{item_id:i.id,payment_id:payment.id,collection_desk:drug(i,b)?'pharmacy':'reception',request_key:key,amount:payment.amount,collected_by:req.user.id,created_at:nowIso()});

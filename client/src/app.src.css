@@ -484,8 +484,8 @@ html[data-theme="calm"] a:not(.btn):not(.btn-primary):not(.btn-secondary):not(.b
 /* ============================================================ motion
  * Screens fade in and rise slightly when you move between them; buttons,
  * menu items, rows, cards and fields fade on hover and focus. */
-@keyframes view-enter { from { opacity: .65; } to { opacity: 1; } }
-.view-enter { animation: view-enter .28s var(--ease) both; }
+@keyframes view-enter { from { opacity: .65; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.view-enter { animation: view-enter .2s var(--ease) both; }
 .card { transition: box-shadow .25s var(--ease), border-color .25s var(--ease), transform .25s var(--ease); }
 .card:hover { box-shadow: 0 4px 14px rgba(23,43,77,.07); }
 .field { transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background-color .2s var(--ease); }
@@ -528,3 +528,46 @@ html[data-theme="calm"] #topbar #user-initials { background: rgb(var(--c-accent)
 .pharmacy-menu-group>summary::-webkit-details-marker { display:none; }
 .pharmacy-menu-group .menu-group-chevron { transition:transform .15s ease; }
 .pharmacy-menu-group[open]>summary .menu-group-chevron { transform:rotate(180deg); }
+
+/* Keep scheme payment actions readable on phones without squeezing bill names. */
+@media (max-width: 640px) {
+  .scheme-lines-table thead { display: none; }
+  .scheme-lines-table tbody { display: grid; gap: 12px; }
+  .scheme-lines-table tr { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #d7e1ed; border-radius: 8px; padding: 10px; }
+  html[data-theme] .scheme-lines-table tbody td { display: block; height: auto; border: 0; padding: 8px 2px; min-width: 0; overflow-wrap: anywhere; }
+  .scheme-lines-table td:first-child, .scheme-lines-table td:last-child { grid-column: 1 / -1; }
+  .scheme-lines-table td:nth-child(2)::before { content: 'Total'; display: block; font-size: 11px; }
+  .scheme-lines-table td:nth-child(3)::before { content: 'Patient share'; display: block; font-size: 11px; }
+  .scheme-lines-table td:last-child { display: flex; flex-wrap: wrap; gap: 8px; }
+}
+
+/* Shared glass loading surfaces, in both hospital themes. */
+.loading-glass { background: rgba(255,255,255,.82); border: 1px solid rgb(var(--c-primary) / .10); border-radius: 14px; box-shadow: 0 6px 22px rgb(var(--c-primary) / .035); }
+@supports (backdrop-filter: blur(10px)) { .loading-glass { background: rgba(255,255,255,.67); backdrop-filter: blur(10px); } }
+.page-skeleton { padding: 24px; width: 100%; max-width: 1600px; margin: 0 auto; display: grid; gap: 20px; }
+.skeleton-heading { padding: 22px; display: grid; gap: 12px; border-left: 4px solid rgb(var(--c-accent) / .38); }
+.skeleton-line { display: block; width: 100%; height: 12px; border-radius: 6px; background: linear-gradient(100deg,rgb(var(--c-primary) / .055) 25%,rgb(var(--c-primary) / .115) 45%,rgb(var(--c-primary) / .055) 65%); background-size: 220% 100%; animation: skeleton-sheen 1.6s ease-in-out infinite; }
+.skeleton-line-short { width: 28%; }
+.skeleton-line-title { width: 45%; height: 22px; }
+.skeleton-line-wide { width: 72%; }
+.skeleton-line-number { width: 32%; height: 30px; }
+.skeleton-tiles { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
+.skeleton-tile { padding: 20px; min-height: 134px; display: grid; align-content: space-between; gap: 16px; }
+.skeleton-sheet { padding: 22px; display: grid; gap: 22px; }
+.skeleton-table-row { display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 28px; padding: 14px 0; border-top: 1px solid rgb(var(--c-primary) / .05); }
+.loading-placeholder { display: flex; justify-content: center; padding: 28px 12px; }
+.loading-placeholder-panel { display: grid; grid-template-columns: 10px 1fr; align-items: center; gap: 12px; padding: 18px 22px; width: min(100%,340px); color: rgb(var(--c-primary)); font-size: 13px; }
+.loading-indicator { width: 8px; height: 8px; background: rgb(var(--c-accent)); border-radius: 50%; animation: skeleton-breathe 1.4s ease-in-out infinite; }
+.loading-placeholder-lines { grid-column: 1 / -1; display: grid; gap: 9px; }
+@keyframes skeleton-sheen { from { background-position: 110% 0; } to { background-position: -110% 0; } }
+@keyframes skeleton-breathe { 50% { opacity: .35; } }
+@media (max-width: 767px) { .page-skeleton { padding: 16px; gap: 14px; } .skeleton-tiles { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; } .skeleton-tile { padding: 16px; min-height: 112px; } .skeleton-line-title { width: 65%; } .skeleton-table-row { gap: 16px; } }
+@media (prefers-reduced-motion: reduce) { .skeleton-line,.loading-indicator,.view-enter { animation: none !important; } }
+@media print { .page-skeleton,.loading-placeholder { display: none !important; } .view-enter { animation: none !important; transform: none !important; opacity: 1 !important; } }
+
+/* Keep the full skeleton above mounting content until its first data request completes. */
+.page-load-stage { position: relative; min-height: 420px; }
+.page-load-stage > .view-root { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }
+.page-load-cover { position: relative; }
+.session-loading { position: fixed; inset: 0; z-index: 110; overflow-y: auto; background: #edf4f9; }
+.session-loading > .page-skeleton { padding-top: clamp(24px,8vh,90px); max-width: 1200px; }

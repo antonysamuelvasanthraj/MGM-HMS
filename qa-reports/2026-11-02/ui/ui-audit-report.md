@@ -136,3 +136,25 @@ Owner direction authorizes the synthetic campaign records at `http://127.0.0.1:4
 - Port 4388 is deliberately not used for this campaign because owner direction says it has unrelated accounts and is not the campaign target.
 
 No new UI defect is confirmed. Please have the owner/admin identify an unchanged existing login that is known to work on port 4300, without sending its password in task comments. After that, retry only once with the identified credential and continue the assigned range through UI forms.
+
+## Operator evidence correction — 2026-11-02
+
+The prior claimed registration success for TEST-MGM-QA-001–010 is invalid. The shared Block-1 ledger has all ten entries marked `unverified_invalidated`, with null patient IDs and invalid placeholder UHIDs; the final screenshot shows an empty registration form with required-field validation. Operator read-only verification reports zero campaign markers in the actual application database. Count these records as **0/10 created**; do not use them in downstream workflows. The preserved original ledger is audit history, not proof of saved records.
+
+The current owner authorization is for the actual local application at `http://127.0.0.1:4300`, and explicitly permits these synthetic campaign records through UI forms while preserving existing data and accounts. This supersedes the earlier report text that said port 4300 writes were still pending approval. A single existing reception login attempt was already made and remained on `/login`; no account label known to work has since been supplied. I made no additional login attempt, did not inspect or modify the database, and entered no patient or other business records. Therefore patient registration, search/persistence verification, and all authenticated role workflows remain blocked; current campaign count is 0/10. Before any record can be counted, the actual form must be filled with intended values, required controls checked before submit, validation/server response observed, and the reopened record's actual ID/UHID captured.
+
+The most recent runner check confirms port 4300 is reachable and the Playwright module path exists. It does not provide an authenticated session. The configured Paperclip API at `127.0.0.1:3100` is unreachable in this run, so this correction could not be posted through the task API. No new UI defect is confirmed.
+
+## Credential consistency and lockout-window recheck — 2026-11-02
+
+The owner verified the current private credential entries for admin, reception, pharmacy, lab, accounts, HR, manager, and MS update. The unmatched doctor entry remains skipped. No credential values were copied into this report. Because a reception sign-in remained at `/login` at 12:34:12 UTC and the owner directed that a correct retry wait until the ten-minute lockout expires, no sign-in retry was made before 12:44:12 UTC.
+
+While waiting, headless Chrome reopened the unauthenticated port 4300 login page at 1280, 768, and 400 px. It rendered 3 inputs and 8 buttons at each viewport; document width equaled viewport width and there were no page errors. Sanitized 400 px screenshot: `evidence-login-4300-lockout-recheck-400px.png`. No authenticated workflows, registration, or business-record entry were exercised. Campaign range TEST-MGM-QA-001–010 remains **0/10 created**. No new UI defect is confirmed.
+
+## Rate-limit cooldown and isolated non-login check — 2026-11-02
+
+Per the latest owner instruction, no login attempts were made. The assigned isolated instance at `http://127.0.0.1:4388` returned HTTP 200 for `/login` and `/api/health` (`healthy`, database connected). Headless Chrome at 400 × 850 rendered the unauthenticated login form with document width equal to viewport width and no page errors. Sanitized screenshot: `evidence-login-4388-400px.png`.
+
+Read-only inspection of `server/routes/core.js` shows the login limiter stores failure timestamps in memory, uses a rolling 10-minute window, and blocks at 8 failures per client IP or normalized username. A successful sign-in clears those keys. A blocked login response includes `retry_after_minutes: 10`, but the login GET sends no `Retry-After` header. The owner-reported HTTP 429 occurred at 12:38:33 UTC, so the conservative earliest retest time is **12:48:33 UTC**, ten minutes after that report. Coordinate one shared retest only after expiry to avoid renewing the IP bucket. This source/configuration check does not establish a live remaining cooldown or verify sign-in behavior.
+
+No authenticated workflows or records were exercised. This check used only isolated port 4388; no database was opened directly and no records or accounts were changed. TEST-MGM-QA-001–010 remains **0/10 independently verified**. No new UI defect is confirmed.

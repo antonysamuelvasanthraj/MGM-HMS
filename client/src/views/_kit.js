@@ -388,8 +388,10 @@ export function live({ topics = [], events = [], load, interval = 0 }) {
     if (document.visibilityState !== 'hidden') refresh({ live: true, tick: true });
   }, Math.min(interval || 30000, 30000));
   unsubs.push(() => clearInterval(t));
-  refresh({ first: true });
-  return () => { disposed = true; reload.cancel(); unsubs.forEach((u) => { try { u(); } catch {} }); };
+  const ready = refresh({ first: true });
+  const dispose = () => { disposed = true; reload.cancel(); unsubs.forEach((u) => { try { u(); } catch {} }); };
+  dispose.ready = ready;
+  return dispose;
 }
 
 /** Read the current view's query string as an object. */
@@ -399,7 +401,7 @@ export const queryOf = (ctx) => ctx?.query || {};
 export function mountPage(ctx, html) {
   const root = ctx.host.querySelector('.view-root') || ctx.host;
   root.innerHTML = html;
-  root.classList.add('fade-in');
+  root.classList.add('view-enter');
   return root;
 }
 
@@ -441,6 +443,19 @@ export function apiError(e, fallback = 'Could not complete that') {
     abha_invalid: 'ABHA number must be 14 digits',
     email_invalid: 'That email address does not look right',
     reference_required: 'Enter the UPI transaction ID, card approval code, UTR or cheque number',
+    request_key_conflict: 'This request was already submitted with different details. Reopen the form and check the saved result.',
+    allocation_changed_refresh: 'Another desk changed this patient share. Reopen the form to see the current amount.',
+    refund_review_required: 'Money has already been collected. An authorized refund review is required before reducing this share.',
+    payer_receipts_require_adjustment: 'The payer has already paid on this case. Ask Accounts to review the allocation before changing it.',
+    scheme_case_closed: 'This scheme case is closed. New patient-share allocations are locked.',
+    reason_and_authorization_required: 'Enter a reason and the authorization reference for this patient payment.',
+    patient_amount_invalid: 'Enter a patient amount between zero and the item total.',
+    amount_exceeds_permitted_share: 'This amount exceeds the permitted unpaid share. Reopen the item to check the remaining amount.',
+    collection_counter_not_configured: 'The collection counter is inactive or missing. Ask the administrator to configure it.',
+    item_waived: 'This charge was waived or reversed and cannot be collected.',
+    review_note_required: 'Enter a review note before saving the decision.',
+    already_reviewed: 'This decision has already been confirmed. Refresh the review queue.',
+    books_closed: 'The accounting period is closed. Ask Accounts to review it before changing this allocation.',
     prescription_required_for_schedule: 'Schedule H / H1 / X medicine — choose the prescribing doctor or write the prescription reference',
     no_reply: 'No reply from the server — the link may have dropped. Check the Live chip at the top, then refresh to see whether it was saved before trying again',
     network_error: 'Cannot reach the server — check the network connection and try again',

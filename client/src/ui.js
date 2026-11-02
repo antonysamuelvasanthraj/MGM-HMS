@@ -528,10 +528,20 @@ export function emptyState(icon, title, sub, actionHTML = '') {
   </div>`;
 }
 
+/** Shared placeholders keep loading layouts stable without pretending data is ready. */
+export function pageSkeleton(label = 'page') {
+  return `<section class="page-skeleton" role="status" aria-label="Loading ${esc(label)}">
+    <span class="sr-only">Loading ${esc(label)}…</span>
+    <div class="loading-glass skeleton-heading" aria-hidden="true"><div class="skeleton-line skeleton-line-short"></div><div class="skeleton-line skeleton-line-title"></div><div class="skeleton-line skeleton-line-wide"></div></div>
+    <div class="skeleton-tiles" aria-hidden="true">${Array.from({length:4},()=>'<div class="loading-glass skeleton-tile"><div class="skeleton-line skeleton-line-short"></div><div class="skeleton-line skeleton-line-number"></div><div class="skeleton-line skeleton-line-wide"></div></div>').join('')}</div>
+    <div class="loading-glass skeleton-sheet" aria-hidden="true"><div class="skeleton-line skeleton-line-title"></div>${Array.from({length:5},()=>'<div class="skeleton-table-row"><span class="skeleton-line"></span><span class="skeleton-line"></span><span class="skeleton-line"></span></div>').join('')}</div>
+  </section>`;
+}
+
 export function spinner(label = 'Loading') {
-  return `<div class="flex items-center justify-center gap-2.5 py-16 text-on-surface-variant">
-    <span class="material-symbols-outlined animate-spin text-[22px] text-primary/60">progress_activity</span>
-    <span class="text-body-lg">${esc(label)}…</span></div>`;
+  return `<div class="loading-placeholder" role="status" aria-label="${esc(label)}">
+    <div class="loading-glass loading-placeholder-panel"><span class="loading-indicator" aria-hidden="true"></span><span>${esc(label)}…</span>
+    <div class="loading-placeholder-lines" aria-hidden="true"><span class="skeleton-line"></span><span class="skeleton-line skeleton-line-wide"></span></div></div></div>`;
 }
 
 /** Simple inline sparkline / bar chart — no chart library on a hospital LAN. */

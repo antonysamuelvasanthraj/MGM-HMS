@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';import {DatabaseSync,backup} from 'node:sqlite';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {spawn,spawnSync} from 'node:child_process';
-const directory=fs.mkdtempSync(path.join(os.tmpdir(),'hms-admin-review-')),filename=path.join(directory,'surelyhms.db');const source=new DatabaseSync('data/surelyhms.db',{readOnly:true});await backup(source,filename);source.close();
-const db=new DatabaseSync(filename);const admin=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
+const directory=fs.mkdtempSync(path.join(os.tmpdir(),'surelyhms-test-admin-review-')),filename=path.join(directory,'surelyhms.db');const fixture=spawnSync(process.execPath,['tools/fixtures/hospital.mjs'],{env:{...process.env,SURELY_DATA:directory,NODE_ENV:'test'},encoding:'utf8',windowsHide:true});assert.equal(fixture.status,0,fixture.stderr);
+const db=new DatabaseSync(filename);const admin={token:'isolated-admin-settings-review'};db.prepare('INSERT INTO sessions(token,user_id) VALUES (?,?)').run(admin.token,db.prepare("SELECT id FROM users WHERE role='admin'").get().id);
 
 const server=spawn(process.execPath,['server/index.js'],{env:{...process.env,SURELY_DATA:directory,PORT:'4392',HMS_HOST:'127.0.0.1',HMS_ENV:'test'},windowsHide:true,stdio:'ignore'});
 let checks=0;

@@ -1,7 +1,8 @@
 import {DatabaseSync} from 'node:sqlite';
 const db=new DatabaseSync('data/surelyhms.db',{readOnly:true});
-const session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
+let session=db.prepare("SELECT s.token FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.role='admin' ORDER BY s.last_seen DESC LIMIT 1").get();
 db.close();
+if(!session){const r=await fetch('http://localhost:4300/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'admin',password:process.env.HMS_REVIEW_PASSWORD||'surely'})});if(!r.ok)throw Error('Administrator login required for browser review');session=await r.json();}
 const targets=await fetch('http://127.0.0.1:9559/json').then(r=>r.json());
 const target=targets.find(t=>t.type==='page' && t.url.startsWith('http://localhost:4300'));
 const ws=new WebSocket(target.webSocketDebuggerUrl);

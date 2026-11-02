@@ -107,6 +107,10 @@ Application contains 79 client view controllers and 32 server route modules (fil
 
 ## UI testing results integrated from SUR-3
 
+### Later acceptance-run authentication blocker (SUR-9 / SUR-11)
+
+Subsequent authorized local-app runs on port 4300 rejected existing doctor and reception credentials, then showed an app-wide lockout after a separate registration login attempt (SUR-9). A separate SUR-11 run also had two existing pharmacy logins rejected. Testers stopped at the lockout/rejections; no credentials, accounts, roles, permissions, or records were changed. See [SUR-9 clinical QA](final-acceptance/SUR-9-clinical-qa-report.md) and [SUR-11 pharmacy QA](final-acceptance/SUR-11-pharmacy-stock-qa.md). This is a confirmed acceptance access blocker and a bug candidate; it is not yet a reproduced code-level cause and does not show every account fails. No further login attempt should be made until the existing account owner verifies account state and coordinates a clean retest. The associated clinical/pharmacy workflows and campaign entries remain untested.
+
 - **Outcome:** SUR-3 completed a bounded browser pass on the isolated instance. This is partial coverage, not a clean whole-application UI pass.
 - **Setup evidence:** In this SUR-7 run, Node v24.16.0 script execution succeeded; the prescribed diagnostic reported Paperclip health 200, isolated app navigation 200, and the expected MGM HMS login page. The previously reported Node initialization failure is no longer reproduced in this runner.
 - **Coverage:** Admin sign-in and Users & Roles, synthetic receptionist sign-in/navigation, synthetic patient registration and validation, desktop/mobile appointment empty states, and a small responsive patient-list check were completed. OPD/IPD/clinical workflows, diagnostics, pharmacy, billing actions, role restrictions, accessibility, and most viewports remain untested. Full notes and sanitized evidence are in [the SUR-3 UI report](/E:/MGM%20HMS/qa-reports/2026-11-02/ui/ui-audit-report.md).

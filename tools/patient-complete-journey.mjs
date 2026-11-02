@@ -36,7 +36,7 @@ try{
  const split=await call('/bills',{patient_id:patient.id,bill_type:'OP',items:[{description:'TEST split service',category:'other',qty:1,rate:300}]});
  await call(`/bills/${split.id}/settle`,{request_key:crypto.randomUUID(),lines:[{mode:'cash',amount:100},{mode:'upi',amount:200,reference:tag+' split UPI'}]});assert.equal((await call('/bills/'+split.id)).balance,0);step('All seven monetary mode values and cash/UPI split settled');
  const supplier=await call('/pharmacy/suppliers',{name:tag+' Fictional supplier'});report.records.supplier=supplier.id;
- const medicines=[];for(const [i,name] of ['Test Paracetamol','Test Vitamin C','Test dressing material'].entries())medicines.push(await call('/pharmacy/medicines',{name:tag+' '+name,code:tag.replaceAll(' ','')+'-'+i,form:i===2?'other':'tablet',kind:i===2?'consumable':'drug',generic:'Fictional QA '+name,units_per_pack:1,pack_size:1,gst_pct:0}));
+ const medicines=[];for(const [i,name] of ['Test Paracetamol','Test Vitamin C','Test dressing material'].entries())medicines.push(await call('/pharmacy/medicines',{name:tag+' '+name,code:tag.replaceAll(' ','')+'-'+i,form:i===2?'other':'tablet',kind:i===2?'consumable':'drug',generic:'Fictional QA '+tag+' '+name,units_per_pack:1,pack_size:1,gst_pct:0}));
  report.records.medicines=medicines.map(m=>({id:m.id,name:m.name}));
  const grn=await call('/pharmacy/purchases',{supplier_id:supplier.id,invoice_no:tag.replaceAll(' ','-'),invoice_date:new Date().toLocaleDateString('en-CA'),remarks:'TEST ONLY — fictional supplier liability',items:medicines.map((m,i)=>({medicine_id:m.id,batch_no:'QA-'+i,expiry:'2028-12-31',qty:100,rate:5,mrp:10,selling_price:10,gst_pct:0}))});
  await call(`/pharmacy/purchases/${grn.id}/verify`,{});report.records.grn=grn.id;

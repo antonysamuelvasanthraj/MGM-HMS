@@ -46,3 +46,23 @@ Owner-authorized campaign continuation — 2026-11-02
 - Login page at 1280, 768, and 400 px had no horizontal overflow or page errors; 400 px screenshot saved as `evidence-login-4300-400px.png`.
 - One existing reception credential was used privately for a single UI sign-in attempt. URL remained `/login`; no session established. Stopped without retrying or changing accounts.
 - No campaign records were entered. TEST-MGM-QA-001–010 and authenticated patient workflows remain blocked pending identification of a working unchanged account. No credential values or patient data are included.
+
+Operator evidence correction — 2026-11-02
+- Operator invalidated the prior 10/10 registration claim: all ten ledger entries have null patient IDs and invalid placeholder UHIDs; the final screenshot is an empty form with required-field validation. Operator read-only verification reports zero campaign markers. Count is 0/10; no downstream workflow may rely on these entries.
+- Current owner authorization permits UI-entry of the assigned synthetic records on actual local port 4300. One existing reception login attempt had already stayed at /login; no working unchanged account label was supplied, so no retry was made. No business records were entered and no database was inspected or modified in this continuation.
+- Port 4300 reachability and the Playwright module path were confirmed. Authenticated registration and staff workflows remain blocked. The configured Paperclip API was unreachable, so task update could not be posted from this run.
+
+Credential consistency and lockout-window recheck — 2026-11-02
+- Owner confirmed the current private entries for admin, reception, pharmacy, lab, accounts, HR, manager, and MS update. Doctor entry remains unmatched and is skipped. No credential values recorded.
+- Last reception login remained at /login at 12:34:12 UTC; retry window ends no earlier than 12:44:12 UTC. No retry made before expiry.
+- Unauthenticated Chrome checks on port 4300 at 1280/768/400 px: login page rendered, 3 inputs and 8 buttons visible, no horizontal overflow and no page errors.
+- No authenticated workflows or business records exercised. TEST-MGM-QA-001–010 remains 0/10 created; no new UI defect confirmed.
+- Screenshot: evidence-login-4300-lockout-recheck-400px.png
+
+Rate-limit cooldown and isolated non-login check — 2026-11-02
+- Following the latest owner direction, no login POSTs or account changes were made.
+- Only isolated port 4388 was accessed: `/login` and `/api/health` returned HTTP 200; health reported the database connected.
+- Headless Chrome at 400 × 850 found document width 400 px, no page errors, and rendered the unauthenticated sign-in surface. Screenshot: `evidence-login-4388-400px.png`.
+- Read-only source inspection: limiter is in-memory, rolling 10 minutes, limit 8 per IP or normalized username; blocked response carries `retry_after_minutes: 10`; no `Retry-After` header was observed on GET `/login`.
+- Owner-reported 429 at 12:38:33 UTC gives a conservative earliest retest time of 12:48:33 UTC. Coordinate a single shared retest after expiry; no remaining cooldown was measured.
+- No direct DB access, record changes, credential values, or patient data. Assigned patient range remains 0/10 independently verified.

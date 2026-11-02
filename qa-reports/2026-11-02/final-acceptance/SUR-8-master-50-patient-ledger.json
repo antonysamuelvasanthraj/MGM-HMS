@@ -1,0 +1,96 @@
+{
+  "campaign": "SUR-8 Complete 50-Patient Acceptance Campaign",
+  "target": "http://127.0.0.1:4300",
+  "startDate": "2026-11-02T12:44:00Z",
+  "status": "in_progress",
+  "blocks": {
+    "block1": {
+      "owner": "SUR-3 (UI Tester)",
+      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
+      "workflows": ["registration", "reception", "appointment", "op_queue", "fee_collection"],
+      "status": "complete",
+      "timestamp": "2026-11-02T12:44:00Z",
+      "notes": "All 10 patients created and verified on patients list"
+    },
+    "block2": {
+      "owner": "SUR-9 (Clinical QA)",
+      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
+      "newRecords": ["TEST-MGM-QA-011", "TEST-MGM-QA-012", "TEST-MGM-QA-013", "TEST-MGM-QA-014", "TEST-MGM-QA-015", "TEST-MGM-QA-016", "TEST-MGM-QA-017", "TEST-MGM-QA-018", "TEST-MGM-QA-019", "TEST-MGM-QA-020"],
+      "workflows": ["opd_queue", "vitals", "doctor_consultation", "clinical_orders", "follow_up"],
+      "status": "ready",
+      "notes": "Reuse Block 1 patients for consultation, create new records for 011-020"
+    },
+    "block3": {
+      "owner": "SUR-10 (Lab & Imaging QA)",
+      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
+      "newRecords": ["TEST-MGM-QA-021", "TEST-MGM-QA-022", "TEST-MGM-QA-023", "TEST-MGM-QA-024", "TEST-MGM-QA-025", "TEST-MGM-QA-026", "TEST-MGM-QA-027", "TEST-MGM-QA-028", "TEST-MGM-QA-029", "TEST-MGM-QA-030"],
+      "workflows": ["lab_orders", "sample_collection", "result_entry", "verification", "radiology_imaging", "report_signing"],
+      "status": "ready",
+      "notes": "Lab orders on Block 1 patients, new imaging/radiology records for 021-030"
+    },
+    "block4": {
+      "owner": "SUR-11 (Pharmacy & Stock QA)",
+      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
+      "newRecords": ["TEST-MGM-QA-031", "TEST-MGM-QA-032", "TEST-MGM-QA-033", "TEST-MGM-QA-034", "TEST-MGM-QA-035", "TEST-MGM-QA-036", "TEST-MGM-QA-037", "TEST-MGM-QA-038", "TEST-MGM-QA-039", "TEST-MGM-QA-040"],
+      "workflows": ["grn_creation", "stock_transfers", "prescription_dispensing", "returns", "inventory_reconciliation"],
+      "status": "ready",
+      "notes": "GRN/transfers for test items, prescription dispensing on Block 1 patients"
+    },
+    "block5": {
+      "owner": "SUR-12 (Billing & Accounts QA)",
+      "patients": ["TEST-MGM-QA-001", "TEST-MGM-QA-002", "TEST-MGM-QA-003", "TEST-MGM-QA-004", "TEST-MGM-QA-005", "TEST-MGM-QA-006", "TEST-MGM-QA-007", "TEST-MGM-QA-008", "TEST-MGM-QA-009", "TEST-MGM-QA-010"],
+      "newRecords": ["TEST-MGM-QA-041", "TEST-MGM-QA-042", "TEST-MGM-QA-043", "TEST-MGM-QA-044", "TEST-MGM-QA-045", "TEST-MGM-QA-046", "TEST-MGM-QA-047", "TEST-MGM-QA-048", "TEST-MGM-QA-049", "TEST-MGM-QA-050"],
+      "workflows": ["ip_admission", "running_bills", "fee_collection", "settlement", "refunds", "accounting_reconciliation"],
+      "status": "ready",
+      "notes": "Bill creation on Block 1 patients, IP admission and discharge for 041-050"
+    }
+  },
+  "patientTracking": {
+    "001-010": {
+      "block1_registration": "complete",
+      "block2_consultation": "pending",
+      "block3_lab_orders": "pending",
+      "block4_prescriptions": "pending",
+      "block5_billing": "pending"
+    }
+  },
+  "codeFixesUnderTest": {
+    "scheme_payment_idempotency": {
+      "fix": "Require exact match of item, user, amount, reason, authorization_ref on replay",
+      "validationWorkflow": "Block 4/5 scheme payment testing",
+      "status": "ready_for_validation"
+    },
+    "scheme_collection_reference": {
+      "fix": "Non-cash payments must have reference; validate mode and amount on replay",
+      "validationWorkflow": "Block 4/5 cash collection workflows",
+      "status": "ready_for_validation"
+    },
+    "numeric_validation": {
+      "fix": "Strict finite-number guard for scheme amounts (reject empty strings)",
+      "validationWorkflow": "Any workflow with amount entry",
+      "status": "ready_for_validation"
+    },
+    "billing_permission_check": {
+      "fix": "Payment receipt endpoint requires billing/payment/finance view permissions",
+      "validationWorkflow": "Block 5 receipt testing across roles",
+      "status": "ready_for_validation"
+    }
+  },
+  "controlCoverage": {
+    "admin_functions": "CEO to test independently",
+    "hr_staffing": "Pending admin role availability",
+    "manager_operations": "Pending manager role availability",
+    "accounting_reports": "Block 5 will generate test data for reconciliation",
+    "stock_reconciliation": "Block 4 will test GRN/transfer effects"
+  },
+  "summary": {
+    "total_patients": 50,
+    "created": 10,
+    "pending": 40,
+    "blocks_complete": 1,
+    "blocks_ready": 4,
+    "regression_tests_passed": true,
+    "browser_automation_verified": true,
+    "rate_limiter_status": "cleared"
+  }
+}

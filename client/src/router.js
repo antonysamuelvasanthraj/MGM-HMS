@@ -4,7 +4,7 @@
  * Each route loads its live controller from client/src/views. Converted design
  * exports remain available as references and are never executed at runtime.
  */
-import { $, esc, spinner } from './ui.js';
+import { $, esc, pageSkeleton } from './ui.js';
 import { state, loadMeta, can, setting } from './store.js';
 import { NAV, titleFor, sectionFor } from './shell/nav.js';
 import { markActive } from './shell/sidebar.js';
@@ -60,6 +60,7 @@ export async function render(path) {
   document.title = `${title} · MGM HMS`;
 
   const host = $('#view');
+  host.removeAttribute('aria-busy');
   const entries = NAV.flatMap(group => group.items).filter(item => item.route.split('?')[0] === ctx.route);
   if(entries.length&&entries.every(item=>item.manual&&setting(item.manual[0])===item.manual[1])){
     host.innerHTML='<div class="card p-6"><h2 class="text-headline-md">Paper mode</h2><p class="mt-2">This digital queue is turned off in Paper mode. Register visits and manage billing from the patient record.</p><a class="btn-primary mt-4" href="/patients">Open patients</a></div>';
@@ -69,7 +70,8 @@ export async function render(path) {
     host.innerHTML = `<div class="card p-6"><h2 class="text-headline-md">Access restricted</h2><p class="mt-2 text-on-surface-variant">Your role does not have access to this screen.</p><a href="/dashboard" class="btn-primary mt-4">Go to my dashboard</a></div>`;
     return;
   }
-  host.innerHTML = spinner();
+  host.innerHTML = pageSkeleton(title);
+  host.setAttribute('aria-busy','true');
 
   // Only live controllers run; exported design scripts are reference material.
   let mod;
@@ -78,6 +80,7 @@ export async function render(path) {
     mod = await import(`./views/${ctx.name}.js`);
   } catch (e) {
     if (my !== navToken) return;
+    host.removeAttribute('aria-busy');
     console.error(`[view ${ctx.name}]`, e);
     host.innerHTML = `<div class="p-6"><h2 class="text-headline-md">Could not load ${esc(title)}</h2>
       <p class="mt-2 text-on-surface-variant">The screen files could not be loaded. Reload to get the latest version.</p>
@@ -86,7 +89,6 @@ export async function render(path) {
     return;
   }
   if (my !== navToken) return;
-  host.innerHTML = '<div class="view-root view-enter"></div>';
   host.scrollTop = 0;
   window.scrollTo(0, 0);
   announce(ctx.route);
@@ -95,17 +97,32 @@ export async function render(path) {
       // Staff and tariffs may have changed on another desk since sign-in.
       await loadMeta(true);
       if (my !== navToken) return;
+      host.innerHTML = `<div class="page-load-stage"><div class="view-root" inert aria-hidden="true"></div><div class="page-load-cover">${pageSkeleton(title)}</div></div>`;
       const dispose = await mod.mount({ ...ctx, host, root: host.querySelector('.view-root') || host });
       if (my !== navToken) { if (typeof dispose === 'function') dispose(); return; }
       current = { route: ctx.route, dispose: typeof dispose === 'function' ? dispose : null };
+      if (dispose?.ready) await dispose.ready;
+      if (my !== navToken) return;
+      const stage = host.querySelector('.page-load-stage');
+      if (stage) {
+        const root = stage.querySelector('.view-root');
+        root.removeAttribute('inert');
+        root.removeAttribute('aria-hidden');
+        root.classList.remove('view-enter');
+        stage.replaceWith(root);
+        root.classList.add('view-enter');
+      }
+      host.removeAttribute('aria-busy');
     } catch (e) {
       if (my !== navToken) return;
+      host.removeAttribute('aria-busy');
       console.error(`[mount ${ctx.name}]`, e);
       host.innerHTML = `<div class="p-6"><h2 class="text-headline-md">Could not load ${esc(title)}</h2>
         <p class="mt-2 text-on-surface-variant">${esc(e.message)}</p><button class="btn-primary mt-4" data-retry>Try again</button></div>`;
       host.querySelector('[data-retry]').onclick = () => render(path);
     }
   } else {
+    host.removeAttribute('aria-busy');
     host.innerHTML = notFound(ctx.name);
   }
 }

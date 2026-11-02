@@ -1,0 +1,41 @@
+{
+  "task": "SUR-9",
+  "assignedMarkers": [
+    "TEST-MGM-QA-011",
+    "TEST-MGM-QA-020"
+  ],
+  "targetPerLatestParentDirective": "http://127.0.0.1:4388",
+  "isolatedTargetHttp": 200,
+  "isolatedAssignedMarkerCount": 0,
+  "patientsCreated": 0,
+  "operationalRecordsCreated": 0,
+  "persistedIds": [],
+  "campaignAccountRolePermissionChanges": false,
+  "live4300ReceptionRetest": {
+    "attempts": 1,
+    "result": "existing lockout message; stopped",
+    "evidence": [
+      "SUR-9-reception-retest-before.png",
+      "SUR-9-reception-retest-result.png"
+    ]
+  },
+  "isolatedRolesPresent": [
+    "admin",
+    "reception-test",
+    "nurse-test"
+  ],
+  "doctorAvailable": false,
+  "workflows": {
+    "registration": "blocked",
+    "nursingVitals": "blocked",
+    "consultation": "blocked",
+    "prescriptions": "blocked",
+    "clinicalOrders": "blocked",
+    "followUp": "blocked"
+  },
+  "rootCause": "unconfirmed; prior target/data-location divergence observed",
+  "latestOwnerDirection": "After natural cooldown, existing authorized admin may exercise clinical UI within current permissions; doctor-role login and permissions remain separate and blocked.",
+  "currentRunTarget": "http://127.0.0.1:4300",
+  "port4300LoginPage": {"httpStatus": 200, "usernameFieldRendered": true, "passwordFieldRendered": true, "credentialsSubmitted": false, "screenshot": "SUR-9-port4300-login-no-submit.png"},
+  "cooldown": {"lastCounted401Time": "unknown", "naturalExpiryConfirmed": false, "loginAttemptsThisUpdate": 0}
+}
