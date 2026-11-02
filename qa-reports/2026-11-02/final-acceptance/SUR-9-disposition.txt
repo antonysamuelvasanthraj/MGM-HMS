@@ -1,0 +1,3 @@
+Cause: Doctor/nurse access and consultation, prescription, order, and follow-up workflows remain unverified; approved matching role access is unavailable.
+Action: Confirmed the 011–020 patient, OP encounter, and vitals results in the existing SUR-9 report and ledger; no new app records or account changes.
+Hand-back: CEO, arrange authorized access to existing doctor/nurse roles, then return SUR-9 to MGM HMS Clinical QA to complete those controls; keep this task in progress.
