@@ -82,7 +82,7 @@ DEFAULT_ROLE_PERMS.maintenance = ['dash.work', 'maintenance.view', 'maintenance.
 for (const r of ['owner', 'medical_superintendent', 'nursing_incharge', 'ot_incharge', 'er_incharge', 'lab_admin', 'imaging_admin', 'pharmacy_admin', 'store']) DEFAULT_ROLE_PERMS[r].push('maintenance.view');
 STAFF_TEAMS.ot_incharge = ['nurse'];
 STAFF_TEAMS.er_incharge = ['nurse'];
-DEFAULT_ROLE_PERMS.manager = ['dash.work', 'staff.manage', 'reports.attendance', 'audit.view', 'inventory.view', 'purchase.view', 'quality.view', 'stores.view'];
+DEFAULT_ROLE_PERMS.manager = ['dash.work', 'staff.manage', 'reports.attendance', 'audit.view', 'inventory.view', 'purchase.view', 'quality.view', 'stores.view', 'payment.approve_free', 'roster.write'];
 STAFF_TEAMS.manager = ['reception','reception_admin','cashier','pharmacy','pharmacy_admin','store','lab','lab_admin','radiology','imaging_admin','nurse','nursing_incharge','cleaning','cleaning_incharge','hr','hr_staff','medical_superintendent','quality','insurance','accounts','doctor'];
 // in-charges and HR read the attendance reports of the staff they roster
 for (const r of ['hr', 'reception_admin', 'pharmacy_admin', 'lab_admin', 'imaging_admin', 'nursing_incharge', 'cleaning_incharge']) DEFAULT_ROLE_PERMS[r].push('reports.attendance');
