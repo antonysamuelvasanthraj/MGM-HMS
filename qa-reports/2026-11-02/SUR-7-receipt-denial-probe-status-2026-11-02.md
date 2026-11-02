@@ -10,9 +10,9 @@ During this review, the shared workspace received newer SUR-12 UI evidence files
 
 ## Authorization and safety
 
-The owner authorized a read-only denial check with an existing working non-billing role, after verifying its actual effective permissions. No login or app navigation was performed in this pass because the required campaign receipt is unavailable. This avoids probing an unrelated or pre-existing receipt and avoids creating campaign data owned by other tasks.
+The owner authorized a read-only denial check with an existing working non-billing role, after verifying its actual effective permissions. I made one manager UI sign-in through the provided private helper, then read the normal `/api/auth/me` session view for the permission flags only. Sign-in and permission response were HTTP 200; manager's effective permissions were `billing.view=false`, `payment.view=false`, `payment.collect=false`, and `finance.view=false`. No billing screen or receipt was opened because the required campaign receipt is unavailable. This avoids probing an unrelated or pre-existing receipt and avoids creating campaign data owned by other tasks.
 
-Source review confirms `server/routes/billing.js` protects payment receipt access using billing/payment/finance view permissions. `server/auth.js` shows default role permissions, but it does not establish the current manager account's effective permission assignments. Those remain to be checked in the app before a future probe. No credentials, sessions, patient data, or receipt identifiers were accessed.
+Source review confirms `server/routes/billing.js` protects payment receipt access using billing/payment/finance view permissions. The actual manager permission check was made against the current app session; the source defaults were not used as a substitute. No credentials or session tokens were displayed or recorded, and no patient data or receipt identifiers were accessed.
 
 ## Next step
 
