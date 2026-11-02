@@ -1,0 +1,15 @@
+{
+  "campaign": "SUR-8 Block 1 - Manual Verified (First Patient Only)",
+  "timestamp": "2026-11-02T12:53:42.732Z",
+  "results": [
+    {
+      "marker": "TEST-MGM-QA-001",
+      "name": "TEST Patient One",
+      "patientId": "27",
+      "uhid": null,
+      "status": "registered",
+      "screenshot": "sur8-001-form-response.png"
+    }
+  ],
+  "notes": "First patient registration with visual verification at each step"
+}

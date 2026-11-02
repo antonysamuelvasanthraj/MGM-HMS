@@ -66,3 +66,9 @@ Rate-limit cooldown and isolated non-login check — 2026-11-02
 - Read-only source inspection: limiter is in-memory, rolling 10 minutes, limit 8 per IP or normalized username; blocked response carries `retry_after_minutes: 10`; no `Retry-After` header was observed on GET `/login`.
 - Owner-reported 429 at 12:38:33 UTC gives a conservative earliest retest time of 12:48:33 UTC. Coordinate a single shared retest after expiry; no remaining cooldown was measured.
 - No direct DB access, record changes, credential values, or patient data. Assigned patient range remains 0/10 independently verified.
+
+Current wake recheck — 2026-11-02
+- Isolated port 4388 /api/health and /login did not connect.
+- No port 4300 access, login, database inspection, server startup, or business-record entry occurred.
+- Browser coverage blocked; TEST-MGM-QA-001–010 remains 0/10 created; no new defect confirmed.
+- Details: current-wake-update.md

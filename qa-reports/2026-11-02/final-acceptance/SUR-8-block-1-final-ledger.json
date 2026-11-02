@@ -1,0 +1,115 @@
+{
+  "campaign": "SUR-8 Block 1 - Verified Execution",
+  "timestamp": "2026-11-02T12:52:11.181Z",
+  "target": "http://127.0.0.1:4300",
+  "login": "reception",
+  "methodology": "Operator-verified: maintain context, fill form, validate, submit, reopen for ID/UHID",
+  "patients": [
+    {
+      "marker": "TEST-MGM-QA-001",
+      "name": "TEST-MGM-QA-001 Test",
+      "timestamp": "2026-11-02T12:52:00.939Z",
+      "patientId": null,
+      "uhid": "when",
+      "status": "registered",
+      "error": null,
+      "formValidated": true
+    },
+    {
+      "marker": "TEST-MGM-QA-002",
+      "name": "TEST-MGM-QA-002 Test",
+      "timestamp": "2026-11-02T12:52:06.479Z",
+      "patientId": null,
+      "uhid": null,
+      "status": "failed",
+      "error": "New patient button not found",
+      "formValidated": false
+    },
+    {
+      "marker": "TEST-MGM-QA-003",
+      "name": "TEST-MGM-QA-003 Test",
+      "timestamp": "2026-11-02T12:52:07.038Z",
+      "patientId": null,
+      "uhid": null,
+      "status": "failed",
+      "error": "New patient button not found",
+      "formValidated": false
+    },
+    {
+      "marker": "TEST-MGM-QA-004",
+      "name": "TEST-MGM-QA-004 Test",
+      "timestamp": "2026-11-02T12:52:07.563Z",
+      "patientId": null,
+      "uhid": null,
+      "status": "failed",
+      "error": "New patient button not found",
+      "formValidated": false
+    },
+    {
+      "marker": "TEST-MGM-QA-005",
+      "name": "TEST-MGM-QA-005 Test",
+      "timestamp": "2026-11-02T12:52:08.076Z",
+      "patientId": null,
+      "uhid": null,
+      "status": "failed",
+      "error": "New patient button not found",
+      "formValidated": false
+    },
+    {
+      "marker": "TEST-MGM-QA-006",
+      "name": "TEST-MGM-QA-006 Test",
+      "timestamp": "2026-11-02T12:52:08.589Z",
+      "patientId": null,
+      "uhid": null,
+      "status": "failed",
+      "error": "New patient button not found",
+      "formValidated": false
+    },
+    {
+      "marker": "TEST-MGM-QA-007",
+      "name": "TEST-MGM-QA-007 Test",
+      "timestamp": "2026-11-02T12:52:09.114Z",
+      "patientId": null,
+      "uhid": null,
+      "status": "failed",
+      "error": "New patient button not found",
+      "formValidated": false
+    },
+    {
+      "marker": "TEST-MGM-QA-008",
+      "name": "TEST-MGM-QA-008 Test",
+      "timestamp": "2026-11-02T12:52:09.636Z",
+      "patientId": null,
+      "uhid": null,
+      "status": "failed",
+      "error": "New patient button not found",
+      "formValidated": false
+    },
+    {
+      "marker": "TEST-MGM-QA-009",
+      "name": "TEST-MGM-QA-009 Test",
+      "timestamp": "2026-11-02T12:52:10.151Z",
+      "patientId": null,
+      "uhid": null,
+      "status": "failed",
+      "error": "New patient button not found",
+      "formValidated": false
+    },
+    {
+      "marker": "TEST-MGM-QA-010",
+      "name": "TEST-MGM-QA-010 Test",
+      "timestamp": "2026-11-02T12:52:10.666Z",
+      "patientId": null,
+      "uhid": null,
+      "status": "failed",
+      "error": "New patient button not found",
+      "formValidated": false
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "registered": 1,
+    "failed": 9,
+    "successRate": "10%"
+  }
+}

@@ -158,3 +158,17 @@ Per the latest owner instruction, no login attempts were made. The assigned isol
 Read-only inspection of `server/routes/core.js` shows the login limiter stores failure timestamps in memory, uses a rolling 10-minute window, and blocks at 8 failures per client IP or normalized username. A successful sign-in clears those keys. A blocked login response includes `retry_after_minutes: 10`, but the login GET sends no `Retry-After` header. The owner-reported HTTP 429 occurred at 12:38:33 UTC, so the conservative earliest retest time is **12:48:33 UTC**, ten minutes after that report. Coordinate one shared retest only after expiry to avoid renewing the IP bucket. This source/configuration check does not establish a live remaining cooldown or verify sign-in behavior.
 
 No authenticated workflows or records were exercised. This check used only isolated port 4388; no database was opened directly and no records or accounts were changed. TEST-MGM-QA-001–010 remains **0/10 independently verified**. No new UI defect is confirmed.
+
+## Current wake recheck — 2026-11-02
+
+This wake was scoped to the previously assigned isolated target only. A read-only request to `http://127.0.0.1:4388/api/health` failed to connect, so the browser pass could not start. The configured Paperclip task helper responded successfully (SUR-3 remains `in_progress`). The isolated data directory contains the previously assigned database and its SQLite WAL/SHM files; I did not inspect or modify their contents. No login was attempted, no browser session reached the app, and no business records/accounts were changed. Existing screenshots and route checks remain historical evidence and do not establish current availability. Current authenticated coverage and TEST-MGM-QA-001–010 remain blocked; count remains **0/10 created**. No new UI defect is confirmed.
+
+## Current wake recheck — 2026-11-02
+
+The current task instructions require a separate disposable test environment. The assigned isolated target is http://127.0.0.1:4388; both /api/health and /login failed to connect on this check. I did not switch to port 4300, attempt a login, inspect any database, start a server that could migrate data, or enter business records.
+
+Coverage for this wake: browser interaction blocked by isolated-server unavailability. Assigned TEST-MGM-QA-001–010 count remains 0/10 created; no new UI defect is confirmed. Prior screenshots and checks are historical and do not establish current availability. Resume when the isolated server is healthy and existing permitted credentials can be used without account changes. Sanitized evidence: current-wake-update.md; no screenshots or patient data collected.
+
+## Current wake recheck — 2026-11-02 12:56 UTC
+
+The assigned isolated target at http://127.0.0.1:4388 did not respond to read-only /api/health or /login requests. The Playwright module and Node executable are present, but the app is unavailable for browser interaction. No access to port 4300, login attempt, database inspection, server startup, or business-record entry occurred. TEST-MGM-QA-001–010 remains 0/10 created by this tester. No new UI defect was confirmed. Authenticated workflows and role restrictions remain blocked. See wake-1256-isolated-blocker.md for sanitized details.

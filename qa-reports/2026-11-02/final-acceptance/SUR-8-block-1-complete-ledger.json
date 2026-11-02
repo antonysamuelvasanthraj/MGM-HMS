@@ -1,0 +1,134 @@
+{
+  "campaign": "SUR-8 Block 1 - Complete Registration",
+  "timestamp": "2026-11-02T12:55:39.681Z",
+  "target": "http://127.0.0.1:4300",
+  "login": "reception",
+  "patients": [
+    {
+      "marker": "TEST-MGM-QA-001",
+      "name": "TEST Patient 001",
+      "gender": "Male",
+      "age": "30",
+      "mobile": "9876543000",
+      "patientId": null,
+      "uhid": null,
+      "status": "submitted_no_id",
+      "error": null,
+      "timestamp": "2026-11-02T12:54:46.778Z"
+    },
+    {
+      "marker": "TEST-MGM-QA-002",
+      "name": "TEST Patient 002",
+      "gender": "Female",
+      "age": "32",
+      "mobile": "9876543001",
+      "patientId": null,
+      "uhid": null,
+      "status": "submitted_no_id",
+      "error": null,
+      "timestamp": "2026-11-02T12:54:52.074Z"
+    },
+    {
+      "marker": "TEST-MGM-QA-003",
+      "name": "TEST Patient 003",
+      "gender": "Male",
+      "age": "34",
+      "mobile": "9876543002",
+      "patientId": "29",
+      "uhid": null,
+      "status": "registered",
+      "error": null,
+      "timestamp": "2026-11-02T12:54:57.311Z"
+    },
+    {
+      "marker": "TEST-MGM-QA-004",
+      "name": "TEST Patient 004",
+      "gender": "Female",
+      "age": "36",
+      "mobile": "9876543003",
+      "patientId": "30",
+      "uhid": null,
+      "status": "registered",
+      "error": null,
+      "timestamp": "2026-11-02T12:55:02.626Z"
+    },
+    {
+      "marker": "TEST-MGM-QA-005",
+      "name": "TEST Patient 005",
+      "gender": "Male",
+      "age": "38",
+      "mobile": "9876543004",
+      "patientId": "31",
+      "uhid": null,
+      "status": "registered",
+      "error": null,
+      "timestamp": "2026-11-02T12:55:07.886Z"
+    },
+    {
+      "marker": "TEST-MGM-QA-006",
+      "name": "TEST Patient 006",
+      "gender": "Female",
+      "age": "40",
+      "mobile": "9876543005",
+      "patientId": "32",
+      "uhid": null,
+      "status": "registered",
+      "error": null,
+      "timestamp": "2026-11-02T12:55:13.220Z"
+    },
+    {
+      "marker": "TEST-MGM-QA-007",
+      "name": "TEST Patient 007",
+      "gender": "Male",
+      "age": "42",
+      "mobile": "9876543006",
+      "patientId": "33",
+      "uhid": null,
+      "status": "registered",
+      "error": null,
+      "timestamp": "2026-11-02T12:55:18.479Z"
+    },
+    {
+      "marker": "TEST-MGM-QA-008",
+      "name": "TEST Patient 008",
+      "gender": "Female",
+      "age": "44",
+      "mobile": "9876543007",
+      "patientId": "34",
+      "uhid": null,
+      "status": "registered",
+      "error": null,
+      "timestamp": "2026-11-02T12:55:23.865Z"
+    },
+    {
+      "marker": "TEST-MGM-QA-009",
+      "name": "TEST Patient 009",
+      "gender": "Male",
+      "age": "46",
+      "mobile": "9876543008",
+      "patientId": "35",
+      "uhid": null,
+      "status": "registered",
+      "error": null,
+      "timestamp": "2026-11-02T12:55:29.187Z"
+    },
+    {
+      "marker": "TEST-MGM-QA-010",
+      "name": "TEST Patient 010",
+      "gender": "Female",
+      "age": "48",
+      "mobile": "9876543009",
+      "patientId": "36",
+      "uhid": null,
+      "status": "registered",
+      "error": null,
+      "timestamp": "2026-11-02T12:55:34.503Z"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "registered": 8,
+    "failed": 2,
+    "successRate": "80%"
+  }
+}

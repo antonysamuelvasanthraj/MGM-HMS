@@ -1,0 +1,3 @@
+﻿Cause: isolated server 127.0.0.1:4388 failed its latest read-only health check; authenticated coverage remains blocked by the prior login cooldown and unavailable verified working login.
+What I did: confirmed current task state and retained the verified 0/10 campaign count; no app, database, login, or record access occurred.
+Hand-back: UI Tester to resume after isolated server health is restored and an unchanged working login is verified. Artifacts: E:/MGM HMS/qa-reports/2026-11-02/ui/ui-audit-report.md; browser-evidence-summary.txt.

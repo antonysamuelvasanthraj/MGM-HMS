@@ -1,0 +1,11 @@
+import { chromium } from 'file:///C:/Users/SAMUEL/Documents/Codex/2026-11-02/referenced-chatgpt-conversation-this-is-an/work/mgm-browser/node_modules/playwright-core/index.mjs';
+import fs from 'node:fs'; const lines=fs.readFileSync('E:/MGM HMS/DEMO-LOGINS.local.md','utf8').split(/\r?\n/); const c=lines[51].split('|').map(s=>s.trim());
+const b=await chromium.launch({channel:'chrome',headless:true});const ctx=await b.newContext({viewport:{width:1440,height:1000}});const p=await ctx.newPage();p.on('pageerror',e=>console.log('PAGEERROR '+e.message));let lr;p.on('response',r=>{if(r.url().includes('/api/auth/login'))lr=r;});
+await p.goto('http://127.0.0.1:4300/login');await p.locator('input[name=username]').fill(c[3].replaceAll('`',''));await p.locator('input[name=password]').fill(c[4].replaceAll('`',''));await p.getByRole('button',{name:/Sign in to MGM HMS/}).click();await p.waitForTimeout(1200);
+console.log('LOGIN',lr?.status(),'URL',p.url());console.log('ROLE_BODY',(await p.locator('body').innerText()).slice(0,1300).replace(/\s+/g,' '));
+await p.screenshot({path:'E:/MGM HMS/qa-reports/2026-11-02/final-acceptance/SUR-9-admin-dashboard.png',fullPage:true});
+await ctx.storageState({path:'E:/MGM HMS/qa-reports/2026-11-02/final-acceptance/.sur9-admin-state.json'});
+if(!p.url().includes('/dashboard')){await b.close();process.exit(2)};
+const clinical=p.getByRole('button',{name:/Clinical/});await clinical.click();await p.waitForTimeout(250);console.log('CLINICAL_NAV',(await p.locator('body').innerText()).slice(0,1800).replace(/\s+/g,' '));
+await p.goto('http://127.0.0.1:4300/patients');await p.waitForTimeout(300);const q=p.locator('input[placeholder="UHID, name, mobile or ABHA"]');await q.fill('TEST-MGM-QA-011');await p.waitForTimeout(250);const row=p.locator('tr[data-id="17"]');console.log('ROW',await row.innerText());console.log('ROW_BUTTONS',JSON.stringify(await row.locator('button').allTextContents()));
+await b.close();

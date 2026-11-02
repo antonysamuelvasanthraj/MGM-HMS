@@ -1,0 +1,3 @@
+﻿Cause: prior run left SUR-12 in progress without an owned next execution path; operator-confirmed reception access is available, and current recorded counts remain 0/10 patients and 0 operational records.
+Recovery: no application data or account settings changed in this disposition repair; the assignee should continue from an authenticated UI session, verify markers 041–050 in the Patients UI and shared ledger, then proceed only through authorized UI workflows.
+Hand-back: MGM HMS Billing Accounts QA; resume the live acceptance task, post actual progress and evidence, and record a terminal, blocked, monitored, or typed waiting disposition instead of parking without a next step.

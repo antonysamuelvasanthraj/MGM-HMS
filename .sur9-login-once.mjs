@@ -1,0 +1,20 @@
+import { chromium } from 'file:///C:/Users/SAMUEL/Documents/Codex/2026-11-02/referenced-chatgpt-conversation-this-is-an/work/mgm-browser/node_modules/playwright-core/index.mjs';
+import fs from 'node:fs';
+const lines=fs.readFileSync('E:/MGM HMS/DEMO-LOGINS.local.md','utf8').split(/\r?\n/);
+const cells=lines[52].split('|').map(s=>s.trim());
+const username=cells[3].replaceAll('`',''); const password=cells[4].replaceAll('`','');
+const browser=await chromium.launch({channel:'chrome',headless:true}); const context=await browser.newContext({viewport:{width:1440,height:1000}}); const page=await context.newPage();
+page.on('pageerror',e=>console.log('PAGEERROR '+e.message));
+const resp=await page.goto('http://127.0.0.1:4300/login',{waitUntil:'domcontentloaded'}); console.log('GET',resp?.status(),'URL',page.url());
+console.log('INPUTS',JSON.stringify(await page.locator('input').evaluateAll(es=>es.map(e=>({type:e.type,placeholder:e.placeholder,aria:e.getAttribute('aria-label'),name:e.name})))));
+console.log('BUTTONS',JSON.stringify(await page.locator('button').allTextContents()));
+const inputs=page.locator('input'); await inputs.nth(0).fill(username); await inputs.nth(1).fill(password);
+console.log('FORMVALUES',JSON.stringify(await page.locator('input').evaluateAll(es=>es.map((x,i)=>({index:i,filled:!!x.value,type:x.type})))));
+let loginResp; page.on('response',r=>{if(r.url().includes('/api/auth/login')) loginResp=r;});
+await page.locator('button').filter({hasText:'Sign in to MGM HMS'}).click(); await page.waitForTimeout(1800);
+console.log('LOGIN_STATUS',loginResp?.status(),'URL',page.url(),'TITLE',await page.title());
+console.log('BODY',(await page.locator('body').innerText()).slice(0,900).replace(/\s+/g,' '));
+await page.screenshot({path:'E:/MGM HMS/qa-reports/2026-11-02/final-acceptance/SUR-9-login-dashboard.png',fullPage:true});
+await context.storageState({path:'E:/MGM HMS/qa-reports/2026-11-02/final-acceptance/.sur9-auth-state.json'});
+if(!page.url().includes('/dashboard')) { await browser.close(); process.exit(2); }
+console.log('STATE_SAVED'); await browser.close();
