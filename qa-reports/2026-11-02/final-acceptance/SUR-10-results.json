@@ -68,7 +68,9 @@
       "observation":"Existing Medical Superintendent session saw Scan room for an ORDERED study; one UI click showed Action could not be completed — forbidden and left the row ORDERED.",
       "httpStatus":"not captured",
       "evidence":"SUR-10-imaging-unauthorized-control.png",
-      "reportedTo":"SUR-7"
+      "reportedTo":"SUR-7",
+      "retest":"After SUR-7 permission-gating change, Medical Superintendent saw no Scan room, Schedule, or Report controls on the unchanged ORDERED record; passed.",
+      "retestEvidence":"SUR-10-imaging-control-retest-after-fix.png"
     }
   ],
   "notTested": [

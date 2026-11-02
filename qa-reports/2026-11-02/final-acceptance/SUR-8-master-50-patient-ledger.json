@@ -115,7 +115,7 @@
                                                     "report_signing"
                                                 ],
                                   "status":  "partial",
-                                  "notes":  "UI-created and reopened 021-030 (10/10). One paper CBC for 021 was billed and paid with synthetic cash, sample collected, processed, 18 results entered and verified. One paper X-Ray Chest PA for 022 was billed and paid with synthetic cash; imaging remains ordered. Medical Superintendent imaging row exposed a denied Scan room control (reported to SUR-7). Doctor result visibility and radiology reporting/sign-off remain untested because the corresponding existing credentials were not verified. See SUR-10-lab-imaging-report.md and SUR-10-results.json.",
+                                  "notes":  "UI-created and reopened 021-030 (10/10). One paper CBC for 021 was billed and paid with synthetic cash, sample collected, processed, 18 results entered and verified. One paper X-Ray Chest PA for 022 was billed and paid with synthetic cash; imaging remains ordered. Medical Superintendent imaging row exposed a denied Scan room control (reported to SUR-7); after SUR-7 permission gating, same-role UI retest no longer showed unauthorized controls. Doctor result visibility and radiology reporting/sign-off remain untested because the corresponding existing credentials were not verified. See SUR-10-lab-imaging-report.md and SUR-10-results.json.",
                                   "createdPatients":  10,
                                   "persistedLabImagingWorkflows":  2,
                                   "persistedIds":  [

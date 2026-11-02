@@ -61,6 +61,8 @@ The generated ID sequence jumps from 46 to 48 during concurrent campaign activit
 
 In the existing Medical Superintendent session, the Imaging worklist displayed a **Scan room** action for paid order `ORD-261102-00004`. One click returned the visible app error “Action could not be completed — forbidden”; the row remained `ORDERED`. This role had view access but the requested action was denied, so the UI exposed an unusable state-changing control. No role or permission was changed. Evidence: `SUR-10-imaging-unauthorized-control.png`. Reported to SUR-7 for reproduction/fix and UI retest.
 
+SUR-7's permission-gating change then appeared in the shared workspace. A post-change UI retest on the same unchanged paid order, again as Medical Superintendent, showed `ORDERED` with no Scan room, Schedule, or Report controls. Retest passed; evidence: `SUR-10-imaging-control-retest-after-fix.png`. No order state or account data was changed during retest.
+
 ### Coverage and evidence
 
 | Area | Result |
