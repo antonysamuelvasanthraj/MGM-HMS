@@ -596,6 +596,14 @@ EXTRA_REPORTS.push(
 );
 
 // Consumables used in procedures: what was issued where, for whom, its cost and what was charged
+EXTRA_REPORTS.push({id:'revenue_today_departments',group:'Revenue',title:"Today's revenue by department",perm:F,filters:['range'],run:q=>{
+  const from=q.from||today(), to=q.to||today();
+  const r=M.revenueByDepartment({from,to});
+  return {subtitle:`Income recognised ${from===to?'on '+from:'from '+from+' to '+to}. Money received is in the Collections report.`,
+    kpis:[kpi('Gross',r.gross),kpi('Discount',r.discount),kpi('Free',r.free),kpi('Net revenue',r.net)],
+    columns:[col('label','Department'),money('gross','Gross'),money('discount','Discount'),money('free','Free'),money('returns','Returns'),money('net','Net revenue')],
+    rows:r.departments,total:['gross','discount','free','returns','net']};
+}});
 EXTRA_REPORTS.push({id:'doctor_collection_reconciliation',group:'Finance',title:'Doctor-wise billing, receipts and refunds reconciliation',perm:F,filters:['range'],run:q=>{
  const rows=all(`SELECT coalesce(u.name,'Unassigned') doctor,coalesce(d.name,'Unassigned') department,count(*) bills,round(sum(b.total),2) billed,
  round(sum((SELECT coalesce(sum(pm.amount),0) FROM payments pm WHERE pm.bill_id=b.id AND pm.cancelled=0 AND pm.amount>0)),2) patient_receipts,

@@ -91,6 +91,42 @@ export function revenue(q) {
   return { gross: t('gross'), discount: t('discount'), free: t('free'), returns: t('returns'), package_adj: t('package_adj'), net: t('net'), departments };
 }
 
+/** Today's income split into the departments the hospital reports on. Each income line lands in exactly one group. */
+export const REVENUE_DEPARTMENTS = [
+  { key: 'OP', label: 'OP consultation', match: (s) => s === 'OP' },
+  { key: 'ER', label: 'Emergency (ER)', match: (s) => s === 'ER' },
+  { key: 'IP', label: 'IP - all wards (beds, ICU, nursing, packages)', match: (s) => ['IP', 'ICU', 'ROOM', 'NURSING', 'PACKAGE'].includes(s) },
+  { key: 'PHARMACY', label: 'Pharmacy', match: (s) => s === 'PHARMACY' },
+  { key: 'LAB_OP', label: 'Laboratory - OP and ER patients', match: (s, kind) => s === 'LAB' && kind !== 'IP' },
+  { key: 'LAB_IP', label: 'Laboratory - IP patients', match: (s, kind) => s === 'LAB' && kind === 'IP' },
+  { key: 'OT', label: 'OT (operation theatre)', match: (s) => s === 'OT' },
+  { key: 'IMAGING', label: 'Radiology / imaging', match: (s) => s === 'IMAGING' },
+  { key: 'OTHER', label: 'Procedures and other', match: (s) => ['PROCEDURE', 'OTHER'].includes(s) },
+];
+
+export function revenueByDepartment(q) {
+  const f = jf(q, ["a.type='income'"]);
+  const rows = all(`SELECT coalesce(l.segment,'OTHER') seg, coalesce(e.kind,'OP') kind,
+      sum(CASE WHEN a.subtype='revenue' THEN l.credit-l.debit ELSE 0 END) gross,
+      sum(CASE WHEN a.system_key='discount_allowed' THEN l.debit-l.credit ELSE 0 END) discount,
+      sum(CASE WHEN a.system_key='free_treatment' THEN l.debit-l.credit ELSE 0 END) free,
+      sum(CASE WHEN a.system_key='sales_returns' THEN l.debit-l.credit ELSE 0 END) returns,
+      sum(CASE WHEN a.system_key='package_adjustment' THEN l.debit-l.credit ELSE 0 END) package_adj
+    ${incomeLines} LEFT JOIN bills b ON v.source='bill' AND b.id=v.source_id LEFT JOIN encounters e ON e.id=b.encounter_id
+    WHERE ${f.sql} GROUP BY seg, kind`, ...f.args);
+  const departments = REVENUE_DEPARTMENTS.map((d) => {
+    const out = { key: d.key, label: d.label, gross: 0, discount: 0, free: 0, returns: 0, package_adj: 0 };
+    for (const r of rows) if (d.match(r.seg, r.kind)) {
+      out.gross += r.gross || 0; out.discount += r.discount || 0; out.free += r.free || 0; out.returns += r.returns || 0; out.package_adj += r.package_adj || 0;
+    }
+    for (const k of ['gross', 'discount', 'free', 'returns', 'package_adj']) out[k] = r2(out[k]);
+    out.net = r2(out.gross - out.discount - out.free - out.returns - out.package_adj);
+    return out;
+  });
+  const t = (k) => r2(departments.reduce((s, d) => s + d[k], 0));
+  return { gross: t('gross'), discount: t('discount'), free: t('free'), returns: t('returns'), package_adj: t('package_adj'), net: t('net'), departments };
+}
+
 export function revenueByDay(q) {
   const f = jf(q, ["a.type='income'"]);
   const m = Object.fromEntries(all(`SELECT v.voucher_date d, sum(l.credit-l.debit) v ${incomeLines} WHERE ${f.sql} GROUP BY v.voucher_date`, ...f.args).map((r) => [r.d, r2(r.v)]));

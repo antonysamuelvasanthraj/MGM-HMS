@@ -261,5 +261,5 @@ function printReport(r) {
     ${(r.kpis || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">${r.kpis.map((k) => `<div style="border:1px solid #D8DFE8;border-radius:6px;padding:6px 10px">
       <div style="font-size:10px;text-transform:uppercase;color:#526176">${esc(k.label)}</div><b>${kpiValue(k)}</b></div>`).join('')}</div>` : ''}
     <table><thead><tr>${r.columns.map((c) => `<th${isNum(c) ? ' style="text-align:right"' : ''}>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${rows}${totals}</tbody></table>
-    `,{width:1100,paper:r.columns.length>10?'A4 landscape':'A4'});
+    `,{width:1100,paper:r.columns.length>12?'A4 landscape':'A4'});
 }
