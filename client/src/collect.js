@@ -301,7 +301,9 @@ export async function collectBill(billId, after, { mode: preferMode = null, refe
           if (r.bill.balance <= 0.005 && !ip) { paidWindow(bill, r, after); return; }
           toast(r.received ? `${money(r.received, 2)} received` : 'Approval recorded', 'success', {
             title: r.bill.balance > 0.005 ? `Still due ${money(r.bill.balance, 2)}` : 'Bill cleared',
-            action: { label: 'Print receipt', run: () => printReceipt(bill, r) },
+            action: bill.bill_type === 'PHARM'
+              ? { label: 'Print bill', run: async () => { const { printBill } = await import('./views/bills.js'); printBill(bill.id); } }
+              : { label: 'Print receipt', run: () => printReceipt(bill, r) },
           });
           after?.(r);
         } catch (err) { apiError(err, 'Payment not saved'); busy(btn, false); }
@@ -371,7 +373,7 @@ async function paidWindow(bill, r, after) {
   modal({ title: r ? 'Payment saved — bill cleared' : 'Bill already paid', size: 'sm', stack: true,
     body: `<div class="text-center py-2"><span class="material-symbols-outlined text-[44px] text-success">task_alt</span>
       <p class="font-title-md mt-1">${esc(bill.bill_no)}</p><p class="text-body-md text-on-surface-variant">${esc(bill.patient_name || '')} · ${r?.received ? `${money(r.received, 2)} received now` : `total ${money(bill.total, 2)}, nothing outstanding`}</p></div>`,
-    footer: `<button class="btn-secondary" data-close>Close</button>${r ? '<button class="btn-secondary" data-p-receipt>Print receipt</button>' : ''}<button class="btn-primary" data-p-bill>Print bill</button>`,
+    footer: `<button class="btn-secondary" data-close>Close</button>${r && bill.bill_type !== 'PHARM' ? '<button class="btn-secondary" data-p-receipt>Print receipt</button>' : ''}<button class="btn-primary" data-p-bill>Print bill</button>`,
     onMount(root, close) {
       root.querySelector('[data-p-receipt]')?.addEventListener('click', () => printReceipt(bill, r));
       root.querySelector('[data-p-bill]').onclick = async () => { const { printBill } = await import('./views/bills.js'); printBill(bill.id); };

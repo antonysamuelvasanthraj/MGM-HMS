@@ -88,7 +88,9 @@ function salesReturn(after) {
               const r = await api.post('/pharmacy/sales-returns', { bill_item_id: l.id, qty: l.qty, reason, refund_mode: res.querySelector('[data-mode]').value });
               refunded += r.refund?.amount || 0;
             }
-            close(); toast(refunded ? `Refund ${money(refunded, 2)} to the patient` : 'Return credited to the bill', 'success'); after();
+            close();
+            toast(refunded ? `Refund ${money(refunded, 2)} to the patient` : 'Return credited to the bill', 'success', { action: { label: 'Print bill', run: async () => { const { printBill } = await import('./bills.js'); printBill(bill.id); } } });
+            after();
           } catch (err) { apiError(err, 'Return not saved'); busy(btn, false); }
         }
       };

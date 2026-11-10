@@ -403,7 +403,7 @@ function wireCounter(root, reload) {
       });
       toast(`${r.bill.bill_no} · ${money(r.bill.total, 2)} dispensed`, 'success', {
         title: 'Sale complete',
-        action: r.payment ? { label: 'Print receipt', run: async () => printReceipt(await api.get(`/payments/${r.payment.id}/receipt`)) } : {label:'Print bill',run:()=>printBill(r.bill.id)},
+        action: { label: 'Print bill', run: () => printBill(r.bill.id) },   // the GST tax invoice is the pharmacy document; no separate receipt
       });
       const schemePatientId=patient?.id;
       if(r.bill.payer_type==='aarogyasri'&&can('scheme.patient_pay'))toast('Aarogyasri: permit a patient share only when authorized','info',{action:{label:'Patient payment permitted',run:()=>openSchemePatientPayment(schemePatientId,r.bill.id,reload)}});
