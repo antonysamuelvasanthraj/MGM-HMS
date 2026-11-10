@@ -9,6 +9,8 @@
 export const NAV = [
   { section: 'Overview', items: [
     { route: '/dashboard',        label: 'Dashboard',         icon: 'space_dashboard' },
+  ]},
+  { section: 'Workplace', items: [
     { route: '/staff-workspace', label: 'Team Chat & Tasks', icon: 'forum', badge: 'staff-workspace' },
     { route: '/attendance', label: 'Roster & Attendance', icon: 'badge' },
     { route: '/stores',     label: 'Stores & Materials', icon: 'handyman', badge: 'stores' },

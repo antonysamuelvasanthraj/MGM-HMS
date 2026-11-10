@@ -1,72 +1,71 @@
-import { NAV } from './nav.js';
+import { NAV, sectionFor } from './nav.js';
 import { state, can, onState, setting } from '../store.js';
 import { $, $$, esc } from '../ui.js';
 import { navigate } from '../router.js';
 
 let mounted = false;
 
+/**
+ * One row per area in the side menu; the screens of the area you are in show as tabs across the top of the page.
+ * A screen appears once, under the first area the role can use.
+ */
+const AREA_ICON = { Overview: 'space_dashboard', Workplace: 'groups_2', 'Reception & OPD': 'concierge', Clinical: 'stethoscope', Emergency: 'e911_emergency', IPD: 'hotel',
+  Diagnostics: 'science', Pharmacy: 'local_pharmacy', 'OT & Maternity': 'surgical', 'Billing & Insurance': 'receipt_long', Finance: 'account_balance', Reports: 'summarize', Administration: 'settings' };
+const LAST_KEY = () => `hms_area_last_${state.user?.id || 'x'}`;
+function readLast() { try { return JSON.parse(localStorage.getItem(LAST_KEY()) || '{}'); } catch { return {}; } }
+
+function allowedItem(i) {
+  const allowed = (p) => !p || (Array.isArray(p) ? p.some((x) => can(x)) : can(p));
+  // `manual: [setting, value]` hides a portal screen while that department works on paper
+  return !i.sidebarHidden && !i.excludeRoles?.includes(state.user?.role) && allowed(i.perm) && !(i.hideIf && can(i.hideIf)) && !(i.manual && setting(i.manual[0]) === i.manual[1]);
+}
+function areas() {
+  const seen = new Set();
+  return NAV.map((g) => {
+    const items = g.items.filter((i) => allowedItem(i) && !seen.has(i.route));
+    items.forEach((i) => seen.add(i.route));
+    return { section: g.section, items };
+  }).filter((a) => a.items.length);
+}
+function routeActive(item, route) {
+  if (!item) return false;
+  if (item.includes('?')) { const url = new URL(item, location.origin); const current = new URL(location.href); return url.pathname === route && [...url.searchParams].every(([key, value]) => current.searchParams.get(key) === value); }
+  return item === route || (route || '').startsWith(item + '/');
+}
+/** The item of an area that the open screen belongs to: the most specific match wins (/reports?group=X before /reports). */
+function activeItem(area, route) {
+  return area.items.filter((i) => routeActive(i.route, route)).sort((a, b) => b.route.length - a.route.length)[0] || null;
+}
+function areaOf(list, route) {
+  return list.find((a) => activeItem(a, route)) || list.find((a) => a.section === sectionFor(route)) || null;
+}
+const badgeOf = (i) => (i.badge ? +(state.badges?.[i.badge] ?? 0) || 0 : 0);
+
 export function renderSidebar() {
   const nav = $('#nav');
   if (!nav) return;
-  let openGroups={};try{openGroups=JSON.parse(localStorage.getItem('hms_pharmacy_groups_'+state.user?.id)||'{}');}catch{}
-  nav.querySelectorAll('details[data-menu-group]').forEach(group=>{openGroups[group.dataset.menuGroup]=group.open;});
-  const seen = new Set();
-  // Long menus fold: with more than LONG items, sections other than Overview and the one you are
-  // in start folded. Whatever the person folds or opens is remembered on this computer.
-  const visible = (group) => group.items.filter((i) => allowedItem(i));
-  const total = NAV.reduce((n, g) => n + visible(g).length, 0);
-  const folds = readFolds();
-  // besides Overview, the section holding most of this login's screens stays open (reception → Reception & OPD)
-  const main = NAV.filter((g) => g.section !== 'Overview').reduce((best, g) => (visible(g).length > (best ? visible(best).length : 0) ? g : best), null)?.section;
-  const html = NAV.map((group) => {
-    // A screen appears once, under the first section the role can use.
-    const allowed = (p) => !p || (Array.isArray(p) ? p.some((x) => can(x)) : can(p));
-    // `manual: [setting, value]` hides a portal screen while that department works on paper
-    const items = group.items.filter((i) => !i.sidebarHidden && !i.excludeRoles?.includes(state.user?.role) && allowed(i.perm) && !(i.hideIf && can(i.hideIf)) && !(i.manual && setting(i.manual[0]) === i.manual[1]) && !seen.has(i.route));
-    items.forEach((i) => seen.add(i.route));
-    if (!items.length) return '';
-    const here = items.some((i) => routeActive(i.route,state.route));
-    const folded = here ? false : group.section in folds ? folds[group.section] : total > LONG && group.section !== 'Overview' && group.section !== main;
-    return `<div class="nav-group${folded ? ' is-folded' : ''}" data-group="${esc(group.section)}">
-      <button type="button" class="nav-section nav-fold" data-fold aria-expanded="${!folded}">${esc(group.section)}<span class="material-symbols-outlined nav-chevron">expand_more</span></button>
-      <div class="nav-items"><div>
-      ${items.map((i,index) => {
-        const start=i.menuGroup&&items[index-1]?.menuGroup!==i.menuGroup?`<details class="pharmacy-menu-group" data-menu-group="${esc(i.menuGroup)}" ${openGroups[i.menuGroup]?'open':''}><summary class="nav-item" title="Expand or collapse ${esc(i.menuGroup)}"><span class="nav-label flex-1">${esc(i.menuGroup)}</span><span class="material-symbols-outlined menu-group-chevron" aria-hidden="true">expand_more</span></summary>`:'';
-        const end=i.menuGroup&&items[index+1]?.menuGroup!==i.menuGroup?'</details>':'';
-        const badge = i.badge ? (state.badges?.[i.badge] ?? null) : null;
-        return `${start}<a class="nav-item" data-route="${i.route}" ${i.external ? 'data-external="1"' : ''}
-                   href="${i.route}" title="${esc(i.label)}">
-          <span class="material-symbols-outlined text-[18px] shrink-0">${i.icon}</span>
-          <span class="nav-label flex-1 truncate">${esc(i.label)}</span>
-          ${badge ? `<span class="nav-badge font-data-mono text-label-sm px-1.5 py-0.5 rounded
-            ${i.tone === 'danger' && badge > 0 ? 'bg-danger text-white' : 'bg-white/15 text-white'}"
-            data-badge="${i.badge}">${badge}</span>` : ''}
-        </a>${end}`;
-      }).join('')}
-      </div></div>
-    </div>`;
+  const list = areas(), last = readLast();
+  const html = list.map((a) => {
+    const one = a.items.length === 1 ? a.items[0] : null;
+    const target = one?.route || (a.items.some((i) => i.route === last[a.section]) ? last[a.section] : a.items[0].route);
+    const badge = a.items.reduce((n, i) => n + badgeOf(i), 0);
+    const danger = a.items.some((i) => i.tone === 'danger' && badgeOf(i) > 0);
+    return `<a class="nav-item" data-area="${esc(a.section)}" data-route="${esc(target)}" ${one?.external ? 'data-external="1"' : ''} href="${esc(target)}" title="${esc(one ? one.label : `${a.section} — ${a.items.map((i) => i.label).join(', ')}`)}">
+      <span class="material-symbols-outlined text-[18px] shrink-0">${one ? one.icon : AREA_ICON[a.section] || 'folder'}</span>
+      <span class="nav-label flex-1 truncate">${esc(one ? one.label : a.section)}</span>
+      <span class="nav-badge font-data-mono text-label-sm px-1.5 py-0.5 rounded ${danger ? 'bg-danger text-white' : 'bg-white/15 text-white'} ${badge ? '' : 'hidden'}" data-area-badge="${esc(a.section)}">${badge || ''}</span>
+    </a>`;
   }).join('');
-  const signature=JSON.stringify([html,state.route]);
-  if(nav.dataset.renderSignature===signature)return;
-  nav.dataset.renderSignature=signature;
-  const scroll=nav.scrollTop;
-  nav.innerHTML = html;
-  nav.scrollTop=scroll;
+  const signature = JSON.stringify([html, state.route]);
+  if (nav.dataset.renderSignature !== signature) {
+    nav.dataset.renderSignature = signature;
+    nav.innerHTML = html;
+  }
   markActive(state.route);
 
   if (!mounted) {
     mounted = true;
-    nav.addEventListener('toggle',event=>{const group=event.target;if(!group.matches?.('details[data-menu-group]'))return;let saved={};const key='hms_pharmacy_groups_'+state.user?.id;try{saved=JSON.parse(localStorage.getItem(key)||'{}');saved[group.dataset.menuGroup]=group.open;localStorage.setItem(key,JSON.stringify(saved));}catch{}},true);
-    nav.addEventListener('click', (e) => {
-      const fold = e.target.closest('[data-fold]');
-      if (fold) {
-        const g = fold.closest('[data-group]');
-        const now = !g.classList.contains('is-folded');
-        g.classList.toggle('is-folded', now);
-        fold.setAttribute('aria-expanded', String(!now));
-        const f = readFolds(); f[g.dataset.group] = now; try { localStorage.setItem(FOLD_KEY(), JSON.stringify(f)); } catch { /* private window */ }
-        return;
-      }
+    const go = (e) => {
       const a = e.target.closest('[data-route]');
       if (!a) return;
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -74,33 +73,49 @@ export function renderSidebar() {
       if (a.dataset.external) { window.open(a.dataset.route, '_blank', 'noopener'); return; }
       navigate(a.dataset.route);
       document.getElementById('app-shell').classList.remove('mobile-open');
-    });
+    };
+    nav.addEventListener('click', go);
+    tabStrip().addEventListener('click', go);
   }
 }
 
-const LONG = 22;
-const FOLD_KEY = () => `hms_nav_folds_${state.user?.id || 'x'}`;
-function readFolds() { try { return JSON.parse(localStorage.getItem(FOLD_KEY()) || '{}'); } catch { return {}; } }
-function allowedItem(i) {
-  const allowed = (p) => !p || (Array.isArray(p) ? p.some((x) => can(x)) : can(p));
-  return !i.sidebarHidden && !i.excludeRoles?.includes(state.user?.role) && allowed(i.perm) && !(i.hideIf && can(i.hideIf)) && !(i.manual && setting(i.manual[0]) === i.manual[1]);
+/** The strip under the top bar that holds the tabs of the open area. */
+function tabStrip() {
+  let strip = document.getElementById('section-tabs');
+  if (!strip) {
+    strip = document.createElement('nav');
+    strip.id = 'section-tabs'; strip.className = 'section-tabs hidden'; strip.setAttribute('aria-label', 'Screens in this area');
+    $('#view').before(strip);
+  }
+  return strip;
 }
-
-function routeActive(item,route){
-  if(!item)return false;
-  if(item.includes('?')){const url=new URL(item,location.origin);const current=new URL(location.href);return url.pathname===route&&[...url.searchParams].every(([key,value])=>current.searchParams.get(key)===value);}
-  return item===route||(route||'').startsWith(item+'/');
+function renderSectionTabs(route) {
+  const strip = tabStrip(), area = areaOf(areas(), route);
+  if (!area || area.items.length < 2) { strip.classList.add('hidden'); strip.innerHTML = ''; return; }
+  const on = activeItem(area, route);
+  strip.innerHTML = area.items.map((i, n) => {
+    const gap = n && (i.menuGroup || '') !== (area.items[n - 1].menuGroup || '') ? '<span class="section-tab-sep" aria-hidden="true"></span>' : '';
+    const badge = badgeOf(i);
+    return `${gap}<a class="section-tab${i === on ? ' active' : ''}" data-route="${esc(i.route)}" ${i.external ? 'data-external="1"' : ''} href="${esc(i.route)}" ${i === on ? 'aria-current="page"' : ''}>
+      <span class="material-symbols-outlined text-[16px]">${i.icon}</span>${esc(i.label)}
+      <span class="section-tab-badge ${badge ? '' : 'hidden'}${i.tone === 'danger' ? ' is-danger' : ''}" data-badge="${i.badge || ''}">${badge || ''}</span></a>`;
+  }).join('');
+  strip.classList.remove('hidden');
+  strip.querySelector('.active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 export function markActive(route) {
-  $$('#nav .nav-item').forEach((a) => {
-    const r = a.dataset.route;
-    const on = routeActive(r,route);
-    a.classList.toggle('active', on);
-    if(on&&a.closest('details'))a.closest('details').open=true;
-    // the section holding the open screen is never folded
-    if (on) { const g = a.closest('.nav-group'); g?.classList.remove('is-folded'); g?.querySelector('[data-fold]')?.setAttribute('aria-expanded', 'true'); }
-  });
+  const list = areas(), area = areaOf(list, route);
+  $$('#nav .nav-item').forEach((a) => a.classList.toggle('active', !!area && a.dataset.area === area.section));
+  // the area row reopens the screen you last used there
+  const item = area && activeItem(area, route);
+  if (item && area.items.length > 1) {
+    const last = readLast();
+    if (last[area.section] !== item.route) { last[area.section] = item.route; try { localStorage.setItem(LAST_KEY(), JSON.stringify(last)); } catch { /* private window */ } }
+    const row = $(`#nav .nav-item[data-area="${CSS.escape(area.section)}"]`);
+    if (row) { row.dataset.route = item.route; row.setAttribute('href', item.route); }
+  }
+  renderSectionTabs(route);
 }
 
 export function initSidebarChrome() {
@@ -122,9 +137,14 @@ export function initSidebarChrome() {
 
   onState(() => {
     // Live badge counts without re-rendering the whole rail.
-    $$('#nav [data-badge]').forEach((b) => {
-      const v = state.badges?.[b.dataset.badge];
-      if (v !== undefined && String(v) !== b.textContent) b.textContent = v;
+    for (const a of areas()) {
+      const b = $(`#nav [data-area-badge="${CSS.escape(a.section)}"]`); if (!b) continue;
+      const n = a.items.reduce((t, i) => t + badgeOf(i), 0);
+      if (String(n || '') !== b.textContent) { b.textContent = n || ''; b.classList.toggle('hidden', !n); }
+    }
+    $$('#section-tabs [data-badge]').forEach((b) => {
+      const v = +(state.badges?.[b.dataset.badge] ?? 0) || 0;
+      if (String(v || '') !== b.textContent) { b.textContent = v || ''; b.classList.toggle('hidden', !v); }
     });
   });
 }

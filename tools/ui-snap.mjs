@@ -22,8 +22,10 @@ const W = +arg('--width', 1440), H = +arg('--height', 900);
 const full = process.argv.includes('--full');
 fs.mkdirSync(out, { recursive: true });
 
-const md = fs.readFileSync(path.join(root, 'DEMO-LOGINS.local.md'), 'utf8');
+// --password <pw> signs every --user in with that password; otherwise the local demo logins file is used
+const md = arg('--password', '') ? '' : fs.readFileSync(path.join(root, 'DEMO-LOGINS.local.md'), 'utf8');
 const pw = Object.fromEntries([...md.matchAll(/`([^`]+)`\s*\|\s*`([^`]+)`/g)].map((m) => [m[1], m[2]]));
+if (arg('--password', '')) for (const u of users) pw[u] = arg('--password', '') === '=' ? u : arg('--password', '');
 const browsers = ['C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe', 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'];
 const exe = browsers.find((p) => fs.existsSync(p));
 const port = 9300 + Math.floor(Math.random() * 500);

@@ -221,7 +221,8 @@ core.get('/dashboard/badges', requireAuth, h((req) => {
     'ot-schedule': one('SELECT count(*) FROM ot_bookings WHERE date(scheduled_at)=?', d) || 0,
     'maternity': one("SELECT count(*) FROM maternity_cases WHERE stage<>'postnatal'") || 0,
     'appointments': one('SELECT count(*) FROM appointments WHERE date(slot_start)=?', d) || 0,
-    'local-sync': one("SELECT count(*) FROM sync_queue WHERE status IN ('queued','failed')") || 0,
+    // no count while the cloud sync queue is switched off: old queued rows are not work waiting for anyone
+    'local-sync': setting('sync_queue_enabled', '0') === '1' ? (one("SELECT count(*) FROM sync_queue WHERE status IN ('queued','failed')") || 0) : 0,
     'quality': one("SELECT count(*) FROM quality_incidents WHERE status<>'closed'") || 0,
     'stock': one("SELECT count(*) FROM medicine_batches WHERE qty>0 AND expiry <= date('now','localtime','+90 day')") || 0,
     'service-payments': one("SELECT count(DISTINCT coalesce(bi.bill_id, -o.id)) FROM orders o LEFT JOIN bill_items bi ON bi.order_id=o.id WHERE o.status='awaiting_payment'") || 0,
