@@ -155,6 +155,12 @@ export function syncEncounterPayment(encounterId) {
   if (!consultBill) return enc;
   const settled = ['paid', 'covered'].includes(consultBill.status);
   const ps = settled ? 'paid' : consultBill.paid > 0 || consultBill.covered_amount > 0 ? 'partial' : 'pending';
+  // paper mode: doctors write on paper and never close a visit. An OP visit is finished once its bill is paid
+  // and no order on it is still open, so the visit does not stay open for the day.
+  if (settled && enc.kind === 'OP' && setting('workflow_doctor', 'portal') === 'manual' && !['closed', 'cancelled'].includes(enc.stage)) {
+    const open = one(`SELECT count(*) FROM orders WHERE encounter_id=? AND status NOT IN ('verified','dispensed','cancelled')`, encounterId);
+    if (!open) update('encounters', encounterId, { payment_status: ps, stage: 'closed', closed_at: nowIso() });
+  }
   if (ps !== enc.payment_status) {
     update('encounters', encounterId, { payment_status: ps });
     return get('SELECT * FROM encounters WHERE id=?', encounterId);
