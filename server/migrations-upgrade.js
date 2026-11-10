@@ -266,4 +266,14 @@ export function migrateUpgrade(db) {
     }
     setFlag(db, 'lab_subheadings_2026_11');
   }
+
+  /* ---------------------------------------------- demo imaging and ambulance services (demo prices; the hospital sets its own) */
+  if (!flag(db, 'demo_imaging_ambulance_2026_11')) {
+    const dept = db.prepare("SELECT department_id d FROM services WHERE category='imaging' AND department_id IS NOT NULL LIMIT 1").get()?.d ?? null;
+    const ins = db.prepare("INSERT INTO services (code, name, category, department_id, price, gst_pct, billing_unit, active) SELECT ?,?,?,?,?,0,'once',1 WHERE NOT EXISTS (SELECT 1 FROM services WHERE code=?)");
+    for (const [code, name, cat, price] of [['IMG-CTB', 'CT Brain (plain)', 'imaging', 2500], ['IMG-CTA', 'CT Abdomen', 'imaging', 4500], ['IMG-2DE', '2D Echo', 'imaging', 1500],
+      ['IMG-XKN', 'X-Ray Knee AP / Lateral', 'imaging', 400], ['AMB-LOCAL', 'Ambulance — local', 'other', 1000], ['AMB-TPT', 'Ambulance — MGM to Tirupati', 'other', 4500]])
+      ins.run(code, name, cat, cat === 'imaging' ? dept : null, price, code);
+    setFlag(db, 'demo_imaging_ambulance_2026_11');
+  }
 }
