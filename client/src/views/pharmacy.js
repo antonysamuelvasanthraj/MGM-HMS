@@ -211,7 +211,7 @@ function wireCounter(root, reload) {
     } catch(error) { if(patient?.id!==p.id)return;apiError(error,'Could not verify OP / IP stock source. Select the patient again.'); }
     if (cart.length && ipMode) { cart.length = 0; paintCart(root); toast('Cart cleared — this patient is admitted, so medicines come from the IP store', 'info'); }
     showPatient(root);
-  }, { placeholder: 'Today: UHID, name or mobile',todayOnly:true });
+  }, { placeholder: 'UHID, name or mobile — any patient' });
   root.addEventListener('change', (e) => {
     if (!e.target.matches('[data-ipmode]')) return;
     if (cart.length) { cart.length = 0; paintCart(root); }
