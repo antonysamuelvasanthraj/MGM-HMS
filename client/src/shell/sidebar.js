@@ -44,20 +44,31 @@ function areaOf(list, route) {
 }
 const badgeOf = (i) => (i.badge ? +(state.badges?.[i.badge] ?? 0) || 0 : 0);
 
+const OPEN_KEY = () => `hms_nav_open_${state.user?.id || 'x'}`;
+function readOpen() { try { return JSON.parse(localStorage.getItem(OPEN_KEY()) || '{}'); } catch { return {}; } }
+
 export function renderSidebar() {
   const nav = $('#nav');
   if (!nav) return;
-  const list = areas(), last = readLast();
+  const list = areas(), last = readLast(), opened = readOpen(), activeSection = areaOf(list, state.route)?.section;
   const html = `<button type="button" class="nav-item nav-screen-finder" data-find-screen title="Find a screen (Alt + M)" aria-label="Find a screen"><span class="material-symbols-outlined" aria-hidden="true">search</span><span class="nav-label">Find a screen</span></button>` + list.map((a) => {
     const one = a.items.length === 1 ? a.items[0] : null;
     const target = one?.route || (a.items.some((i) => i.route === last[a.section]) ? last[a.section] : a.items[0].route);
     const badge = a.items.reduce((n, i) => n + badgeOf(i), 0);
     const danger = a.items.some((i) => i.tone === 'danger' && badgeOf(i) > 0);
-    return `<a class="nav-item" data-area="${esc(a.section)}" data-route="${esc(target)}" ${one?.external ? 'data-external="1"' : ''} href="${esc(target)}" title="${esc(one ? one.label : `${a.section} — ${a.items.map((i) => i.label).join(', ')}`)}">
+    const row = `<a class="nav-item" data-area="${esc(a.section)}" data-route="${esc(target)}" ${one?.external ? 'data-external="1"' : ''} href="${esc(target)}" title="${esc(one ? one.label : `${a.section} — ${a.items.map((i) => i.label).join(', ')}`)}">
       <span class="material-symbols-outlined text-[18px] shrink-0">${one ? one.icon : AREA_ICON[a.section] || 'folder'}</span>
       <span class="nav-label flex-1 truncate">${esc(one ? one.label : a.section)}</span>
       <span class="nav-badge font-data-mono text-label-sm px-1.5 py-0.5 rounded ${danger ? 'bg-danger text-white' : 'bg-white/15 text-white'} ${badge ? '' : 'hidden'}" data-area-badge="${esc(a.section)}">${badge || ''}</span>
+      ${one ? '' : `<span class="material-symbols-outlined nav-chevron text-[18px] shrink-0" data-toggle-area="${esc(a.section)}" title="Show the screens in ${esc(a.section)}">expand_more</span>`}
     </a>`;
+    if (one) return row;
+    // a dropdown of the area's screens under its row; opens on its own for the area you are in
+    const open = opened[a.section] ?? (a.section === activeSection);
+    return `<div class="nav-area${open ? ' is-open' : ''}" data-area-wrap="${esc(a.section)}">${row}
+      <div class="nav-sub">${a.items.map((i) => `<a class="nav-sub-item" data-route="${esc(i.route)}" ${i.external ? 'data-external="1"' : ''} href="${esc(i.route)}">
+        <span class="material-symbols-outlined text-[16px] shrink-0">${i.icon}</span><span class="flex-1 truncate">${esc(i.label)}</span>
+        ${badgeOf(i) ? `<span class="nav-badge font-data-mono text-label-sm px-1.5 rounded bg-white/15 text-white" data-badge="${i.badge || ''}">${badgeOf(i)}</span>` : ''}</a>`).join('')}</div></div>`;
   }).join('');
   const signature = JSON.stringify([html, state.route]);
   if (nav.dataset.renderSignature !== signature) {
@@ -69,6 +80,14 @@ export function renderSidebar() {
   if (!mounted) {
     mounted = true;
     const go = (e) => {
+      const toggle = e.target.closest('[data-toggle-area]');
+      if (toggle) {
+        e.preventDefault(); e.stopPropagation();
+        const wrap = toggle.closest('.nav-area'); const now = !wrap.classList.contains('is-open');
+        wrap.classList.toggle('is-open', now);
+        const saved = readOpen(); saved[toggle.dataset.toggleArea] = now; try { localStorage.setItem(OPEN_KEY(), JSON.stringify(saved)); } catch { /* private window */ }
+        return;
+      }
       if(e.target.closest('[data-find-screen]')){e.preventDefault();openScreenFinder(areas());return;}
       const groupButton=e.target.closest('[data-screen-group]');if(groupButton){e.preventDefault();const group=groupButton.dataset.screenGroup;const list=areas().map(a=>({...a,items:a.items.filter(i=>i.menuGroup===group)})).filter(a=>a.items.length);openScreenFinder(list,group);return;}
       const a = e.target.closest('[data-route]');
@@ -117,6 +136,9 @@ function renderSectionTabs(route) {
 export function markActive(route) {
   const list = areas(), area = areaOf(list, route);
   $$('#nav .nav-item').forEach((a) => a.classList.toggle('active', !!area && a.dataset.area === area.section));
+  const here = area && activeItem(area, route);
+  $$('#nav .nav-sub-item').forEach((a) => a.classList.toggle('active', !!here && a.dataset.route === here.route));
+  if (area) $(`#nav .nav-area[data-area-wrap="${CSS.escape(area.section)}"]`)?.classList.add('is-open');
   // the area row reopens the screen you last used there
   const item = area && activeItem(area, route);
   if (item && area.items.length > 1) {

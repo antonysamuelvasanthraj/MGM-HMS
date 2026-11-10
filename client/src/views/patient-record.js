@@ -6,6 +6,7 @@ export async function mount(ctx) {
   const root = mountPage(ctx, layout());
   patientPicker($('[data-record-picker]', root), (p) => { navigate(`/patient/${p.id}`); }, { placeholder: 'UHID, name or mobile — any patient, old or new', autofocus: true });
   $('[data-new]', root)?.addEventListener('click', () => openNewPatient((p) => { toast(`${p.name} · ${p.uhid}`, 'success'); navigate(`/patient/${p.id}`); }));
+  if (ctx.query?.new && can('patient.create')) $('[data-new]', root)?.click();
   async function load() {
     const recent = await api.get('/patients?limit=12').catch(() => ({ rows: [] }));
     $('[data-recent]', root).innerHTML = recent.rows.length

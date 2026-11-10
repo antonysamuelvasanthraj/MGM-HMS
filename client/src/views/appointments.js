@@ -30,6 +30,7 @@ export async function mount(ctx) {
   }
 
   bind(root, 'click', '[data-new]', () => bookAppt(load));
+  if (ctx.query.new && can('appt.create')) bookAppt(load);
   bind(root, 'click', '[data-act]', async (e, b) => {
     const id = +b.closest('tr').dataset.id;
     const a = cache.find((x) => x.id === id);

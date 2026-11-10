@@ -61,7 +61,8 @@ export async function mount(ctx) {
     for(const field of root.querySelectorAll('[data-f]'))field.value=f[field.dataset.f] || (['type','status'].includes(field.dataset.f)?'all':'');
     load();
   });
-  if (ctx.query.new === 'op' && can('billing.create')) newBill(load, true);
+  if ((ctx.query.new === 'op' || ctx.query.new === 'proc') && (can('billing.create') || can('op.collect'))) newBill(load, true);
+  if (ctx.query.new === 'ip' && can('ipd.admit')) import('./admissions.js').then((m) => m.admitPatient(load));
   bind(root, 'click', '[data-export]', () => downloadCSV(`bills-${f.date || 'all'}.csv`, cache.map((b) => ({
     bill: b.bill_no, date: b.bill_date, type: b.bill_type, uhid: b.uhid, patient: b.patient_name,
     doctor: b.doctor_name, counter: b.counter_name, payer: b.payer_type,

@@ -291,6 +291,23 @@ function initTopbar() {
     });
   };
 
+  /* --- quick actions in the top bar (shown by permission, on every screen) --- */
+  {
+    const manualDoctor = setting('workflow_doctor', 'portal') === 'manual';
+    const acts = [
+      ['New patient', 'person_add', '/patient-record?new=1', can('patient.create'), true],
+      ['Book appointment', 'event', '/appointments?new=1', can('appt.create') && !manualDoctor, false],
+      ['New bill', 'add', '/bills?new=op', can('billing.create') || can('op.collect'), false],
+      ['OP procedure', 'healing', '/bills?new=proc', can('billing.create') || can('op.collect'), false],
+      ['IPD admission', 'bed', '/bills?new=ip', can('ipd.admit'), false],
+    ].filter((a) => a[3]);
+    const host = $('#quick-actions');
+    if (host) {
+      host.innerHTML = acts.map(([label, icon, to, , primary]) => `<a href="${to}" data-route="${to}" class="${primary ? 'btn-primary' : 'btn-secondary'} !h-9 !px-2.5 text-body-sm whitespace-nowrap"><span class="material-symbols-outlined text-[16px]">${icon}</span>${label}</a>`).join('');
+      host.onclick = (e) => { const a = e.target.closest('a[data-route]'); if (a) { e.preventDefault(); navigate(a.dataset.route); } };
+    }
+  }
+
   /* --- sync chip --- */
   $('#sync-chip').onclick = () => navigate('/local-sync');
   $('#conn-chip').onclick = () => toast(`${document.getElementById('conn-text').textContent} — screens update by themselves while this is green.`, 'info');
