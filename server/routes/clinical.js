@@ -102,10 +102,11 @@ clinical.post('/consultations', requirePerm('consult.write'), h((req) => {
   if (b.status === 'signed' && ['in_consult', 'ready', 'vitals_done'].includes(get('SELECT stage FROM encounters WHERE id=?', e.id).stage)) {
     const hasOpenOrders = one(
       `SELECT count(*) FROM orders WHERE encounter_id=? AND status NOT IN ('verified','dispensed','cancelled')`, e.id);
-    update('encounters', e.id, {
-      stage: hasOpenOrders ? 'services_pending' : 'consulted',
-      consult_end: nowIso(),
-    });
+    // paper mode: the visit is finished when the note is signed and nothing is still open (no close step on paper)
+    const paperVisit = setting('workflow_doctor', 'portal') === 'manual';
+    update('encounters', e.id, paperVisit && !hasOpenOrders
+      ? { stage: 'closed', closed_at: nowIso(), consult_end: nowIso() }
+      : { stage: hasOpenOrders ? 'services_pending' : 'consulted', consult_end: nowIso() });
   }
   if (called) emit(req, { topics: ['queue', 'opd', 'dashboard', 'display', `encounter:${e.id}`], event: 'encounter.stage', data: { id: e.id },
     action: 'encounter.in_consult', entity: 'encounters', entityId: e.id, detail: { before: { stage: e.stage }, after: { stage: 'in_consult' }, reason: 'Consultation opened' } });
