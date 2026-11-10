@@ -22,7 +22,7 @@ const T = (cls = '') => `<table class="tbl ${cls}">`;
 
 export async function mount(ctx) {
   const canPharm = can('pharmacy.view') || can('finance.view');
-  const canRecep = (can('billing.view') && !['pharmacy', 'store', 'pharmacy_admin'].includes(state.user.role)) || can('finance.view');
+  const canRecep = (can('billing.view') && !['pharmacy', 'pharmacy_all', 'store', 'pharmacy_admin'].includes(state.user.role)) || can('finance.view');
   const f = { desk: ctx.query.desk === 'pharmacy' || !canRecep ? 'pharmacy' : 'reception', date: todayISO(), user_id: '', tab: can('finance.view') ? 'handover' : 'summary' };
   const root = mountPage(ctx, page({
     wide: true, eyebrow: `${eyebrow('Collections', 'summarize')} ${liveChip()}`, title: 'Daily collection & handover',

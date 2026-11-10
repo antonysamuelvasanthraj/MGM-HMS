@@ -81,7 +81,7 @@ function layout() {
       <button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
       ${can('op.register')&&setting('workflow_doctor','portal')!=='manual'?'<button class="btn-secondary" data-new-op>OP visit / consultation fee</button>':''}
       ${can('ipd.admit')?'<button class="btn-secondary" data-new-ip>New IPD admission / bill</button>':''}
-      ${can('op.collect') || can('admin.view') ? `<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> New bill</button><button class="btn-secondary" data-op-procedure>OP procedure</button>` : ''}`,
+      ${can('op.collect') || can('admin.view') ? `<button class="btn-primary" data-new><span class="material-symbols-outlined text-[18px]">add</span> New bill</button>` : ''}`,
     body: `
       <div class="flex flex-wrap gap-2"><button class="btn-secondary" data-bill-view="today">Today’s bills</button><button class="btn-secondary" data-bill-view="ip">Current IPD running bills</button><button class="btn-secondary" data-bill-view="pharmacy">Pharmacy bills — view only</button><button class="btn-secondary" data-bill-view="all">All bills / history</button></div>
       ${kpiRow([], 4)}
@@ -318,7 +318,7 @@ function setDiscount(b, after) {
 
 export const canRaiseReceptionBill=()=>can('billing.create') && (
   can('admin.view') || can('finance.view') || can('insurance.view') || can('dash.owner') ||
-  !(['pharmacy','pharmacy_admin','store'].includes(state.user?.role) || (can('pharmacy.dispense') && !can('op.collect')))
+  !(['pharmacy','pharmacy_all','pharmacy_admin','store'].includes(state.user?.role) || (can('pharmacy.dispense') && !can('op.collect')))
 );
 
 export async function newBill(after, opd = false, {patientId=null,encounterId=null,inlineHost=null}={}) {

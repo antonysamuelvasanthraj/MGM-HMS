@@ -54,7 +54,7 @@ export const DEFAULT_ROLE_PERMS = {
 
 for(const role of ['reception','cashier','pharmacy'])DEFAULT_ROLE_PERMS[role].push('scheme.patient_pay');
 export const STAFF_TEAMS = { reception_admin: ['reception', 'cashier'], pharmacy_admin: ['pharmacy', 'store'], lab_admin: ['lab', 'radiology'] };
-for (const [role, base] of [['reception_admin','reception'],['pharmacy_admin','pharmacy'],['lab_admin','lab']]) DEFAULT_ROLE_PERMS[role] = [...DEFAULT_ROLE_PERMS[base], 'staff.manage', ...(role === 'pharmacy_admin' ? ['inventory.approve'] : role === 'lab_admin' ? ['lab.verify'] : [])];
+for (const [role, base] of [['reception_admin','reception'],['pharmacy_admin','pharmacy'],['lab_admin','lab']]) DEFAULT_ROLE_PERMS[role] = [...DEFAULT_ROLE_PERMS[base], 'staff.manage', ...(role === 'pharmacy_admin' ? ['inventory.approve', 'billing.cancel', 'payment.refund'] : role === 'lab_admin' ? ['lab.verify'] : [])];
 
 DEFAULT_ROLE_PERMS.imaging_admin = [...DEFAULT_ROLE_PERMS.radiology, 'staff.manage'];
 DEFAULT_ROLE_PERMS.nursing_incharge = [...DEFAULT_ROLE_PERMS.nurse, 'staff.manage'];
@@ -90,7 +90,7 @@ for (const r of ['hr', 'reception_admin', 'pharmacy_admin', 'lab_admin', 'imagin
 // front office = registration + billing + cashier; pharmacy = sales + store + GRN + transfers + approvals.
 const union = (...lists) => [...new Set(lists.flat())];
 DEFAULT_ROLE_PERMS.front_office = union(DEFAULT_ROLE_PERMS.reception, DEFAULT_ROLE_PERMS.cashier, ['billing.discount', 'insurance.view']);
-DEFAULT_ROLE_PERMS.pharmacy_all = union(DEFAULT_ROLE_PERMS.pharmacy, DEFAULT_ROLE_PERMS.store, ['inventory.approve', 'maintenance.view']);
+DEFAULT_ROLE_PERMS.pharmacy_all = union(DEFAULT_ROLE_PERMS.pharmacy, DEFAULT_ROLE_PERMS.store, ['inventory.approve', 'maintenance.view', 'billing.cancel', 'payment.refund']);
 // HR rosters and manages every member of staff except the administrator and the owner
 STAFF_TEAMS.hr = Object.keys(DEFAULT_ROLE_PERMS).filter((r) => !['admin', 'owner'].includes(r));
 for (const r of ['manager', 'medical_superintendent']) STAFF_TEAMS[r].push(...(r === 'manager' ? ['front_office', 'pharmacy_all'] : ['pharmacy_all']));

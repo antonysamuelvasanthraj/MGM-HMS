@@ -46,7 +46,7 @@ export const billing = Router();
  */
 export function billScope(user) {
   if (can(user, 'admin.view') || can(user, 'finance.view') || can(user, 'insurance.view') || can(user, 'dash.owner')) return '';
-  const pharmacyDesk = ['pharmacy', 'store', 'pharmacy_admin'].includes(user.role) || (can(user, 'pharmacy.dispense') && !can(user, 'op.collect'));
+  const pharmacyDesk = ['pharmacy', 'pharmacy_all', 'store', 'pharmacy_admin'].includes(user.role) || (can(user, 'pharmacy.dispense') && !can(user, 'op.collect'));
   if (pharmacyDesk) return "b.bill_type='PHARM'";
   if (can(user, 'op.collect') || can(user, 'payment.collect') || can(user, 'billing.create')) return "b.bill_type<>'PHARM'";
   if (can(user, 'ipd.manage')) return "b.bill_type IN ('IP','ER')";
@@ -68,7 +68,7 @@ function accrueFor(billId) {
  */
 function counterFor(req, bill) {
   if (!bill || can(req.user, 'admin.view')) return;
-  const pharmacyDesk = ['pharmacy', 'store', 'pharmacy_admin'].includes(req.user.role);
+  const pharmacyDesk = ['pharmacy', 'pharmacy_all', 'store', 'pharmacy_admin'].includes(req.user.role);
   if (bill.bill_type === 'PHARM' && !pharmacyDesk) fail(403, 'pharmacy_bill_settled_at_pharmacy');
   if (bill.bill_type !== 'PHARM' && pharmacyDesk) fail(403, 'bill_settled_at_reception');
 }

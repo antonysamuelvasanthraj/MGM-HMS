@@ -20,11 +20,11 @@ const GROUPS = ['cash', 'upi', 'card', 'bank', 'cheque'];
 const r2 = (v) => Math.round((+v + Number.EPSILON) * 100) / 100;
 
 function deskFor(req) {
-  const d = req.query.desk || req.body?.desk || (['pharmacy', 'store', 'pharmacy_admin'].includes(req.user.role) ? 'pharmacy' : 'reception');
+  const d = req.query.desk || req.body?.desk || (['pharmacy', 'pharmacy_all', 'store', 'pharmacy_admin'].includes(req.user.role) ? 'pharmacy' : 'reception');
   if (!['reception', 'pharmacy'].includes(d)) fail(400, 'desk_invalid');
   const all_ = can(req.user, 'finance.view') || can(req.user, 'admin.view');
   if (d === 'pharmacy' && !all_ && !can(req.user, 'pharmacy.view')) fail(403, 'forbidden');
-  if (d === 'reception' && !all_ && (['pharmacy', 'store', 'pharmacy_admin'].includes(req.user.role) || !can(req.user, 'billing.view'))) fail(403, 'forbidden');
+  if (d === 'reception' && !all_ && (['pharmacy', 'pharmacy_all', 'store', 'pharmacy_admin'].includes(req.user.role) || !can(req.user, 'billing.view'))) fail(403, 'forbidden');
   return d;
 }
 const typeClause = (d) => (d === 'pharmacy' ? "b.bill_type='PHARM'" : "b.bill_type<>'PHARM'");
@@ -229,14 +229,14 @@ desk.post('/desk/handover/:id/verify', requireAuth, h((req) => {
 
 desk.get('/desk/shifts', requireAuth, h(req => {
  const d=deskFor(req);
- const roles=d==='pharmacy'?['pharmacy','pharmacy_admin','store']:['reception','reception_admin','cashier'];
+ const roles=d==='pharmacy'?['pharmacy','pharmacy_all','pharmacy_admin','store']:['reception','reception_admin','cashier'];
  const receivers=all('SELECT id,name,role FROM users WHERE active=1 AND id<>?',req.user.id).filter(u=>roles.includes(u.role)||['admin','owner'].includes(u.role));
  const list=all(`SELECT s.*,f.name from_name,t.name to_name FROM shift_handovers s JOIN users f ON f.id=s.from_user JOIN users t ON t.id=s.to_user WHERE s.desk=? AND (s.from_user=? OR s.to_user=? OR ?=1) ORDER BY s.id DESC LIMIT 100`,d,req.user.id,req.user.id,can(req.user,'finance.view')?1:0);
  return {receivers,list, ...cashPosition(d,today(),req.user.id), expected:expectedFor(d,today(),req.user.id)};
 }));
 desk.post('/desk/shifts', requireAuth, h(req => {
  const d=deskFor(req),b=req.body;
- const roles=d==='pharmacy'?['pharmacy','pharmacy_admin','store','admin','owner']:['reception','reception_admin','cashier','admin','owner'];
+ const roles=d==='pharmacy'?['pharmacy','pharmacy_all','pharmacy_admin','store','admin','owner']:['reception','reception_admin','cashier','admin','owner'];
  const receiver=get('SELECT * FROM users WHERE id=? AND active=1',+b.to_user);
  if (!receiver || receiver.id===req.user.id || !roles.includes(receiver.role)) fail(400,'shift_receiver_required');
  if (!['morning','evening','night'].includes(b.from_shift)||!['morning','evening','night'].includes(b.to_shift)||!String(b.notes||'').trim()) fail(400,'shift_and_notes_required');
