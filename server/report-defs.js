@@ -604,6 +604,14 @@ EXTRA_REPORTS.push({id:'revenue_today_departments',group:'Revenue',title:"Today'
     columns:[col('label','Department'),money('gross','Gross'),money('discount','Discount'),money('free','Free'),money('returns','Returns'),money('net','Net revenue')],
     rows:r.departments,total:['gross','discount','free','returns','net']};
 }});
+EXTRA_REPORTS.push({id:'doctor_department_matrix',group:'Revenue',title:'Doctor-wise revenue by department',perm:F,filters:['range'],run:q=>{
+  const from=q.from||today(), to=q.to||today();
+  const m=M.doctorDepartmentMatrix({from,to});
+  return {subtitle:`Net income by treating doctor and department ${from===to?'on '+from:'from '+from+' to '+to}. Each bill is credited to its doctor, or to Direct / unassigned.`,
+    kpis:[kpi('Net revenue',m.totals.total),kpi('Doctors',m.rows.length,'number')],
+    columns:[col('doctor','Doctor'),...M.DOCTOR_MATRIX_COLUMNS.map(c=>money(c.key,c.label)),money('total','Total')],
+    rows:m.rows,total:[...M.DOCTOR_MATRIX_COLUMNS.map(c=>c.key),'total']};
+}});
 EXTRA_REPORTS.push({id:'doctor_collection_reconciliation',group:'Finance',title:'Doctor-wise billing, receipts and refunds reconciliation',perm:F,filters:['range'],run:q=>{
  const rows=all(`SELECT coalesce(u.name,'Unassigned') doctor,coalesce(d.name,'Unassigned') department,count(*) bills,round(sum(b.total),2) billed,
  round(sum((SELECT coalesce(sum(pm.amount),0) FROM payments pm WHERE pm.bill_id=b.id AND pm.cancelled=0 AND pm.amount>0)),2) patient_receipts,

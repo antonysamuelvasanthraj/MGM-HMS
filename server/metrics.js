@@ -127,6 +127,40 @@ export function revenueByDepartment(q) {
   return { gross: t('gross'), discount: t('discount'), free: t('free'), returns: t('returns'), package_adj: t('package_adj'), net: t('net'), departments };
 }
 
+/** Doctor-by-department revenue: one row per treating doctor, one column per department (net income). */
+export const DOCTOR_MATRIX_COLUMNS = [
+  { key: 'OP', label: 'OP', match: (s) => s === 'OP' },
+  { key: 'IP', label: 'IP', match: (s) => ['IP', 'ICU', 'ROOM', 'NURSING', 'PACKAGE'].includes(s) },
+  { key: 'ER', label: 'ER', match: (s) => s === 'ER' },
+  { key: 'LAB', label: 'LAB', match: (s) => s === 'LAB' },
+  { key: 'IMAGING', label: 'IMAGING (X-ray, CT, echo)', match: (s) => s === 'IMAGING' },
+  { key: 'PHARMACY', label: 'PHARMACY', match: (s) => s === 'PHARMACY' },
+  { key: 'OT', label: 'OT', match: (s) => s === 'OT' },
+  { key: 'OTHER', label: 'OTHER', match: (s) => ['PROCEDURE', 'OTHER'].includes(s) },
+];
+
+export function doctorDepartmentMatrix(q) {
+  const f = jf(q, ["a.type='income'"]);
+  const rows = all(`SELECT coalesce(u.name,'Direct / unassigned') doctor, coalesce(l.segment,'OTHER') seg,
+      sum(CASE WHEN a.subtype='revenue' THEN l.credit-l.debit ELSE 0 END)
+        - sum(CASE WHEN a.system_key IN ('discount_allowed','free_treatment','sales_returns','package_adjustment') THEN l.debit-l.credit ELSE 0 END) net
+    ${incomeLines} LEFT JOIN bills b ON v.source='bill' AND b.id=v.source_id LEFT JOIN encounters e ON e.id=b.encounter_id
+      LEFT JOIN users u ON u.id=coalesce(b.doctor_id,e.doctor_id)
+    WHERE ${f.sql} GROUP BY doctor, seg`, ...f.args);
+  const byDoctor = new Map();
+  for (const r of rows) {
+    if (!byDoctor.has(r.doctor)) byDoctor.set(r.doctor, { doctor: r.doctor, total: 0 });
+    const row = byDoctor.get(r.doctor);
+    for (const c of DOCTOR_MATRIX_COLUMNS) if (c.match(r.seg)) row[c.key] = r2((row[c.key] || 0) + (r.net || 0));
+    row.total = r2(row.total + (r.net || 0));
+  }
+  const out = [...byDoctor.values()].sort((a, b) => b.total - a.total);
+  for (const row of out) for (const c of DOCTOR_MATRIX_COLUMNS) row[c.key] = r2(row[c.key] || 0);
+  const totals = { doctor: 'TOTAL', total: r2(out.reduce((s, r) => s + r.total, 0)) };
+  for (const c of DOCTOR_MATRIX_COLUMNS) totals[c.key] = r2(out.reduce((s, r) => s + (r[c.key] || 0), 0));
+  return { rows: out, totals };
+}
+
 export function revenueByDay(q) {
   const f = jf(q, ["a.type='income'"]);
   const m = Object.fromEntries(all(`SELECT v.voucher_date d, sum(l.credit-l.debit) v ${incomeLines} WHERE ${f.sql} GROUP BY v.voucher_date`, ...f.args).map((r) => [r.d, r2(r.v)]));
