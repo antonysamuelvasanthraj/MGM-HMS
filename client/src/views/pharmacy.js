@@ -15,6 +15,7 @@ import {
   kpi, spinner, emptyState, debounce, printDocument, todayISO, setting, headCount,
 } from './_kit.js';
 import { printReceipt } from './op-registration.js';
+import { confirmDialog } from '../ui.js';
 import { showBillingContext } from '../billing-context.js';
 
 const cart = [];
@@ -28,7 +29,7 @@ let prescriptionId = null;
 let rxCache = [];
 
 export async function mount(ctx) {
-  const root = mountPage(ctx, layout());
+  const root = mountPage(ctx, layout({workspace:ctx.route==='/billing-desk'}));
   cart.length = 0; patient = null; prescriptionId = null; ipMode = null; admissionLookupFailed=false;
 
   async function load() {
@@ -114,13 +115,13 @@ const cartTotal = () => cart.reduce((s, i) => s + i.qty * i.rate, 0);
 const manualRx = () => setting('workflow_pharmacy', 'eprescription') === 'manual';            // queue hidden
 const paperRx = () => ['manual', 'both'].includes(setting('workflow_pharmacy', 'eprescription')); // paper fields shown
 
-function layout() {
+function layout({workspace=false}={}) {
   return page({
     wide: true,
     eyebrow: `${eyebrow('Pharmacy counter', 'local_pharmacy')} ${liveChip()}`,
     title: 'Pharmacy Sales & Dispensing',
     subtitle: 'Sell and dispense medicines.',
-    actions: `<a href="/stock" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">inventory_2</span> Stock</a>
+    actions: workspace?'<a href="/reports?report=pharmacy_patient_register" class="btn-secondary">Sales register</a>':`<a href="/stock" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">inventory_2</span> Stock</a>
       <a href="/bills?type=PHARM" class="btn-secondary">Completed bills / reprint</a><a href="/reports?report=pharmacy_patient_register" class="btn-secondary">Sales register</a>
       <a href="/medicines" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">pill</span> Medicine master</a>`,
     body: `
@@ -153,7 +154,7 @@ function layout() {
         <section class="card">
           <header class="px-4 h-12 flex items-center justify-between border-b border-outline-variant">
             <h2 class="panel-title">Bill</h2>
-            <div class="flex gap-1"><button class="btn-ghost btn-xs" data-held>Held bills</button><button class="btn-ghost btn-xs" data-hold>Hold</button><button class="btn-ghost btn-xs" data-clear>New bill</button></div>
+            <div class="flex gap-1"><button class="btn-ghost btn-xs" data-held>Held bills</button><button class="btn-ghost btn-xs" data-hold>Hold</button><button class="btn-ghost btn-xs" data-cancel-bill title="Discard this unsaved bill. Nothing is billed or stock-moved." ${cart.length||patient?"":"disabled"}>Cancel bill</button><button class="btn-ghost btn-xs" data-clear>New bill</button></div>
           </header>
           <div class="max-h-[46vh] overflow-y-auto" data-cart></div>
           <div class="p-4 border-t border-outline-variant space-y-2.5">
@@ -329,6 +330,10 @@ function wireCounter(root, reload) {
     paintCart(root);
   });
   bind(root, 'click', '[data-rm]', (e, el) => { cart.splice(+el.closest('[data-line]').dataset.line, 1); paintCart(root); });
+  $('[data-cancel-bill]', root).onclick = async () => {
+    if (cart.length && !(await confirmDialog({ title: 'Cancel this bill?', message: `The ${cart.length} unsaved medicine line${cart.length > 1 ? 's' : ''} will be cleared. Nothing has been billed or taken from stock. Held bills are not affected.`, confirmLabel: 'Cancel bill', tone: 'danger' }))) return;
+    cart.length = 0; prescriptionId = null; patient = null; ipMode = null; $('[data-pharmacy-notes]', root).value = ''; showPatient(root); $('[data-pp-input]', root).value = ''; paintCart(root);
+  };
   $('[data-clear]', root).onclick = () => { cart.length = 0; prescriptionId = null;patient=null;ipMode=null; $('[data-pharmacy-notes]', root).value = '';showPatient(root);$('[data-pp-input]',root).value=''; paintCart(root); };
   $('[data-hold]', root).onclick = async () => {
     if (!patient || !cart.length) { toast('Choose a patient and add medicines before holding the bill', 'warning'); return; }
