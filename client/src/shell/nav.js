@@ -19,6 +19,7 @@ export const NAV = [
   { section: 'Reception & OPD', items: [
     {route:'/billing-desk?desk=reception',label:'Reception Billing',icon:'point_of_sale',perm:['payment.view','payment.collect','finance.view','insurance.view','op.collect','op.register'],excludeRoles:['pharmacy','pharmacy_admin','store']},
     { route: '/patients',          label: 'Patients',          icon: 'person_search', perm: 'patient.view' },
+    { route: '/patient-record',    label: 'Patient Record',    icon: 'folder_shared', perm: 'patient.view' },
     { route: '/appointments',      label: 'Appointments',      icon: 'calendar_month', perm: 'appt.view', badge: 'appointments' },
     { route: '/op-registration', sidebarHidden:true, label: 'OP Registration',   icon: 'how_to_reg', perm: 'op.register', badge: 'op-registration' },
     { route: '/op-fee-collection', sidebarHidden:true, label: 'OP Fee Collection', icon: 'payments', perm: 'op.collect', badge: 'op-fee-collection' },

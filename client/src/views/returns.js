@@ -61,10 +61,12 @@ function salesReturn(after) {
       };
       el.querySelector('[data-find]').onclick = find;
       el.querySelector('[data-q]').onkeydown = (e) => { if (e.key === 'Enter') find(); };
+      let returnedBillId = null;   // the bill picked above, kept for the print button after the return
       res.onclick = async (e) => {
         const b = e.target.closest('[data-bill]');
         if (b) {
           const bill = await api.get(`/bills/${b.dataset.bill}`);
+          returnedBillId = bill.id;
           const originalMode = bill.payments.find((p) => p.amount > 0 && !p.cancelled && MODES[p.mode]?.group === 'money')?.mode || 'cash';
           const items = bill.items.filter((i) => ['pharmacy', 'consumable'].includes(i.category) && i.batch_id && i.qty - (i.returned_qty || 0) > 0);
           res.innerHTML = items.length ? `<p class="text-body-md mb-2">${esc(bill.bill_no)} · ${esc(bill.patient_name)} · paid ${money(bill.paid, 2)}</p>
@@ -89,7 +91,7 @@ function salesReturn(after) {
               refunded += r.refund?.amount || 0;
             }
             close();
-            toast(refunded ? `Refund ${money(refunded, 2)} to the patient` : 'Return credited to the bill', 'success', { action: { label: 'Print bill', run: async () => { const { printBill } = await import('./bills.js'); printBill(bill.id); } } });
+            toast(refunded ? `Refund ${money(refunded, 2)} to the patient` : 'Return credited to the bill', 'success', { action: { label: 'Print bill', run: async () => { const { printBill } = await import('./bills.js'); printBill(returnedBillId); } } });
             after();
           } catch (err) { apiError(err, 'Return not saved'); busy(btn, false); }
         }
