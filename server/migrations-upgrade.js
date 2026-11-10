@@ -37,6 +37,8 @@ export function migrateUpgrade(db) {
   defaultSetting(db, 'manual_stock_adjust', '1');
   // sample container labels: always available by button in every mode; automatic print at collection is optional
   defaultSetting(db, 'lab_label_auto', '0');
+  // pharmacy due bills: off = the pharmacy desk records a due itself; on = only an approver may
+  defaultSetting(db, 'pharmacy_due_approval', '0');
   // a small pharmacy with one in-charge may approve its own transfer request (audited); off = a second person approves
   defaultSetting(db, 'transfer_self_approve', '1');
   /* discharge needs the doctor's clearance and a discharge summary (paper allowed in Paper / Hybrid mode) */

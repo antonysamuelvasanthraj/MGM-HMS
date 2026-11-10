@@ -206,6 +206,10 @@ export async function openAdmission(id, after) {
              : { label: a.balance < 0 ? 'Advance held' : 'Balance due', value: money(Math.abs(a.balance)), icon: 'schedule', tone: a.balance > 0 ? 'danger' : 'success' },
            { label: 'Open orders', value: a.orders.filter((o) => !['verified', 'dispensed', 'cancelled'].includes(o.status)).length, icon: 'science', tone: 'info' }].map(kpi).join('')}
       </div>
+      ${(a.op_dues || []).length ? card({ title: 'Earlier OP dues', subtitle: 'Unpaid OP bills of this patient. Collect them during the stay or at discharge; each stays on its own bill.', pad: false,
+        body: `<table class="tbl"><thead><tr><th>Bill</th><th>Date</th><th>Type</th><th class="num">Due</th><th></th></tr></thead><tbody>${a.op_dues.map((b) => `<tr>
+          <td class="font-data-mono">${esc(b.bill_no)}</td><td>${esc(b.bill_date || '')}</td><td>${esc(b.bill_type)}</td><td class="num font-semibold text-danger">${money(b.balance)}</td>
+          <td class="text-right">${can('payment.collect') ? `<button class="btn-secondary btn-xs" data-op-due="${b.id}">Collect</button>` : ''}</td></tr>`).join('')}</tbody></table>` }) : ''}
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         ${card({ title: 'Medication administration', pad: false, body: a.access?.clinical === false ? '<p class="p-4 text-body-md text-on-surface-variant">Clinical access is restricted for your role.</p>' : a.mar.length ? `
           <div class="max-h-64 overflow-y-auto"><table class="tbl">
@@ -257,6 +261,7 @@ export async function openAdmission(id, after) {
       root.querySelector('[data-admission-forms]')?.addEventListener('click',()=>openAdmissionForms(id));
       root.querySelector('[data-note]')?.addEventListener('click', () => { close(); addNote(a, () => openAdmission(id, after)); });
       root.querySelector('[data-pay]')?.addEventListener('click', () => { close(); collectBill(a.ip_bill_id, () => { after(); openAdmission(id, after); }); });
+      root.querySelectorAll('[data-op-due]').forEach((btn) => btn.addEventListener('click', () => { close(); collectBill(+btn.dataset.opDue, () => { after(); openAdmission(id, after); }); }));
       const reopen = () => { close(); openAdmission(id, after); after(); };
       root.querySelector('[data-add-charge]')?.addEventListener('click', () => addChargeForm(a, reopen));
       root.addEventListener('click', async (e) => {

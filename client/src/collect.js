@@ -36,11 +36,14 @@ export const CATEGORIES = [
 ];
 const r2 = (v) => Math.round((+v + Number.EPSILON) * 100) / 100;
 
+// a pharmacy bill at the pharmacy desk may take a due line without approval rights unless the setting asks for approval
+let pharmacyDue = false;
+
 function modeOptions(selected) {
   const allowAuth = can('payment.authorize');
   const groups = [['money', 'Money received'], ['payer', 'Billed to a payer'], ['approval', 'Approval (no money)']];
   return groups.filter(([g]) => g === 'money' || (g==='payer'?(can('insurance.write')||can('admin.write')):(allowAuth || can('payment.collect')))).map(([g, label]) => `<optgroup label="${label}">${
-    Object.entries(MODES).filter(([k, m]) => m.group === g && (g !== 'approval' || allowAuth || k === 'free')).map(([k, m]) => `<option value="${k}" ${k === selected ? 'selected' : ''}>${k === 'free' && !can('payment.approve_free') ? 'Request free approval' : m.label}</option>`).join('')
+    Object.entries(MODES).filter(([k, m]) => m.group === g && (g !== 'approval' || allowAuth || k === 'free' || (k === 'due' && pharmacyDue))).map(([k, m]) => `<option value="${k}" ${k === selected ? 'selected' : ''}>${k === 'free' && !can('payment.approve_free') ? 'Request free approval' : m.label}</option>`).join('')
   }</optgroup>`).join('');
 }
 
@@ -74,6 +77,7 @@ export async function collectBill(billId, after, { mode: preferMode = null, refe
   let bill;
   try { bill = await api.get(`/bills/${billId}`); } catch (err) { apiError(err, 'Could not open the bill'); return; }
   if (bill.status === 'cancelled') { toast('This bill is cancelled', 'warning'); return; }
+  pharmacyDue = bill.bill_type === 'PHARM' && setting('pharmacy_due_approval', '0') !== '1' && can('pharmacy.dispense');
   if (['insurance','aarogyasri','corporate','trust'].includes(bill.payer_type) && !(bill.patient_due > 0)) {
     toast('This balance is pending with the payer. Use Insurance & Payer Cases for approval and Payer Receivables when money is received.', 'info'); return;
   }
@@ -123,7 +127,7 @@ export async function collectBill(billId, after, { mode: preferMode = null, refe
           <button type="button" class="btn-secondary btn-sm" data-quick="cash">Full balance in cash</button>
           <button type="button" class="btn-secondary btn-sm" data-quick="upi">Full balance by UPI</button>
         </div>
-        ${!ip && due0 > 0.5 && can('payment.authorize') ? `<div class="mt-2 flex items-end gap-2 flex-wrap rounded-lg border border-outline-variant p-2.5" data-part-row>
+        ${!ip && due0 > 0.5 && (can('payment.authorize') || pharmacyDue) ? `<div class="mt-2 flex items-end gap-2 flex-wrap rounded-lg border border-outline-variant p-2.5" data-part-row>
           <div><label class="field-label !mb-0.5">Patient pays only part now</label>
             <input class="field field-sm !h-9 !w-32 text-right font-data-mono" type="number" min="0.01" step="0.01" max="${due0}" data-part placeholder="Amount" aria-label="Amount paid now"></div>
           <select class="field field-sm !h-9 !w-auto" data-part-mode aria-label="Mode for the part payment"><option value="cash">Cash</option><option value="upi">UPI</option><option value="debit_card">Debit card</option><option value="credit_card">Credit card</option></select>

@@ -97,6 +97,8 @@ function view(s) {
         body: `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           ${toggle('manual_stock_adjust', 'Allow single-batch stock adjustment',
             'The Adjust stock action on a batch (damage, expiry, loss, count correction). Off: one-off corrections are blocked; the Excel bulk stock count still works and is always recorded with its reason.')}
+          ${toggle('pharmacy_due_approval', 'Pharmacy due bills need approval (optional)',
+            'Off (default): the pharmacy desk can leave part or all of a pharmacy bill as due, with a reason. On: only a manager or someone with approval rights can record the due.')}
           ${toggle('transfer_self_approve', 'The requester may approve their own stock transfer',
             'For a pharmacy run by one in-charge: the same person can request, approve, issue and receive. Every step stays in the audit trail. Off: another in-charge, the manager or the owner approves.')}
           ${toggle('schedule_h_requires_rx', 'Schedule H / H1 / X need a prescription at the counter',

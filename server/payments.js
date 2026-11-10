@@ -96,7 +96,10 @@ export function addSettlement(req, { bill_id, mode, amount, payer_name, referenc
     if (amt > money(bill.balance) + 0.005) fail(400, 'amount_exceeds_balance', { balance: bill.balance });
     if(PAYERS.includes(mode)&&!byApprovedCase&&!can(req.user,'insurance.write')&&!can(req.user,'admin.write'))fail(403,'payer_allocation_requires_insurance');
     // byApprovedCase: the payer's approval on the case is the authority, whoever's action triggered it (doctor order, pharmacy sale …)
-    if (!byApprovedCase && !can(req.user, 'payment.authorize') && !(mode === 'free' && can(req.user, 'payment.approve_free'))) fail(403, 'forbidden', { need: 'payment.authorize' });
+    // pharmacy due: the pharmacy desk may record a due on its own bill; with 'pharmacy_due_approval' on, only an approver may
+    const pharmacyDue = mode === 'due' && bill.bill_type === 'PHARM' && setting('pharmacy_due_approval', '0') !== '1' && can(req.user, 'pharmacy.dispense');
+    if (!byApprovedCase && !pharmacyDue && !can(req.user, 'payment.authorize') && !(mode === 'free' && can(req.user, 'payment.approve_free')))
+      fail(403, mode === 'due' && bill.bill_type === 'PHARM' ? 'pharmacy_due_needs_approval' : 'forbidden', { need: 'payment.authorize' });
     if (['free', 'due', 'trust'].includes(mode) && !String(reason || '').trim()) fail(400, 'reason_required', { mode });
     if (!byApprovedCase && mode === 'free' && setting('free_visit_requires_approval') === '1' && !can(req.user, 'admin.view')
         && !can(req.user, 'payment.approve_free')) fail(403, 'free_treatment_needs_approval');

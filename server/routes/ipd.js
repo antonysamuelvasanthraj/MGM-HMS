@@ -259,6 +259,9 @@ ipd.get('/admissions/:id', requirePerm('ipd.view'), h((req) => {
   a.orders = all(`SELECT o.*, u.name ordered_by_name, CASE WHEN o.encounter_id=? THEN 'ER' ELSE NULL END placed_in FROM orders o LEFT JOIN users u ON u.id=o.ordered_by
                    WHERE o.encounter_id IN (?, ?) ORDER BY o.id DESC`, erEncForOrders || -1, a.encounter_id, erEncForOrders || -1);
   a.bills = all('SELECT * FROM bills WHERE encounter_id=? ORDER BY id', a.encounter_id);
+  // unpaid OP / ER / lab bills of this patient (pharmacy collects its own): collected during the stay or at discharge
+  a.op_dues = all(`SELECT id, bill_no, bill_type, bill_date, total, paid, balance FROM bills
+    WHERE patient_id=? AND bill_type NOT IN ('IP','PHARM') AND status<>'cancelled' AND balance>0.005 ORDER BY id`, a.patient_id);
   for (const b of a.bills) b.items = all('SELECT * FROM bill_items WHERE bill_id=?', b.id);
   a.payments = all(`SELECT pm.*, u.name received_by_name FROM payments pm LEFT JOIN users u ON u.id=pm.received_by
                      WHERE pm.encounter_id=? AND pm.cancelled=0`, a.encounter_id);
@@ -470,6 +473,9 @@ ipd.post('/admissions', requirePerm('ipd.admit'), h((req) => {
       mlc: b.mlc ? 1 : er?.mlc ? 1 : 0, mlc_no: b.mlc_no || er?.mlc_no || null,
     });
     update('beds', bed.id, { status: 'occupied' });
+    // The patient moves from OP to IP: their open OP visits end here. OP bills keep their own balance
+    // (no money moves between bills) and show on the admission as earlier OP dues to collect.
+    const opClosed = run("UPDATE encounters SET stage='closed', closed_at=? WHERE patient_id=? AND kind='OP' AND stage NOT IN ('closed','cancelled')", nowIso(), patient.id).changes || 0;
     const adm = get('SELECT * FROM admissions WHERE id=?', aid);
     const bill = ipBill(adm);
     update('bills', bill.id, { payer_type: category });
@@ -489,7 +495,7 @@ ipd.post('/admissions', requirePerm('ipd.admit'), h((req) => {
     emit(req, {
       topics: [...TOPICS, 'billing', `patient:${patient.id}`], event: 'admission.created', data: row,
       action: 'ipd.admit', entity: 'admissions', entityId: aid,
-      detail: { ip_no: row.ip_no, bed: bed.bed_no, uhid: patient.uhid },
+      detail: { ip_no: row.ip_no, bed: bed.bed_no, uhid: patient.uhid, op_visits_closed: opClosed },
     });
     return admissionForUser(row, req.user);
   });
