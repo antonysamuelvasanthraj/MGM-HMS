@@ -428,6 +428,11 @@ export function busy(btn, on = true, label) {
 /** Standard error → toast translation with the field hints the API returns. */
 export function apiError(e, fallback = 'Could not complete that') {
   const map = {
+    ot_checklist_incomplete: 'Complete every safety checklist item before proceeding',
+    ot_checklist_reason_required: 'Explain why checklist items do not apply in Notes',
+    ot_checklist_invalid: 'Choose a valid status for each safety checklist item',
+    ot_status_invalid: 'Choose a valid theatre status',
+    ot_case_closed: 'This theatre case is already closed',
     call_blocked: 'Cannot call this patient in yet',
     payment_pending: 'Payment has not been collected for this order',
     financial_clearance_pending: 'Financial clearance is pending',

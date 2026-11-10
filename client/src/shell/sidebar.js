@@ -1,3 +1,4 @@
+import {openScreenFinder} from './screen-finder.js';
 import { NAV, sectionFor } from './nav.js';
 import { state, can, onState, setting } from '../store.js';
 import { $, $$, esc } from '../ui.js';
@@ -33,7 +34,9 @@ function routeActive(item, route) {
   return item === route || (route || '').startsWith(item + '/');
 }
 /** The item of an area that the open screen belongs to: the most specific match wins (/reports?group=X before /reports). */
+const PARENT_SCREEN={'/patient':'/patients','/visit':'/visit-tracking','/collections':'/billing-desk?desk=reception','/doctor-consultation':'/consultation'};
 function activeItem(area, route) {
+  if(PARENT_SCREEN[route])return area.items.find(i=>i.route===PARENT_SCREEN[route])||null;
   return area.items.filter((i) => routeActive(i.route, route)).sort((a, b) => b.route.length - a.route.length)[0] || null;
 }
 function areaOf(list, route) {
@@ -45,7 +48,7 @@ export function renderSidebar() {
   const nav = $('#nav');
   if (!nav) return;
   const list = areas(), last = readLast();
-  const html = list.map((a) => {
+  const html = `<button type="button" class="nav-item nav-screen-finder" data-find-screen title="Find a screen (Alt + M)" aria-label="Find a screen"><span class="material-symbols-outlined" aria-hidden="true">search</span><span class="nav-label">Find a screen</span></button>` + list.map((a) => {
     const one = a.items.length === 1 ? a.items[0] : null;
     const target = one?.route || (a.items.some((i) => i.route === last[a.section]) ? last[a.section] : a.items[0].route);
     const badge = a.items.reduce((n, i) => n + badgeOf(i), 0);
@@ -66,6 +69,8 @@ export function renderSidebar() {
   if (!mounted) {
     mounted = true;
     const go = (e) => {
+      if(e.target.closest('[data-find-screen]')){e.preventDefault();openScreenFinder(areas());return;}
+      const groupButton=e.target.closest('[data-screen-group]');if(groupButton){e.preventDefault();const group=groupButton.dataset.screenGroup;const list=areas().map(a=>({...a,items:a.items.filter(i=>i.menuGroup===group)})).filter(a=>a.items.length);openScreenFinder(list,group);return;}
       const a = e.target.closest('[data-route]');
       if (!a) return;
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -75,6 +80,7 @@ export function renderSidebar() {
       document.getElementById('app-shell').classList.remove('mobile-open');
     };
     nav.addEventListener('click', go);
+    document.addEventListener('keydown',e=>{if(e.altKey&&!e.ctrlKey&&!e.metaKey&&e.code==='KeyM'&&!document.querySelector('#modal-root [role=dialog]')){e.preventDefault();openScreenFinder(areas());}});
     tabStrip().addEventListener('click', go);
   }
 }
@@ -93,12 +99,16 @@ function renderSectionTabs(route) {
   const strip = tabStrip(), area = areaOf(areas(), route);
   if (!area || area.items.length < 2) { strip.classList.add('hidden'); strip.innerHTML = ''; return; }
   const on = activeItem(area, route);
-  strip.innerHTML = area.items.map((i, n) => {
-    const gap = n && (i.menuGroup || '') !== (area.items[n - 1].menuGroup || '') ? '<span class="section-tab-sep" aria-hidden="true"></span>' : '';
-    const badge = badgeOf(i);
-    return `${gap}<a class="section-tab${i === on ? ' active' : ''}" data-route="${esc(i.route)}" ${i.external ? 'data-external="1"' : ''} href="${esc(i.route)}" ${i === on ? 'aria-current="page"' : ''}>
-      <span class="material-symbols-outlined text-[16px]">${i.icon}</span>${esc(i.label)}
-      <span class="section-tab-badge ${badge ? '' : 'hidden'}${i.tone === 'danger' ? ' is-danger' : ''}" data-badge="${i.badge || ''}">${badge || ''}</span></a>`;
+  const groups=new Set();
+  strip.innerHTML=area.items.map(i=>{
+    if(i.menuGroup){
+      if(groups.has(i.menuGroup))return '';
+      groups.add(i.menuGroup);
+      const selected=on?.menuGroup===i.menuGroup;
+      return `<button type="button" class="section-tab${selected?' active':''}" data-screen-group="${esc(i.menuGroup)}" aria-haspopup="dialog" title="${esc(i.menuGroup)}"><span class="material-symbols-outlined text-[16px]">${esc(i.icon)}</span>${esc(i.menuGroup)}<span class="material-symbols-outlined text-[16px]">expand_more</span></button>`;
+    }
+    const badge=badgeOf(i);
+    return `<a class="section-tab${i===on?' active':''}" data-route="${esc(i.route)}" ${i.external?'data-external="1"':''} href="${esc(i.route)}" ${i===on?'aria-current="page"':''}><span class="material-symbols-outlined text-[16px]">${esc(i.icon)}</span>${esc(i.label)}<span class="section-tab-badge ${badge?'':'hidden'}" data-badge="${i.badge||''}">${badge||''}</span></a>`;
   }).join('');
   strip.classList.remove('hidden');
   strip.querySelector('.active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });

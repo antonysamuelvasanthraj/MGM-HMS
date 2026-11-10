@@ -196,7 +196,9 @@ export async function mount(ctx) {
       'indent.created', 'expense.updated', 'queue.called', 'prescription.saved', 'purchase_request.created'],
     load, interval: 120000,
   });
-  return () => { stop(); clearCharts(); };
+  const dispose = () => { stop(); clearCharts(); };
+  dispose.ready = stop.ready;
+  return dispose;
 }
 
 function shell() {

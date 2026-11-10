@@ -74,7 +74,7 @@ export async function upgradeRegressions({api,request,login,check,dataDir,stream
     const admission=await api('/ipd/admissions',{patient_id:patient.id,bed_id:freeBed.id,diagnosis:'Synthetic integrated surgery'});
     const ot=await api('/ipd/ot',{patient_id:patient.id,admission_id:admission.id,procedure:'Upgrade complete surgery',scheduled_at:`${day} 10:00:00`,theatre:'OT-1',visiting_surgeon_id:surgeon.id,visiting_anaesthetist_id:anaesthetist.id,
       charges:[{description:'OT room fee',rate:25000,category:'ot'},{description:'Surgeon professional fee',rate:30000,role:'surgeon'},{description:'Anaesthetist professional fee',rate:10000,role:'anaesthetist'},{description:'Other hospital charges',rate:5000,category:'other'}]});
-    await api(`/ipd/ot/${ot.id}`,{consent:1,status:'completed'},'PATCH');
+    await api(`/ipd/ot/${ot.id}`,{consent:1,checklist:{consent:true,site_marked:true,fasting:true,allergy:true,implants:true,blood:true,antibiotic:true,count:true},status:'completed'},'PATCH');
     const ipBatch=Number(db.prepare('INSERT INTO medicine_batches(medicine_id,batch_no,expiry,qty,location,mrp,selling_price,purchase_rate) VALUES(?,?,?,?,?,?,?,?)').run(med.id,'UPGRADE-IP-SURGERY','2099-01-01',10,'IP',1000,1000,500).lastInsertRowid);
     const ipSale=await api('/pharmacy/dispense',{patient_id:patient.id,admission_id:admission.id,items:[{medicine_id:med.id,batch_id:ipBatch,qty:10}],collect:false});
     check('80000 surgery consolidates hospital doctor and medicine components once',()=>assert.equal(ipSale.bill.total,80000));

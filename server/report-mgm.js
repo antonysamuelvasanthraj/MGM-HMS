@@ -5,6 +5,8 @@
  * list and the referral statement. Figures come from the ledger and transaction tables.
  */
 import { all, today } from './db.js';
+import {receiptDeskSql} from './receipt-desk.js';
+import {collectionPolicy} from './collection-policy.js';
 
 const r2 = (v) => Math.round((+v || 0) * 100) / 100;
 const col = (key, label, type = 'text') => ({ key, label, type });
@@ -68,36 +70,46 @@ export function doctorMatrix({ from, to }) {
 function cashClosing(desk) {
   return (q) => {
     const { from, to } = range(q), pharm = desk === 'pharmacy';
-    const billSide = pharm ? "b.bill_type='PHARM'" : "b.bill_type<>'PHARM'";
+    const receiptSide = `${receiptDeskSql()}='${desk}'`;
+    // Positive receipts are gross collections; negative payment rows are refunds, counted once.
     const pay = all(`SELECT p.pay_date d,
-        sum(CASE WHEN b.bill_type='IP' THEN p.amount ELSE 0 END) ip, sum(CASE WHEN b.bill_type<>'IP' THEN p.amount ELSE 0 END) op, sum(p.amount) total,
-        sum(CASE WHEN p.mode='upi' THEN p.amount ELSE 0 END) upi, sum(CASE WHEN p.mode IN ('debit_card','credit_card') THEN p.amount ELSE 0 END) card,
-        sum(CASE WHEN p.mode IN ('bank_transfer','cheque') THEN p.amount ELSE 0 END) online, sum(CASE WHEN p.mode='cash' THEN p.amount ELSE 0 END) cash
-      FROM payments p JOIN bills b ON b.id=p.bill_id WHERE p.cancelled=0 AND ${billSide} AND p.pay_date BETWEEN ? AND ? GROUP BY p.pay_date`, from, to);
-    const refunds = all(`SELECT date(r.created_at) d, sum(r.amount) total, sum(CASE WHEN r.mode='cash' THEN r.amount ELSE 0 END) cash
-      FROM refunds r JOIN bills b ON b.id=r.bill_id WHERE ${billSide} AND date(r.created_at) BETWEEN ? AND ? GROUP BY d`, from, to);
-    const spent = pharm ? [] : all(`SELECT x.spent_on d, sum(x.amount) v FROM expenses x WHERE x.status='paid' AND x.mode='cash' AND x.spent_on BETWEEN ? AND ? GROUP BY x.spent_on`, from, to);
-    const handed = all(`SELECT handover_date d, declared FROM cash_handovers WHERE desk=? AND status IN ('submitted','accepted') AND handover_date BETWEEN ? AND ?`, desk, from, to)
-      .map((h) => ({ d: h.d, v: +modes(h.declared).cash || 0 }));
+        sum(CASE WHEN p.amount>0 AND b.bill_type='IP' THEN p.amount ELSE 0 END) ip,
+        sum(CASE WHEN p.amount>0 AND b.bill_type<>'IP' THEN p.amount ELSE 0 END) op,
+        sum(CASE WHEN p.amount>0 THEN p.amount ELSE 0 END) total,
+        sum(CASE WHEN p.amount>0 AND p.mode='upi' THEN p.amount ELSE 0 END) upi,
+        sum(CASE WHEN p.amount>0 AND p.mode IN ('debit_card','credit_card') THEN p.amount ELSE 0 END) card,
+        sum(CASE WHEN p.amount>0 AND p.mode IN ('bank_transfer','cheque') THEN p.amount ELSE 0 END) online,
+        sum(CASE WHEN p.amount>0 AND p.mode='cash' THEN p.amount ELSE 0 END) cash,
+        sum(CASE WHEN p.amount<0 THEN -p.amount ELSE 0 END) returns,
+        sum(CASE WHEN p.amount<0 AND p.mode='cash' THEN -p.amount ELSE 0 END) refund_cash
+      FROM payments p JOIN bills b ON b.id=p.bill_id
+      WHERE p.cancelled=0 AND ${receiptSide} AND p.pay_date<=? GROUP BY p.pay_date`, to);
+    // Cash leaves on the payment voucher date, which may differ from the expense date.
+    const spent = pharm ? [] : all(`SELECT v.voucher_date d, sum(l.credit-l.debit) v
+      FROM journal_vouchers v JOIN journal_lines l ON l.voucher_id=v.id JOIN accounts a ON a.id=l.account_id
+      WHERE v.source='expense_payment' AND a.system_key='cash' AND v.voucher_date<=? GROUP BY v.voucher_date`, to);
+    const handed = all(`SELECT handover_date d, declared FROM cash_handovers
+      WHERE desk=? AND status IN ('submitted','accepted') AND handover_date<=?`, desk, to)
+      .map(h=>({d:h.d,v:+modes(h.declared).cash||0}));
     const days = new Map();
-    const day = (d) => days.get(d) || days.set(d, { d, op: 0, ip: 0, total: 0, upi: 0, card: 0, online: 0, cash: 0, returns: 0, expense: 0, handed: 0 }).get(d);
-    for (const p of pay) Object.assign(day(p.d), { op: p.op, ip: p.ip, total: p.total, upi: p.upi, card: p.card, online: p.online, cash: p.cash });
-    for (const r of refunds) { day(r.d).returns = r.total; day(r.d).refund_cash = r.cash; }
-    for (const s of spent) day(s.d).expense = s.v;
-    for (const h of handed) day(h.d).handed += h.v;
-    // a handover can carry cash from earlier days, so what is still at the desk is a running balance, not a per-day figure
-    let inHand = 0;
-    const rows = [...days.values()].sort((a, b) => a.d.localeCompare(b.d)).map((r) => {
-      const net = r2(r.cash - (r.refund_cash || 0) - r.expense);
-      inHand = r2(inHand + net - r.handed);
-      return { ...r, net_cash: net, in_hand: inHand };
-    });
+    const day = d=>days.get(d)||days.set(d,{d,op:0,ip:0,total:0,upi:0,card:0,online:0,cash:0,returns:0,refund_cash:0,expense:0,handed:0}).get(d);
+    for(const p of pay)Object.assign(day(p.d),p);
+    for(const e of spent)day(e.d).expense=e.v;
+    for(const h of handed)day(h.d).handed+=h.v;
+    let inHand=0,opening=0;
+    const rows=[];
+    for(const r of [...days.values()].sort((a,b)=>a.d.localeCompare(b.d))){
+      const net=r2(r.cash-r.refund_cash-r.expense);
+      inHand=r2(inHand+net-r.handed);
+      if(r.d<from){opening=inHand;continue;}
+      rows.push({...r,net_cash:net,in_hand:inHand});
+    }
     const moneyCols = (cols) => cols.filter((c) => c.type === 'money' && c.key !== 'in_hand').map((c) => c.key);
     const columns = pharm
       ? [date('d', 'Date'), money('total', 'Total'), money('upi', 'UPI (PhonePe)'), money('card', 'Card'), money('returns', 'Sale return'), money('online', 'Online'), money('cash', 'Cash'), money('net_cash', 'Net cash'), money('handed', 'Handed over'), money('in_hand', 'Cash at desk (running)')]
       : [date('d', 'Date'), money('op', 'OP'), money('ip', 'IP'), money('total', 'Total'), money('upi', 'UPI (PhonePe)'), money('card', 'Card'), money('online', 'Online'), money('cash', 'Cash'), money('expense', 'Expenses (cash)'), money('returns', 'Refunds'), money('net_cash', 'Net cash'), money('handed', 'Handed over'), money('in_hand', 'Cash at desk (running)')];
-    return { subtitle: 'Net cash = cash received − cash refunds − cash expenses paid. Handed over = cash in the handovers this desk submitted to the administrator. Cash at desk runs from the first day of the period.',
-      kpis: [kpi('Collected', sum(rows, 'total')), kpi('Cash', sum(rows, 'cash')), kpi('Net cash', sum(rows, 'net_cash')), kpi('Handed over', sum(rows, 'handed')), kpi('Cash at desk at period end', rows.length ? rows[rows.length - 1].in_hand : 0)],
+    return { subtitle: 'Net cash = cash received − cash refunds − cash expenses paid. Handed over = cash in the handovers this desk submitted to the administrator. Cash at desk includes earlier cash carried forward; expenses use their payment date.',
+      kpis: [kpi('Opening cash', opening), kpi('Collected', sum(rows, 'total')), kpi('Cash', sum(rows, 'cash')), kpi('Net cash', sum(rows, 'net_cash')), kpi('Handed over', sum(rows, 'handed')), kpi('Cash at desk at period end', inHand)],
       columns, rows, total: moneyCols(columns) };
   };
 }
@@ -166,10 +178,20 @@ export const MGM_REPORTS = [
 
   { id: 'due_list_month', group: 'Finance', title: 'Due list — patients, staff and insurance, with remarks', perm: F, filters: ['range'],
     run: (q) => { const { from, to } = range(q);
-      const rows = all(`SELECT b.bill_date d, CASE WHEN b.bill_type='PHARM' THEN 'Pharmacy' ELSE 'Reception' END desk, p.uhid, p.name patient, b.bill_no,
-          CASE WHEN b.payer_type IN ('insurance','aarogyasri','corporate','trust') THEN upper(substr(b.payer_type,1,1)) || substr(b.payer_type,2) || ' due' ELSE 'Patient due' END kind,
-          round(b.balance,2) due, coalesce(nullif(b.authorization_reason,''), nullif(b.notes,''), p.payer_name, '') remarks
-        FROM bills b JOIN patients p ON p.id=b.patient_id WHERE b.status<>'cancelled' AND b.balance>0.005 AND b.bill_date BETWEEN ? AND ? ORDER BY desk, kind DESC, b.bill_date`, from, to);
+      const bills=all(`SELECT b.*,p.uhid,p.name patient,
+        coalesce(nullif(b.authorization_reason,''),nullif(b.notes,''),p.payer_name,'') remarks
+        FROM bills b JOIN patients p ON p.id=b.patient_id
+        WHERE b.status<>'cancelled' AND b.bill_date BETWEEN ? AND ? ORDER BY b.bill_date,b.id`,from,to);
+      const rows=bills.flatMap(b=>{
+        const policy=collectionPolicy(b),deferred=['insurance','aarogyasri','corporate','trust'].includes(b.payer_type);
+        const shared={d:b.bill_date,desk:b.bill_type==='PHARM'?'Pharmacy':'Reception',uhid:b.uhid,patient:b.patient,bill_no:b.bill_no,remarks:b.remarks};
+        const patient=r2(policy.patient_due+(deferred?0:policy.payer_receivable));
+        const payer=deferred?r2(policy.payer_pending+policy.payer_receivable):0;
+        const result=[];
+        if(patient>0.005)result.push({...shared,kind:'Patient due',due:patient});
+        if(payer>0.005)result.push({...shared,kind:b.payer_type.charAt(0).toUpperCase()+b.payer_type.slice(1)+' due',due:payer});
+        return result;
+      });
       return { kpis: [kpi('Total due', sum(rows, 'due')), kpi('Patient due', sum(rows.filter((r) => r.kind === 'Patient due'), 'due')), kpi('Payer due', sum(rows.filter((r) => r.kind !== 'Patient due'), 'due'))],
         columns: [date('d', 'Date'), col('desk', 'Desk'), col('uhid', 'Patient ID'), col('patient', 'Patient name'), col('bill_no', 'Bill'), col('kind', 'Type'), money('due', 'Due'), col('remarks', 'Remarks')], rows, total: ['due'] }; } },
 

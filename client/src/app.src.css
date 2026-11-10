@@ -580,3 +580,13 @@ html[data-theme="calm"] #topbar #user-initials { background: rgb(var(--c-accent)
 .page-load-cover { position: relative; }
 .session-loading { position: fixed; inset: 0; z-index: 110; overflow-y: auto; background: #edf4f9; }
 .session-loading > .page-skeleton { padding-top: clamp(24px,8vh,90px); max-width: 1200px; }
+
+/* Keep area navigation on one row and make every permitted screen searchable. */
+.section-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
+.nav-screen-finder { width: calc(100% - 12px); border: 1px solid currentColor; margin-bottom: 12px; text-align: left; }
+.screen-finder-results { max-height: min(58vh,520px); overflow-y: auto; }
+.screen-finder-result { width: 100%; display: grid; grid-template-columns: 24px 1fr 20px; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+.screen-finder-result:hover,.screen-finder-result:focus-visible { background: rgb(var(--c-primary) / .06); outline: 2px solid rgb(var(--c-primary) / .3); outline-offset: -2px; }
+.screen-finder-result strong { display: block; font-size: 14px; }
+.screen-finder-result small { display: block; font-size: 12px; color: #526176; }
+@media(max-width:640px) { .section-tabs { padding-left: 12px; padding-right: 12px; } }

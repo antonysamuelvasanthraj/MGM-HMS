@@ -151,7 +151,7 @@ function view(s) {
         body: `<div data-backups class="text-body-md text-on-surface-variant">Loading…</div>` })}
 
       ${card({ title: 'Doctor clinic hours', subtitle: 'Recurring sessions shown on the appointment board',
-        actions: can('admin.write') ? '<button type="button" class="btn-secondary" data-new-clinic>Add clinic session</button>' : '',
+        actions: can('admin.write') ? '<button type="button" class="btn-secondary" data-new-clinic disabled aria-busy="true">Add clinic session</button>' : '',
         body: '<div data-clinics class="overflow-auto">Loading clinic sessions…</div>' })}
 
       ${card({ title: 'Lab reports — QR & cloud', subtitle: 'Every printed lab report carries a QR. These settings decide where it points and how long it works.',
@@ -302,10 +302,10 @@ async function paintClinics(root) {
   try {
     const data=await api.get('/admin/clinic-sessions');if(!root.isConnected)return;
     host.innerHTML=data.rows.length ? `<table class="tbl"><thead><tr><th>Doctor</th><th>Day</th><th>Hours / room</th><th>Slot</th><th></th></tr></thead><tbody>${data.rows.map(s=>`<tr><td>${esc(s.doctor_name)}</td><td>${WEEKDAYS[s.weekday]}</td><td>${esc(s.start_time)}–${esc(s.end_time)} · ${esc(s.room||'—')}</td><td>${s.slot_minutes} min</td><td><button type="button" class="btn-secondary btn-xs" data-edit-clinic="${s.id}">Edit</button></td></tr>`).join('')}</tbody></table>` : 'No clinic sessions configured. Add a session to show hours on Appointments.';
-    if(can('admin.write'))root.querySelector('[data-new-clinic]').onclick=()=>clinicForm(data,null,()=>paintClinics(root));
+    if(can('admin.write')){const add=root.querySelector('[data-new-clinic]');add.onclick=()=>clinicForm(data,null,()=>paintClinics(root));add.disabled=false;add.removeAttribute('aria-busy');}
     host.querySelectorAll('[data-edit-clinic]').forEach(button=>button.hidden=!can('admin.write'));
     host.querySelectorAll('[data-edit-clinic]').forEach(btn=>btn.onclick=()=>clinicForm(data,data.rows.find(s=>s.id===+btn.dataset.editClinic),()=>paintClinics(root)));
-  } catch(e) { host.textContent='Could not load clinic hours.';apiError(e); }
+  } catch(e) { host.innerHTML='Could not load clinic hours. <button type="button" class="btn-secondary btn-sm" data-retry-clinics>Retry</button>';host.querySelector('[data-retry-clinics]').onclick=()=>paintClinics(root);apiError(e); }
 }
 function clinicForm(data,session,after) {
   const s=session||{weekday:1,start_time:'09:00',end_time:'13:00',slot_minutes:15,max_tokens:40,room:''};

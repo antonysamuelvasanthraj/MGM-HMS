@@ -47,7 +47,9 @@ export async function mount(ctx) {
 
   const stop = live({ topics: ['clinical', 'queue', encounterId ? `encounter:${encounterId}` : 'clinical'],
     events: ['vitals.recorded', 'orders.created', 'order.updated', 'lab.verified', 'queue.called'], load });
-  return () => { disposed = true; cleanWorkspace(); stop(); };
+  const dispose = () => { disposed = true; cleanWorkspace(); stop(); };
+  dispose.ready = stop.ready;
+  return dispose;
 }
 
 /** Unsaved prescription lines and note text on screen for this visit (null when another visit was showing). */

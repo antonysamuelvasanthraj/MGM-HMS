@@ -5,6 +5,7 @@
  *   node tools/closing-reports-test.mjs
  */
 import fs from 'node:fs';
+import {DatabaseSync} from 'node:sqlite';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -112,6 +113,25 @@ try {
   }
   const dept = (await call(A, `/reports/run/revenue_today_departments?${q}`)).j, mx = (await call(A, `/reports/run/doctor_department_matrix?${q}`)).j;
   ok('matrix total = department total', Math.abs(dept.kpis[3].value - mx.kpis[0].value) < 0.01, `${mx.kpis[0].value} vs ${dept.kpis[3].value}`);
+  // Reconcile report amounts independently; opening a report alone does not prove its arithmetic.
+  const checkDb=new DatabaseSync(path.join(dataDir,'surelyhms.db'),{readOnly:true});
+  const actualCash=checkDb.prepare("SELECT coalesce(sum(p.amount),0) n FROM payments p JOIN bills b ON b.id=p.bill_id WHERE p.cancelled=0 AND p.mode='cash' AND b.bill_type<>'PHARM'").get().n;
+  const paidExpenses=checkDb.prepare("SELECT coalesce(sum(l.credit-l.debit),0) n FROM journal_lines l JOIN journal_vouchers v ON v.id=l.voucher_id JOIN accounts a ON a.id=l.account_id WHERE v.source='expense_payment' AND a.system_key='cash'").get().n;
+  const cashReport=(await call(A,`/reports/run/cash_closing_reception?${q}`)).j;
+  const actualNet=cashReport.kpis.find(k=>k.label==='Net cash').value;
+  ok('cash closing counts refunds exactly once',Math.abs(actualNet-(actualCash-paidExpenses))<0.01,`${actualNet} vs ${actualCash-paidExpenses}`);
+  const opening=cashReport.kpis.find(k=>k.label==='Cash at desk at period end').value;
+  const future=(await call(A,'/reports/run/cash_closing_reception?from=2099-12-30&to=2099-12-31')).j;
+  ok('opening cash carries into a period with no transactions',Math.abs(future.kpis.find(k=>k.label==='Opening cash').value-opening)<0.01&&Math.abs(future.kpis.find(k=>k.label==='Cash at desk at period end').value-opening)<0.01);
+  // Expenses must follow the actual payment voucher date, not a backdated accrual date.
+  const e=await call(A,'/finance/expenses',{head:'Dated cash expense',amount:25,mode:'cash',spent_on:'2024-01-01'});
+  await call(A,'/finance/expenses/'+e.j.id,{status:'paid'},'PATCH');
+  const paymentDate=checkDb.prepare("SELECT voucher_date d FROM journal_vouchers WHERE source='expense_payment' AND source_id=? ORDER BY id DESC LIMIT 1").get(e.j.id).d;
+  const dated=(await call(A,`/reports/run/cash_closing_reception?from=${paymentDate}&to=${paymentDate}`)).j;
+  const datedExpenses=dated.rows.find(r=>r.d===paymentDate)?.expense||0;
+  const expectedExpenses=checkDb.prepare("SELECT coalesce(sum(l.credit-l.debit),0) n FROM journal_lines l JOIN journal_vouchers v ON v.id=l.voucher_id JOIN accounts a ON a.id=l.account_id WHERE v.source='expense_payment' AND a.system_key='cash' AND v.voucher_date=?").get(paymentDate).n;
+  ok('cash expense follows payment date',Math.abs(datedExpenses-expectedExpenses)<0.01);
+  checkDb.close();
   const integ = (await call(A, '/accounts/integrity')).j;
   ok('books balanced after the whole flow', integ.ok === true, JSON.stringify(integ).slice(0, 120));
   failed = out.filter((x) => x.startsWith('FAIL')).length;

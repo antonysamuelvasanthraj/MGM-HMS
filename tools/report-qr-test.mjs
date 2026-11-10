@@ -78,7 +78,11 @@ try {
 
   // three months after release the link stops working
   const db = new DatabaseSync(path.join(dataDir, 'surelyhms.db'));
-  db.prepare("UPDATE orders SET verified_at=datetime('now','localtime','-100 days') WHERE id=?").run(oid); db.close();
+  for(const status of ['reported','cancelled']){
+    db.prepare('UPDATE orders SET status=? WHERE id=?').run(status,oid);
+    assert.equal((await call('/api/public/report/'+tk,null,'GET',false)).j.state,'not_ready','Unreleased or cancelled reports must not remain public because of an old verification timestamp');
+  }
+  db.prepare("UPDATE orders SET status='verified',verified_at=datetime('now','localtime','-100 days') WHERE id=?").run(oid); db.close();
   assert.equal((await call('/api/public/report/' + tk, null, 'GET', false)).s, 410, 'expired after the retention period');
   console.log('PASS report QR: link, public page, expiry, cloud address, downloads switch');
 } finally {

@@ -14,6 +14,7 @@ import { refund, takePayment } from '../payments.js';
 import { feeSnapshot } from '../doctor-fees.js';
 import { convertPayer, mayChangePayer, needsApproval } from '../payer-convert.js';
 import { paperAllowed } from '../operating-mode.js';
+import { checklistGaps, OT_CHECKLIST_KEYS } from '../ot-checklist.js';
 
 export const ipd = Router();
 const TOPICS = ['ipd', 'dashboard'];
@@ -1225,12 +1226,25 @@ ipd.patch('/ot/:id', requirePerm('ot.schedule'), h((req) => {
   const before = get('SELECT * FROM ot_bookings WHERE id=?', id) || fail(404, 'ot_booking_not_found');
   for (const k of ['status', 'theatre', 'scheduled_at', 'duration_min', 'consent', 'notes', 'procedure', 'surgeon_id', 'anaesthetist_id', 'anaesthesia']) if (k in req.body) patch[k] = req.body[k];
   for (const k of ['visiting_surgeon_id', 'visiting_anaesthetist_id']) if (k in req.body) { if (before.billed_at) fail(409, 'ot_case_already_billed'); patch[k] = visitingId(req.body[k]); }
-  if (req.body.checklist) patch.checklist = JSON.stringify(req.body.checklist);
+  if ('checklist' in req.body) {
+    const c = req.body.checklist;
+    if (!c || typeof c !== 'object' || Array.isArray(c) || Object.keys(c).some(k => !OT_CHECKLIST_KEYS.includes(k)) ||
+      Object.entries(c).some(([k,v]) => ![true,false,0,1].includes(v) && !(k !== 'consent' && v === 'not_applicable'))) fail(400, 'ot_checklist_invalid');
+    patch.checklist = JSON.stringify(c);
+  }
   if ('charges' in req.body) { if (before.billed_at) fail(409, 'ot_case_already_billed'); patch.charges = JSON.stringify(otCharges(req.body.charges)); }
-  // no knife to skin without signed informed consent (the WHO checklist's first item)
-  if (patch.status === 'in_theatre' && !Number(patch.consent ?? before.consent)) fail(409, 'consent_required');
-  if (patch.status === 'in_theatre') patch.started_at = nowIso();
-  if (patch.status === 'completed') patch.ended_at = nowIso();
+  if ('status' in patch && !['booked','pre_op','in_theatre','recovery','completed','cancelled'].includes(patch.status)) fail(400, 'ot_status_invalid');
+  if (['completed','cancelled'].includes(before.status) && patch.status && patch.status !== before.status) fail(409, 'ot_case_closed');
+  // Check every clinical progression, so completing a case cannot bypass the start gate.
+  if (['in_theatre','recovery','completed'].includes(patch.status)) {
+    if (![true,1,'1'].includes(patch.consent ?? before.consent)) fail(409, 'consent_required');
+    let checklist; try { checklist = JSON.parse(patch.checklist ?? before.checklist ?? '{}'); } catch { checklist = {}; }
+    const gaps = checklistGaps(checklist, patch.notes ?? before.notes);
+    if (gaps.missing.length) fail(409, 'ot_checklist_incomplete', {missing: gaps.missing});
+    if (gaps.needsReason) fail(409, 'ot_checklist_reason_required');
+  }
+  if (patch.status === 'in_theatre' && !before.started_at) patch.started_at = nowIso();
+  if (patch.status === 'completed' && !before.ended_at) patch.ended_at = nowIso();
   const row = tx(() => {
     update('ot_bookings', id, patch);
     // the surgery is billed when it is completed (charges can be corrected until then)

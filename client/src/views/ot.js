@@ -120,6 +120,12 @@ function rowHTML(r) {
 function nextAction(r) {
   const next = { booked: ['pre_op', 'Pre-op'], pre_op: ['in_theatre', 'Knife to skin'],
     in_theatre: ['recovery', 'To recovery'], recovery: ['completed', 'Complete'] }[r.status];
+  if (next?.[0] === 'in_theatre') {
+    const c = r.checklist || {};
+    const ready = Number(r.consent) === 1 && ['consent','site_marked','fasting','allergy','implants','blood','antibiotic','count'].every(k =>
+      c[k] === true || c[k] === 1 || (k !== 'consent' && c[k] === 'not_applicable' && String(r.notes || '').trim()));
+    if (!ready) return '<button class="btn-primary btn-xs" data-act="checklist">Complete safety checklist</button>';
+  }
   return next ? `<button class="btn-primary btn-xs" data-act="status" data-to="${next[0]}">${next[1]}</button>` : '';
 }
 
@@ -132,9 +138,12 @@ function openChecklist(r, after) {
     title: 'Pre-operative checklist',
     subtitle: `${esc(r.patient_name || '')} · ${esc(r.procedure)} · ${esc(r.theatre)}`,
     size: 'sm',
-    body: `<form data-cl class="space-y-2">${items.map(([k, label]) => `
+    body: `<form data-cl class="space-y-2"><p class="text-body-sm text-on-surface-variant">Confirm every item before starting. For items that do not apply, choose Not applicable and record why in Notes. Consent must be confirmed.</p>${items.map(([k, label]) => k === 'consent' ? `
       <label class="flex items-center gap-2.5 p-2 rounded hover:bg-surface-container-low text-body-lg">
-        <input type="checkbox" name="${k}" ${c[k] ? 'checked' : ''}> ${label}</label>`).join('')}
+        <input type="checkbox" name="${k}" ${c[k] === true || c[k] === 1 ? 'checked' : ''}> ${label}</label>` : `
+      <label class="field-label">${label}<select class="field" name="${k}">
+        <option value="pending">Pending</option><option value="confirmed" ${c[k] === true || c[k] === 1 ? 'selected' : ''}>Confirmed</option>
+        <option value="not_applicable" ${c[k] === 'not_applicable' ? 'selected' : ''}>Not applicable</option></select></label>`).join('')}
       <div class="pt-2"><label class="field-label">Notes</label>
         <textarea class="field" rows="2" name="notes">${esc(r.notes || '')}</textarea></div>
     </form>`,
@@ -146,7 +155,8 @@ function openChecklist(r, after) {
         try {
           const form = root.querySelector('[data-cl]');
           const checklist = {};
-          items.forEach(([k]) => { checklist[k] = form[k].checked; });
+          items.forEach(([k]) => { checklist[k] = k === 'consent' ? form[k].checked : form[k].value === 'confirmed' ? true : form[k].value === 'not_applicable' ? 'not_applicable' : false; });
+          if (Object.values(checklist).includes('not_applicable') && !form.notes.value.trim()) { toast('Explain the items that do not apply in Notes', 'warning'); busy(actionButton, false); return; }
           await api.patch(`/ipd/ot/${r.id}`, { checklist, consent: checklist.consent ? 1 : 0, notes: form.notes.value });
           close(); toast('Checklist saved', 'success'); after();
         } catch (e) { apiError(e); busy(actionButton, false); }

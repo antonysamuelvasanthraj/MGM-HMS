@@ -52,9 +52,11 @@ export async function render(path) {
 
   state.route = ctx.route;
   markActive(ctx.route);
-  const title = titleFor(ctx.route);
+  const billingDesk=ctx.route==='/billing-desk';
+  const title = billingDesk?(ctx.query.desk==='pharmacy'?'Pharmacy Billing':'Reception Billing'):titleFor(ctx.route);
+  const section=billingDesk?(ctx.query.desk==='pharmacy'?'Pharmacy':'Reception & OPD'):sectionFor(ctx.route);
   $('#page-title').textContent = title;
-  $('#breadcrumb').innerHTML = `<span>${sectionFor(ctx.route) || 'MGM HMS'}</span>
+  $('#breadcrumb').innerHTML = `<span>${section || 'MGM HMS'}</span>
     <span class="material-symbols-outlined text-[13px] opacity-50">chevron_right</span>
     <span class="text-on-surface">${title}</span>`;
   document.title = `${title} · MGM HMS`;

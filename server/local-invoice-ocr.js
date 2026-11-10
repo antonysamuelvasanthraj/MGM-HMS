@@ -5,7 +5,15 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 const exec = promisify(execFile);
+export function invoiceOCRTools(platform = process.platform, env = process.env) {
+  return {
+    tesseract: env.TESSERACT_PATH || (platform === 'win32' ? 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe' : 'tesseract'),
+    python: env.PYTHON_PATH || (platform === 'win32' ? 'python' : 'python3'),
+    pdf: env.PDFTOPPM_PATH || 'pdftoppm',
+  };
+}
 export async function invoiceOCR(body) {
+  const tools = invoiceOCRTools();
   if (!['image/png','image/jpeg','application/pdf'].includes(body.type)) throw Object.assign(Error('PNG, JPEG or PDF required'), { status:400 });
   const data = Buffer.from(String(body.data || ''), 'base64');
   if (!data.length || data.length > 8 * 1024 * 1024) throw Object.assign(Error('Image must be under 8 MB'), {status:400});
@@ -17,7 +25,7 @@ export async function invoiceOCR(body) {
   try {
     if(pdf) {
       const input=path.join(dir,'invoice.pdf');await fs.writeFile(input,data);
-      try {await exec(process.env.PDFTOPPM_PATH || 'pdftoppm',[ '-r','150','-f','1','-l','6','-png',input,path.join(dir,'page')],{timeout:90000,maxBuffer:2*1024*1024,windowsHide:true});}
+      try {await exec(tools.pdf,[ '-r','150','-f','1','-l','6','-png',input,path.join(dir,'page')],{timeout:90000,maxBuffer:2*1024*1024,windowsHide:true});}
       catch {throw Object.assign(Error('PDF could not be rendered. Check that it is readable and the local PDF renderer is installed.'),{status:400});}
       const pages=(await fs.readdir(dir)).filter(name=>/^page-\d+\.png$/.test(name)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
       if(!pages.length || pages.length>5)throw Object.assign(Error('Use a readable PDF with at most 5 pages per scan.'),{status:400});
@@ -26,16 +34,16 @@ export async function invoiceOCR(body) {
       return {text:results.map(r=>r.text).join('\n'),items:results.flatMap(r=>r.items),tableWarning:results.map(r=>r.tableWarning).filter(Boolean).join(' '),review_required:true,posted:false,pages:pages.length};
     }
     const file=path.join(dir,png?'invoice.png':'invoice.jpg'); await fs.writeFile(file,data);
-    const {stdout:bodyText}=await exec(process.env.TESSERACT_PATH || 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe',[file,'stdout','-l','eng','--psm','6'],{timeout:90000,maxBuffer:2*1024*1024,windowsHide:true});
+    const {stdout:bodyText}=await exec(tools.tesseract,[file,'stdout','-l','eng','--psm','6'],{timeout:90000,maxBuffer:2*1024*1024,windowsHide:true});
     let stdout=bodyText;
     try {
-      const header=await exec(process.env.TESSERACT_PATH || 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe',[file,'stdout','-l','eng','--psm','3'],{timeout:90000,maxBuffer:2*1024*1024,windowsHide:true});
+      const header=await exec(tools.tesseract,[file,'stdout','-l','eng','--psm','3'],{timeout:90000,maxBuffer:2*1024*1024,windowsHide:true});
       const headerLines=header.stdout.split(/\r?\n/).filter(line=>/invoice\s*(?:date|no|number)|grand\s+total|net\s+amount/i.test(line));
       stdout=headerLines.join('\n')+'\n'+bodyText;
     } catch { /* Keep block OCR when automatic page segmentation fails. */ }
     let items = [], tableWarning = '';
     try {
-      const parsed = await exec(process.env.PYTHON_PATH || 'python', [fileURLToPath(new URL('../tools/invoice-table.py', import.meta.url)), file, dir, process.env.TESSERACT_PATH || 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'], {timeout:90000,maxBuffer:2*1024*1024,windowsHide:true});
+      const parsed = await exec(tools.python, [fileURLToPath(new URL('../tools/invoice-table.py', import.meta.url)), file, dir, tools.tesseract], {timeout:90000,maxBuffer:2*1024*1024,windowsHide:true});
       items = JSON.parse(parsed.stdout);
     } catch (error) { tableWarning = 'Table recognition unavailable. Review the text and enter missing fields.'; console.error('Invoice table OCR:', error.message); }
     if (!items.length) {

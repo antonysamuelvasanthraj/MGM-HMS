@@ -134,7 +134,7 @@ token=(await call('/auth/login',{username:'qa-radiologist',password:'surely'})).
 await call('/imaging/orders/'+imaging.orders[0].id+'/report',{findings:'QA finding',impression:'QA impression',status:'final'});
 token=adminBeforeImaging;
 const ot=await call('/ipd/ot',{patient_id:p.id,theatre:'OT 1',procedure:'QA procedure',surgeon_id:doctor.id,scheduled_at:'2026-09-23 16:00:00'});
-await call('/ipd/ot/'+ot.id,{status:'completed'},'PATCH');
+await call('/ipd/ot/'+ot.id,{consent:1,checklist:{consent:true,site_marked:true,fasting:true,allergy:true,implants:true,blood:true,antibiotic:true,count:true},status:'completed'},'PATCH');
 await call('/ipd/nursing/notes',{admission_id:admission.id,body:'QA nursing note'});
 const mar=await call('/ipd/nursing/mar',{admission_id:admission.id,drug:'QA medicine',dose:'test',due_at:'2026-09-23 16:00:00'});
 await call('/ipd/nursing/mar/'+mar.id,{status:'given'});
@@ -740,7 +740,7 @@ await as('admin');
   const ot=await call('/ipd/ot',{patient_id:u1.patient_id,procedure:'QA Craniotomy',theatre:'OT-1 Major',scheduled_at:`${today} 10:00`,surgeon_id:doctor.id,charges:[{description:'Surgeon fee',rate:20000}]});
   assert.equal(ot.admission_id,ua.id,'an inpatient case is linked to the admission');
   await call(`/ipd/ot/${ot.id}`,{status:'in_theatre'},'PATCH',409);   // no consent, no surgery
-  await call(`/ipd/ot/${ot.id}`,{consent:1,checklist:{consent:true}},'PATCH');await call(`/ipd/ot/${ot.id}`,{status:'in_theatre'},'PATCH');
+  await call(`/ipd/ot/${ot.id}`,{consent:1,checklist:{consent:true,site_marked:true,fasting:true,allergy:true,implants:true,blood:true,antibiotic:true,count:true}},'PATCH');await call(`/ipd/ot/${ot.id}`,{status:'in_theatre'},'PATCH');
   const done=await call(`/ipd/ot/${ot.id}`,{status:'completed'},'PATCH');assert.ok(done.billed_to,'completed case billed');
   const after=(await call(`/ipd/admissions/${ua.id}`)).bills.find(b=>b.bill_type==='IP').total;assert.equal(after-before,20000,'surgeon fee on the IP bill');
   await call(`/ipd/ot/${ot.id}`,{charges:[{description:'x',rate:1}]},'PATCH',409);}
@@ -835,7 +835,7 @@ await as('admin');
  const vot=await call('/ipd/ot',{patient_id:vp.id,procedure:'QA Hernia',theatre:'OT-2 Major',scheduled_at:'2026-10-04 11:00',visiting_surgeon_id:vd.id,
    charges:[{description:'Surgeon fee',rate:10000,role:'surgeon'},{description:'OT charges',rate:5000}]});
  assert.ok((await call('/ipd/ot?all=1')).rows.find(r=>r.id===vot.id).surgeon_name.includes('(visiting)'),'OT list names the visiting surgeon');
- const done=await call(`/ipd/ot/${vot.id}`,{consent:1,status:'completed'},'PATCH');assert.ok(done.billed_to,'OT case billed');
+ const done=await call(`/ipd/ot/${vot.id}`,{consent:1,checklist:{consent:true,site_marked:true,fasting:true,allergy:true,implants:true,blood:true,antibiotic:true,count:true},status:'completed'},'PATCH');assert.ok(done.billed_to,'OT case billed');
  const vbill=await call('/bills/'+(await call('/ipd/ot?all=1')).rows.find(r=>r.id===vot.id).bill_id);
  const fee=vbill.items.find(i=>/Surgeon fee/.test(i.description));assert.equal(fee.visiting_doctor_id,vd.id,'surgeon fee credited to the visiting surgeon');
  assert.ok(!vbill.items.find(i=>/OT charges/.test(i.description)).visiting_doctor_id,'hospital OT charges stay with the hospital');
