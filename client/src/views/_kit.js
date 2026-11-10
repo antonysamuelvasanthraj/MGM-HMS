@@ -6,7 +6,7 @@
  * one main action → summary → filters → working table → detail drawer
  * (section 5 of the operating brief).
  */
-import { $, $$, esc, el, bind, debounce, toast, spinner, emptyState, renderRows, kpi, ageText, confirmDialog } from '../ui.js';
+import { $, $$, esc, el, bind, debounce, toast, spinner, emptyState, renderRows, kpi, ageText, confirmDialog, modal } from '../ui.js';
 import { api, qs } from '../api.js';
 import { subscribe, on } from '../ws.js';
 import { state, can, setting, doctors, departments, counters, services, doctorById, deptById, staffById, loadMeta } from '../store.js';
@@ -300,6 +300,20 @@ export function counterOptions(includeAll = true) {
 export const optionList = (arr) => arr.map((v) => (typeof v === 'string' ? { value: v, label: v } : v));
 
 /** Type-ahead patient picker. Calls `onPick(patient)`. */
+/** Open bills with money still due for this patient (earlier and current visits), shown when a patient is picked. */
+export async function showPendingDues(patient) {
+  let rows = [];
+  try { const d = await api.get(`/bills?patient_id=${patient.id}`); rows = (d.rows || d).filter((b) => b.status !== 'cancelled' && (b.patient_due ?? b.balance) > 0.5); }
+  catch { return; }
+  if (!rows.length) return;
+  const total = rows.reduce((t, b) => t + (b.patient_due ?? b.balance), 0);
+  modal({
+    title: `Pending bills — ${esc(patient.name)}`, subtitle: `${rows.length} open bill${rows.length > 1 ? 's' : ''} · ₹${Math.round(total).toLocaleString('en-IN')} due`, size: 'md', stack: true,
+    body: `<table class="tbl"><thead><tr><th>Bill</th><th>Date</th><th>Type</th><th class="num">Due</th></tr></thead><tbody>${rows.map((b) => `<tr><td class="font-data-mono">${esc(b.bill_no)}</td><td>${esc(b.bill_date || '')}</td><td>${esc(b.bill_type)}</td><td class="num font-semibold text-danger">₹${Math.round(b.patient_due ?? b.balance).toLocaleString('en-IN')}</td></tr>`).join('')}</tbody></table>
+      <p class="text-body-sm text-on-surface-variant mt-2">Collect these on the bill itself (Bills screen). Pharmacy bills are collected at the pharmacy desk.</p>`,
+    footer: '<button class="btn-secondary" data-close>Close</button>',
+  });
+}
 export function patientPicker(container, onPick, { placeholder = 'Search UHID, name or mobile…', autofocus = false, todayOnly = false } = {}) {
   const node = typeof container === 'string' ? $(container) : container;
   node.innerHTML = `
@@ -341,6 +355,7 @@ export function patientPicker(container, onPick, { placeholder = 'Search UHID, n
     input.value = `${p.name} — ${p.uhid}`;
     list.classList.add('hidden');
     onPick(p);
+    showPendingDues(p);
   });
   if (autofocus) setTimeout(() => input.focus(), 40);
   return { input, clear: () => { input.value = ''; list.innerHTML = ''; } };

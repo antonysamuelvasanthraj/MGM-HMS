@@ -223,7 +223,7 @@ const moneyTab = (d) => `
           <div class="text-label-sm text-on-surface-variant">${fmtDate(b.bill_date)}</div></td>
         <td>${esc(b.bill_type)}</td><td>${billStatus(b)}</td>
         <td class="num">${money(b.total)}</td>
-        <td class="num ${b.balance > 0 ? 'text-danger font-semibold' : ''}">${money(b.patient_due??b.balance)}</td><td class="num">${money((b.payer_pending||0)+(b.payer_receivable||0))}</td><td>${can('payment.collect')&&(b.patient_due??b.balance)>0.005&&(b.bill_type!=='PHARM'||can('pharmacy.dispense'))?`<button class="btn-primary btn-xs" data-patient-collect="${b.id}">Collect patient due</button>`:''} <button class="btn-secondary btn-xs" data-print-bill="${b.id}">Print bill</button></td></tr>`,
+        <td class="num ${b.balance > 0 ? 'text-danger font-semibold' : ''}">${money(b.patient_due??b.balance)}</td><td class="num">${money((b.payer_pending||0)+(b.payer_receivable||0))}</td><td>${can('payment.collect')&&(b.patient_due??b.balance)>0.005&&(b.bill_type!=='PHARM'||can('pharmacy.dispense'))?`<button class="btn-primary btn-xs" data-patient-collect="${b.id}">Collect patient due</button>`:''} <button class="btn-secondary btn-xs" data-print-bill="${b.id}" title="Each bill prints on its own; reprint any time">${b.bill_type==='IP'?'Print IP bill':b.bill_type==='PHARM'?'Print pharmacy bill':'Print OP bill'}</button></td></tr>`,
       'No bills') })}
     ${card({ title: 'Receipts', pad: false, body: T(d.payments,
       `<th>Receipt</th><th>Mode</th><th class="text-right">Amount</th><th>Received by</th>`,
