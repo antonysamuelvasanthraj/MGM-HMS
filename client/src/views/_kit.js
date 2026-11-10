@@ -310,10 +310,14 @@ export function patientPicker(container, onPick, { placeholder = 'Search UHID, n
     </div>`;
   const input = node.querySelector('[data-pp-input]');
   const list = node.querySelector('[data-pp-list]');
+  // 'Today' narrows the list to people active today; when nothing matches, the same search is offered across all patients
+  let widened = false;
   const search = debounce(async () => {
     const q = input.value.trim();
-    if (q.length < 2) { list.classList.add('hidden'); return; }
-    const { rows } = await api.get(`/patients${qs({ q, limit: 10,activity:todayOnly?'today':undefined })}`);
+    if (q.length < 2) { list.classList.add('hidden'); widened = false; return; }
+    const scope = todayOnly && !widened ? 'today' : undefined;
+    const { rows } = await api.get(`/patients${qs({ q, limit: 10, activity: scope })}`);
+    const offer = todayOnly && !widened && !rows.length ? `<button type="button" class="w-full text-left px-3 py-2.5 text-body-md text-primary hover:bg-surface-container-low" data-search-all>No patient active today matches “${esc(q)}”. Search all patients →</button>` : '';
     list.innerHTML = rows.length ? rows.map((p) => `
       <button type="button" class="w-full text-left px-3 py-2 hover:bg-surface-container-low border-b border-outline-variant/60 last:border-0" data-id="${p.id}">
         <div class="flex items-center justify-between gap-2">
@@ -323,10 +327,11 @@ export function patientPicker(container, onPick, { placeholder = 'Search UHID, n
         <div class="text-body-sm text-on-surface-variant">${p.age_years ?? '—'}y · ${esc(p.gender)} · ${esc(p.mobile || 'no mobile')}
           ${p.outstanding > 0 ? ` · <span class="text-danger">due ₹${p.outstanding}</span>` : ''}</div>
       </button>`).join('')
-      : `<div class="px-3 py-3 text-body-md text-on-surface-variant">No patient matches “${esc(q)}”.</div>`;
+      : (offer || `<div class="px-3 py-3 text-body-md text-on-surface-variant">No patient matches “${esc(q)}”.</div>`);
     list.classList.remove('hidden');
   }, 240);
-  input.addEventListener('input', search);
+  input.addEventListener('input', () => { widened = false; search(); });
+  list.addEventListener('click', (e) => { if (e.target.closest('[data-search-all]')) { widened = true; search(); input.focus(); } });
   input.addEventListener('blur', () => setTimeout(() => list.classList.add('hidden'), 180));
   input.addEventListener('focus', () => { if (list.innerHTML) list.classList.remove('hidden'); });
   list.addEventListener('mousedown', async (e) => {
