@@ -282,4 +282,11 @@ export function migrateUpgrade(db) {
     db.prepare("INSERT INTO settings (key,value) VALUES ('payer_change_requires_approval','0') ON CONFLICT(key) DO UPDATE SET value='0'").run();
     setFlag(db, 'payer_approval_optional_2026_11');
   }
+
+  /* ---------------------------------------------- demo tariffs: zero-priced lab tests and procedures get a demo amount (doctor fees stay unset) */
+  if (!flag(db, 'demo_tariffs_2026_11')) {
+    db.prepare("UPDATE services SET price=150, updated_at=datetime('now','localtime') WHERE active=1 AND category='lab' AND (price IS NULL OR price=0)").run();
+    db.prepare("UPDATE services SET price=150, updated_at=datetime('now','localtime') WHERE active=1 AND category='procedure' AND (price IS NULL OR price=0)").run();
+    setFlag(db, 'demo_tariffs_2026_11');
+  }
 }
