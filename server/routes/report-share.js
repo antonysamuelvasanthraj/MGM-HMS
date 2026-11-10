@@ -16,7 +16,7 @@
 import { Router } from 'express';
 import crypto from 'node:crypto';
 import { requirePerm } from '../auth.js';
-import { h, fail, all, get, insert, update, setting } from '../lib.js';
+import { h, fail, all, get, insert, update, setting, emit } from '../lib.js';
 import { buildLabReport } from './diagnostics.js';
 
 export const reportShare = Router();
@@ -52,6 +52,8 @@ reportShare.post('/lab/shares', requirePerm('lab.view'), h((req) => {
     const id = insert('report_shares', { token: crypto.randomBytes(18).toString('hex'), order_ids: key, patient_id: orders[0].patient_id, created_by: req.user.id,
       cloud_status: setting('cloud_enabled', '0') === '1' ? 'queued' : null });
     share = get('SELECT * FROM report_shares WHERE id=?', id);
+    // a public report link is an outward disclosure: who opened it, for which patient, is audited
+    emit(req, { topics: ['lab'], event: 'report.shared', data: { id, patient_id: orders[0].patient_id }, action: 'report.share', entity: 'report_shares', entityId: id, detail: { after: { order_ids: ids, patient_id: orders[0].patient_id, expires_at: null } } });
     // with a cloud connected the share is queued for it (the sync queue is exported / delivered by the cloud connector)
     if (setting('cloud_enabled', '0') === '1' && setting('sync_queue_enabled', '0') === '1') { try { insert('sync_queue', { entity: 'report_share', entity_id: share.id, op: 'publish', status: 'queued' }); } catch { /* queue is best effort */ } }
   }
@@ -72,7 +74,7 @@ reportShare.get('/public/report/:token', h((req, res) => {
   const share = get('SELECT * FROM report_shares WHERE token=? AND revoked=0', token) || fail(404, 'not_found');
   const ids = JSON.parse(share.order_ids);
   const orders = all(`SELECT id, status, verified_at FROM orders WHERE id IN (${ids.map(() => '?').join(',')})`, ...ids);
-  const released = orders.filter((o) => o.verified_at);
+  const released = orders.filter(o=>o.status==='verified'&&o.verified_at);
   if (!released.length) return { state: 'not_ready', message: 'This report has not been released yet. Please ask the laboratory.' };
   const expires = expiryOf(released);
   if (expires && expires < new Date()) fail(410, 'expired', { expired_on: iso(expires) });
