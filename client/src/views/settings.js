@@ -74,7 +74,7 @@ function view(s) {
             'A patient is not callable until the nursing station has recorded observations.')}
           ${toggle('vitals_strict', 'Strict vitals: no doctor call without vitals (all modes)',
             'On (default): every OP patient is observed before the doctor, in paper, paperless and hybrid. The “Send directly to doctor” option is then not offered. Off: the desk may skip vitals.')}
-          ${toggle('payer_change_requires_approval', 'Payer changes need Insurance desk approval',
+          ${toggle('payer_change_requires_approval', 'Payer changes need Insurance desk approval (optional — off lets reception change the payer directly when the TPA desk is not available)',
             'Reception and billing send a request; the Insurance desk or an administrator approves it, then the bills move. Off: reception changes the payer directly (money received is still guarded).')}
           ${toggle('scheme_checklist_required', 'Aarogyasri cases need the full checklist before approval',
             'Scheme card no., verified eligibility proof, package and scheme pre-auth no. must be recorded before an Aarogyasri case can be approved.')}

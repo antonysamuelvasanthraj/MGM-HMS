@@ -276,4 +276,10 @@ export function migrateUpgrade(db) {
       ins.run(code, name, cat, cat === 'imaging' ? dept : null, price, code);
     setFlag(db, 'demo_imaging_ambulance_2026_11');
   }
+
+  /* ---------------------------------------------- payer-change approval is optional (TPA desk is not always available) */
+  if (!flag(db, 'payer_approval_optional_2026_11')) {
+    db.prepare("INSERT INTO settings (key,value) VALUES ('payer_change_requires_approval','0') ON CONFLICT(key) DO UPDATE SET value='0'").run();
+    setFlag(db, 'payer_approval_optional_2026_11');
+  }
 }
