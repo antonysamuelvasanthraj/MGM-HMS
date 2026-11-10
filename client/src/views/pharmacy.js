@@ -14,7 +14,7 @@ import {
   $, $$, esc, bind, toast, modal, renderRows, pill, money, moneyPlain, fmtDate, fmtTime, ago,
   kpi, spinner, emptyState, debounce, printDocument, todayISO, setting, headCount,
 } from './_kit.js';
-import { printReceipt } from './op-registration.js';
+import { printReceipt, openNewPatient } from './op-registration.js';
 import { confirmDialog } from '../ui.js';
 import { showBillingContext } from '../billing-context.js';
 
@@ -130,7 +130,7 @@ function layout({workspace=false}={}) {
         <div class="space-y-4">
           ${card({
             title: 'New pharmacy bill', subtitle: '1. Choose today’s patient → 2. Add medicines → 3. Collect and dispense',
-            body: `<div class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-3"><div><label class="field-label">1 · Today’s patient</label><div data-picker></div></div>
+            body: `<div class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-3"><div><label class="field-label">1 · Patient</label><div data-picker></div><button type="button" class="btn-ghost btn-xs mt-1" data-quick-reg><span class="material-symbols-outlined text-[15px]">person_add</span> New patient</button></div>
               <div>
                 <label class="field-label">2 · Add medicine</label>
                 <div class="relative">
@@ -198,6 +198,14 @@ function rxRow(r) {
 
 function wireCounter(root, reload) {
   // patient
+  // quick registration: the new (or existing) patient is picked straight away, no codes to type
+  const pickPatient = async (p) => {
+    $('[data-pharmacy-notes]', root).value = '';
+    patient = p; ipMode = null; admissionLookupFailed = false;
+    const input = $('[data-pp-input]', root); if (input) input.value = `${p.name} — ${p.uhid}`;
+    showPatient(root); paintCart(root);
+  };
+  $('[data-quick-reg]', root).onclick = () => openNewPatient(async (p) => pickPatient(await api.get(`/patients/${p.id}`)));
   patientPicker($('[data-picker]', root), async (p) => {
     $('[data-pharmacy-notes]', root).value = '';
     patient = p;
