@@ -345,13 +345,25 @@ function wireCounter(root, reload) {
   $('[data-held]', root).onclick = async () => {
     try {
       const rows=await api.get('/pharmacy/held-bills');
-      modal({title:'Held pharmacy bills',size:'lg',body:rows.length?`<table class="tbl"><thead><tr><th>Patient</th><th>Held at</th><th>Staff</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.patient_name)} · ${esc(r.uhid)}</td><td>${esc(r.created_at)}</td><td>${esc(r.held_by)}</td><td><button class="btn-primary btn-xs" data-resume="${r.id}">Resume</button></td></tr>`).join('')}</tbody></table>`:'<p>No held bills.</p>',footer:'<button class="btn-secondary" data-close>Close</button>',onMount(dialog,close){dialog.addEventListener('click',async e=>{
-        const id=e.target.closest('[data-resume]')?.dataset.resume;if(!id)return;
-        if(cart.length){toast('Hold or clear the current bill first','warning');return;}
-        try{const held=await api.post(`/pharmacy/held-bills/${id}/resume`,{});patient=held.patient;admissionLookupFailed=false;prescriptionId=held.prescription_id;ipMode=held.admission_id?{admission_id:held.admission_id,ip_no:held.ip_no}:null;
-          cart.push(...held.items);$('[data-pharmacy-notes]',root).value=held.notes||'';showPatient(root);paintCart(root);close();toast('Bill resumed. Quantities and batches are rechecked at completion.','success');
-        }catch(err){apiError(err);}
-      });}});
+      modal({title:'Held pharmacy bills',size:'lg',body:rows.length?`<table class="tbl"><thead><tr><th>Patient</th><th>Held at</th><th>Staff</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.patient_name)} · ${esc(r.uhid)}</td><td>${esc(r.created_at)}</td><td>${esc(r.held_by)}</td><td><button class="btn-primary btn-xs" data-resume="${r.id}">Resume</button></td></tr>`).join('')}</tbody></table>`:'<p>No held bills.</p>',footer:'<button class="btn-secondary" data-close>Close</button>',onMount(dialog,close){
+        // one resume at a time: a second click on the same row (or a repeat event) must not resume the bill again
+        let busy=false;
+        dialog.addEventListener('click',async e=>{
+          const button=e.target.closest('[data-resume]'); if(!button||busy)return;
+          const id=button.dataset.resume;
+          if(cart.length){toast('Hold or clear the current bill first','warning');return;}
+          busy=true; button.disabled=true;
+          try{
+            const held=await api.post(`/pharmacy/held-bills/${id}/resume`,{});
+            patient=held.patient;admissionLookupFailed=false;prescriptionId=held.prescription_id;ipMode=held.admission_id?{admission_id:held.admission_id,ip_no:held.ip_no}:null;
+            cart.push(...held.items);$('[data-pharmacy-notes]',root).value=held.notes||'';showPatient(root);paintCart(root);
+            close();toast('Bill resumed. Quantities and batches are rechecked at completion.','success');
+          }catch(err){
+            if(err.payload?.error==='held_bill_unavailable'){toast('This held bill was already resumed or removed','warning');button.closest('tr')?.remove();}
+            else apiError(err);
+          }finally{busy=false;if(button.isConnected)button.disabled=false;}
+        });
+      }});
     } catch(e){apiError(e);}
   };
 
