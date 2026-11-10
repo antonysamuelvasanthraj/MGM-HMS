@@ -1,3 +1,3 @@
-﻿Cause: SUR-11 was parked after its earlier isolated-target session closed, but the owner has since authorized port 4300 and confirmed cooldown clearance.
-Action: Restored a live execution path; no MGM records, credentials, accounts, roles, permissions, or app settings were changed in this recovery.
-Hand-back: MGM HMS Pharmacy Stock QA resumes on port 4300 with one permitted Pharmacy UI login retained; check app-side TEST-MGM-QA-031–040 markers before any writes, then continue UI-only cases and report evidence/counts. Current progress remains 0 patients, 0 operational records, 0 workflows tested.
+﻿Cause: the last disposition parked despite an active Pharmacy context and completed marker searches 031–040.
+Action: restored SUR-11 to in_progress; no MGM app records, accounts, or settings changed.
+Hand-back: MGM HMS Pharmacy Stock QA resumes the remaining pharmacy, procurement, GRN, stock and reconciliation UI cases, retaining the authenticated session and updating evidence/counts.

@@ -1,1 +1,3 @@
-Cause: the prior Pharmacy login succeeded, but its authenticated browser context was closed before the marker search; this wake provides no live session handoff.`nAction: no repeat login, record writes, or account changes made; assigned UI checks remain unstarted.`nHand-back: MGM HMS Pharmacy Stock QA should resume with a retained authenticated Pharmacy session, search markers 031�040 first, then continue UI-only cases and update counts/evidence.
+﻿Cause: prior recovery parked although a retained Pharmacy context and app-side marker searches 031–040 are confirmed.
+Action: restored SUR-11 to in_progress; no MGM records, accounts, roles, permissions, or settings changed in this recovery.
+Hand-back: MGM HMS Pharmacy Stock QA resumes remaining UI-only Pharmacy, procurement, GRN, stock and reconciliation cases from the retained session; markers 031–040 absent, patients 0/10, operational records 0, workflows completed 0.

@@ -293,10 +293,9 @@ function initTopbar() {
 
   /* --- quick actions in the top bar (shown by permission, on every screen) --- */
   {
-    const manualDoctor = setting('workflow_doctor', 'portal') === 'manual';
     const acts = [
       ['New patient', 'person_add', '/patient-record?new=1', can('patient.create'), true],
-      ['Book appointment', 'event', '/appointments?new=1', can('appt.create') && !manualDoctor, false],
+      ['Book appointment', 'event', '/appointments?new=1', can('appt.create'), false],
       ['New bill', 'add', '/bills?new=op', can('billing.create') || can('op.collect'), false],
       ['OP procedure', 'healing', '/bills?new=proc', can('billing.create') || can('op.collect'), false],
       ['IPD admission', 'bed', '/bills?new=ip', can('ipd.admit'), false],

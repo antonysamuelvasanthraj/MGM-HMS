@@ -1,34 +1,31 @@
 ﻿# SUR-11 Pharmacy Stock QA
 
-Date: 2026-11-02
-Target: `http://127.0.0.1:4300`
-Assigned patients: `TEST-MGM-QA-031` through `TEST-MGM-QA-040`
+Date: 2026-11-02  
+Target: `http://127.0.0.1:4300`  
+Assigned patient markers: `TEST-MGM-QA-031` through `TEST-MGM-QA-040`
 
-## Current result
+## Progress
 
-One UI login with the existing Pharmacy account succeeded and redirected to `/dashboard`. The Pharmacy account’s visible navigation included Patients, Pharmacy Billing, Stock & transfers, Purchases & returns, and Masters & reports. Opening `/patients` showed the Patient Search & Registration page with 36 records total (36 shown today). Evidence is in `SUR-11-pharmacy-port4300-login.png` and `SUR-11-pharmacy-patients-before.png`.
+- Signed in once as Reception with the provided verified UI helper; reached `/dashboard`, then opened `/patients`. This context remains open. The list showed 39 patients at that time, including markers 021, 022, and 041. No patient data was changed in this context. Evidence: `SUR-11-reception-marker-check.png`.
+- Signed in once as Pharmacy in an independent context with the same helper; reached `/dashboard`, then searched each assigned marker on `/patients`. Each query showed `0 shown`; no marker was present in the search results. The list showed 48 patients at that time, reflecting concurrent campaign activity. No patient or operational record was changed. Evidence: `SUR-11-pharmacy-marker-check.png`.
+- Pharmacy navigation exposed Patients, Pharmacy Billing, Stores & Materials, and other visible role navigation. Only Patients was opened in this session. Visibility alone does not establish workflow permission or successful control behavior.
 
-The authenticated browser context was closed after those captures. The current instruction permits one Pharmacy login and requires retaining that session; I will not make another login attempt. Therefore no app-side search for markers 031–040 was completed and no patient or operational records were created. The shared campaign ledger has no Pharmacy block completion entries, which is not an app-side duplicate check.
+## Counts and coverage
 
-## Coverage
+- Assigned patients created: **0/10**. Patient IDs/UHIDs: **none**.
+- Operational records created: **0**.
+- Workflows completed: **0**.
+- Marker duplicate check: **031â€“040 absent from Pharmacy patient search results**.
+- Authentication: Pharmacy UI login and dashboard redirect **passed** (one attempt, HTTP 200). Reception UI login and dashboard redirect **passed** (one attempt, HTTP 200).
+- Prescription queue/dispensing/returns, supplier and test-item setup, procurement/GRN, stock movement/transfer, inventory reconciliation, and accounting handoff: **not tested**.
+- Digital prescriptions are unavailable in configured Paper mode per the owner direction and SUR-9 handoff. This is not recorded as a defect; unrelated manual-sale and procurement cases remain untested.
+- Existing records, accounts, passwords, roles, permissions, settings, and stock altered: **0**.
+- Confirmed bugs: **none**. No workflow controls were exercised deeply enough to confirm a defect.
 
-- Pharmacy authentication and dashboard redirect: **Pass** (one successful UI login).
-- Pharmacy navigation visibility: **Observed**; no role enforcement or individual stock controls exercised.
-- Patients page opened and record count observed: **Pass**.
-- App-side search for `TEST-MGM-QA-031`–`040`: **Blocked** by lost authenticated context before search.
-- Patients created: **0/10**. Operational records created: **0**.
-- Prescription queue, dispensing, return, GRN, test supplier/item setup, stock movement, transfer, indent, reconciliation, accounting handoff: **Not tested**.
-- Existing records, accounts, passwords, roles, permissions, and settings altered: **0**.
-- Confirmed application bugs: **None**. No workflow was exercised deeply enough to confirm a defect.
+## Evidence and next action
 
-## Evidence and handoff
+- `SUR-11-reception-marker-check.png`
+- `SUR-11-pharmacy-marker-check.png`
 
-- `SUR-11-pharmacy-port4300-login.png` — successful Pharmacy dashboard after UI login.
-- `SUR-11-pharmacy-patients-before.png` — Patients page and visible record count.
-- Awaiting explicit owner direction authorizing one additional correct Pharmacy UI login so the assigned marker search and acceptance work can continue with the session retained. No account changes or login bypass are requested.
+The prior run reported an authenticated Pharmacy context, but no retained browser context is available to this run. No patient or operational record forms were submitted in this continuation. The required marker check was reported complete in the prior run; assigned creation and pharmacy workflows remain pending. Continue after a live authenticated context is handed off or the owner-coordinated role login is made available; all record entry must remain UI-only.
 
-## Continuation checkpoint — 2026-11-02
-
-The current assignment wake confirms the same target and scope, but provides no new human response to the outstanding request for a retained authenticated Pharmacy session. The prior successful Pharmacy login is already recorded above and its browser context was closed. No second login was attempted in this continuation. The login allowance and instruction to retain the session mean the app-side marker check and all dependent write workflows remain blocked until the explicit additional-login authorization or a live authenticated context is provided.
-
-Campaign ledger review found no block-4 completion entry. This does not establish that markers 031–040 are absent from the app; an app-side search remains required before any creation. Current campaign counts for this assignment remain 0/10 patients, 0 operational records, and 0 workflows completed. No existing app records or account/security settings were changed.
