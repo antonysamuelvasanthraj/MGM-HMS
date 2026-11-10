@@ -25,7 +25,7 @@ export const NAV = [
     { route: '/bills?new=op', sidebarHidden:true, label: 'OPD Procedures', icon: 'healing', perm: 'op.collect' },
     { route: '/investigations', sidebarHidden:true,    label: 'Investigation Queue', icon: 'biotech', perm: ['billing.create', 'payment.collect', 'op.register'] },
     { route: '/service-payments', sidebarHidden:true,  label: 'Service Payments',  icon: 'point_of_sale', perm: 'payment.authorize', badge: 'service-payments' },
-    { route: '/visit-tracking',    label: 'Visit Tracking',    icon: 'timeline', perm: 'queue.view', badge: 'visit-tracking' },
+    { route: '/visit-tracking',    label: 'Visit Tracking',    icon: 'timeline', perm: 'queue.view', badge: 'visit-tracking', manual: ['workflow_doctor', 'manual'] },
     { route: '/vitals-queue',      label: 'Vitals Queue',      icon: 'monitor_heart', perm: ['vitals.record', 'vitals.view', 'patient.clinical'], badge: 'vitals-queue', manual:['workflow_doctor','manual'] },
     { route: '/doctor-queue',      label: 'Doctor Queue',      icon: 'groups', perm: ['consult.write', 'queue.manage'], badge: 'doctor-queue' , manual: ['workflow_doctor', 'manual'] },
     { route: '/follow-up',         label: 'Follow-up',         icon: 'event_repeat', perm: 'queue.view' , manual: ['workflow_doctor', 'manual'] },
