@@ -312,6 +312,7 @@ export async function printReports(orderIds) {
   const block = (t) => `
     <div style="margin-top:12px;page-break-inside:auto">
       <div style="font-size:13px;font-weight:700">${esc(t.service_name || t.label)}<span style="font-weight:400;color:#526176;font-size:11px"> · ${esc(t.order_no)}</span></div>
+      ${t.sample_type ? `<div style="margin-top:3px;font-size:11px"><b>Sample type:</b> ${esc(t.sample_type)}</div>` : ''}
       <table class="lab-res" style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px">
         <thead><tr style="background:#F5F7FA">
           <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Test / parameter</th>
@@ -324,9 +325,7 @@ export async function printReports(orderIds) {
           <td style="${cell};color:#526176">${esc(r.unit || '')}</td>
           <td style="${cell};color:#526176">${esc(refOnly(r))}</td></tr>`).join('')}
         </tbody></table>
-      ${t.sample_type ? `<div style="margin-top:6px;font-size:11px"><b>Sample type:</b> ${esc(t.sample_type)}</div>` : ''}
       ${para('Remarks', t.lab_remarks)}
-      ${(t.result_guidance || []).length ? `<section style="margin-top:10px;font-size:11px;line-height:1.55"><b style="font-size:12px">Result-specific guidance</b>${t.result_guidance.map((item) => `<div style="margin-top:7px;page-break-inside:avoid"><b>${esc(item.finding)}</b><br>${esc(item.note)}</div>`).join('')}</section>` : ''}
       ${para(t.test_comment_title || 'Interpretation', t.test_comment)}
       ${tests.length === 1 ? para('Test information', t.test_description) : ''}
     </div>`;
