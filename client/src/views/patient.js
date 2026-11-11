@@ -24,11 +24,15 @@ export async function mount(ctx) {
   const id = ctx.params[0];
   if (!id) { mountPage(ctx, emptyState('folder_shared', 'No patient selected', 'Search for a patient to open their record.')); return; }
   const root = mountPage(ctx, `<div class="p-6">${spinner('Loading record')}</div>`);
-  let data;
+  let data, lastSig = '';
 
   async function load() {
     if(root.querySelector('[data-inline-workflow]'))return;
-    data = await api.get(`/patients/${id}/timeline`);
+    const fresh = await api.get(`/patients/${id}/timeline`);
+    // the 30-second refresh finds the same record almost every time: leave the screen alone then, so it never jumps
+    const sig = JSON.stringify(fresh);
+    if (sig === lastSig && root.querySelector('[data-panel]')) return;
+    lastSig = sig; data = fresh;
     document.getElementById('page-title').textContent = data.patient.name;
     root.innerHTML = view(data);
     if(data.access?.financial)await showBillingContext(root.querySelector('[data-billing-summary]'),id);

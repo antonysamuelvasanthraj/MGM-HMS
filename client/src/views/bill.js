@@ -9,9 +9,11 @@ export async function mount(ctx) {
   const id = +ctx.params[0];
   if (!id) { mountPage(ctx, emptyState('receipt_long', 'No bill selected', 'Open a bill from the patient record or the bills list.')); return; }
   const root = mountPage(ctx, '<div class="p-6 text-on-surface-variant">Loading bill…</div>');
-  let b;
+  let b, lastSig = '';
   async function load() {
-    b = await api.get(`/bills/${id}`);
+    const fresh = await api.get(`/bills/${id}`), sig = JSON.stringify(fresh);
+    if (sig === lastSig && root.querySelector('table')) return;   // unchanged: do not rebuild (no jumping)
+    lastSig = sig; b = fresh;
     document.getElementById('page-title').textContent = b.bill_no;
     root.innerHTML = view(b);
   }
