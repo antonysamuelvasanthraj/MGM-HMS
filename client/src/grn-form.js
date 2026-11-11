@@ -51,7 +51,7 @@ export async function newGRN(after, existing = null, scanned = null) {
       <div class="grn-head" aria-hidden="true"><span>#</span><span>Product</span><span>Rec. qty (packs)</span><span>Free (packs)</span><span>Pack qty</span><span>DP</span><span>MRP</span><span>Disc %</span><span>Tax %</span><span>Tax amt</span><span>Total</span><span>Expiry</span><span>Batch no.</span><span></span></div>
       <div data-lines></div>
       <button class="btn-secondary mt-2" type="button" data-add><span class="material-symbols-outlined text-[16px]">add</span>Add item <span class="text-label-sm text-on-surface-variant">(Alt+A)</span></button>
-      <details class="card p-3 mt-4" open><summary class="font-semibold">GRN costing preview — paid and free packs</summary><p class="text-body-sm my-2">Pack follows the product type. Landing cost spreads cost over paid + free packs; inventory ACP includes allocated delivery/credit adjustments. Margin is before GST.</p><div class="overflow-auto" data-cost-preview></div></details>
+      <details class="card p-3 mt-4" open><summary class="font-semibold">GRN items &amp; costing — paid and free packs</summary><p class="text-body-sm my-2">Added items are listed here and can be changed here. Pack follows the product type. Landing cost spreads cost over paid + free packs; inventory ACP includes allocated delivery/credit adjustments. Margin is before GST.</p><div class="overflow-auto" data-cost-preview></div></details>
       <section class="grn-foot mt-4">
         <div class="space-y-2">
           <div data-tally class="text-body-md" aria-live="polite"></div>
@@ -66,6 +66,9 @@ export async function newGRN(after, existing = null, scanned = null) {
       const form = root.querySelector('form'), host = root.querySelector('[data-lines]');
       const inter = () => form.gst_mode.value === 'inter';
       const footer = { delivery: 0, credit: 0 };
+      // a new GRN has one entry line; Add item moves it into the costing table below, where it stays editable
+      const single = !existing && !scanned;
+      const active = () => host.querySelector('.grn-row:not([data-committed])');
 
       function addLine() {
         const el = document.createElement('div');
@@ -100,7 +103,12 @@ export async function newGRN(after, existing = null, scanned = null) {
           </div>`;
         host.append(el);
         renumber();
-        el.querySelector('[data-remove]').onclick = () => { if (host.children.length > 1) { el.remove(); renumber(); totals(); } };
+        el.querySelector('[data-remove]').onclick = () => {
+          if (single) { el.remove(); if (!active()) addLine(); }
+          else if (host.children.length > 1) el.remove();
+          else return;
+          renumber(); totals();
+        };
         const pick = () => {
           const invoiceValues = scannedSelectionValues(el);
           const m = meds.find((x) => x.id === +el.querySelector('[data-key="medicine_id"]').value);
@@ -156,7 +164,10 @@ export async function newGRN(after, existing = null, scanned = null) {
         lines.forEach((m) => { for (const k of Object.keys(t)) t[k] = r2(t[k] + m[k]); });
         const adjust = footer.delivery - footer.credit;
         const previewHeaders = ['SL No','Item Name','Pack','HSN Code','Mfg','Batch No','Expiry','Qty (Packs)','Free (Packs)','Rate / Pack (excl. GST)','Disc %','MRP / Pack','GST %','Amount (Taxable)','GST Amount','Total (incl. GST)','Total Packs Received','Cost / Pack (incl. GST, no free)','Landing Cost / Pack (incl. GST & free)','Patient Price / Pack','Patient Price / Unit','Margin / Pack','Margin %','Stock Register ACP / Pack (excl. GST)'];
-        root.querySelector('[data-cost-preview]').innerHTML = `<table class="tbl"><thead><tr>${previewHeaders.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.filter(i => i.medicine_id).map((i, n) => {
+        // new GRN: the table lists the lines added so far, and the main figures are edited right here
+        const ed = (idx, key, val, type = 'number', w = 74) => ({ html: `<input class="field field-sm !h-8 ${type === 'number' ? 'text-right' : ''}" style="width:${w}px" type="${type}" ${type === 'number' ? 'step="any" min="0"' : ''} data-pv="${idx}" data-k="${key}" value="${esc(val ?? '')}">` });
+        const shown = rows.map((i, idx) => ({ i, idx })).filter((x) => x.i.medicine_id && (!single || host.children[x.idx].dataset.committed));
+        root.querySelector('[data-cost-preview]').innerHTML = shown.length || !single ? `<table class="tbl"><thead><tr>${previewHeaders.map(h => `<th>${esc(h)}</th>`).join('')}${single ? '<th></th>' : ''}</tr></thead><tbody>${shown.map(({ i, idx }, n) => {
           const m = lineMoney(i), medicine = meds.find(x => x.id === +i.medicine_id) || {};
           const packs = (+i.qty || 0) + (+i.free_qty || 0), upp = +i.units_per_pack || 1;
           const allocated = t.taxable ? adjust * m.taxable / t.taxable : 0;
@@ -164,9 +175,11 @@ export async function newGRN(after, existing = null, scanned = null) {
           const costEx = packs ? Math.max(0, m.taxable + allocated) / packs : 0;
           const priceEx = (+i.mrp || 0) / (1 + (+i.gst_pct || 0) / 100);
           const margin = priceEx - costEx;
-          const cells = [n+1, i.brand || medicine.name, `${i.package_type || i.purchase_unit || 'pack'} (${upp} units)`, i.hsn || medicine.hsn, i.manufacturer || medicine.manufacturer, i.batch_no, i.expiry, i.qty || 0, i.free_qty || 0, money(i.rate || 0,2), i.discount_pct || 0, money(i.mrp || 0,2), i.gst_pct || 0, money(m.taxable,2), money(m.tax,2), money(m.net,2), packs, money(i.qty ? m.net / i.qty : 0,2), money(landing,2), money(i.mrp || 0,2), money((i.mrp || 0)/upp,2), money(margin,2), priceEx ? `${r2(margin/priceEx*100)}%` : '—', money(costEx,4)];
-          return `<tr>${cells.map(c => `<td>${esc(c ?? '')}</td>`).join('')}</tr>`;
-        }).join('')}</tbody></table>`;
+          const cells = [n + 1, i.brand || medicine.name, single ? { html: `${esc(i.package_type || 'pack')} of ${ed(idx, 'units_per_pack', i.units_per_pack, 'number', 56).html}` } : `${i.package_type || i.purchase_unit || 'pack'} (${upp} units)`, i.hsn || medicine.hsn, i.manufacturer || medicine.manufacturer,
+            single ? ed(idx, 'batch_no', i.batch_no, 'text', 100) : i.batch_no, single ? ed(idx, 'expiry', i.expiry, 'month', 130) : i.expiry,
+            single ? ed(idx, 'qty', i.qty) : i.qty || 0, single ? ed(idx, 'free_qty', i.free_qty ?? 0) : i.free_qty || 0, single ? ed(idx, 'rate', i.rate) : money(i.rate || 0, 2), single ? ed(idx, 'discount_pct', i.discount_pct ?? 0, 'number', 60) : i.discount_pct || 0, single ? ed(idx, 'mrp', i.mrp) : money(i.mrp || 0, 2), i.gst_pct || 0, money(m.taxable, 2), money(m.tax, 2), money(m.net, 2), packs, money(i.qty ? m.net / i.qty : 0, 2), money(landing, 2), money(i.mrp || 0, 2), money((i.mrp || 0) / upp, 2), money(margin, 2), priceEx ? `${r2(margin / priceEx * 100)}%` : '—', money(costEx, 4)];
+          return `<tr>${cells.map(c => `<td>${c && c.html !== undefined ? c.html : esc(c ?? '')}</td>`).join('')}${single ? `<td><button type="button" class="btn-ghost btn-xs" data-pv-remove="${idx}" title="Remove this item" aria-label="Remove this item"><span class="material-symbols-outlined text-[16px]">delete</span></button></td>` : ''}</tr>`;
+        }).join('')}</tbody></table>` : '<p class="text-body-md text-on-surface-variant p-3">Fill the line above and press Add item. Added items list here, where you can still change quantity, rate, MRP, batch and expiry.</p>';
         rows.forEach((i, n) => {
           const m = lines[n], el = host.children[n];
           el.querySelector('[data-out="tax"]').textContent = m.taxable ? money(m.tax, 2) : '—';
@@ -230,8 +243,25 @@ export async function newGRN(after, existing = null, scanned = null) {
         }
         totals();
       };
-      root.querySelector('[data-add]').onclick = () => addLine().querySelector('select').focus();
-      root.addEventListener('keydown', (e) => { if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); addLine().querySelector('select').focus(); } });
+      function commitAndNew() {
+        const cur = active();
+        if (single && cur) {
+          const bad = [...cur.querySelectorAll('input,select')].find((x) => !x.checkValidity());
+          if (bad) { bad.reportValidity(); return; }
+          cur.dataset.committed = '1'; cur.style.display = 'none';
+        }
+        const el = addLine(); el.querySelector('select').focus(); totals();
+      }
+      root.querySelector('[data-add]').onclick = commitAndNew;
+      root.addEventListener('keydown', (e) => { if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); commitAndNew(); } });
+      const preview = root.querySelector('[data-cost-preview]');
+      preview.oninput = (e) => {
+        const f = e.target.closest('[data-pv]'); if (!f) return;
+        const row = host.children[+f.dataset.pv], box = row?.querySelector(`[data-key="${f.dataset.k}"]`); if (!box) return;
+        box.value = f.value; const at = f.selectionStart; totals();
+        const again = preview.querySelector(`[data-pv="${f.dataset.pv}"][data-k="${f.dataset.k}"]`); again?.focus(); try { again?.setSelectionRange(at, at); } catch { /* number / month inputs */ }
+      };
+      preview.onclick = (e) => { const b = e.target.closest('[data-pv-remove]'); if (!b) return; host.children[+b.dataset.pvRemove]?.remove(); if (!active()) addLine(); renumber(); totals(); };
       host.oninput = totals;
       host.onchange = totals;
       if (existing) {
@@ -330,6 +360,8 @@ export async function newGRN(after, existing = null, scanned = null) {
       })));
 
       const save = async (e) => {
+        const spare = active();
+        if (single && spare && !spare.querySelector('[data-key="medicine_id"]').value && host.children.length > 1) { spare.remove(); renumber(); totals(); }
         form.classList.add('was-validated');
         if (!form.reportValidity()) return;
         const btn = e.currentTarget;

@@ -313,7 +313,7 @@ function initTopbar() {
     const check = async () => {
       try {
         const { v } = await (await fetch('/api/app-version', { cache: 'no-store' })).json();
-        if (seen === null) { seen = v; return; }
+        if (seen === null) { seen = v; document.body.insertAdjacentHTML('beforeend', `<div id="build-stamp" title="The version of the screens this tab loaded" style="position:fixed;bottom:2px;right:6px;z-index:5;font:10px monospace;color:#8a94a3">build ${String(v).slice(-5)}</div>`); return; }
         if (v !== seen && !document.getElementById('update-bar')) {
           document.body.insertAdjacentHTML('afterbegin', '<div id="update-bar" role="status" style="position:fixed;z-index:200;left:0;right:0;top:0;display:flex;gap:12px;justify-content:center;align-items:center;padding:8px;background:#0b3d6b;color:#fff;font-size:14px">A new version of MGM HMS is ready. <button id="update-reload" style="background:#fff;color:#0b3d6b;border:0;border-radius:6px;padding:4px 12px;font-weight:600;cursor:pointer">Reload now</button></div>');
           document.getElementById('update-reload').onclick = () => location.reload();
