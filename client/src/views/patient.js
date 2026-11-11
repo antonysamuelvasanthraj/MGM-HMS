@@ -227,12 +227,12 @@ const moneyTab = (d) => `
     ${card({ title: 'Bills', actions:canRaiseReceptionBill()?'<button class="btn-primary btn-sm" data-new-patient-bill>Raise new bill</button>':'',pad: false, body: T(d.bills,
       `<th>Doctor</th><th>Visit / file ID</th><th>Invoice number</th><th>Bill date</th><th class="text-right">Discount</th><th class="text-right">Total</th><th class="text-right">Due</th><th>Categories</th><th>Bill status</th><th>Bill type</th><th>Action</th>`,
       (b) => `<tr><td>${esc(b.doctor_name || '—')}</td><td class="font-data-mono text-body-sm">${esc(b.encounter_no || '—')}</td>
-        <td class="font-data-mono text-body-sm">${esc(b.bill_no)}</td><td>${fmtDate(b.bill_date)}</td>
+        <td class="font-data-mono text-body-sm"><a class="text-primary underline" href="/bill/${b.id}">${esc(b.bill_no)}</a></td><td>${fmtDate(b.bill_date)}</td>
         <td class="num">${b.discount > 0 ? money(b.discount, 2) : '0.00'}</td><td class="num">${money(b.total, 2)}</td>
         <td class="num ${(b.patient_due ?? b.balance) > 0.005 ? 'text-danger font-semibold' : ''}">${money(b.patient_due??b.balance, 2)}</td>
         <td class="text-body-sm capitalize">${esc(String(b.categories || '').replaceAll(',', ', '))}</td><td>${billStatus(b)}</td>
         <td><span class="pill-neutral">${b.bill_type === 'IP' ? 'Inpatient' : b.bill_type === 'PHARM' ? 'Pharmacy' : b.bill_type === 'OP' ? 'Outpatient' : esc(b.bill_type)}</span></td>
-        <td class="whitespace-nowrap">${can('payment.collect')&&(b.patient_due??b.balance)>0.005&&(b.bill_type!=='PHARM'||can('pharmacy.dispense'))?`<button class="btn-primary btn-xs" data-patient-collect="${b.id}">Collect</button> `:''}<button class="btn-secondary btn-xs" data-open-bill="${b.id}">Bill details</button> <button class="btn-ghost btn-xs" data-print-bill="${b.id}" title="Print — each bill prints on its own and can be reprinted any time"><span class="material-symbols-outlined text-[15px]">print</span></button></td></tr>`,
+        <td class="whitespace-nowrap">${can('payment.collect')&&(b.patient_due??b.balance)>0.005&&(b.bill_type!=='PHARM'||can('pharmacy.dispense'))?`<button class="btn-primary btn-xs" data-patient-collect="${b.id}">Collect</button> `:''}<a class="btn-secondary btn-xs" href="/bill/${b.id}">Bill details</a> <button class="btn-ghost btn-xs" data-print-bill="${b.id}" title="Print — each bill prints on its own and can be reprinted any time"><span class="material-symbols-outlined text-[15px]">print</span></button></td></tr>`,
       'No bills') })}
     ${card({ title: 'Receipts', pad: false, body: T(d.payments,
       `<th>Receipt</th><th>Mode</th><th class="text-right">Amount</th><th>Received by</th>`,

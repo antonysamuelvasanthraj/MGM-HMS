@@ -127,7 +127,7 @@ function rowHTML(b) {
       ${!b.view_only && (b.patient_due ?? b.balance) > 0 && b.status !== 'cancelled' && can('payment.collect') ? `<button class="btn-primary btn-xs" data-act="collect">${b.payer_pending > 0 ? 'Patient share' : 'Collect'}</button>` : ''}
       ${b.payer_pending > 0 ? '<span class="pill-neutral">Payer pending</span>' : ''}
       ${!b.view_only && b.balance > 0 && !b.payer_pending && b.status !== 'cancelled' && (can('payment.collect') || can('finance.view') || can('admin.view')) ? `<button class="btn-ghost btn-xs" data-remind="${b.id}" title="Send a due reminder">Remind</button>` : ''}
-      ${b.view_only?'<span class="pill-neutral">View only · collect at pharmacy</span>':'<button class="btn-secondary btn-xs" data-act="open">Bill details</button>'}
+      ${b.view_only?'<span class="pill-neutral">View only · collect at pharmacy</span>':'<a class="btn-secondary btn-xs" href="/bill/${b.id}">Bill details</a>'}
       ${b.view_only?'':'<button class="btn-ghost btn-xs" data-act="print" title="Print"><span class="material-symbols-outlined text-[15px]">print</span></button>'}
     </td>`;
 }
