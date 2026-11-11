@@ -391,7 +391,11 @@ inventory.post('/sales-returns', requirePerm('pharmacy.dispense'), h((req) => tx
 /* ------------------------------------------------------- purchase returns */
 
 inventory.get('/purchase-returns', requirePerm('purchase.view'), h(() => all(
-  `SELECT r.*, s.name supplier_name, m.name medicine_name, b.batch_no, u.name created_by_name FROM purchase_returns r
+  `SELECT r.*, s.name supplier_name, s.gstin supplier_gstin, m.name medicine_name, m.units_per_pack, b.batch_no, b.expiry, b.purchase_rate unit_price,
+          (SELECT date(p.received_at) FROM purchases p WHERE p.id=r.purchase_id) received_on,
+          (SELECT p.grn_no FROM purchases p WHERE p.id=r.purchase_id) grn_no,
+          round(CASE WHEN r.value>0 THEN (r.cgst+r.sgst+r.igst)*100.0/r.value ELSE 0 END,2) tax_pct,
+          u.name created_by_name FROM purchase_returns r
      JOIN suppliers s ON s.id=r.supplier_id JOIN medicine_batches b ON b.id=r.batch_id JOIN medicines m ON m.id=b.medicine_id
      LEFT JOIN users u ON u.id=r.created_by ORDER BY r.id DESC LIMIT 200`)));
 

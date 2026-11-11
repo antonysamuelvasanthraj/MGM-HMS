@@ -6,7 +6,23 @@
 import {
   page, eyebrow, card, mountPage, api, qs, can, esc, bind, money, fmtDate, modal, toast, busy, apiError, live,
 } from './_kit.js';
+import { setting } from '../store.js';
 import { MODES } from '../collect.js';
+import { printDocument, printLetterhead } from '../ui.js';
+import { rupeesInWords } from '../pharmacy-invoice.js';
+
+const amt = (v) => Number(v || 0).toFixed(2);
+/** Return note to the supplier: one page, same layout whichever batch went back. */
+function printSupplierReturn(r) {
+  const taxTotal = Number(r.cgst || 0) + Number(r.sgst || 0) + Number(r.igst || 0), grand = Number(r.value || 0) + taxTotal;
+  printDocument(`${r.return_no} — ${r.supplier_name}`, `<div style="max-width:760px;margin:auto;color:#111;font-family:Arial,sans-serif;font-size:11px">${printLetterhead('RETURN TO SUPPLIER', r.return_no)}
+    <style>.sr{width:100%;border-collapse:collapse;font-size:10px}.sr th,.sr td{border:1px solid #444;padding:4px}.sr .num{text-align:right}.sr th{background:#f4f4f4}</style>
+    <table style="width:100%;margin:8px 0"><tr><td><b>Supplier:</b> ${esc(r.supplier_name)}${r.supplier_gstin ? ` · GSTIN ${esc(r.supplier_gstin)}` : ''}</td><td style="text-align:right"><b>Return date:</b> ${esc(fmtDate(r.created_at))}</td></tr><tr><td><b>Return no.:</b> ${esc(r.return_no)}${r.grn_no ? ` · <b>GRN:</b> ${esc(r.grn_no)}` : ''}</td><td style="text-align:right"><b>Prepared by:</b> ${esc(r.created_by_name || '')}</td></tr></table>
+    <table class="sr"><thead><tr><th>S.No</th><th>Product / brand name</th><th>Batch number</th><th>Date received</th><th>Expiry date</th><th>Reason</th><th>Unit price</th><th>Qty</th><th>Tax %</th><th>Discount %</th><th>Total</th></tr></thead><tbody>
+      <tr><td>1</td><td>${esc(r.medicine_name)}</td><td>${esc(r.batch_no)}</td><td>${esc(r.received_on ? fmtDate(r.received_on) : '—')}</td><td>${esc(r.expiry ? String(r.expiry).slice(0, 10) : '—')}</td><td>${esc(r.reason)}</td><td class="num">${amt(r.unit_price)}</td><td class="num">${r.qty}</td><td class="num">${amt(r.tax_pct)}</td><td class="num">0.00</td><td class="num">${amt(r.value)}</td></tr>
+      <tr><td colspan="10" class="num">Total</td><td class="num">${amt(r.value)}</td></tr><tr><td colspan="10" class="num">Discount (-)</td><td class="num">0.00</td></tr><tr><td colspan="10" class="num">Tax amount</td><td class="num">${amt(taxTotal)}</td></tr><tr><td colspan="10" class="num"><b>Grand total</b></td><td class="num"><b>${amt(grand)}</b></td></tr></tbody></table>
+    <p style="margin-top:8px"><b>Rs. ${esc(rupeesInWords(grand))}</b></p><p style="text-align:right;margin-top:34px">For ${esc(setting('hospital_name', 'MGM Superspeciality Hospitals'))}<br><br>Authorised signatory</p></div>`);
+}
 
 export async function mount(ctx) {
   const tabs = [['sales', 'Patient returns', 'pharmacy.view'], ['purchase', 'Supplier returns', 'purchase.view']].filter(([, , perm]) => can(perm));
@@ -25,19 +41,21 @@ export async function mount(ctx) {
     const list = root.querySelector('[data-list]');
     if (f.tab === 'sales') {
       const rows = await api.get('/pharmacy/sales-returns');
-      list.innerHTML = card({ title: `${rows.length} patient returns`, pad: false, body: `<div class="overflow-auto max-h-[66vh]"><table class="tbl"><thead><tr><th>Date</th><th>Return</th><th>Bill</th><th>Patient</th><th>Item</th><th class="num">Qty</th><th class="num">Credit</th><th>Refund</th><th>Reason</th><th>By</th></tr></thead><tbody>
+      list.innerHTML = card({ title: `${rows.length} patient returns`, pad: false, body: `<div class="overflow-auto max-h-[66vh]"><table class="tbl"><thead><tr><th>Date</th><th>Return</th><th>Bill</th><th>Patient</th><th>Item</th><th class="num">Qty</th><th class="num">Credit</th><th>Refund</th><th>Reason</th><th>By</th><th></th></tr></thead><tbody>
         ${rows.map((r) => `<tr><td>${fmtDate(r.created_at)}</td><td class="font-data-mono">${esc(r.return_no)}</td><td class="font-data-mono">${esc(r.bill_no)}</td><td>${esc(r.patient_name)}</td>
-          <td class="max-w-[260px] truncate">${esc(r.description)}</td><td class="num">${r.qty}</td><td class="num">${money(r.amount, 2)}</td><td>${esc(MODES[r.refund_mode]?.label || r.refund_mode || '—')}</td><td class="text-body-sm">${esc(r.reason)}</td><td class="text-body-sm">${esc(r.created_by_name || '')}</td></tr>`).join('')
-          || '<tr><td colspan="10" class="text-center py-8 text-on-surface-variant">No patient returns</td></tr>'}</tbody></table></div>` });
+          <td class="max-w-[260px] truncate">${esc(r.description)}</td><td class="num">${r.qty}</td><td class="num">${money(r.amount, 2)}</td><td>${esc(MODES[r.refund_mode]?.label || r.refund_mode || '—')}</td><td class="text-body-sm">${esc(r.reason)}</td><td class="text-body-sm">${esc(r.created_by_name || '')}</td><td><button class="btn-secondary btn-xs" data-print-sale-bill="${r.bill_id}">View / print bill</button></td></tr>`).join('')
+          || '<tr><td colspan="11" class="text-center py-8 text-on-surface-variant">No patient returns</td></tr>'}</tbody></table></div>` });
     } else {
       const rows = await api.get('/pharmacy/purchase-returns');
-      list.innerHTML = card({ title: `${rows.length} supplier returns`, pad: false, body: `<div class="overflow-auto max-h-[66vh]"><table class="tbl"><thead><tr><th>Date</th><th>Return</th><th>Supplier</th><th>Item</th><th>Batch</th><th class="num">Qty</th><th class="num">Value</th><th class="num">GST</th><th>Reason</th></tr></thead><tbody>
-        ${rows.map((r) => `<tr><td>${fmtDate(r.created_at)}</td><td class="font-data-mono">${esc(r.return_no)}</td><td>${esc(r.supplier_name)}</td><td>${esc(r.medicine_name)}</td><td class="font-data-mono">${esc(r.batch_no)}</td>
-          <td class="num">${r.qty}</td><td class="num">${money(r.value, 2)}</td><td class="num">${money(r.cgst + r.sgst + r.igst, 2)}</td><td class="text-body-sm">${esc(r.reason)}</td></tr>`).join('')
-          || '<tr><td colspan="9" class="text-center py-8 text-on-surface-variant">No supplier returns</td></tr>'}</tbody></table></div>` });
+      list.innerHTML = card({ title: `${rows.length} supplier returns`, pad: false, body: `<div class="overflow-auto max-h-[66vh]"><table class="tbl"><thead><tr><th>Date</th><th>Return</th><th>Supplier</th><th>Item</th><th>Batch</th><th class="num">Qty</th><th class="num">Value</th><th class="num">GST</th><th>Reason</th><th></th></tr></thead><tbody>
+        ${(window.__supReturns = rows).map((r, i) => `<tr><td>${fmtDate(r.created_at)}</td><td class="font-data-mono">${esc(r.return_no)}</td><td>${esc(r.supplier_name)}</td><td>${esc(r.medicine_name)}</td><td class="font-data-mono">${esc(r.batch_no)}</td>
+          <td class="num">${r.qty}</td><td class="num">${money(r.value, 2)}</td><td class="num">${money(r.cgst + r.sgst + r.igst, 2)}</td><td class="text-body-sm">${esc(r.reason)}</td><td><button class="btn-secondary btn-xs" data-print-sup="${i}">View / print</button></td></tr>`).join('')
+          || '<tr><td colspan="10" class="text-center py-8 text-on-surface-variant">No supplier returns</td></tr>'}</tbody></table></div>` });
     }
   }
 
+  bind(root, 'click', '[data-print-sup]', (e, b) => printSupplierReturn(window.__supReturns[+b.dataset.printSup]));
+  bind(root, 'click', '[data-print-sale-bill]', async (e, b) => { const { printBill } = await import('./bills.js'); printBill(+b.dataset.printSaleBill); });
   bind(root, 'click', '[data-tab]', (e, b) => { f.tab = b.dataset.tab; load(); });
   bind(root, 'click', '[data-new-sale]', () => salesReturn(() => { f.tab = 'sales'; load(); }));
   bind(root, 'click', '[data-new-pur]', () => purchaseReturn(() => { f.tab = 'purchase'; load(); }));

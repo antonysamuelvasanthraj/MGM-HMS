@@ -329,6 +329,7 @@ function wireCounter(root, reload) {
   bind(root, 'input', '[data-qty]', (e, el) => {
     const i = +el.closest('[data-line]').dataset.line;
     cart[i].qty = Math.max(1, +el.value || 1);
+    const amt = el.closest('tr')?.querySelector('[data-amt]'); if (amt) amt.textContent = money(cart[i].qty * cart[i].rate, 2);
     paintTotals(root);
   });
   bind(root, 'change', '[data-batch]', (e, el) => {
@@ -429,22 +430,15 @@ function paintCart(root) {
   const cartCard = $('[data-kpis]', root)?.lastElementChild;
   if (cartCard) cartCard.outerHTML = kpi({ label: 'Cart', value: cart.length, icon: 'shopping_cart', tone: 'info', sub: money(cartTotal()) });
   const box = $('[data-cart]', root);
-  box.innerHTML = cart.length ? cart.map((i, idx) => `
-    <div class="p-3 border-b border-outline-variant/70" data-line="${idx}">
-      <div class="flex items-start justify-between gap-2">
-        <span class="font-label-lg text-label-lg min-w-0 truncate">${esc(i.name)}</span>
-        <button class="btn-ghost btn-xs shrink-0" data-rm><span class="material-symbols-outlined text-[15px]">close</span></button>
-      </div>
-      <div class="grid grid-cols-[70px_1fr_90px] gap-2 mt-1.5 items-center">
-        <input class="field field-sm text-center" type="number" min="1" value="${i.qty}" data-qty>
-        ${i.batches?.length > 1
-          ? `<select class="field field-sm" data-batch>${i.batches.map((b) => `<option value="${b.id}" ${b.id === i.batch_id ? 'selected' : ''}>
-              ${esc(b.batch_no)} · exp ${fmtDate(b.expiry)} · ${b.qty} left</option>`).join('')}</select>`
-          : `<span class="text-body-sm text-on-surface-variant truncate">Batch ${esc(i.batch_no)}${i.expiry ? ` · exp ${fmtDate(i.expiry)}` : ''}</span>`}
-        <span class="font-data-mono text-body-md text-right">${money(i.qty * i.rate, 2)}</span>
-      </div>
-      <div class="text-label-sm text-on-surface-variant mt-1">@ ${money(i.rate, 2)} each${i.stock !== undefined ? ` · ${i.stock} in this batch` : ''}</div>
-    </div>`).join('')
+  box.innerHTML = cart.length ? `<table class="tbl w-full"><thead><tr><th>S.No</th><th>Product</th><th>Batch · Expiry</th><th class="num">Unit price</th><th class="num">Stock</th><th class="num" style="width:90px">Qty</th><th class="num">Amount</th><th></th></tr></thead><tbody>${cart.map((i, idx) => `
+    <tr data-line="${idx}"><td>${idx + 1}</td><td class="font-label-lg min-w-0">${esc(i.name)}</td>
+      <td>${i.batches?.length > 1
+          ? `<select class="field field-sm" data-batch>${i.batches.map((b) => `<option value="${b.id}" ${b.id === i.batch_id ? 'selected' : ''}>${esc(b.batch_no)} · exp ${fmtDate(b.expiry)} · ${b.qty} left</option>`).join('')}</select>`
+          : `<span class="text-body-sm text-on-surface-variant">${esc(i.batch_no)}${i.expiry ? ` · ${fmtDate(i.expiry)}` : ''}</span>`}</td>
+      <td class="num">${money(i.rate, 2)}</td><td class="num">${i.stock ?? '—'}</td>
+      <td class="num"><input class="field field-sm text-center" type="number" min="1" value="${i.qty}" data-qty></td>
+      <td class="num font-data-mono" data-amt>${money(i.qty * i.rate, 2)}</td>
+      <td><button class="btn-ghost btn-xs" data-rm aria-label="Remove"><span class="material-symbols-outlined text-[15px]">close</span></button></td></tr>`).join('')}</tbody></table>`
     : `<div class="p-6 text-center text-body-md text-on-surface-variant">
         <span class="material-symbols-outlined text-[30px] opacity-40 block mb-1">shopping_cart</span>
         Scan or search a medicine, or load a prescription.</div>`;
