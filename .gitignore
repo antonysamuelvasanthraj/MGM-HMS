@@ -47,3 +47,4 @@ Thumbs.db
 DEMO_DOCUMENTS/
 docs/labsmart_preserved/
 *.docx
+.ship-tmp/

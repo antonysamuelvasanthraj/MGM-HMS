@@ -29,7 +29,7 @@ try {
   if (!skipTests) sh('npm test');
 
   step(3, 'Saving to git and pushing');
-  sh('git add client server tools package.json package-lock.json CLAUDE.md README.md', { quiet: true, stdio: 'pipe' });
+  sh('git add -A client server tools package.json .gitignore', { quiet: true, stdio: 'pipe' });
   const pending = sh('git status --porcelain --untracked-files=no', { quiet: true }).trim();
   if (pending) {
     if (!message) throw new Error('There are changes to save. Give a short message: npm run ship -- "what changed"');
