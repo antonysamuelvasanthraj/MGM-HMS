@@ -32,7 +32,7 @@ export async function printStay(id,includeClinical=true){
    <tr><td><b>Ward / Bed:</b> ${esc(a.ward_name||'—')} / ${esc(a.bed_no||'—')}</td><td><b>Payer:</b> ${esc(PAYERS.includes(a.financial_category)?payerName:payerLabels[a.financial_category]||a.financial_category)}${a.claim?` · ${esc(a.claim.claim_no)}`:''}</td></tr>
    <tr><td><b>Admitted:</b> ${fmtDateTime(a.admitted_at)}</td><td><b>Discharged:</b> ${a.discharged_at?fmtDateTime(a.discharged_at):'Still admitted'}</td></tr>
    <tr><td colspan="2"><b>Consultant:</b> ${esc(a.consultant_name||'')}</td></tr></table>
-  <h2>Final bill — complete stay</h2>
+  <h2>${a.discharged_at?'Final bill — complete stay':'Inpatient bill — stay to date'}</h2>
   <table style="width:100%;border-collapse:collapse"><thead><tr><th>Date</th><th>Particulars</th><th>Bill</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead><tbody>
   ${groups.map(g=>{const rows=items.filter(i=>headOf(i.category)===g);const sub=rows.reduce((t,i)=>t+Number(i.amount),0);
     return `<tr><td colspan="6" style="background:#f1f4f8;font-weight:700">${esc(g)}</td></tr>${rows.map(i=>`<tr><td>${esc(String(i.created_at||'').slice(0,10).split('-').reverse().join('-'))}</td><td>${esc(i.description)}</td><td style="font-size:11px">${esc(i.bill_no)}</td><td style="text-align:right">${i.qty}</td><td style="text-align:right">${money(i.rate,2)}</td><td style="text-align:right">${money(i.amount,2)}</td></tr>`).join('')}

@@ -206,6 +206,11 @@ export async function openAdmission(id, after) {
              : { label: a.balance < 0 ? 'Advance held' : 'Balance due', value: money(Math.abs(a.balance)), icon: 'schedule', tone: a.balance > 0 ? 'danger' : 'success' },
            { label: 'Open orders', value: a.orders.filter((o) => !['verified', 'dispensed', 'cancelled'].includes(o.status)).length, icon: 'science', tone: 'info' }].map(kpi).join('')}
       </div>
+      ${a.bills.filter((b) => b.status !== 'cancelled').length ? card({ title: 'Bills of this stay', subtitle: 'Each bill is collected and printed on its own — pay some now, the rest later. Print bill gives the full itemised stay bill.', pad: false,
+        body: `<table class="tbl"><thead><tr><th>Bill</th><th>Type</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Due</th><th></th></tr></thead><tbody>${a.bills.filter((b) => b.status !== 'cancelled').map((b) => `<tr>
+          <td class="font-data-mono">${esc(b.bill_no)}</td><td>${esc(b.bill_type)}</td><td class="num">${money(b.total)}</td><td class="num text-success">${money(b.paid)}</td>
+          <td class="num ${b.balance > 0 ? 'font-semibold text-danger' : ''}">${b.balance > 0 ? money(b.balance) : '—'}</td>
+          <td class="text-right whitespace-nowrap">${can('payment.collect') && b.balance > 0.005 ? `<button class="btn-primary btn-xs" data-stay-collect="${b.id}">Collect</button> ` : ''}<button class="btn-secondary btn-xs" data-stay-view="${b.id}">Bill details</button> <button class="btn-ghost btn-xs" data-stay-print="${b.id}" title="Print"><span class="material-symbols-outlined text-[15px]">print</span></button></td></tr>`).join('')}</tbody></table>` }) : ''}
       ${(a.op_dues || []).length ? card({ title: 'Earlier OP dues', subtitle: 'Unpaid OP bills of this patient. Collect them during the stay or at discharge; each stays on its own bill.', pad: false,
         body: `<table class="tbl"><thead><tr><th>Bill</th><th>Date</th><th>Type</th><th class="num">Due</th><th></th></tr></thead><tbody>${a.op_dues.map((b) => `<tr>
           <td class="font-data-mono">${esc(b.bill_no)}</td><td>${esc(b.bill_date || '')}</td><td>${esc(b.bill_type)}</td><td class="num font-semibold text-danger">${money(b.balance)}</td>
@@ -261,6 +266,9 @@ export async function openAdmission(id, after) {
       root.querySelector('[data-admission-forms]')?.addEventListener('click',()=>openAdmissionForms(id));
       root.querySelector('[data-note]')?.addEventListener('click', () => { close(); addNote(a, () => openAdmission(id, after)); });
       root.querySelector('[data-pay]')?.addEventListener('click', () => { close(); collectBill(a.ip_bill_id, () => { after(); openAdmission(id, after); }); });
+      root.querySelectorAll('[data-stay-collect]').forEach((btn) => btn.addEventListener('click', () => { close(); collectBill(+btn.dataset.stayCollect, () => { after(); openAdmission(id, after); }); }));
+      root.querySelectorAll('[data-stay-view]').forEach((btn) => btn.addEventListener('click', async () => { const { openBill } = await import('./bills.js'); openBill(+btn.dataset.stayView, () => { after(); }); }));
+      root.querySelectorAll('[data-stay-print]').forEach((btn) => btn.addEventListener('click', async () => { const { printBill } = await import('./bills.js'); printBill(+btn.dataset.stayPrint); }));
       root.querySelectorAll('[data-op-due]').forEach((btn) => btn.addEventListener('click', () => { close(); collectBill(+btn.dataset.opDue, () => { after(); openAdmission(id, after); }); }));
       const reopen = () => { close(); openAdmission(id, after); after(); };
       root.querySelector('[data-add-charge]')?.addEventListener('click', () => addChargeForm(a, reopen));

@@ -807,6 +807,8 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
 export async function printBill(id) {
   const b = await api.get(`/bills/${id}`);
   const s = state.meta.settings;
+  // every inpatient bill prints as the itemised stay bill (grouped by department), the same as at discharge
+  if(b.admission?.id&&b.bill_type!=='PHARM'){const {printStay}=await import('../patient-print.js');return printStay(b.admission.id,false);}
   if(b.bill_type==='PHARM')return printDocument(`${b.bill_no} — ${b.patient_name}`,pharmacyInvoice(b));
   // a line discount gets its own column, so the printed rate − discount = amount adds up
   const disc = b.items.some((i) => Number(i.discount) > 0);
