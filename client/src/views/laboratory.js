@@ -167,12 +167,11 @@ function rowHTML(r) {
     <td class="text-right whitespace-nowrap">
       ${['unpaid', 'part_paid'].includes(r.clearance) && !['verified'].includes(r.status) ? `<span class="text-body-sm ${startNow() ? 'text-on-surface-variant' : 'text-danger'}">${startNow() ? 'Patient pays at reception' : 'Send to reception'}</span>` : ''}
       ${r.status === 'ordered' && can('lab.collect') && (startNow() || !['unpaid', 'part_paid'].includes(r.clearance)) ? `<button class="btn-primary btn-xs" data-act="collect">Collect</button>` : ''}
-      ${['reported', 'verified', 'completed'].includes(r.status) && r.encounter_id ? `<button class="btn-ghost btn-xs" data-act="visitreport" data-enc="${r.encounter_id}" title="Print every reported test of this visit on one report, by category"><span class="material-symbols-outlined text-[15px]">print</span> Visit report</button>` : ''}
+      ${['reported', 'verified', 'completed'].includes(r.status) && r.encounter_id ? `<button class="btn-ghost btn-xs" data-act="visitreport" data-enc="${r.encounter_id}" title="Print every reported test of this visit on one report, by category"><span class="material-symbols-outlined text-[15px]">print</span> Print all on one paper</button>` : ''}
       ${['ordered', 'collected', 'in_progress'].includes(r.status) && can('lab.collect') ? `<button class="btn-ghost btn-xs" data-act="label" title="Print the tube label"><span class="material-symbols-outlined text-[15px]">barcode</span></button>` : ''}
       ${['collected', 'in_progress'].includes(r.status) && can('lab.collect') ? `<button class="btn-ghost btn-xs" data-act="recollect" title="Sample rejected — collect again">Recollect</button>` : ''}
       ${r.status === 'collected' && can('lab.result') ? `<button class="btn-secondary btn-xs" data-act="start">Start</button>` : ''}
       ${['collected', 'in_progress'].includes(r.status) && can('lab.result') ? `<button class="btn-primary btn-xs" data-act="enter">Enter results</button>` : ''}
-      ${r.status === 'reported' && can('lab.verify') ? `<button class="btn-primary btn-xs" data-act="verify">Verify</button>` : ''}
       ${r.status === 'reported' ? `<button class="btn-secondary btn-xs" data-act="enter">Edit</button>` : ''}
       ${r.status === 'verified' ? `<button class="btn-primary btn-xs" data-act="report">Report / Print</button>
         <button class="btn-ghost btn-xs" data-act="view"><span class="material-symbols-outlined text-[15px]">visibility</span></button>` : ''}
@@ -231,8 +230,7 @@ function openResultEntry(orderId, after, readOnly = false) {
           ? `<button class="btn-secondary" data-close>Close</button>
              ${can('lab.result') ? '<button class="btn-primary" data-record-outside>Record outside report</button>' : ''}`
         : `<button class="btn-secondary" data-close>Cancel</button>
-           <button class="btn-secondary" data-save>Save as reported</button>
-           ${can('lab.verify') ? `<button class="btn-primary" data-save-verify>Save & verify</button>` : ''}`,
+           <button class="btn-primary" data-save-verify>Save & release report</button>`,
       onMount(root, close) {
         mountAttachments(root.querySelector('[data-attach]'), 'order', orderId, { canEdit: !readOnly && can('lab.result') });
         root.querySelector('[data-record-outside]')?.addEventListener('click', () => {
@@ -261,7 +259,7 @@ function openResultEntry(orderId, after, readOnly = false) {
           busy(btn, true, 'Saving');
           try {
             await api.post(`/lab/orders/${orderId}/results`, { results: collect(), verify, remarks: root.querySelector('[data-remarks]')?.value ?? '' });
-            close(); toast(verify ? 'Results saved and verified' : 'Results saved — awaiting verification', 'success');
+            close(); toast('Results saved and report released', 'success');
             after?.();
             if(verify) openResultEntry(orderId,after,true);
           } catch (e) { apiError(e, 'Could not save results'); busy(btn, false); }
@@ -309,25 +307,24 @@ export async function printReports(orderIds) {
   const cell = 'padding:6px;border-bottom:1px solid #EEF2F7';
   // the unit has its own column: drop a trailing unit from the reference text
   const refOnly = (r) => { const ref = String(r.ref_range || '').trim(), u = String(r.unit || '').trim(); return u && ref.endsWith(u) ? ref.slice(0, -u.length).trim() : ref; };
-  const flagStyle = (r) => (r.flag === 'critical' ? 'color:#B91C1C;font-weight:700' : r.flag ? 'font-weight:700' : '');
+  const flagStyle = (r) => (r.flag ? 'font-weight:700' : '');   // out of range = bold only; no flag column, no colour
   const para = (title, text) => text ? `<div style="margin-top:10px;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;page-break-inside:auto"><b style="font-size:12px">${esc(title)}</b><br>${esc(text)}</div>` : '';
   const block = (t) => `
     <div style="margin-top:12px;page-break-inside:auto">
-      <div style="font-size:13px;font-weight:700">${esc(t.service_name || t.label)}<span style="font-weight:400;color:#526176;font-size:11px"> · ${esc(t.order_no)}${t.sample_type ? ` · ${esc(t.sample_type)}` : ''}</span></div>
+      <div style="font-size:13px;font-weight:700">${esc(t.service_name || t.label)}<span style="font-weight:400;color:#526176;font-size:11px"> · ${esc(t.order_no)}</span></div>
       <table class="lab-res" style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px">
         <thead><tr style="background:#F5F7FA">
           <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Test / parameter</th>
           <th style="text-align:right;padding:6px;border-bottom:1px solid #D8DFE8">Result</th>
-          <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Flag</th>
           <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Unit</th>
           <th style="text-align:left;padding:6px;border-bottom:1px solid #D8DFE8">Bio. ref. interval</th></tr></thead>
-        <tbody>${t.results.map((r) => r.param_type === 'heading' ? `<tr><td colspan="5" style="${cell};font-weight:700;padding-top:9px">${esc(r.name)}</td></tr>` : `<tr>
+        <tbody>${t.results.map((r) => r.param_type === 'heading' ? `<tr><td colspan="4" style="${cell};font-weight:700;padding-top:9px">${esc(r.name)}</td></tr>` : `<tr>
           <td style="${cell}">${esc(r.name)}${r.method ? `<div style="font-size:10px;color:#526176">Method: ${esc(r.method)}</div>` : ''}${r.interpretation ? `<div style="font-size:10px">${esc(r.interpretation)}</div>` : ''}</td>
-          <td style="${cell};text-align:right;font-family:monospace;${flagStyle(r)}">${esc(r.value)}</td>
-          <td style="${cell};white-space:nowrap;${flagStyle(r)}">${r.flag === 'high' ? '↑ HIGH' : r.flag === 'low' ? '↓ LOW' : r.flag === 'critical' ? '‼ CRITICAL' : ''}</td>
+          <td style="${cell};text-align:right;${flagStyle(r)}">${esc(r.value)}</td>
           <td style="${cell};color:#526176">${esc(r.unit || '')}</td>
           <td style="${cell};color:#526176">${esc(refOnly(r))}</td></tr>`).join('')}
         </tbody></table>
+      ${t.sample_type ? `<div style="margin-top:6px;font-size:11px"><b>Sample type:</b> ${esc(t.sample_type)}</div>` : ''}
       ${para('Remarks', t.lab_remarks)}
       ${(t.result_guidance || []).length ? `<section style="margin-top:10px;font-size:11px;line-height:1.55"><b style="font-size:12px">Result-specific guidance</b>${t.result_guidance.map((item) => `<div style="margin-top:7px;page-break-inside:avoid"><b>${esc(item.finding)}</b><br>${esc(item.note)}</div>`).join('')}</section>` : ''}
       ${para(t.test_comment_title || 'Interpretation', t.test_comment)}
@@ -337,7 +334,7 @@ export async function printReports(orderIds) {
   let body = '', last = null;
   for (const t of tests) {
     const sec = t.lab_section || 'Others';
-    if (sec !== last) { body += `<div style="margin-top:16px;padding:4px 8px;background:#EEF2F7;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">${esc(sec)}</div>`; last = sec; }
+    if (sec !== last) { body += `<div style="margin-top:16px;padding:4px 8px;background:#EEF2F7;text-align:center;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">${esc(sec)}</div>`; last = sec; }
     body += block(t);
   }
   const verifiers = [...new Map(tests.filter((t) => t.verified_by_name).map((t) => [t.verified_by_name, t])).values()];
@@ -359,9 +356,9 @@ export async function printReports(orderIds) {
         ${printLetterhead('LABORATORY REPORT', tests.length === 1 ? d.order_no : d.encounter_no || d.order_no)}
         <table style="width:100%;font-size:11px;margin:6px 0 4px;border-collapse:collapse">
           <tr><td style="border:0;padding:1px 4px;color:#526176;width:80px">Patient</td><td style="border:0;padding:1px 4px"><b>${esc(d.patient_name)}</b></td>
-              <td style="border:0;padding:1px 4px;color:#526176;width:80px">UHID</td><td style="border:0;padding:1px 4px;font-family:monospace">${esc(d.uhid)}</td>${qr}</tr>
+              <td style="border:0;padding:1px 4px;color:#526176;width:80px">UHID</td><td style="border:0;padding:1px 4px">${esc(d.uhid)}</td>${qr}</tr>
           <tr><td style="border:0;padding:1px 4px;color:#526176">Age / sex</td><td style="border:0;padding:1px 4px">${d.age_years ?? '—'} / ${esc(d.gender || '')}</td>
-              <td style="border:0;padding:1px 4px;color:#526176">Sample</td><td style="border:0;padding:1px 4px;font-family:monospace">${esc([...new Set(tests.map((t) => t.sample_id).filter(Boolean))].join(', ') || '—')}</td></tr>
+              <td style="border:0;padding:1px 4px;color:#526176">Sample</td><td style="border:0;padding:1px 4px">${esc([...new Set(tests.map((t) => t.sample_id).filter(Boolean))].join(', ') || '—')}</td></tr>
           <tr><td style="border:0;padding:1px 4px;color:#526176">Referred by</td><td style="border:0;padding:1px 4px">${esc(d.referred_by_name || '—')}</td>
               <td style="border:0;padding:1px 4px;color:#526176">Reported</td><td style="border:0;padding:1px 4px">${esc(latest ? fmtDateTime(latest) : '')}${pending ? ' · Provisional' : ' · Final'}</td></tr>
         </table>
@@ -380,7 +377,7 @@ export async function printReports(orderIds) {
             <span style="color:#526176">${esc(v.verified_by_qual || '')}${v.verified_by_reg ? ` · Reg ${esc(v.verified_by_reg)}` : ''}</span></div>`).join('')}
         </div>
         <div style="margin-top:14px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.05em">*** End of report ***</div>
-        ${s.lab_report_disclaimer ? `<div style="margin-top:8px;font-size:9.5px;line-height:1.45;color:#526176;page-break-inside:avoid"><b>Disclaimer:</b> ${esc(s.lab_report_disclaimer)}</div>` : ''}
+        ${s.lab_report_disclaimer ? `<div style="margin-top:8px;border:1px solid #526176;padding:6px 10px;font-size:9.5px;line-height:1.5;page-break-inside:avoid"><b>Disclaimer</b><ol style="margin:3px 0 0 16px;padding:0">${String(s.lab_report_disclaimer).split(/\s*\d+\)\s*/).map((x) => x.trim()).filter(Boolean).map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>` : ''}
       </td></tr></tbody>
     </table>`);
 }

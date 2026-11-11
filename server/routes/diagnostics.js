@@ -168,7 +168,7 @@ export function rangeFor(p, pt = {}) {
 }
 
 diagnostics.post('/lab/orders/:id/results', requirePerm('lab.result'), h((req) => {
-  if (req.body.verify && !can(req.user, 'lab.verify')) fail(403, 'forbidden');
+  req.body.verify = true;   // one step: saving results releases the report (no second check)
   const id = +req.params.id;
   const o = get('SELECT * FROM orders WHERE id=?', id);
   if (!o) fail(404, 'order_not_found');
@@ -250,6 +250,7 @@ diagnostics.post('/lab/orders/:id/verify', requirePerm('lab.verify'), h((req) =>
   const o = get('SELECT * FROM orders WHERE id=?', id);
   if (!o) fail(404, 'order_not_found');
   requireOrderClearance(o);
+  if (o.category === 'lab' && o.status === 'verified') return o;   // results are released when saved; nothing more to check
   if (o.category !== 'lab' || o.status !== 'reported') fail(409, 'report_not_ready');
   if (!one('SELECT count(*) FROM lab_results WHERE order_id=?', id)) fail(409, 'no_results');
   update('orders', id, {
