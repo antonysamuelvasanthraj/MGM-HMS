@@ -119,6 +119,7 @@ export const HIDDEN_ROUTES = {
   '/patient': 'Patient Record',
   '/visit': 'Visit',
   '/bill': 'Bill',
+  '/patient-bills': 'Patient Bills',
   '/doctor-consultation': 'Doctor OPD Consultation',
   '/display-waiting': 'Waiting Room Display',
   '/portal': 'Patient Portal',

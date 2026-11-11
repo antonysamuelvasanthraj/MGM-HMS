@@ -41,7 +41,8 @@ export async function mount(ctx) {
     if(data.ward_replacements?.length)root.insertAdjacentHTML('beforeend',card({title:'Emergency rack usage & replacements',body:T(data.ward_replacements,'<tr><th>Slip / store</th><th>Used batches</th><th>Replacement batches / bills</th><th>Status</th></tr>',r=>`<tr><td>${esc(r.replacement_no)} · ${esc(r.location)}</td><td>${esc(r.used||'')}</td><td>${esc(r.replacement||'Pending replacement')}</td><td>${esc(r.status.replaceAll('_',' '))}</td></tr>`,'No ward usage')}));
   }
 
-  bind(root, 'click', '[data-tab]', (e, b) => { tab = b.dataset.tab; paintTab(root, data);root.querySelector('[data-panel]')?.scrollIntoView({behavior:'smooth',block:'start'}); });
+  // Bills & receipts opens the patient's bills on a page of their own; each bill opens again from there
+  bind(root, 'click', '[data-tab]', (e, b) => { if (b.dataset.tab === 'money' && data?.access?.financial) { navigate(`/patient-bills/${id}`); return; } tab = b.dataset.tab; paintTab(root, data);root.querySelector('[data-panel]')?.scrollIntoView({behavior:'smooth',block:'start'}); });
   bind(root,'click','[data-running-ip-bill]',(_event,button)=>openBill(+button.dataset.runningIpBill,load).catch(apiError));
   bind(root, 'click', '[data-open-visit]', (e, b) => navigate(`/visit/${b.dataset.openVisit}`));
   bind(root, 'click', '[data-add-allergy]', () => addAllergy(id, load));
