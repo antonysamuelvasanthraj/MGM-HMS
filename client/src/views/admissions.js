@@ -267,7 +267,7 @@ export async function openAdmission(id, after) {
       root.querySelector('[data-note]')?.addEventListener('click', () => { close(); addNote(a, () => openAdmission(id, after)); });
       root.querySelector('[data-pay]')?.addEventListener('click', () => { close(); collectBill(a.ip_bill_id, () => { after(); openAdmission(id, after); }); });
       root.querySelectorAll('[data-stay-collect]').forEach((btn) => btn.addEventListener('click', () => { close(); collectBill(+btn.dataset.stayCollect, () => { after(); openAdmission(id, after); }); }));
-      root.querySelectorAll('[data-stay-view]').forEach((btn) => btn.addEventListener('click', async () => { const { openBill } = await import('./bills.js'); openBill(+btn.dataset.stayView, () => { after(); }); }));
+      root.querySelectorAll('[data-stay-view]').forEach((btn) => btn.addEventListener('click', async () => { close(); (await import('../router.js')).navigate(`/bill/${btn.dataset.stayView}`); }));
       root.querySelectorAll('[data-stay-print]').forEach((btn) => btn.addEventListener('click', async () => { const { printBill } = await import('./bills.js'); printBill(+btn.dataset.stayPrint); }));
       root.querySelectorAll('[data-op-due]').forEach((btn) => btn.addEventListener('click', () => { close(); collectBill(+btn.dataset.opDue, () => { after(); openAdmission(id, after); }); }));
       const reopen = () => { close(); openAdmission(id, after); after(); };

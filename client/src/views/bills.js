@@ -47,7 +47,7 @@ export async function mount(ctx) {
   bind(root, 'click', '[data-remind]', (e, b) => remindBill(+b.dataset.remind));
   bind(root, 'click', '[data-act]', async (e, b) => {
     const id = +b.closest('tr').dataset.id;
-    if (b.dataset.act === 'open') openBill(id, load);
+    if (b.dataset.act === 'open') navigate(`/bill/${id}`);
     if (b.dataset.act === 'collect') openCollect(null, load, { billId: id });
     if (b.dataset.act === 'print') printBill(id);
   });

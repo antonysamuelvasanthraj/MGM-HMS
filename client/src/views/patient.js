@@ -62,7 +62,7 @@ export async function mount(ctx) {
   bind(root, 'click', '[data-portal]', () => portalAccess(data.patient));
   bind(root, 'click', '[data-counsel]', async (e, b) => { const { openSession } = await import('./counselling.js'); openSession(+b.dataset.counsel, load); });
   bind(root, 'click', '[data-summary]', (e, b) => openDischargeSummary(+b.dataset.summary, load));
-  bind(root,'click','[data-open-bill]',(_e,b)=>openBill(+b.dataset.openBill,load).catch(apiError));
+  bind(root,'click','[data-open-bill]',(_e,b)=>navigate(`/bill/${b.dataset.openBill}`));
   bind(root,'click','[data-patient-collect]',(_e,b)=>collectBill(+b.dataset.patientCollect,load));
   bind(root, 'click', '[data-print-bill]', (e,b)=>printBill(+b.dataset.printBill));
   bind(root, 'click', '[data-print-rx]', (e,b)=>printPatientPrescription(id,+b.dataset.printRx));
