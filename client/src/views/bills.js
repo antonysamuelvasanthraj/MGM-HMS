@@ -101,31 +101,28 @@ function layout() {
       ${tableCard({
         title: 'Bills', actions: `<span class="font-data-mono text-body-sm text-on-surface-variant" data-count></span>`,
         maxHeight: '60vh',
-        columns: [{ label: 'Bill', width: '150px' }, { label: 'Patient' }, { label: 'Type' },
-          { label: 'Doctor / counter' }, { label: 'Gross', cls: 'text-right' },
-          { label: 'Discount', cls: 'text-right' }, { label: 'Total', cls: 'text-right' },
-          { label: 'Paid', cls: 'text-right' }, { label: 'Balance', cls: 'text-right' },
-          { label: 'Status' }, { label: '', width: '150px' }],
+        columns: [{ label: 'Doctor' }, { label: 'Patient' }, { label: 'Visit / file ID' }, { label: 'Invoice number' }, { label: 'Bill date' },
+          { label: 'Discount', cls: 'text-right' }, { label: 'Total', cls: 'text-right' }, { label: 'Due', cls: 'text-right' },
+          { label: 'Categories' }, { label: 'Bill status' }, { label: 'Bill type' }, { label: 'Action', width: '230px' }],
       })}`,
   });
 }
 
 function rowHTML(b) {
+  const due = b.patient_due ?? b.balance;
   return `
-    <td><div class="font-data-mono text-body-sm">${esc(b.bill_no)}</div>
-      <div class="text-label-sm text-on-surface-variant">${fmtDate(b.bill_date)}</div></td>
+    <td>${esc(b.doctor_name || '—')}</td>
     <td><div class="font-label-lg text-label-lg">${esc(b.patient_name)}</div>
       <div class="font-data-mono text-label-sm text-on-surface-variant">${esc(b.uhid)}${b.token_no ? ` · Tok ${b.token_no}` : ''}</div></td>
-    <td><span class="pill-neutral">${esc(b.bill_type)}</span>
-      ${b.payer_type !== 'self' ? `<span class="pill-info">${esc(b.payer_type)}</span>` : ''}</td>
-    <td><div class="text-body-md">${esc(b.doctor_name || '—')}</div>
-      <div class="text-label-sm text-on-surface-variant">${esc(b.counter_name || '')}</div></td>
-    <td class="num">${money(b.gross)}</td>
-    <td class="num ${b.discount > 0 ? 'text-warning' : 'text-on-surface-variant'}">${b.discount > 0 ? money(b.discount) : '—'}</td>
-    <td class="num font-semibold">${money(b.total)}</td>
-    <td class="num text-success">${money(b.paid)}</td>
-    <td class="num ${b.balance > 0 ? 'text-danger font-semibold' : 'text-on-surface-variant'}">${b.balance > 0 ? money(b.balance) : '—'}</td>
+    <td class="font-data-mono text-body-sm">${esc(b.encounter_no || '—')}</td>
+    <td class="font-data-mono text-body-sm">${esc(b.bill_no)}</td>
+    <td>${fmtDate(b.bill_date)}</td>
+    <td class="num">${b.discount > 0 ? money(b.discount, 2) : '0.00'}</td>
+    <td class="num font-semibold">${money(b.total, 2)}</td>
+    <td class="num ${due > 0.005 ? 'text-danger font-semibold' : 'text-on-surface-variant'}">${due > 0.005 ? money(due, 2) : '—'}</td>
+    <td class="text-body-sm capitalize">${esc(String(b.categories || '').replaceAll(',', ', '))}</td>
     <td>${billStatus(b)}</td>
+    <td><span class="pill-neutral">${b.bill_type === 'IP' ? 'Inpatient' : b.bill_type === 'PHARM' ? 'Pharmacy' : b.bill_type === 'OP' ? 'Outpatient' : esc(b.bill_type)}</span>${b.payer_type !== 'self' ? ` <span class="pill-info">${esc(b.payer_type)}</span>` : ''}</td>
     <td class="text-right whitespace-nowrap">
       ${!b.view_only && (b.patient_due ?? b.balance) > 0 && b.status !== 'cancelled' && can('payment.collect') ? `<button class="btn-primary btn-xs" data-act="collect">${b.payer_pending > 0 ? 'Patient share' : 'Collect'}</button>` : ''}
       ${b.payer_pending > 0 ? '<span class="pill-neutral">Payer pending</span>' : ''}

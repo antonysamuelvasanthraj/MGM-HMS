@@ -226,7 +226,8 @@ billing.get('/bills', requirePerm('billing.view'), h((req) => {
   const w = extra.length ? `WHERE ${extra.join(' AND ')}` : '';
   const rows = all(
     `SELECT b.*, p.uhid, p.name patient_name, p.mobile,
-            e.token_no, e.encounter_no, d.name doctor_name, c.name counter_name
+            e.token_no, e.encounter_no, d.name doctor_name, c.name counter_name,
+            (SELECT group_concat(DISTINCT i.category) FROM bill_items i WHERE i.bill_id=b.id) categories
        FROM bills b JOIN patients p ON p.id=b.patient_id
        LEFT JOIN encounters e ON e.id=b.encounter_id
        LEFT JOIN users d ON d.id=coalesce(b.doctor_id,e.doctor_id)
