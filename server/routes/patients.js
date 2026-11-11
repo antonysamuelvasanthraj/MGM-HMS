@@ -101,7 +101,8 @@ patients.get('/:id/timeline', requirePerm('patient.view'), h((req) => {
                        FROM admissions a LEFT JOIN beds b ON b.id=a.bed_id
                        LEFT JOIN wards w ON w.id=b.ward_id LEFT JOIN users u ON u.id=a.consultant_id
                       WHERE a.patient_id=? ORDER BY a.admitted_at DESC`, id),
-    bills: all(`SELECT * FROM bills WHERE patient_id=? ORDER BY bill_date DESC,created_at DESC,id DESC LIMIT 60`, id).map(b => ({...b,...collectionPolicy(b)})),
+    bills: all(`SELECT b.*, (SELECT u.name FROM users u WHERE u.id=b.doctor_id) doctor_name, (SELECT e.encounter_no FROM encounters e WHERE e.id=b.encounter_id) encounter_no,
+      (SELECT group_concat(DISTINCT i.category) FROM bill_items i WHERE i.bill_id=b.id) categories FROM bills b WHERE b.patient_id=? ORDER BY b.bill_date DESC,b.created_at DESC,b.id DESC LIMIT 60`, id).map(b => ({...b,...collectionPolicy(b)})),
     payments: all(`SELECT p.*, u.name AS received_by_name FROM payments p LEFT JOIN users u ON u.id=p.received_by
                     WHERE p.patient_id=? ORDER BY p.pay_date DESC,p.created_at DESC,p.id DESC LIMIT 60`, id),
     orders: all(`SELECT o.*, u.name AS ordered_by_name FROM orders o LEFT JOIN users u ON u.id=o.ordered_by

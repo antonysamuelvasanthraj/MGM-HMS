@@ -62,6 +62,7 @@ export async function mount(ctx) {
   bind(root, 'click', '[data-portal]', () => portalAccess(data.patient));
   bind(root, 'click', '[data-counsel]', async (e, b) => { const { openSession } = await import('./counselling.js'); openSession(+b.dataset.counsel, load); });
   bind(root, 'click', '[data-summary]', (e, b) => openDischargeSummary(+b.dataset.summary, load));
+  bind(root,'click','[data-open-bill]',(_e,b)=>openBill(+b.dataset.openBill,load).catch(apiError));
   bind(root,'click','[data-patient-collect]',(_e,b)=>collectBill(+b.dataset.patientCollect,load));
   bind(root, 'click', '[data-print-bill]', (e,b)=>printBill(+b.dataset.printBill));
   bind(root, 'click', '[data-print-rx]', (e,b)=>printPatientPrescription(id,+b.dataset.printRx));
@@ -216,14 +217,19 @@ const vitals = (d) => T(d.vitals,
 
 const moneyTab = (d) => `
   ${d.access?.financial?card({title:'Pharmacy bills — view only',body:`<p class="text-body-sm mb-2">These bills must be settled at the pharmacy counter.</p>${T(d.pharmacy_bills || [],'<th>Pharmacy bill</th><th>Date</th><th>Status</th><th>Total</th><th>Paid</th><th>Patient due</th><th>Payer outstanding</th>',b=>`<tr><td>${esc(b.bill_no)}</td><td>${fmtDate(b.bill_date)}</td><td>${billStatus(b)}</td><td class="num">${money(b.total,2)}</td><td class="num">${money(b.paid,2)}</td><td class="num text-danger">${money(b.patient_due??b.balance,2)}</td><td class="num">${money((b.payer_pending||0)+(b.payer_receivable||0),2)}</td></tr>`,'No pharmacy bills for this patient')}`}):''}
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  ${(() => { const live = d.bills.filter((b) => b.status !== 'cancelled'), due = (b) => Math.max(0, Number(b.patient_due ?? b.balance) || 0),
+      hosp = live.filter((b) => b.bill_type !== 'PHARM').reduce((t, b) => t + due(b), 0), ph = live.filter((b) => b.bill_type === 'PHARM').reduce((t, b) => t + due(b), 0);
+    return `<div class="rounded-lg px-4 py-2 text-body-lg font-semibold ${hosp + ph > 0.005 ? 'bg-danger-bg text-danger' : 'bg-success-bg text-success'}">Hospital due: ${money(hosp, 2)} &nbsp;·&nbsp; Pharmacy due: ${money(ph, 2)} &nbsp;·&nbsp; Total: ${money(hosp + ph, 2)}</div>`; })()}
+  <div class="grid grid-cols-1 gap-4">
     ${card({ title: 'Bills', actions:canRaiseReceptionBill()?'<button class="btn-primary btn-sm" data-new-patient-bill>Raise new bill</button>':'',pad: false, body: T(d.bills,
-      `<th>Bill</th><th>Type</th><th>Status</th><th class="text-right">Total</th><th class="text-right">Patient due</th><th class="text-right">Payer outstanding</th><th>Action</th>`,
-      (b) => `<tr><td><div class="font-data-mono text-body-sm">${esc(b.bill_no)}</div>
-          <div class="text-label-sm text-on-surface-variant">${fmtDate(b.bill_date)}</div></td>
-        <td>${esc(b.bill_type)}</td><td>${billStatus(b)}</td>
-        <td class="num">${money(b.total)}</td>
-        <td class="num ${b.balance > 0 ? 'text-danger font-semibold' : ''}">${money(b.patient_due??b.balance)}</td><td class="num">${money((b.payer_pending||0)+(b.payer_receivable||0))}</td><td>${can('payment.collect')&&(b.patient_due??b.balance)>0.005&&(b.bill_type!=='PHARM'||can('pharmacy.dispense'))?`<button class="btn-primary btn-xs" data-patient-collect="${b.id}">Collect patient due</button>`:''} <button class="btn-secondary btn-xs" data-print-bill="${b.id}" title="Each bill prints on its own; reprint any time">${b.bill_type==='IP'?'Print IP bill':b.bill_type==='PHARM'?'Print pharmacy bill':'Print OP bill'}</button></td></tr>`,
+      `<th>Doctor</th><th>Visit / file ID</th><th>Invoice number</th><th>Bill date</th><th class="text-right">Discount</th><th class="text-right">Total</th><th class="text-right">Due</th><th>Categories</th><th>Bill status</th><th>Bill type</th><th>Action</th>`,
+      (b) => `<tr><td>${esc(b.doctor_name || '—')}</td><td class="font-data-mono text-body-sm">${esc(b.encounter_no || '—')}</td>
+        <td class="font-data-mono text-body-sm">${esc(b.bill_no)}</td><td>${fmtDate(b.bill_date)}</td>
+        <td class="num">${b.discount > 0 ? money(b.discount, 2) : '0.00'}</td><td class="num">${money(b.total, 2)}</td>
+        <td class="num ${(b.patient_due ?? b.balance) > 0.005 ? 'text-danger font-semibold' : ''}">${money(b.patient_due??b.balance, 2)}</td>
+        <td class="text-body-sm capitalize">${esc(String(b.categories || '').replaceAll(',', ', '))}</td><td>${billStatus(b)}</td>
+        <td><span class="pill-neutral">${b.bill_type === 'IP' ? 'Inpatient' : b.bill_type === 'PHARM' ? 'Pharmacy' : b.bill_type === 'OP' ? 'Outpatient' : esc(b.bill_type)}</span></td>
+        <td class="whitespace-nowrap">${can('payment.collect')&&(b.patient_due??b.balance)>0.005&&(b.bill_type!=='PHARM'||can('pharmacy.dispense'))?`<button class="btn-primary btn-xs" data-patient-collect="${b.id}">Collect</button> `:''}<button class="btn-secondary btn-xs" data-open-bill="${b.id}">Bill details</button> <button class="btn-ghost btn-xs" data-print-bill="${b.id}" title="Print — each bill prints on its own and can be reprinted any time"><span class="material-symbols-outlined text-[15px]">print</span></button></td></tr>`,
       'No bills') })}
     ${card({ title: 'Receipts', pad: false, body: T(d.payments,
       `<th>Receipt</th><th>Mode</th><th class="text-right">Amount</th><th>Received by</th>`,
