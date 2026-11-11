@@ -141,6 +141,7 @@ function layout({workspace=false}={}) {
                   <input class="field text-center" style="width:90px" type="number" min="1" placeholder="Qty" data-newqty aria-label="Quantity">
                   <button type="button" class="btn-primary" data-addline><span class="material-symbols-outlined text-[18px]">add</span> Add line</button>
                 </div>
+                <div class="mt-1.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-body-md" data-linepreview aria-live="polite"><span class="text-on-surface-variant">Unit price, quantity and line total show here as you enter a line.</span></div>
               </div>
               
             </div>
@@ -326,20 +327,28 @@ function wireCounter(root, reload) {
     // the chosen medicine waits in the entry row until a quantity is typed; Enter or Add line puts it in the bill
     pending = { m, batches };
     input.value = m.name; list.classList.add('hidden');
+    preview();
     $('[data-newqty]', root).focus();
   });
   let pending = null;
+  function preview() {
+    const box = $('[data-linepreview]', root);
+    if (!pending) { box.innerHTML = '<span class="text-on-surface-variant">Unit price, quantity and line total show here as you enter a line.</span>'; return; }
+    const batch = pending.batches[0], rate = batch.selling_price ?? batch.mrp, qty = Math.max(0, Math.floor(+$('[data-newqty]', root).value || 0));
+    box.innerHTML = `<span>Unit price <b class="font-data-mono">${money(rate, 2)}</b></span><span>Qty billed <b class="font-data-mono">${qty}</b></span><span>Line total <b class="font-data-mono">${money(qty * rate, 2)}</b></span><span class="text-on-surface-variant">Batch ${esc(batch.batch_no)} · ${batch.qty} in stock</span>`;
+  }
+  $('[data-newqty]', root).addEventListener('input', preview);
   const addLine = () => {
     if (!pending) { toast('Search and pick a medicine first', 'warning'); input.focus(); return; }
     const qty = Math.max(1, Math.floor(+$('[data-newqty]', root).value || 1)), { m, batches } = pending, batch = batches[0];
     cart.push({ medicine_id: m.id, name: m.name, qty, rate: batch.selling_price ?? batch.mrp, batch_id: batch.id,
       batch_no: batch.batch_no, expiry: batch.expiry, stock: batch.qty, batches });
-    pending = null; input.value = ''; $('[data-newqty]', root).value = '';
+    pending = null; input.value = ''; $('[data-newqty]', root).value = ''; preview();
     paintCart(root); input.focus();
   };
   bind(root, 'click', '[data-addline]', addLine);
   $('[data-newqty]', root).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addLine(); } });
-  input.addEventListener('input', () => { pending = null; });
+  input.addEventListener('input', () => { pending = null; preview(); });
 
   // cart interactions
   bind(root, 'input', '[data-qty]', (e, el) => {
