@@ -42,10 +42,12 @@ try {
   step(4, 'Sending to Oracle (data folder untouched)');
   const files = sh('git ls-files client server tools package.json', { quiet: true }).split('\n').filter(Boolean);
   files.push('client/app.css');   // built, not in git
-  const list = path.join(os.tmpdir(), 'ship-files.txt'), tar = path.join(os.tmpdir(), 'ship.tar');
+  // relative paths: a drive letter in the path makes GNU tar think it is a remote host
+  fs.mkdirSync('.ship-tmp', { recursive: true });
+  const list = '.ship-tmp/files.txt', tar = '.ship-tmp/ship.tar';
   fs.writeFileSync(list, files.join('\n'));
-  sh(`tar -cf "${tar}" -T "${list}"`);
-  sh(`scp -q -i "${KEY}" "${tar}" ${HOST}:/tmp/ship.tar`);
+  sh(`tar -cf ${tar} -T ${list}`);
+  sh(`scp -q -i "${KEY}" ${tar} ${HOST}:/tmp/ship.tar`);
   sh(`${SSH} "cd ${APP} && tar -xf /tmp/ship.tar && sudo systemctl restart hms; sleep 3; systemctl is-active hms"`);
 
   step(5, 'Checking Oracle matches this PC, file by file');
