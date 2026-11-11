@@ -1,6 +1,7 @@
 import {openSchemePatientPayment} from '../scheme-patient-pay.js';
 import {printLetterhead} from '../ui.js';
 import {pharmacyInvoice,rupeesInWords} from '../pharmacy-invoice.js';
+import {billPaper} from '../patient-print.js';
 /**
  * Billing & invoice management.
  *
@@ -807,55 +808,7 @@ export async function printBill(id) {
   const s = state.meta.settings;
   // every inpatient bill prints as the itemised stay bill (grouped by department), the same as at discharge
   if(b.admission?.id&&b.bill_type!=='PHARM'){const {printStay}=await import('../patient-print.js');return printStay(b.admission.id,false);}
-  if(b.bill_type==='PHARM')return printDocument(`${b.bill_no} — ${b.patient_name}`,pharmacyInvoice(b));
-  // a line discount gets its own column, so the printed rate − discount = amount adds up
-  const disc = b.items.some((i) => Number(i.discount) > 0);
-  const span = disc ? 6 : 5;
-  printDocument(`${b.bill_no} — ${b.patient_name}`, `
-    <div style="max-width:740px;margin:0 auto;font-family:Inter,Segoe UI,sans-serif;color:#172B4D">
-      ${printLetterhead(b.admission&&b.admission.status!=='discharged'?'IPD RUNNING STATEMENT — PROVISIONAL':'TAX INVOICE',b.bill_no)}
-      ${b.package_usage?`<p style="font-size:11px">Package ${esc(b.package_usage.package.name)} · Agreed price ${money(b.package_usage.price,2)} · Extras ${money(b.package_usage.excess+b.package_usage.excluded,2)} · Estimated package total ${money(b.package_usage.patient_owes,2)}. Covered charges are reconciled at discharge.</p>`:''}
-      <table style="width:100%;font-size:12px;margin-top:10px">
-        <tr><td style="color:#526176;width:80px">Patient</td><td><b>${esc(b.patient_name)}</b> · ${b.age_years ?? ''}y ${esc(b.gender || '')}</td>
-            <td style="color:#526176;width:70px">UHID</td><td style="font-family:monospace">${esc(b.uhid)}</td></tr>
-        <tr><td style="color:#526176">${b.referred_by ? 'Referred by' : 'Doctor'}</td><td>${esc(b.referred_by || b.doctor_name || '—')}${b.rx_note ? `<div style="font-size:10px;color:#526176">${esc(b.rx_note)}</div>` : ''}</td>
-            <td style="color:#526176">Type</td><td>${esc(b.bill_type)}</td></tr><tr><td style="color:#526176">Bill no.</td><td>${esc(b.bill_no)}</td><td style="color:#526176">Date</td><td>${esc(fmtDate(b.bill_date || b.created_at))}</td></tr><tr><td style="color:#526176">Mobile</td><td>${esc(b.mobile || b.patient_mobile || '—')}</td><td style="color:#526176">Payer</td><td>${esc(b.payer_type||'self')}</td></tr><tr><td style="color:#526176">Status</td><td colspan="3"><b>${esc(b.status)}</b></td></tr>
-      </table>
-      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:14px">
-        <thead><tr style="background:#F5F7FA">
-          <th style="text-align:left;padding:7px;border-bottom:1px solid #D8DFE8;width:36px">S.No</th>
-          <th style="text-align:left;padding:7px;border-bottom:1px solid #D8DFE8">Service / particulars</th>
-          <th style="text-align:left;padding:7px;border-bottom:1px solid #D8DFE8;width:80px">Date</th>
-          <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:50px">Qty</th>
-          <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:80px">Rate</th>
-          ${disc ? '<th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:80px">Discount</th>' : ''}
-          <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:90px">Amount</th></tr></thead>
-        <tbody>${b.items.map((i, n) => `<tr>
-          <td style="padding:7px;border-bottom:1px solid #EEF2F7">${n + 1}</td>
-          <td style="padding:7px;border-bottom:1px solid #EEF2F7">${esc(i.description)}${i.batch_id ? `<div style="font-size:10px;color:#526176">${esc(i.generic || '')} · Batch ${esc(i.batch_no || '')} · Exp ${esc(i.expiry || '')}<br>MRP ₹${Number(i.mrp || 0).toFixed(2)} · Selling ₹${Number(i.rate).toFixed(2)} · GST ${Number(i.gst_pct || 0)}% (included) · HSN ${esc(i.hsn || '')}</div>` : ''}${i.visiting_doctor_name ? `<div style="font-size:10px">${esc(i.visiting_doctor_name)} · ${esc(i.visiting_role || '')}</div>` : ''}</td>
-          <td style="padding:7px;border-bottom:1px solid #EEF2F7">${esc(fmtDate(i.created_at || b.bill_date))}</td>
-          <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7">${i.qty}</td>
-          <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.rate).toFixed(2)}</td>
-          ${disc ? `<td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.discount) > 0 ? '− ' + Number(i.discount).toFixed(2) : ''}</td>` : ''}
-          <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.amount).toFixed(2)}</td></tr>`).join('')}
-        </tbody>
-        <tfoot>
-          <tr><td colspan="${span}" style="text-align:right;padding:5px 7px;color:#526176">Gross</td>
-              <td style="text-align:right;padding:5px 7px;font-family:monospace">${Number(b.gross).toFixed(2)}</td></tr>
-          ${b.discount ? `<tr><td colspan="${span}" style="text-align:right;padding:5px 7px;color:#526176">Bill discount${b.discount_reason ? ` (${esc(b.discount_reason)})` : ''}</td>
-              <td style="text-align:right;padding:5px 7px;font-family:monospace">− ${Number(b.discount).toFixed(2)}</td></tr>` : ''}
-          ${b.tax ? `<tr><td colspan="${span}" style="text-align:right;padding:5px 7px;color:#526176">Tax</td>
-              <td style="text-align:right;padding:5px 7px;font-family:monospace">${Number(b.tax).toFixed(2)}</td></tr>` : ''}
-          <tr><td colspan="${span}" style="text-align:right;padding:7px;font-weight:700">Total</td>
-              <td style="text-align:right;padding:7px;font-weight:700;font-family:monospace">${Number(b.total).toFixed(2)}</td></tr>
-          <tr><td colspan="${span}" style="text-align:right;padding:5px 7px;color:#166534">Received</td>
-              <td style="text-align:right;padding:5px 7px;font-family:monospace;color:#166534">${Number(b.paid).toFixed(2)}</td></tr>
-          <tr><td colspan="${span}" style="text-align:right;padding:5px 7px;font-weight:700">Balance</td>
-              <td style="text-align:right;padding:5px 7px;font-weight:700;font-family:monospace">${Number(b.balance).toFixed(2)}</td></tr>
-        </tfoot></table>
-      <p style="margin-top:10px;font-size:12px"><b>Paid amount (Rs.):</b> ${esc(rupeesInWords(b.paid))}</p>
-      <div style="margin-top:36px;display:flex;justify-content:space-between;font-size:11px;color:#526176">
-        ${b.notes ? `<p>${esc(b.notes)}</p>` : ''}
-        <div>Computer generated invoice.</div><div style="text-align:center">_______________________<br>Authorised signatory</div></div>
-    </div>`);
+  if(b.bill_type==='PHARM')return printDocument(`${b.bill_no} — ${b.patient_name}`,pharmacyInvoice(b),{paper:billPaper(b.items.length)});
+  // reception bills: laid out like the discharge bill; small ones on half an A4 sheet, bigger ones on a full page
+  {const {billSheet}=await import('../patient-print.js');return printDocument(`${b.bill_no} — ${b.patient_name}`,billSheet(b),{paper:billPaper(b.items.length)});}
 }
