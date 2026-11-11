@@ -220,7 +220,6 @@ const vitals = (d) => T(d.vitals,
   'No vitals recorded');
 
 const moneyTab = (d) => `
-  ${d.access?.financial?card({title:'Pharmacy bills — view only',body:`<p class="text-body-sm mb-2">These bills must be settled at the pharmacy counter.</p>${T(d.pharmacy_bills || [],'<th>Pharmacy bill</th><th>Date</th><th>Status</th><th>Total</th><th>Paid</th><th>Patient due</th><th>Payer outstanding</th>',b=>`<tr><td>${esc(b.bill_no)}</td><td>${fmtDate(b.bill_date)}</td><td>${billStatus(b)}</td><td class="num">${money(b.total,2)}</td><td class="num">${money(b.paid,2)}</td><td class="num text-danger">${money(b.patient_due??b.balance,2)}</td><td class="num">${money((b.payer_pending||0)+(b.payer_receivable||0),2)}</td></tr>`,'No pharmacy bills for this patient')}`}):''}
   ${(() => { const live = d.bills.filter((b) => b.status !== 'cancelled'), due = (b) => Math.max(0, Number(b.patient_due ?? b.balance) || 0),
       hosp = live.filter((b) => b.bill_type !== 'PHARM').reduce((t, b) => t + due(b), 0), ph = live.filter((b) => b.bill_type === 'PHARM').reduce((t, b) => t + due(b), 0);
     return `<div class="rounded-lg px-4 py-2 text-body-lg font-semibold ${hosp + ph > 0.005 ? 'bg-danger-bg text-danger' : 'bg-success-bg text-success'}">Hospital due: ${money(hosp, 2)} &nbsp;·&nbsp; Pharmacy due: ${money(ph, 2)} &nbsp;·&nbsp; Total: ${money(hosp + ph, 2)}</div>`; })()}
