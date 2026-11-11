@@ -44,3 +44,10 @@ anyone (or anything) editing the code.
 npm run build:css     # required whenever markup or classes change
 npm start
 ```
+
+## Ship everything in one command
+```bash
+npm run ship -- "what changed"            # styles, tests, git push, deploy to Oracle, verify every file
+npm run ship -- "what changed" --no-test  # same, skipping the test suite
+```
+Oracle's data/ folder is never touched. Stops at the first failure.
