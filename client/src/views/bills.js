@@ -1,6 +1,6 @@
 import {openSchemePatientPayment} from '../scheme-patient-pay.js';
 import {printLetterhead} from '../ui.js';
-import {pharmacyInvoice} from '../pharmacy-invoice.js';
+import {pharmacyInvoice,rupeesInWords} from '../pharmacy-invoice.js';
 /**
  * Billing & invoice management.
  *
@@ -130,7 +130,7 @@ function rowHTML(b) {
       ${!b.view_only && (b.patient_due ?? b.balance) > 0 && b.status !== 'cancelled' && can('payment.collect') ? `<button class="btn-primary btn-xs" data-act="collect">${b.payer_pending > 0 ? 'Patient share' : 'Collect'}</button>` : ''}
       ${b.payer_pending > 0 ? '<span class="pill-neutral">Payer pending</span>' : ''}
       ${!b.view_only && b.balance > 0 && !b.payer_pending && b.status !== 'cancelled' && (can('payment.collect') || can('finance.view') || can('admin.view')) ? `<button class="btn-ghost btn-xs" data-remind="${b.id}" title="Send a due reminder">Remind</button>` : ''}
-      ${b.view_only?'<span class="pill-neutral">View only · collect at pharmacy</span>':'<button class="btn-secondary btn-xs" data-act="open">Open</button>'}
+      ${b.view_only?'<span class="pill-neutral">View only · collect at pharmacy</span>':'<button class="btn-secondary btn-xs" data-act="open">Bill details</button>'}
       ${b.view_only?'':'<button class="btn-ghost btn-xs" data-act="print" title="Print"><span class="material-symbols-outlined text-[15px]">print</span></button>'}
     </td>`;
 }
@@ -150,7 +150,7 @@ export async function openBill(id, after) {
       ${b.package_usage?`<div class="card p-3"><b>Package: ${esc(b.package_usage.package.name)}</b><p>Agreed price ${money(b.package_usage.price,2)} · Extras ${money(b.package_usage.excess+b.package_usage.excluded,2)} · Estimated package total ${money(b.package_usage.patient_owes,2)}</p><p class="text-body-sm">The ledger below shows actual charges. Covered charges are adjusted at discharge; collect an agreed deposit during the stay.</p></div>`:''}
       ${b.items.some(i => i.batch_id) && can('reports.pharmacy') ? `<a class="btn-secondary" href="/reports?report=pharmacy_sales_gst_profit&amp;patient=${encodeURIComponent(b.uhid || b.patient_name)}">Pharmacy GST, batch costs & profit report</a>` : ''}
       <section><h3 class="panel-title mb-2">Charges by service</h3><div class="bill-ledger-scroll"><table class="tbl bill-summary"><thead><tr><th>Service / equipment</th><th>Unit</th><th class="num">Net qty</th><th class="num">Rate</th><th class="num">Discount</th><th class="num">Amount</th></tr></thead><tbody>${[...grouped.values()].map(row=>`<tr><td>${esc(row.name)}</td><td>${esc(({day:'Day',hour:'Hour',once:'Visit / item'})[row.unit] || row.unit)}</td><td class="num">${row.qty}</td><td class="num">${money(row.rate,2)}</td><td class="num">${row.discount?money(row.discount,2):'—'}</td><td class="num font-semibold">${money(row.amount,2)}</td></tr>`).join('')}</tbody></table></div></section>
-      <details class="bill-line-details"><summary>Day-wise ledger & line actions (${b.items.length} entries)</summary><div class="bill-ledger-scroll">
+      <details class="bill-line-details" open><summary>Day-wise ledger & line actions (${b.items.length} entries)</summary><div class="bill-ledger-scroll">
       <table class="tbl bill-ledger"><thead><tr><th>Particulars</th><th>Category</th><th class="text-right">Qty</th>
         <th class="text-right">Rate</th><th class="text-right">Discount</th><th class="text-right">Amount</th>
         ${can('billing.create') && b.status !== 'cancelled' ? '<th style="width:44px"></th>' : ''}</tr></thead>
@@ -354,12 +354,16 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
         ${can('insurance.view') ? '<button type="button" class="btn-secondary hidden" data-payer-case>Open Insurance & Payer Cases</button>' : ''}
         <p class="text-body-sm">Packages contain bundled services and are billed at the package price. They are separate from the service tariff.</p>
       </div>
+      <div data-entry class="flex flex-wrap gap-2 items-end">
+        <div class="flex-1 min-w-[240px]"><label class="field-label">Service — search and pick</label><input class="field field-sm" list="nb-service-list" data-svc placeholder="Type a service name (consultation, X-ray, ECG, lab test…)" autocomplete="off"><datalist id="nb-service-list"></datalist></div>
+        <div style="width:80px"><label class="field-label">Qty</label><input class="field field-sm text-center" type="number" min="1" value="1" data-newqty></div>
+        <button type="button" class="btn-primary btn-sm" data-add><span class="material-symbols-outlined text-[15px]">add</span> Add line</button>
+        <div class="w-full text-body-md" data-linepreview aria-live="polite"><span class="text-on-surface-variant">Unit price and line total show here. Added lines list below; change the quantity or discount there.</span></div>
+      </div>
       <div class="border border-outline-variant rounded-lg overflow-hidden" data-services>
         <table class="tbl"><thead><tr><th>Service</th><th style="width:80px">Qty</th>
           <th style="width:110px">Rate</th><th style="width:110px">Service discount (₹)</th><th style="width:110px" class="text-right">Amount</th>
           <th style="width:44px"></th></tr></thead><tbody data-lines></tbody></table>
-        <div class="p-2 border-t border-outline-variant"><button type="button" class="btn-secondary btn-sm" data-add>
-          <span class="material-symbols-outlined text-[15px]">add</span> Add line</button></div>
       </div>
       <div class="flex items-center justify-end gap-4">
         <div><label class="field-label">Overall bill discount (₹)</label><input class="field field-sm" name="overall_discount" type="number" min="0" step="0.01" value="0"></div>
@@ -572,7 +576,7 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
         root.querySelector('[data-save]').textContent=form.bill_type.value==='IP'?'Add charges to IP bill':'Create bill';
         packageDetail();
         if(form.bill_type.value==='IP'){form.collect.checked=false;form.collect.disabled=true;root.querySelector('[data-pay]').classList.add('hidden');}
-        body.replaceChildren(); if (!pkg) addLine(); if (!pkg) total();
+        body.replaceChildren(); if (!pkg) total();
       };
       packageChoices();
 
@@ -619,22 +623,29 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
         syncBillTotalToPayment(t);
       };
 
-      const addLine = () => {
+      const svcInput = root.querySelector('[data-svc]'), qtyInput = root.querySelector('[data-newqty]'), preview = root.querySelector('[data-linepreview]');
+      const fillList = () => { root.querySelector('#nb-service-list').innerHTML = servicesFor(form.bill_type.value).map((s) => `<option value="${esc(s.name)}"></option>`).join(''); };
+      fillList(); form.bill_type.addEventListener('change', fillList);
+      const chosen = () => servicesFor(form.bill_type.value).find((s) => s.name === svcInput.value.trim());
+      const showPreview = () => { const sv = chosen(), q = Math.max(0, +qtyInput.value || 0);
+        preview.innerHTML = sv ? `<span>Unit price <b>${money(sv.price, 2)}</b></span> &nbsp; <span>Qty <b>${q}</b></span> &nbsp; <span>Line total <b>${money(q * sv.price, 2)}</b></span>` : '<span class="text-on-surface-variant">Unit price and line total show here. Added lines list below; change the quantity or discount there.</span>'; };
+      svcInput.addEventListener('input', showPreview); qtyInput.addEventListener('input', showPreview);
+      // a line is added only from the entry row: service + quantity, then it drops into the list below
+      const addLine = (sv = chosen(), qty = Math.max(1, +qtyInput.value || 1)) => {
+        if (!sv) { if (svcInput.value.trim()) toast('Pick the service from the list', 'warning'); svcInput.focus(); return; }
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><select class="field field-sm" data-s><option value="">Select a service…</option>
-            ${servicesFor(form.bill_type.value).map((s) => `<option value="${s.id}" data-p="${s.price}">${esc(s.name)}</option>`).join('')}</select></td>
-          <td><input class="field field-sm text-center" type="number" data-q value="1"></td>
-          <td><input class="field field-sm" type="number" step="0.01" data-r value="0"></td>
+        tr.innerHTML = `<td><span class="font-label-lg">${esc(sv.name)}</span><select class="hidden" data-s><option value="${sv.id}" data-p="${sv.price}" selected>${esc(sv.name)}</option></select></td>
+          <td><input class="field field-sm text-center" type="number" min="1" data-q value="${qty}"></td>
+          <td><input class="field field-sm" type="number" step="0.01" data-r value="${sv.price || 0}"></td>
           <td><input class="field field-sm" type="number" step="0.01" data-d value="0"></td>
           <td class="num" data-a>₹0.00</td>
           <td class="text-right"><button type="button" class="btn-ghost btn-xs" data-rm><span class="material-symbols-outlined text-[15px]">close</span></button></td>`;
-        body.append(tr);
-        tr.querySelector('[data-s]').onchange = (e) => {
-          tr.querySelector('[data-r]').value = e.target.selectedOptions[0].dataset.p || 0; total();
-        };
+        body.append(tr); svcInput.value = ''; qtyInput.value = '1'; showPreview(); total(); svcInput.focus();
       };
+      qtyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addLine(); } });
+      svcInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (chosen()) qtyInput.select(); } });
       form.overall_discount.oninput=()=>form.bill_type.value==='PKG'?packageDetail():total();
-      root.querySelector('[data-add]').onclick = addLine;
+      root.querySelector('[data-add]').onclick = () => addLine();
       body.addEventListener('input', total);
       body.addEventListener('click', (e) => { if (e.target.closest('[data-rm]')) { e.target.closest('tr').remove(); total(); } });
 
@@ -710,7 +721,7 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
       });
 
       form.single_amount.oninput = calcPaymentSummary;
-      addLine();
+      // lines are added from the entry row
 
       root.querySelector('[data-save]').onclick = async (ev) => {
         if (!picked) { toast('Choose the patient', 'warning'); return; }
@@ -799,7 +810,7 @@ export async function printBill(id) {
   if(b.bill_type==='PHARM')return printDocument(`${b.bill_no} — ${b.patient_name}`,pharmacyInvoice(b));
   // a line discount gets its own column, so the printed rate − discount = amount adds up
   const disc = b.items.some((i) => Number(i.discount) > 0);
-  const span = disc ? 4 : 3;
+  const span = disc ? 6 : 5;
   printDocument(`${b.bill_no} — ${b.patient_name}`, `
     <div style="max-width:740px;margin:0 auto;font-family:Inter,Segoe UI,sans-serif;color:#172B4D">
       ${printLetterhead(b.admission&&b.admission.status!=='discharged'?'IPD RUNNING STATEMENT — PROVISIONAL':'TAX INVOICE',b.bill_no)}
@@ -808,17 +819,21 @@ export async function printBill(id) {
         <tr><td style="color:#526176;width:80px">Patient</td><td><b>${esc(b.patient_name)}</b> · ${b.age_years ?? ''}y ${esc(b.gender || '')}</td>
             <td style="color:#526176;width:70px">UHID</td><td style="font-family:monospace">${esc(b.uhid)}</td></tr>
         <tr><td style="color:#526176">${b.referred_by ? 'Referred by' : 'Doctor'}</td><td>${esc(b.referred_by || b.doctor_name || '—')}${b.rx_note ? `<div style="font-size:10px;color:#526176">${esc(b.rx_note)}</div>` : ''}</td>
-            <td style="color:#526176">Type</td><td>${esc(b.bill_type)}</td></tr><tr><td>Payer</td><td>${esc(b.payer_type||'self')}</td><td>Status</td><td>${esc(b.status)}</td></tr>
+            <td style="color:#526176">Type</td><td>${esc(b.bill_type)}</td></tr><tr><td style="color:#526176">Bill no.</td><td>${esc(b.bill_no)}</td><td style="color:#526176">Date</td><td>${esc(fmtDate(b.bill_date || b.created_at))}</td></tr><tr><td style="color:#526176">Mobile</td><td>${esc(b.mobile || b.patient_mobile || '—')}</td><td style="color:#526176">Payer</td><td>${esc(b.payer_type||'self')}</td></tr><tr><td style="color:#526176">Status</td><td colspan="3"><b>${esc(b.status)}</b></td></tr>
       </table>
       <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:14px">
         <thead><tr style="background:#F5F7FA">
-          <th style="text-align:left;padding:7px;border-bottom:1px solid #D8DFE8">Particulars</th>
+          <th style="text-align:left;padding:7px;border-bottom:1px solid #D8DFE8;width:36px">S.No</th>
+          <th style="text-align:left;padding:7px;border-bottom:1px solid #D8DFE8">Service / particulars</th>
+          <th style="text-align:left;padding:7px;border-bottom:1px solid #D8DFE8;width:80px">Date</th>
           <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:50px">Qty</th>
           <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:80px">Rate</th>
           ${disc ? '<th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:80px">Discount</th>' : ''}
           <th style="text-align:right;padding:7px;border-bottom:1px solid #D8DFE8;width:90px">Amount</th></tr></thead>
-        <tbody>${b.items.map((i) => `<tr>
+        <tbody>${b.items.map((i, n) => `<tr>
+          <td style="padding:7px;border-bottom:1px solid #EEF2F7">${n + 1}</td>
           <td style="padding:7px;border-bottom:1px solid #EEF2F7">${esc(i.description)}${i.batch_id ? `<div style="font-size:10px;color:#526176">${esc(i.generic || '')} · Batch ${esc(i.batch_no || '')} · Exp ${esc(i.expiry || '')}<br>MRP ₹${Number(i.mrp || 0).toFixed(2)} · Selling ₹${Number(i.rate).toFixed(2)} · GST ${Number(i.gst_pct || 0)}% (included) · HSN ${esc(i.hsn || '')}</div>` : ''}${i.visiting_doctor_name ? `<div style="font-size:10px">${esc(i.visiting_doctor_name)} · ${esc(i.visiting_role || '')}</div>` : ''}</td>
+          <td style="padding:7px;border-bottom:1px solid #EEF2F7">${esc(fmtDate(i.created_at || b.bill_date))}</td>
           <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7">${i.qty}</td>
           <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.rate).toFixed(2)}</td>
           ${disc ? `<td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.discount) > 0 ? '− ' + Number(i.discount).toFixed(2) : ''}</td>` : ''}
@@ -838,6 +853,7 @@ export async function printBill(id) {
           <tr><td colspan="${span}" style="text-align:right;padding:5px 7px;font-weight:700">Balance</td>
               <td style="text-align:right;padding:5px 7px;font-weight:700;font-family:monospace">${Number(b.balance).toFixed(2)}</td></tr>
         </tfoot></table>
+      <p style="margin-top:10px;font-size:12px"><b>Paid amount (Rs.):</b> ${esc(rupeesInWords(b.paid))}</p>
       <div style="margin-top:36px;display:flex;justify-content:space-between;font-size:11px;color:#526176">
         ${b.notes ? `<p>${esc(b.notes)}</p>` : ''}
         <div>Computer generated invoice.</div><div style="text-align:center">_______________________<br>Authorised signatory</div></div>

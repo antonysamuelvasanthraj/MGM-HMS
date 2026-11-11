@@ -43,14 +43,14 @@ export async function mount(ctx) {
     d.stats.pending=d.rows.length;
     rxCache = d.rows;
     headCount(root, manualRx() ? `${d.stats.sales_today} sales today` : `${d.stats.pending} prescriptions waiting · ${d.stats.sales_today} sales today`);
-    $('[data-kpis]', root).innerHTML = [
+    const strip = $('[data-kpis]', root); strip.className = 'flex flex-wrap gap-2';
+    strip.innerHTML = [
       // manual dispensing has no e-prescription queue to point at
-      manualRx() ? { label: 'Paper prescriptions', value: 'Manual', icon: 'prescriptions', tone: 'info', sub: 'Dispense from the patient’s paper slip' }
-        : { label: 'Prescriptions waiting', value: d.stats.pending, icon: 'prescriptions', tone: d.stats.pending ? 'warning' : 'success', sub: 'From today’s consultations' },
-      { label: 'Sales today', value: d.stats.sales_today, icon: 'point_of_sale', sub: 'Counter bills raised' },
-      { label: 'Revenue today', value: money(d.stats.revenue_today), icon: 'payments', tone: 'success', sub: 'Pharmacy counter' },
-      { label: 'Cart', value: cart.length, icon: 'shopping_cart', tone: 'info', sub: money(cartTotal()) },
-    ].map(kpi).join('');
+      manualRx() ? null : { label: 'Prescriptions waiting', value: d.stats.pending },
+      { label: 'Sales today', value: d.stats.sales_today },
+      { label: 'Revenue today', value: money(d.stats.revenue_today) },
+      { label: 'Cart', value: `${cart.length} · ${money(cartTotal())}` },
+    ].filter(Boolean).map(miniStat).join('');
     if ($('[data-rx]', root)) renderRows($('[data-rx]', root), d.rows, rxRow, { empty: 'No prescriptions waiting to be dispensed.' });
     // opened from the dashboard queue: load that prescription straight into the cart
     if (ctx.query.rx) { $(`[data-rx] tr[data-id="${+ctx.query.rx}"] [data-load-rx]`, root)?.click(); ctx.query.rx = null; }
@@ -451,9 +451,12 @@ function wireCounter(root, reload) {
   return offerSubstitutes;
 }
 
+/** A small figure chip — the pharmacy counter needs the numbers, not big cards. */
+const miniStat = ({ label, value }) => `<div class="inline-flex items-baseline gap-2 px-3 py-1 rounded-lg border border-outline-variant bg-white"><span class="text-label-sm uppercase tracking-wider text-on-surface-variant">${esc(label)}</span><b class="text-body-lg tnum">${value}</b></div>`;
+
 function paintCart(root) {
   const cartCard = $('[data-kpis]', root)?.lastElementChild;
-  if (cartCard) cartCard.outerHTML = kpi({ label: 'Cart', value: cart.length, icon: 'shopping_cart', tone: 'info', sub: money(cartTotal()) });
+  if (cartCard) cartCard.outerHTML = miniStat({ label: 'Cart', value: `${cart.length} · ${money(cartTotal())}` });
   const box = $('[data-cart]', root);
   box.innerHTML = `<table class="tbl w-full"><thead><tr><th>S.No</th><th>Product</th><th>Batch · Expiry</th><th class="num">Unit price</th><th class="num">Stock</th><th class="num" style="width:90px">Qty</th><th class="num">Amount</th><th></th></tr></thead><tbody>${cart.map((i, idx) => `
     <tr data-line="${idx}"><td>${idx + 1}</td><td class="font-label-lg min-w-0">${esc(i.name)}</td>
