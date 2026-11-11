@@ -382,7 +382,7 @@ export function live({ topics = [], events = [], load, interval = 0 }) {
     if (loading) { pending = context; return; }
     loading = true;
     // a background refresh rebuilds the screen: keep the reader exactly where they were
-    const keep = context?.first ? null : [window.scrollX, window.scrollY, ...[...document.querySelectorAll('#view, #view-area, main, [data-panel], .overflow-auto')].map((el) => [el, el.scrollTop, el.scrollLeft])];
+    const keep = context?.first || typeof window === 'undefined' || typeof document === 'undefined' || !document.querySelectorAll ? null : [window.scrollX, window.scrollY, ...[...document.querySelectorAll('#view, #view-area, main, [data-panel], .overflow-auto')].map((el) => [el, el.scrollTop, el.scrollLeft])];
     try { await loadMeta(); if (!disposed) await load(context); }
     catch (e) { if (!disposed) apiError(e, 'Could not refresh this screen'); }
     finally {
