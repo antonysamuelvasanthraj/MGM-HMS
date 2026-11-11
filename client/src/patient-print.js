@@ -9,12 +9,12 @@ const PAYERS=['insurance','aarogyasri','corporate','trust'];
 const HEADS=[['bed','Room & bed'],['consultation','Consultant visits'],['ipd','Nursing & ward services'],['nursing','Nursing & ward services'],['emergency','Emergency care'],['procedure','Procedures & OT'],['ot','Procedures & OT'],['lab','Laboratory'],['imaging','Imaging'],['pharmacy','Pharmacy'],['consumable','Consumables'],['package','Package']];
 const headOf=(cat)=>(HEADS.find(([k])=>k===cat)||[null,'Other charges'])[1];
 /** Small bills print on half an A4 sheet (cut in two); bigger ones take the whole page. */
-export const billPaper = (lines) => (lines <= 5 ? 'A5 landscape' : 'A4');
+export const billPaper = (lines) => (lines <= 3 ? 'A5 landscape' : 'A4');
 const wordsOf = (n) => { const o=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],t=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'],two=(x)=>x<20?o[x]:t[Math.floor(x/10)]+(x%10?' '+o[x%10]:''),three=(x)=>(x>=100?o[Math.floor(x/100)]+' Hundred'+(x%100?' and ':''):'')+(x%100?two(x%100):''),v=Math.round(Math.abs(+n||0)*100),r=Math.floor(v/100),p=v%100,parts=[[Math.floor(r/10000000),'Crore'],[Math.floor(r/100000)%100,'Lakh'],[Math.floor(r/1000)%100,'Thousand']].filter(([k])=>k).map(([k,u])=>two(k)+' '+u);if(r%1000)parts.push(three(r%1000));return `${parts.join(' ')||'Zero'}${p?` and ${two(p)} Paise`:''} only`; };
 /** One bill laid out like the discharge bill: patient strip, services grouped by department, totals, amount in words. */
 export function billSheet(b){
  const items=(b.items||[]).filter(i=>Number(i.amount)!==0||!i.waiver_of);
- const groups=[...new Set(items.map(i=>headOf(i.category)))],small=items.length<=5,many=groups.length>1&&!small;
+ const groups=[...new Set(items.map(i=>headOf(i.category)))],small=items.length<=3,many=groups.length>1&&!small;
  const day=(v)=>esc(String(v||b.bill_date||'').slice(0,10).split('-').reverse().join('-'));
  const row=(l,v,st='')=>`<tr${st?` style="${st}"`:''}><td>${l}</td><td style="text-align:right">${v}</td></tr>`;
  return `${printStyle}<table style="width:100%;border-collapse:collapse;margin:6px 0"><tr><td><b>Patient:</b> ${esc(b.patient_name)}</td><td><b>Age / Gender:</b> ${esc(b.age_years??'')} / ${esc(b.gender||'')}</td><td><b>Bill no:</b> ${esc(b.bill_no)}</td></tr>
