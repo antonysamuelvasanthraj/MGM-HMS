@@ -381,9 +381,12 @@ export function live({ topics = [], events = [], load, interval = 0 }) {
       }
     if (loading) { pending = context; return; }
     loading = true;
+    // a background refresh rebuilds the screen: keep the reader exactly where they were
+    const keep = context?.first ? null : [window.scrollX, window.scrollY, ...[...document.querySelectorAll('#view, #view-area, main, [data-panel], .overflow-auto')].map((el) => [el, el.scrollTop, el.scrollLeft])];
     try { await loadMeta(); if (!disposed) await load(context); }
     catch (e) { if (!disposed) apiError(e, 'Could not refresh this screen'); }
     finally {
+      if (keep) { const [x, y, ...els] = keep, back = () => { window.scrollTo(x, y); for (const [el, top, left] of els) if (el.isConnected && (el.scrollTop !== top || el.scrollLeft !== left)) { el.scrollTop = top; el.scrollLeft = left; } }; back(); requestAnimationFrame(() => { back(); requestAnimationFrame(back); }); }
       loading = false;
       if (pending && !disposed) { const next = pending; pending = null; refresh(next); }
     }
