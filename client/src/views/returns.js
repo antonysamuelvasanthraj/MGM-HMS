@@ -122,7 +122,7 @@ async function purchaseReturn(after) {
         if(!matches.length)select.add(new Option('No matching batches',''));
         select.disabled=!matches.length;
         el.querySelector('[data-save]').disabled=!matches.length;
-        el.querySelector('[data-batch-count]').textContent=`${matches.length} of ${options.length} batches`;
+        el.querySelector('[data-batch-count]').textContent=options.length?`${matches.length} of ${options.length} batches`:'No stock is held in the Central store right now. Stock that was already moved to the pharmacy or another location must be transferred back to Central first, then returned here.';
       };
       el.querySelector('[data-batch-search]').addEventListener('input',filter);
       filter();
