@@ -122,6 +122,23 @@ app.get('/api/app-revision', (_req, res) => {
  * Health for uptime monitors and the demo tunnel. Says which part failed — application, database or
  * file storage — without paths, URLs or secrets. 200 when healthy, 503 otherwise.
  */
+// Which build of the screens is on the server: the newest file time under client/. Open tabs compare it and offer a reload.
+let versionCache = { at: 0, v: '' };
+function newestClientFile(dir) {
+  let newest = 0;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) { if (entry.name !== 'assets') newest = Math.max(newest, newestClientFile(full)); }
+    else if (/\.(js|html|css)$/.test(entry.name)) newest = Math.max(newest, fs.statSync(full).mtimeMs);
+  }
+  return newest;
+}
+app.get('/api/app-version', (req, res) => {
+  if (Date.now() - versionCache.at > 5000) versionCache = { at: Date.now(), v: String(Math.round(newestClientFile(CLIENT))) };
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({ v: versionCache.v });
+});
 app.get('/api/health', (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   let database = 'connected', storage = 'writable';

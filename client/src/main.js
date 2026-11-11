@@ -307,6 +307,22 @@ function initTopbar() {
     }
   }
 
+  /* --- new version bar: tabs left open learn when the screens were updated on the server --- */
+  {
+    let seen = null;
+    const check = async () => {
+      try {
+        const { v } = await (await fetch('/api/app-version', { cache: 'no-store' })).json();
+        if (seen === null) { seen = v; return; }
+        if (v !== seen && !document.getElementById('update-bar')) {
+          document.body.insertAdjacentHTML('afterbegin', '<div id="update-bar" role="status" style="position:fixed;z-index:200;left:0;right:0;top:0;display:flex;gap:12px;justify-content:center;align-items:center;padding:8px;background:#0b3d6b;color:#fff;font-size:14px">A new version of MGM HMS is ready. <button id="update-reload" style="background:#fff;color:#0b3d6b;border:0;border-radius:6px;padding:4px 12px;font-weight:600;cursor:pointer">Reload now</button></div>');
+          document.getElementById('update-reload').onclick = () => location.reload();
+        }
+      } catch { /* offline: try again later */ }
+    };
+    check(); setInterval(check, 60000); window.addEventListener('focus', check);
+  }
+
   /* --- sync chip --- */
   $('#sync-chip').onclick = () => navigate('/local-sync');
   $('#conn-chip').onclick = () => toast(`${document.getElementById('conn-text').textContent} — screens update by themselves while this is green.`, 'info');
