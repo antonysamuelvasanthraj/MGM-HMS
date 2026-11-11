@@ -16,6 +16,7 @@
     "reset": "node server/reset.js",
     "prestart": "node tools/ensure-css.mjs",
     "predev": "node tools/ensure-css.mjs",
+    "ship": "node tools/ship.mjs",
     "test": "node tools/realtime-client-test.mjs && node tools/smoke-test.mjs && node tools/integration-regression-test.mjs && node tools/report-qr-test.mjs && node tools/api-contract-check.mjs && node tools/closing-reports-test.mjs && node tools/acceptance-gaps-test.mjs",
     "test:local-server": "node tools/local-server-test.mjs",
     "test:integration-regressions": "node tools/integration-regression-test.mjs",
