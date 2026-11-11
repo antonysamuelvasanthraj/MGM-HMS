@@ -59,6 +59,7 @@ async function newTransfer(after) {
     title: 'New stock transfer', size: 'lg', subtitle: 'Quantities are in dispensing units (tablets, ml, vials…).',
     body: `<div class="grid grid-cols-2 gap-3 mb-3"><div><label class="field-label">From</label><select class="field" data-src>${LOCS.map((l) => `<option ${l === 'Central' ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       <div><label class="field-label">To</label><select class="field" data-dst>${LOCS.filter((l) => l !== 'Central').map((l) => `<option>${l}</option>`).join('')}</select></div></div>
+      <p class="text-body-sm text-on-surface-variant -mt-1 mb-3">To send stock back to a supplier, first transfer it from its store to Central, then use Return to supplier.</p>
       <div class="space-y-2" data-lines>${line()}</div><button type="button" class="btn-ghost btn-sm mt-2" data-add>Add medicine</button>
       <label class="field-label mt-3">Reason / notes</label><input class="field" data-reason placeholder="e.g. weekly ward top-up">`,
     footer: '<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Request transfer</button>',
@@ -75,7 +76,9 @@ async function newTransfer(after) {
       };
       el.querySelector('[data-add]').onclick = () => { host.insertAdjacentHTML('beforeend', line()); avail(); };
       host.onchange = avail;
-      el.querySelector('[data-src]').onchange = avail;
+      const dst = el.querySelector('[data-dst]');
+      const fillDst = () => { const src = el.querySelector('[data-src]').value, keep = dst.value; dst.innerHTML = LOCS.filter((l) => l !== src).map((l) => `<option ${l === keep ? 'selected' : ''}>${l}</option>`).join(''); };
+      el.querySelector('[data-src]').onchange = () => { fillDst(); avail(); };
       host.onclick = (e) => { if (e.target.closest('[data-rm]') && host.children.length > 1) e.target.closest('[data-l]').remove(); };
       avail();
       el.querySelector('[data-save]').onclick = async (e) => {
