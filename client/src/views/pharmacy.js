@@ -129,13 +129,17 @@ function layout({workspace=false}={}) {
       <div class="grid grid-cols-1 gap-3 items-start">
         <div class="space-y-4">
           ${card({
-            title: 'New pharmacy bill', subtitle: '1. Choose today’s patient → 2. Add medicines → 3. Collect and dispense',
-            body: `<div class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-3"><div><label class="field-label">1 · Patient</label><div data-picker></div><button type="button" class="btn-ghost btn-xs mt-1" data-quick-reg><span class="material-symbols-outlined text-[15px]">person_add</span> New patient</button></div>
+            title: 'Create sales order', subtitle: 'Customer and doctor, then the medicines, then payment.',
+            body: `<div class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-3"><div><label class="field-label">Customer *</label><div data-picker></div><button type="button" class="btn-ghost btn-xs mt-1" data-quick-reg><span class="material-symbols-outlined text-[15px]">person_add</span> New patient</button></div>
               <div>
-                <label class="field-label">2 · Add medicine</label>
-                <div class="relative">
-                  <input class="field" data-msearch placeholder="Name, generic, code or HSN — at least 2 characters" autocomplete="off">
-                  <div class="hidden absolute left-0 right-0 top-11 z-30 card shadow-md max-h-80 overflow-y-auto" data-mlist></div>
+                <label class="field-label">Order items — add medicine</label>
+                <div class="flex gap-2 items-start">
+                  <div class="relative flex-1">
+                    <input class="field" data-msearch placeholder="Search medicine (name, generic, code or HSN) — pick it, then enter the quantity" autocomplete="off">
+                    <div class="hidden absolute left-0 right-0 top-11 z-30 card shadow-md max-h-80 overflow-y-auto" data-mlist></div>
+                  </div>
+                  <input class="field text-center" style="width:90px" type="number" min="1" placeholder="Qty" data-newqty aria-label="Quantity">
+                  <button type="button" class="btn-primary" data-addline><span class="material-symbols-outlined text-[18px]">add</span> Add line</button>
                 </div>
               </div>
               
@@ -164,6 +168,7 @@ function layout({workspace=false}={}) {
             <div class="flex items-center justify-between pt-2 border-t border-outline-variant">
               <span class="font-title-md text-title-md">Bill value</span>
               <span class="font-headline-lg text-headline-lg text-primary" data-total>₹0</span></div>
+            <h3 class="panel-title pt-1">Payment details</h3>
             <div class="grid grid-cols-3 gap-2 pt-1" data-modes>
               ${[['cash', 'Cash', 'payments'], ['upi', 'UPI', 'qr_code_2'], ['card', 'Card', 'credit_card']]
                 .map(([v, l, i], idx) => `<button type="button" data-v="${v}"
@@ -318,12 +323,23 @@ function wireCounter(root, reload) {
     const batches = await api.get(`/pharmacy/batches?medicine_id=${b.dataset.m}&location=${store()}`);
     if (!batches.length) { toast(`No sellable batch in the ${store()} store`, 'warning'); return; }
     const m = await api.get(`/pharmacy/medicines/${b.dataset.m}`);
-    const batch = batches[0];
-    cart.push({ medicine_id: m.id, name: m.name, qty: 1, rate: batch.selling_price ?? batch.mrp, batch_id: batch.id,
-      batch_no: batch.batch_no, expiry: batch.expiry, stock: batch.qty, batches });
-    input.value = ''; list.classList.add('hidden');
-    paintCart(root); input.focus();
+    // the chosen medicine waits in the entry row until a quantity is typed; Enter or Add line puts it in the bill
+    pending = { m, batches };
+    input.value = m.name; list.classList.add('hidden');
+    $('[data-newqty]', root).focus();
   });
+  let pending = null;
+  const addLine = () => {
+    if (!pending) { toast('Search and pick a medicine first', 'warning'); input.focus(); return; }
+    const qty = Math.max(1, Math.floor(+$('[data-newqty]', root).value || 1)), { m, batches } = pending, batch = batches[0];
+    cart.push({ medicine_id: m.id, name: m.name, qty, rate: batch.selling_price ?? batch.mrp, batch_id: batch.id,
+      batch_no: batch.batch_no, expiry: batch.expiry, stock: batch.qty, batches });
+    pending = null; input.value = ''; $('[data-newqty]', root).value = '';
+    paintCart(root); input.focus();
+  };
+  bind(root, 'click', '[data-addline]', addLine);
+  $('[data-newqty]', root).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addLine(); } });
+  input.addEventListener('input', () => { pending = null; });
 
   // cart interactions
   bind(root, 'input', '[data-qty]', (e, el) => {
@@ -430,7 +446,7 @@ function paintCart(root) {
   const cartCard = $('[data-kpis]', root)?.lastElementChild;
   if (cartCard) cartCard.outerHTML = kpi({ label: 'Cart', value: cart.length, icon: 'shopping_cart', tone: 'info', sub: money(cartTotal()) });
   const box = $('[data-cart]', root);
-  box.innerHTML = cart.length ? `<table class="tbl w-full"><thead><tr><th>S.No</th><th>Product</th><th>Batch · Expiry</th><th class="num">Unit price</th><th class="num">Stock</th><th class="num" style="width:90px">Qty</th><th class="num">Amount</th><th></th></tr></thead><tbody>${cart.map((i, idx) => `
+  box.innerHTML = `<table class="tbl w-full"><thead><tr><th>S.No</th><th>Product</th><th>Batch · Expiry</th><th class="num">Unit price</th><th class="num">Stock</th><th class="num" style="width:90px">Qty</th><th class="num">Amount</th><th></th></tr></thead><tbody>${cart.map((i, idx) => `
     <tr data-line="${idx}"><td>${idx + 1}</td><td class="font-label-lg min-w-0">${esc(i.name)}</td>
       <td>${i.batches?.length > 1
           ? `<select class="field field-sm" data-batch>${i.batches.map((b) => `<option value="${b.id}" ${b.id === i.batch_id ? 'selected' : ''}>${esc(b.batch_no)} · exp ${fmtDate(b.expiry)} · ${b.qty} left</option>`).join('')}</select>`
@@ -438,10 +454,7 @@ function paintCart(root) {
       <td class="num">${money(i.rate, 2)}</td><td class="num">${i.stock ?? '—'}</td>
       <td class="num"><input class="field field-sm text-center" type="number" min="1" value="${i.qty}" data-qty></td>
       <td class="num font-data-mono" data-amt>${money(i.qty * i.rate, 2)}</td>
-      <td><button class="btn-ghost btn-xs" data-rm aria-label="Remove"><span class="material-symbols-outlined text-[15px]">close</span></button></td></tr>`).join('')}</tbody></table>`
-    : `<div class="p-6 text-center text-body-md text-on-surface-variant">
-        <span class="material-symbols-outlined text-[30px] opacity-40 block mb-1">shopping_cart</span>
-        Scan or search a medicine, or load a prescription.</div>`;
+      <td><button class="btn-ghost btn-xs" data-rm aria-label="Remove"><span class="material-symbols-outlined text-[15px]">close</span></button></td></tr>`).join('') || '<tr><td colspan="8" class="text-center py-8 text-on-surface-variant">No items yet — search a medicine above, or load a prescription.</td></tr>'}</tbody></table>`;
   paintTotals(root);
 }
 
