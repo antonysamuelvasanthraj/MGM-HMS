@@ -51,7 +51,8 @@ try {
   sh(`${SSH} "cd ${APP} && tar -xf /tmp/ship.tar && sudo systemctl restart hms; sleep 3; systemctl is-active hms"`);
 
   step(5, 'Checking Oracle matches this PC, file by file');
-  const remote = sh(`${SSH} "cd ${APP} && md5sum ${files.map((f) => `'${f}'`).join(' ')}"`, { quiet: true });
+  // the file list goes in through stdin: a few hundred names do not fit on one command line
+  const remote = sh(`${SSH} "cd ${APP} && xargs -d '\\n' md5sum"`, { quiet: true, input: files.join('\n') });
   const theirs = new Map(remote.split('\n').filter(Boolean).map((l) => { const m = l.match(/^([0-9a-f]{32})\s+\*?(.+)$/); return m ? [m[2], m[1]] : null; }).filter(Boolean));
   const bad = files.filter((f) => theirs.get(f) !== md5(f));
   if (bad.length) throw new Error(`Not identical on Oracle: ${bad.slice(0, 10).join(', ')}`);
