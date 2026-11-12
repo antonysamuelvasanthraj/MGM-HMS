@@ -254,7 +254,7 @@ export async function openAdmission(id, after) {
         if (PAYER_LABEL[a.financial_category]) return `<button class="btn-primary" data-pay title="Deposit, co-pay or items the payer does not cover">Collect deposit / co-pay</button>`;
         return `<button class="btn-primary" data-pay title="Deposit or dues on the IP bill">${ipDue > 0 ? `Collect on IP bill (${money(ipDue)})` : 'Take deposit'}</button>`;
       })() : ''}
-      ${can('ipd.discharge') ? `<button class="btn-primary" data-discharge>Start discharge</button>` : ''}`,
+      ${can('ipd.discharge') ? `<button class="btn-secondary" data-discharge>Start discharge</button><button class="btn-primary" data-discharge-now title="Checks dues and the doctor's clearance, then discharges and frees the bed">Discharge now</button>` : ''}`,
     onMount(root, close) {
       root.addEventListener('click', async (e) => {
         const give = e.target.closest('[data-give]');
@@ -297,6 +297,11 @@ export async function openAdmission(id, after) {
         try { const enc = await api.get(`/encounters/${a.encounter_id}`); const { openOrderDialog } = await import('./consultation.js'); openOrderDialog(enc, after); } catch (err) { apiError(err); }
       });
       root.querySelector('[data-convert-payer]')?.addEventListener('click', () => { close(); openPayerChange(a.encounter_id, after); });
+      root.querySelector('[data-discharge-now]')?.addEventListener('click', async () => {
+        const { doDischarge } = await import('./discharge.js');
+        try { await doDischarge({ id: a.id, patient_name: a.patient_name, financial_category: a.financial_category, ip_no: a.ip_no }, () => { after?.(); }); close(); }
+        catch (err) { if (!err?.handled) apiError(err, 'Could not discharge'); }
+      });
       root.querySelector('[data-discharge]')?.addEventListener('click', async () => {
         await api.patch(`/ipd/admissions/${a.id}`, { status: 'discharge_initiated' });
         close(); toast('Discharge started — see the discharge board', 'success'); navigate('/discharge');

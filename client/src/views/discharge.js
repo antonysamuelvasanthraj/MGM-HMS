@@ -187,7 +187,7 @@ async function postDischarge(row, body) {
   }
 }
 
-async function doDischarge(row, after) {
+export async function doDischarge(row, after) {
   const full = await api.get(`/ipd/admissions/${row.id}`);
   // payer stays: the approved case pays at discharge (the server bills it); only an unapproved case holds the patient
   if (PAYER_CATS.includes(row.financial_category)) {
