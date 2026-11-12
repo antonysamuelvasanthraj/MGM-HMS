@@ -309,9 +309,17 @@ export async function showPendingDues(patient) {
   const total = rows.reduce((t, b) => t + (b.patient_due ?? b.balance), 0);
   modal({
     title: `Pending bills — ${esc(patient.name)}`, subtitle: `${rows.length} open bill${rows.length > 1 ? 's' : ''} · ₹${Math.round(total).toLocaleString('en-IN')} due`, size: 'md', stack: true,
-    body: `<table class="tbl"><thead><tr><th>Bill</th><th>Date</th><th>Type</th><th class="num">Due</th></tr></thead><tbody>${rows.map((b) => `<tr><td class="font-data-mono">${esc(b.bill_no)}</td><td>${esc(b.bill_date || '')}</td><td>${esc(b.bill_type)}</td><td class="num font-semibold text-danger">₹${Math.round(b.patient_due ?? b.balance).toLocaleString('en-IN')}</td></tr>`).join('')}</tbody></table>
-      <p class="text-body-sm text-on-surface-variant mt-2">Collect these on the bill itself (Bills screen). Pharmacy bills are collected at the pharmacy desk.</p>`,
+    body: `<table class="tbl"><thead><tr><th>Bill</th><th>Date</th><th>Type</th><th class="num">Due</th><th></th></tr></thead><tbody>${rows.map((b) => `<tr><td class="font-data-mono">${esc(b.bill_no)}</td><td>${esc(b.bill_date || '')}</td><td>${esc(b.bill_type)}</td><td class="num font-semibold text-danger">₹${Math.round(b.patient_due ?? b.balance).toLocaleString('en-IN')}</td>
+        <td class="text-right whitespace-nowrap">${can('payment.collect') && (b.bill_type !== 'PHARM' || can('pharmacy.dispense')) ? `<button class="btn-primary btn-xs" data-pd-collect="${b.id}">Collect</button> ` : ''}<a class="btn-secondary btn-xs" href="/bill/${b.id}" data-close>Bill details</a></td></tr>`).join('')}</tbody></table>
+      <p class="text-body-sm text-on-surface-variant mt-2">Collect any of these here, one bill at a time — a patient can clear some now and the rest later.${can('pharmacy.dispense') ? '' : ' Pharmacy bills are collected at the pharmacy desk.'}</p>`,
     footer: '<button class="btn-secondary" data-close>Close</button>',
+    onMount(el, close) {
+      el.querySelectorAll('[data-pd-collect]').forEach((btn) => btn.addEventListener('click', async () => {
+        const { collectBill } = await import('../collect.js');
+        close();
+        await collectBill(+btn.dataset.pdCollect, () => showPendingDues(patient));   // reopen with what is still due
+      }));
+    },
   });
 }
 export function patientPicker(container, onPick, { placeholder = 'Search UHID, name or mobile…', autofocus = false, todayOnly = false } = {}) {
