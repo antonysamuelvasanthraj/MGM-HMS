@@ -8,7 +8,8 @@ const TYPE = { IP: 'Inpatient', PHARM: 'Pharmacy', OP: 'Outpatient', LAB: 'Lab',
 
 export async function mount(ctx) {
   const id = +ctx.params[0];
-  if (!id) { mountPage(ctx, emptyState('receipt_long', 'No patient selected', 'Open a patient record and choose Bills & receipts.')); return; }
+  // no patient in the address: go to Patient Record, where a patient can be searched
+  if (!id) { mountPage(ctx, emptyState('receipt_long', 'Choose a patient', 'Opening Patient Record…')); queueMicrotask(() => navigate('/patient-record')); return; }
   const root = mountPage(ctx, '<div class="p-6 text-on-surface-variant">Loading bills…</div>');
   let d, lastSig = '';
   async function load() {

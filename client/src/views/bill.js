@@ -7,7 +7,8 @@ import { printReceipt } from './op-registration.js';
 
 export async function mount(ctx) {
   const id = +ctx.params[0];
-  if (!id) { mountPage(ctx, emptyState('receipt_long', 'No bill selected', 'Open a bill from the patient record or the bills list.')); return; }
+  // no bill number in the address: show the bills list, where a bill can be chosen
+  if (!id) { mountPage(ctx, emptyState('receipt_long', 'Choose a bill', 'Opening the bills list…')); queueMicrotask(() => navigate('/bills')); return; }
   const root = mountPage(ctx, '<div class="p-6 text-on-surface-variant">Loading bill…</div>');
   let b, lastSig = '';
   async function load() {
