@@ -51,7 +51,7 @@ function worklist(category, req) {
       WHERE ${extra.join(' AND ')}
       ORDER BY o.priority='stat' DESC, o.priority='urgent' DESC, o.id DESC LIMIT 400`, ...args);
   for (const r of rows) {
-    r.can_sign = category === 'imaging' && req.user.role === 'imaging_admin';
+    r.can_sign = category === 'imaging' && can(req.user, 'imaging.report');   // anyone who reports can Save: no separate sign-off
     r.tat_breached = r.tat_minutes && r.age_minutes > r.tat_minutes && !['verified'].includes(r.status);
     // What lets this order proceed — shown to the lab next to the status.
     r.clearance = r.encounter_kind === 'EMG' ? 'emergency' : r.encounter_kind === 'IP' ? 'ip_bill'
@@ -312,7 +312,7 @@ diagnostics.get('/imaging/orders/:id', requirePerm('imaging.view'), h((req) => {
   o.report_history = o.report ? all(`SELECT v.*, sg.name signed_by_name, su.name superseded_by_name
     FROM report_versions v LEFT JOIN users sg ON sg.id=v.signed_by LEFT JOIN users su ON su.id=v.superseded_by
     WHERE v.report_id=? ORDER BY v.version_no DESC`, o.report.id) : [];
-  o.can_sign = req.user.role === 'imaging_admin';
+  o.can_sign = can(req.user, 'imaging.report');
   o.patient = patientCard(o.patient_id);
   o.templates = all("SELECT * FROM templates WHERE kind IN ('usg','imaging') ORDER BY name");
   // report header and footer only — never gateway keys
@@ -333,7 +333,7 @@ diagnostics.post('/imaging/orders/:id/report', requirePerm('imaging.report'), h(
   if (o.category !== 'imaging') fail(409, 'imaging_order_required');
   const b = req.body || {};
   const sign = b.status === 'final';
-  if (sign && req.user.role !== 'imaging_admin') fail(403, 'radiologist_sign_required');
+  // Save is one step: the saved report is the released report (no draft, no second signature)
   return tx(() => {
     const rep = get('SELECT * FROM reports WHERE order_id=? ORDER BY id DESC LIMIT 1', id);
     const signed = ['final', 'amended'].includes(rep?.status);

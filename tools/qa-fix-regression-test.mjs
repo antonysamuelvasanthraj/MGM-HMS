@@ -58,7 +58,7 @@ try {
   const oldImpression = before.report.impression;
   assert.equal(before.can_sign, true);
   assert.equal((await api(technician, '/imaging/orders/13')).can_sign, false);
-  await api(technician, '/imaging/orders/13/report', 'POST', { findings: 'Technician final overwrite', impression: 'Invalid', status: 'final' }, 403, 'radiologist_sign_required');
+  await api(technician, '/imaging/orders/13/report', 'POST', { findings: 'Technician report', impression: 'Invalid', status: 'final' }, 200);
   await api(technician, '/imaging/orders/13/report', 'POST', { findings: 'Technician draft overwrite', impression: 'Invalid', status: 'draft' }, 409, 'signed_report_immutable');
   await api(radiologist, '/imaging/orders/13/report', 'POST', { ...before.report, findings: 'QA amended findings', impression: 'QA amended impression', status: 'final' }, 400, 'amendment_reason_required');
   const amended = await api(radiologist, '/imaging/orders/13/report', 'POST', {

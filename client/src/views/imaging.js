@@ -24,7 +24,7 @@ export async function mount(ctx) {
     $('[data-kpis]', root).innerHTML = [
       { label: 'Open studies', value: rows.filter(r => !['verified', 'cancelled'].includes(r.status)).length, icon: 'radiology', sub: `${counts.awaiting_payment} awaiting payment` },
       { label: 'Awaiting report', value: counts.in_progress + counts.ordered + counts.scheduled, icon: 'schedule', tone: 'info', sub: 'Acquired or booked' },
-      { label: 'Draft reports', value: counts.reported, icon: 'edit_document', tone: counts.reported ? 'warning' : 'success', sub: 'Need radiologist sign-off' },
+      { label: 'Draft reports', value: counts.reported, icon: 'edit_document', tone: counts.reported ? 'warning' : 'success', sub: 'Saved earlier as drafts — open and Save' },
       { label: 'Signed today', value: counts.verified, icon: 'verified', tone: 'success', sub: 'Released to the doctor' },
     ].map(kpi).join('');
     $('[data-modalities]', root).innerHTML = modalities.length
@@ -100,8 +100,8 @@ function rowHTML(r) {
     <td class="text-right whitespace-nowrap">
       ${r.status === 'ordered' && can('imaging.schedule') ? `<button class="btn-secondary btn-xs" data-act="schedule">Schedule</button>` : ''}
       ${['ordered', 'scheduled'].includes(r.status) && can('order.update') ? `<button class="btn-secondary btn-xs" data-act="start">Scan room</button>` : ''}
-      ${['in_progress', 'scheduled', 'reported'].includes(r.status) && can('imaging.report') ? `<button class="btn-primary btn-xs" data-act="report">${r.status === 'reported' ? (r.can_sign ? 'Edit / sign' : 'Edit draft') : 'Report'}</button>` : ''}
-      ${r.status === 'verified' ? `<button class="btn-secondary btn-xs" data-act="print">Report</button>${r.can_sign ? '<button class="btn-primary btn-xs" data-act="report">Amend</button>' : ''}` : ''}
+      ${['in_progress', 'scheduled', 'reported'].includes(r.status) && can('imaging.report') ? `<button class="btn-primary btn-xs" data-act="report">${r.status === 'reported' ? 'Edit / Save' : 'Report'}</button>` : ''}
+      ${r.status === 'verified' ? `<button class="btn-secondary btn-xs" data-act="print">Report</button>${can('imaging.report') ? '<button class="btn-primary btn-xs" data-act="report">Amend</button>' : ''}` : ''}
     </td>`;
 }
 
@@ -162,8 +162,7 @@ export function openReport(orderId, after) {
         ${o.report_history?.length ? `<details class="mt-4"><summary class="cursor-pointer font-label-lg">Earlier signed versions (${o.report_history.length})</summary><div class="mt-2 space-y-2">${o.report_history.map((v) => `<div class="rounded-lg border border-outline-variant p-3 text-body-md"><b>Version ${v.version_no} · Superseded</b><div>Signed by ${esc(v.signed_by_name || '—')} · ${esc(v.signed_at || '—')}</div>${v.amendment_reason ? `<div>Amendment reason: ${esc(v.amendment_reason)}</div>` : ''}<div class="mt-2 whitespace-pre-wrap">${esc(v.findings || '')}</div><div class="mt-1"><b>Impression:</b> ${esc(v.impression || '')}</div></div>`).join('')}</div></details>` : ''}
         <div class="mt-4 pt-3 border-t border-outline-variant" data-attach></div>`,
       footer: `<button class="btn-secondary" data-close>Close</button>
-               ${editable ? '<button class="btn-secondary" data-draft>Save draft</button>' : ''}
-               ${(editable && o.can_sign) || amending ? `<button class="btn-primary" data-sign><span class="material-symbols-outlined text-[16px]">draw</span> ${amending ? 'Save amendment' : 'Sign & release'}</button>` : ''}`,
+               ${editable || amending ? `<button class="btn-primary" data-sign><span class="material-symbols-outlined text-[16px]">save</span> ${amending ? 'Save amendment' : 'Save report'}</button>` : ''}`,
       onMount(root, close) {
         if (!editable && !amending) root.querySelectorAll('[data-rf] input,[data-rf] textarea,[data-tpl]').forEach((el) => { el.disabled = true; });
         mountAttachments(root.querySelector('[data-attach]'), 'order', orderId, { canEdit: editable });
@@ -180,7 +179,7 @@ export function openReport(orderId, after) {
           busy(btn, true, 'Saving');
           try {
             await api.post(`/imaging/orders/${orderId}/report`, { ...body, status });
-            close(); toast(status === 'final' ? (amending ? 'Amendment saved with earlier version retained' : 'Report signed and released') : 'Draft saved', 'success'); after?.();
+            close(); toast(status === 'final' ? (amending ? 'Amendment saved with earlier version retained' : 'Report saved') : 'Report saved', 'success'); after?.();
           } catch (e) { apiError(e, 'Could not save the report'); busy(btn, false); }
         };
         root.querySelector('[data-draft]')?.addEventListener('click', (e) => post('draft', e.currentTarget));
