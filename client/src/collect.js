@@ -306,6 +306,12 @@ export async function collectBill(billId, after, { mode: preferMode = null, refe
               : { label: 'Print receipt', run: () => printReceipt(bill, r) },
           });
           after?.(r);
+          // an inpatient bill that is now fully paid: offer to complete the discharge so the patient leaves the running IP list
+          if (ip && r.bill.balance <= 0.005 && bill.admission && bill.admission.status !== 'discharged' && can('ipd.discharge')) {
+            const { confirmDialog } = await import('./ui.js');
+            const go = await confirmDialog({ title: `Bill cleared — discharge ${bill.patient_name}?`, message: 'The stay is fully paid. Discharging records the discharge, frees the bed and removes the patient from the running IP list. You can also do this later from the admission (Discharge now).', confirmLabel: 'Discharge now' });
+            if (go) { const { doDischarge } = await import('./views/discharge.js'); try { await doDischarge({ id: bill.admission.id, patient_name: bill.patient_name, financial_category: bill.payer_type, ip_no: bill.admission.ip_no }, () => after?.()); } catch (e2) { if (!e2?.handled) apiError(e2, 'Could not discharge'); } }
+          }
         } catch (err) { apiError(err, 'Payment not saved'); busy(btn, false); }
       };
       q('[data-save]').onclick = save;
