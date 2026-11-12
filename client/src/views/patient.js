@@ -43,6 +43,12 @@ export async function mount(ctx) {
 
   // Bills & receipts opens the patient's bills on a page of their own; each bill opens again from there
   bind(root, 'click', '[data-tab]', (e, b) => { if (b.dataset.tab === 'money' && data?.access?.financial) { navigate(`/patient-bills/${id}`); return; } tab = b.dataset.tab; paintTab(root, data);root.querySelector('[data-panel]')?.scrollIntoView({behavior:'smooth',block:'start'}); });
+  bind(root,'click','[data-discharge-patient]',async()=>{
+    const a=data.admissions.find(x=>x.status!=='discharged');if(!a)return;
+    const {doDischarge}=await import('./discharge.js');
+    try{await doDischarge({id:a.id,patient_name:data.patient.name,financial_category:a.financial_category,ip_no:a.ip_no,bed_no:a.bed_no},load);}
+    catch(err){if(!err?.handled)apiError(err,'Could not discharge');}
+  });
   bind(root,'click','[data-running-ip-bill]',(_event,button)=>openBill(+button.dataset.runningIpBill,load).catch(apiError));
   bind(root, 'click', '[data-open-visit]', (e, b) => navigate(`/visit/${b.dataset.openVisit}`));
   bind(root, 'click', '[data-add-allergy]', () => addAllergy(id, load));
@@ -101,6 +107,7 @@ function view(d) {
         ${d.access?.financial&&canRaiseReceptionBill()?'<button class="btn-secondary" data-new-patient-bill>Raise new bill</button>':''}
         ${d.access?.admissions&&d.admissions.some(a=>a.status!=='discharged')?'<button class="btn-secondary" data-tab="ipd">View current IPD admission</button>':''}
         ${d.access?.financial&&running?`<button class="btn-secondary" data-running-ip-bill="${running.id}">Current IPD bill / deposit</button>`:''}
+        ${can('ipd.discharge')&&d.admissions.some(a=>a.status!=='discharged')?'<button class="btn-primary" data-discharge-patient title="Checks unpaid bills, then discharges, frees the bed and removes the patient from the running IP list">Discharge patient</button>':''}
         ${d.access?.financial?'<button class="btn-secondary" data-tab="money">Bills & pharmacy dues</button>':''}
       </div></section><div data-patient-workflow></div>
       ${d.access?.financial?'<div data-billing-summary></div>':''}
