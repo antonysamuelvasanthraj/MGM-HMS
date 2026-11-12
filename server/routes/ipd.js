@@ -585,7 +585,8 @@ ipd.post('/admissions/:id/discharge', requirePerm('ipd.discharge'), h((req) => {
   // In Paper / Hybrid mode the desk may record the doctor's paper clearance and the paper summary instead.
   // LAMA, death and absconding are recorded as they happen.
   const dtype = String(req.body.discharge_type || 'routine');
-  if (setting('discharge_requires_clearance', '1') !== '0' && !['lama', 'dama', 'death', 'absconded'].includes(dtype)) {
+  // Paper mode (doctors write on paper), so reception discharges without asking for clearance or a summary. Only unpaid bills hold the patient.
+  if (setting('discharge_requires_clearance', '1') !== '0' && setting('workflow_doctor', 'portal') !== 'manual' && !['lama', 'dama', 'death', 'absconded'].includes(dtype)) {
     const paper = paperAllowed('doctor');
     const paperClearance = paper ? String(req.body.paper_clearance || '').trim() : '';
     const paperSummary = paper ? String(req.body.paper_summary || '').trim() : '';
