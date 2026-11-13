@@ -622,8 +622,8 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
       };
 
       const svcInput = root.querySelector('[data-svc]'), qtyInput = root.querySelector('[data-newqty]'), preview = root.querySelector('[data-linepreview]');
-      const serviceLabel = s => `${s.name} — ${s.code || s.id} — ${money(s.price,2)}`;
-      const fillList = () => { root.querySelector('#nb-service-list').innerHTML = '<option value="">Choose a service…</option>'+servicesFor(form.bill_type.value).map((s) => `<option value="${s.id}">${esc(serviceLabel(s))}</option>`).join(''); };
+      const serviceLabel = s => `${s.name} — ${money(s.price,2)}`;
+      const fillList = () => { root.querySelector('#nb-service-list').innerHTML = '<option value="">Choose a service…</option>'+servicesFor(form.bill_type.value).filter(s=>Number(s.price)>0).map((s) => `<option value="${s.id}">${esc(serviceLabel(s))}</option>`).join(''); };
       fillList(); form.bill_type.addEventListener('change', fillList);
       const chosen = () => {
         const list=servicesFor(form.bill_type.value), value=svcInput.value.trim();
