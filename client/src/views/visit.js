@@ -226,14 +226,14 @@ function wire(root, e, reload) {
       const sum=key=>bills.reduce((total,bill)=>total+Number(bill[key]||0),0);
       const combined={...bills[0],bill_no:`Statement ${e.encounter_no}`,bill_type:'OP',
         items:bills.flatMap(bill=>{
-          const status=Number(bill.balance)>0.005?`Bill pending ${money(bill.balance,2)}`:Number(bill.free_treatment_value)>0?'Free treatment':Number(bill.paid)>0?'Paid':'Covered / settled';
-          return (bill.items||[]).map(item=>({...item,description:`${item.description} (${bill.bill_no}) — ${status}` }));
+          const status=Number(bill.balance)>0.005?`${Number(bill.paid)>0?'Partially paid':'Pending'} — bill due ${money(bill.balance,2)}`:'';
+          return (bill.items||[]).map(item=>({...item,description:`${item.description} (${bill.bill_no})${status?' — '+status:''}` }));
         }),
         payments:bills.flatMap(bill=>bill.payments||[]),
         gross:sum('gross'),discount:sum('discount'),tax:sum('tax'),total:sum('total'),paid:sum('paid'),balance:sum('balance'),
         free_treatment_value:sum('free_treatment_value'),covered_amount:sum('covered_amount')};
       const review=`<section style="margin:18px 0;break-inside:avoid"><h2>Final settlement review — bill-wise</h2><p>Review these charges and payments before final settlement. Rate × quantity is the service charge; the Due column below shows the remaining bill balance.</p><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr><th>Bill / services</th><th>Charges</th><th>Discount</th><th>Free</th><th>Covered</th><th>Received</th><th>Due</th></tr></thead><tbody>${bills.map(b=>`<tr><td>${esc(b.bill_no)}<br>${esc((b.items||[]).map(i=>i.description).join('; '))}</td><td>${money(b.gross,2)}</td><td>${money(b.discount,2)}</td><td>${money(b.free_treatment_value||0,2)}</td><td>${money(b.covered_amount||0,2)}</td><td>${money(b.paid,2)}</td><td><b>${money(b.balance,2)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td><b>Total</b></td><td>${money(combined.gross,2)}</td><td>${money(combined.discount,2)}</td><td>${money(combined.free_treatment_value,2)}</td><td>${money(combined.covered_amount,2)}</td><td>${money(combined.paid,2)}</td><td><b>${money(combined.balance,2)}</b></td></tr></tfoot></table></section>`;
-      printDocument(`Consolidated bill — ${e.patient_name}`,`<h1>Consolidated bill — current visit</h1><p>Original bills: ${bills.map(b=>esc(b.bill_no)).join(', ')}</p>${billSheet(combined,{signature:false})}${review}<div style="display:flex;justify-content:space-between;margin-top:30px"><span>Patient / attendant signature</span><span>Billing / authorised signatory</span></div>`,{paper:'A4'});
+      printDocument(`Consolidated bill — ${e.patient_name}`,`<h1>Consolidated bill — current visit</h1><p>Original bills: ${bills.map(b=>esc(b.bill_no)).join(', ')}</p>${billSheet(combined,{signature:false})}<div style="display:flex;justify-content:space-between;margin-top:30px"><span>Patient / attendant signature</span><span>Billing / authorised signatory</span></div>`,{paper:'A4'});
     }catch(error){apiError(error,'Could not prepare consolidated bills');}
   };
   root.querySelectorAll('[data-print-session]').forEach(button=>button.addEventListener('click',printSession));
