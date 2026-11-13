@@ -113,7 +113,7 @@ export function addSettlement(req, { bill_id, mode, amount, payer_name, referenc
     });
     const s = get('SELECT * FROM bill_settlements WHERE id=?', id);
     postSettlement(s);
-    if (mode === 'due') {
+    if (mode === 'due' || mode === 'credit') {
       update('bills', bill_id, { authorization_status: 'approved', authorized_by: req.user.id,
         authorized_at: nowIso(), authorization_reason: reason });
     }
@@ -251,7 +251,7 @@ export function cancelSettlement(req, settlementId, reason) {
     update('bill_settlements', settlementId, { status: 'cancelled', cancelled_by: req.user.id,
       cancelled_at: nowIso(), cancel_reason: reason });
     reverseSource('settlement', settlementId, reason);
-    if (s.mode === 'due' && !one(`SELECT count(*) FROM bill_settlements WHERE bill_id=? AND mode='due' AND status<>'cancelled'`, s.bill_id)) {
+    if (['due','credit'].includes(s.mode) && !one(`SELECT count(*) FROM bill_settlements WHERE bill_id=? AND mode IN ('due','credit') AND status<>'cancelled'`, s.bill_id)) {
       update('bills', s.bill_id, { authorization_status: 'pending' });
     }
     return { settlement: get('SELECT * FROM bill_settlements WHERE id=?', settlementId), before: s, bill: recalcBill(s.bill_id) };
