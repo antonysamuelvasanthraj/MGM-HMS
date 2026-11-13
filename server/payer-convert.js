@@ -36,7 +36,8 @@ export const mayChangePayer = (u, ip = false) => can(u, 'billing.payer_change') 
 /** Who decides a payer-change request: the insurance desk, an administrator, or a role given billing.payer_approve. */
 export const mayApprovePayer = (u) => can(u, 'insurance.write') || can(u, 'admin.write') || can(u, 'billing.payer_approve');
 /** With the setting on (default), a desk that cannot approve sends a request instead of converting directly. */
-export const needsApproval = (u) => setting('payer_change_requires_approval') !== '0' && !mayApprovePayer(u);
+export const needsApproval = (u) => setting('payer_change_requires_approval') !== '0' && !mayApprovePayer(u)
+  && !(can(u,'billing.payer_change') && can(u,'op.collect'));
 
 /** The visit's encounter ids: an admission also carries the ER visit it came from. */
 function scope(encounterId) {

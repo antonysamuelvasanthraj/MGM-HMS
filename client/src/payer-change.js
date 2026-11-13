@@ -22,7 +22,8 @@ const label = (c) => CATS.find(([v]) => v === c)?.[1] || c;
 export const canChangePayer = (ip = false) => can('billing.payer_change') || can('insurance.write') || (ip && can('ipd.manage'));
 export const canApprovePayer = () => can('insurance.write') || can('admin.write') || can('billing.payer_approve');
 /** Setting on (default): a desk that cannot approve sends the change as a request to the Insurance desk. */
-export const payerNeedsApproval = () => setting('payer_change_requires_approval', '1') !== '0' && !canApprovePayer();
+export const payerNeedsApproval = () => setting('payer_change_requires_approval', '1') !== '0' && !canApprovePayer()
+  && !(can('billing.payer_change') && can('op.collect'));
 
 /** Open the dialog for a visit (encounter id). `after(result)` runs once saved. */
 export async function openPayerChange(encounterId, after, { category: preset = null, stack = false } = {}) {
