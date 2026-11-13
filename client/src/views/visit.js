@@ -227,7 +227,8 @@ function wire(root, e, reload) {
       const combined={...bills[0],bill_no:`Statement ${e.encounter_no}`,bill_type:'OP',
         items:bills.flatMap(bill=>{
           const status=Number(bill.balance)>0.005?`${Number(bill.paid)>0?'Partially paid':'Pending'} — bill due ${money(bill.balance,2)}`:'';
-          return (bill.items||[]).map(item=>({...item,description:`${item.description} (${bill.bill_no})${status?' — '+status:''}` }));
+          const paymentStatus=Number(bill.balance)>0.005?`${Number(bill.paid)>0?'Part paid':'Unpaid'}; bill paid ${money(bill.paid,2)}; due ${money(bill.balance,2)}`:Number(bill.free_treatment_value)>0?'Free treatment':Number(bill.paid)>0?'Paid':'Covered';
+          return (bill.items||[]).map(item=>({...item,print_payment_status:paymentStatus,description:`${item.description} (${bill.bill_no})${status?' — '+status:''}` }));
         }),
         payments:bills.flatMap(bill=>bill.payments||[]),
         gross:sum('gross'),discount:sum('discount'),tax:sum('tax'),total:sum('total'),paid:sum('paid'),balance:sum('balance'),
