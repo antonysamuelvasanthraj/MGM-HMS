@@ -24,6 +24,12 @@ const P = 'reports.pharmacy', R = 'reports.reception', V = 'reports.view', F = '
 const MODE = { cash: 'Cash', upi: 'UPI', debit_card: 'Debit card', credit_card: 'Credit card', bank_transfer: 'Bank transfer', cheque: 'Cheque',
   insurance: 'Insurance', aarogyasri: 'Aarogyasri', corporate: 'Corporate', credit: 'Credit', trust: 'Trust', free: 'Free', due: 'Due' };
 
+function billingSummary(q,group){
+ const key=group==='department'?"coalesce(dp.name,CASE b.bill_type WHEN 'LAB' THEN 'Laboratory' WHEN 'IMAGING' THEN 'Imaging' WHEN 'PHARM' THEN 'Pharmacy' WHEN 'IP' THEN 'IPD' ELSE 'Unassigned' END)":"CASE WHEN b.bill_type='IP' OR e.kind='IP' THEN 'IP' WHEN e.kind='EMG' THEN 'ER' ELSE 'OP' END";
+ const rows=all(`SELECT ${key} label,coalesce(b.payer_type,'self') category,count(*) bills,round(sum(b.gross),2) gross,round(sum(b.discount),2) discount,round(sum(b.total),2) billed,round(sum(b.paid),2) received,round(sum(b.free_treatment_value),2) free,round(sum(b.covered_amount),2) covered,round(sum(b.balance),2) due FROM bills b LEFT JOIN encounters e ON e.id=b.encounter_id LEFT JOIN users u ON u.id=coalesce(b.doctor_id,e.doctor_id) LEFT JOIN departments dp ON dp.id=u.department_id WHERE b.status<>'cancelled' AND b.bill_date BETWEEN ? AND ? GROUP BY label,category ORDER BY label,category`,q.from,q.to);
+ return {subtitle:'By bill date. Department follows the billing doctor; unassigned bills use their billing department. Received is the net amount applied to these bills, not collections by receipt date.',kpis:[kpi('Bills',sum(rows,'bills'),'number'),kpi('Billed',sum(rows,'billed')),kpi('Received',sum(rows,'received')),kpi('Due',sum(rows,'due'))],columns:[col('label',group==='department'?'Billing department':'Care type'),col('category','Billing category'),num('bills','Bills'),money('gross','Gross'),money('discount','Discount'),money('billed','Net billed'),money('free','Free treatment'),money('covered','Payer coverage'),money('received','Net received'),money('due','Balance')],rows,total:['bills','gross','discount','billed','free','covered','received','due']};
+}
+
 /* ---------------------------------------------------------------- pharmacy */
 
 const PL = `FROM bill_items bi JOIN bills b ON b.id=bi.bill_id JOIN patients p ON p.id=b.patient_id
@@ -268,13 +274,8 @@ const RECEPTION = [
   ['rec_cancelled', 'Registration cancellation report', visits("AND e.stage='cancelled'")],
   ['rec_admissions', 'Admission report', admissionsReport('admission')],
   ['rec_discharges', 'Discharge report', admissionsReport('discharge')],
-  ['rec_discharge_category_list', 'Discharges — billing category detail', admissionsReport('discharge')],
-  ['rec_discharge_category_summary', 'Discharges — billing category summary', q => {
-    const detail=admissionsReport('discharge')(q);
-    const groups=new Map();
-    for(const row of detail.rows){const category=row.category||'self';const group=groups.get(category)||{category,discharges:0,billed:0,balance:0};group.discharges++;group.billed=r2(group.billed+Number(row.billed||0));group.balance=r2(group.balance+Number(row.balance||0));groups.set(category,group);}
-    return {kpis:detail.kpis,columns:[col('category','Billing category'),num('discharges','Discharges'),money('billed','Billed'),money('balance','Balance')],rows:[...groups.values()],total:['discharges','billed','balance']};
-  }],
+  ['rec_discharge_category_list', 'Department-wise bill totals', q => billingSummary(q,'department')],
+  ['rec_discharge_category_summary', 'OP / IP billing summary', q => billingSummary(q,'care')],
   ['rec_lab_payment', 'Lab payment report', serviceBills('lab')],
   ['rec_imaging_payment', 'Imaging payment report', serviceBills('imaging')],
   ['rec_collection', 'Collection report', receipts('reception')],
