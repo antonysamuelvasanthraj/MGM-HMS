@@ -6,6 +6,7 @@
  * A signed summary changes only with an amendment reason, and every version is audited.
  */
 import { api, state, can, esc, modal, toast, apiError, busy, pill, fmtDate, fmtDateTime, printDocument } from './views/_kit.js';
+import {openSettlementReview} from './settlement-review.js';
 
 const ROWS = { complaints: 3, history: 3, secondary_dx: 2, course: 6, procedures: 3, investigations: 6, treatment: 3, condition: 2, medications: 6, advice: 3, follow_up: 2, warning_signs: 2 };
 
@@ -39,11 +40,13 @@ export async function openDischargeSummary(admissionId, after = () => {}) {
         ${signed && d.can_sign ? `<div><label class="field-label">Amendment reason (required to change a signed summary)</label><input class="field" name="amend_reason" placeholder="e.g. discharge medication dose corrected"></div>` : ''}
       </form>`,
     footer: `<button class="btn-secondary" data-close>Close</button>
+      ${can('billing.view')?'<button class="btn-secondary" data-settlement-review>View / print settlement review</button>':''}
       <button class="btn-secondary" data-print><span class="material-symbols-outlined text-[18px]">print</span> Print</button>
       ${!readOnly && !signed ? '<button class="btn-secondary" data-save>Save draft</button>' : ''}
       ${!readOnly && !signed && d.can_sign ? '<button class="btn-primary" data-sign>Sign &amp; finalise</button>' : ''}
       ${!readOnly && signed ? '<button class="btn-primary" data-save>Save amendment</button>' : ''}`,
     onMount(root, close) {
+      root.querySelector('[data-settlement-review]')?.addEventListener('click',()=>openSettlementReview(admissionId));
       const form = root.querySelector('[data-ds]');
       const collect = () => {
         const f = Object.fromEntries(new FormData(form));
