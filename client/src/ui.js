@@ -635,3 +635,43 @@ export function downloadCSV(filename, rows) {
 export function recordExport(filename, rows, format) {
   import('./api.js').then(({ api }) => api.post('/audit/export', { filename, rows, format })).catch(() => {});
 }
+
+// One in-page suggestion surface replaces browser-owned datalist popups.
+if (typeof document !== 'undefined' && document.addEventListener) {
+  let activeInput=null, panel=null, options=[], selected=-1;
+  const closeSuggestions=()=>{panel?.remove();panel=null;selected=-1;};
+  const chooseSuggestion=index=>{
+    const option=options[index];if(!option||!activeInput)return;
+    activeInput.value=option.value;closeSuggestions();
+    activeInput.dispatchEvent(new Event('input',{bubbles:true}));
+    activeInput.dispatchEvent(new Event('change',{bubbles:true}));
+    closeSuggestions();activeInput.focus();
+  };
+  const paintSuggestions=()=>{
+    closeSuggestions();if(!activeInput?.isConnected)return;
+    const query=activeInput.value.trim().toLowerCase();if(!query)return;
+    const source=document.getElementById(activeInput.dataset.suggestionSource);
+    options=[...(source?.options||[])].filter(o=>(o.value+' '+o.label).toLowerCase().includes(query)).slice(0,25);
+    panel=document.createElement('div');panel.setAttribute('role','listbox');
+    panel.style.cssText='position:fixed;z-index:100000;background:white;color:#172b4d;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 8px 24px #0002;max-height:240px;overflow:auto';
+    const rect=activeInput.getBoundingClientRect();panel.style.left=rect.left+'px';panel.style.top=Math.min(rect.bottom,window.innerHeight-245)+'px';panel.style.width=rect.width+'px';
+    options.forEach((option,index)=>{const button=document.createElement('button');button.type='button';button.setAttribute('role','option');button.style.cssText='display:block;width:100%;text-align:left;padding:9px 12px;background:white;border:0';button.textContent=option.value.replace(/-HSP-ROW-\d+/g,'');button.onmousedown=e=>e.preventDefault();button.onclick=()=>chooseSuggestion(index);panel.append(button);});
+    if(!options.length){panel.textContent='No matching options';panel.style.padding='10px';}
+    document.body.append(panel);
+  };
+  document.addEventListener('focusin',event=>{
+    const input=event.target;if(!input.matches?.('input[list],input[data-suggestion-source]'))return;
+    activeInput=input;
+    if(input.hasAttribute('list')){input.dataset.suggestionSource=input.getAttribute('list');input.removeAttribute('list');input.autocomplete='off';}
+    paintSuggestions();
+  });
+  document.addEventListener('input',event=>{if(event.target===activeInput)paintSuggestions();});
+  document.addEventListener('keydown',event=>{
+    if(event.target!==activeInput||!panel)return;
+    if(event.key==='Escape'){closeSuggestions();return;}
+    if(['ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();selected=Math.max(0,Math.min(options.length-1,selected+(event.key==='ArrowDown'?1:-1)));[...panel.children].forEach((el,i)=>el.style.background=i===selected?'#e0f2fe':'white');panel.children[selected]?.scrollIntoView({block:'nearest'});}
+    if(event.key==='Enter'&&selected>=0){event.preventDefault();event.stopImmediatePropagation();chooseSuggestion(selected);}
+  },true);
+  document.addEventListener('pointerdown',event=>{if(event.target!==activeInput&&!panel?.contains(event.target))closeSuggestions();});
+  window.addEventListener('resize',closeSuggestions);
+}
