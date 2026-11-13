@@ -13,6 +13,7 @@ export const billPaper = (lines) => (lines <= 3 ? 'A5 landscape' : 'A4');
 const wordsOf = (n) => { const o=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],t=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'],two=(x)=>x<20?o[x]:t[Math.floor(x/10)]+(x%10?' '+o[x%10]:''),three=(x)=>(x>=100?o[Math.floor(x/100)]+' Hundred'+(x%100?' and ':''):'')+(x%100?two(x%100):''),v=Math.round(Math.abs(+n||0)*100),r=Math.floor(v/100),p=v%100,parts=[[Math.floor(r/10000000),'Crore'],[Math.floor(r/100000)%100,'Lakh'],[Math.floor(r/1000)%100,'Thousand']].filter(([k])=>k).map(([k,u])=>two(k)+' '+u);if(r%1000)parts.push(three(r%1000));return `${parts.join(' ')||'Zero'}${p?` and ${two(p)} Paise`:''} only`; };
 /** One bill laid out like the discharge bill: patient strip, services grouped by department, totals, amount in words. */
 export function billSheet(b){
+ const payments=b.payments||[];
  const items=(b.items||[]).filter(i=>Number(i.amount)!==0||!i.waiver_of);
  const groups=[...new Set(items.map(i=>headOf(i.category)))],small=items.length<=3,many=groups.length>1&&!small;
  const day=(v)=>esc(String(v||b.bill_date||'').slice(0,10).split('-').reverse().join('-'));
@@ -20,6 +21,7 @@ export function billSheet(b){
  return `${printStyle}<table style="width:100%;border-collapse:collapse;margin:6px 0"><tr><td><b>Patient:</b> ${esc(b.patient_name)}</td><td><b>Age / Gender:</b> ${esc(b.age_years??'')} / ${esc(b.gender||'')}</td><td><b>Bill no:</b> ${esc(b.bill_no)}</td></tr>
    <tr><td><b>UHID:</b> ${esc(b.uhid)}</td><td><b>Mobile:</b> ${esc(b.mobile||'—')}</td><td><b>Date:</b> ${day(b.bill_date||b.created_at)}</td></tr>
    <tr><td><b>${b.referred_by?'Referred by':'Doctor'}:</b> ${esc(b.referred_by||b.doctor_name||'—')}</td><td><b>Payer:</b> ${esc(payerLabels[b.payer_type]||b.payer_type||'Self-pay')}</td><td><b>Type:</b> ${esc(careLabels[b.bill_type]||b.bill_type)}</td></tr></table>
+  ${payments.length?`<h3>Payment history</h3><table style="width:100%"><thead><tr><th>Receipt</th><th>Date</th><th>Mode</th><th>Status</th><th>Amount</th></tr></thead><tbody>${payments.map(p=>`<tr><td>${esc(p.receipt_no||'')}</td><td>${esc(fmtDateTime(p.received_at||p.created_at))}</td><td>${esc(p.mode||'')}</td><td>${esc(p.status||'received')}</td><td style="text-align:right">${money(p.amount,2)}</td></tr>`).join('')}</tbody></table>`:''}
   <h2>${esc(careLabels[b.bill_type]||'Bill')} — itemised bill</h2>
   <table style="width:100%;border-collapse:collapse"><thead><tr><th style="width:34px">S.No</th><th>Particulars</th><th>Date</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead><tbody>
   ${(small?[null]:groups).map(g=>{const rows=small?items:items.filter(i=>headOf(i.category)===g);const sub=rows.reduce((t,i)=>t+Number(i.amount),0);let n=0;
