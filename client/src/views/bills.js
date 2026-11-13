@@ -624,6 +624,12 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
       const svcInput = root.querySelector('[data-svc]'), qtyInput = root.querySelector('[data-newqty]'), preview = root.querySelector('[data-linepreview]');
       const serviceLabel = s => `${s.name} — ${money(s.price,2)}`;
       const searchInput=root.querySelector('[data-service-search]');
+      const suggestions=document.createElement('div');
+      suggestions.className='hidden border border-outline-variant rounded-lg bg-white mb-2';
+      suggestions.style.maxHeight='220px';
+      suggestions.style.overflowY='auto';
+      suggestions.setAttribute('aria-label','Matching services');
+      searchInput.after(suggestions);
       const fillList = () => {
         const selected=svcInput.value;
         const query=searchInput.value.trim().toLowerCase();
@@ -631,7 +637,21 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
         svcInput.innerHTML='<option value="">Choose a service…</option>'+matches.map(s=>`<option value="${s.id}">${esc(serviceLabel(s))}</option>`).join('');
         if(matches.some(s=>String(s.id)===selected))svcInput.value=selected;
         else if(matches.length===1)svcInput.value=String(matches[0].id);
+        suggestions.classList.toggle('hidden',!query);
+        suggestions.innerHTML=query?(matches.length?matches.slice(0,30).map(s=>`<button type="button" class="block w-full text-left p-2" data-service-result="${s.id}">${esc(serviceLabel(s))}</button>`).join(''):'<p class="p-2">No matching services.</p>'):'';
       };
+      suggestions.addEventListener('click',event=>{
+        const button=event.target.closest('[data-service-result]');
+        if(!button)return;
+        svcInput.value=button.dataset.serviceResult;
+        suggestions.classList.add('hidden');
+        showPreview();qtyInput.focus();qtyInput.select();
+      });
+      searchInput.addEventListener('keydown',event=>{
+        if(event.key==='Escape')suggestions.classList.add('hidden');
+        if(event.key==='ArrowDown'){event.preventDefault();suggestions.querySelector('button')?.focus();}
+        if(event.key==='Enter'){event.preventDefault();suggestions.querySelector('button')?.click();}
+      });
       searchInput.addEventListener('input',()=>{fillList();showPreview();});
       fillList(); form.bill_type.addEventListener('change', fillList);
       const chosen = () => {
