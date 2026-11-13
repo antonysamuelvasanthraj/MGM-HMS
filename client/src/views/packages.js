@@ -164,7 +164,7 @@ export async function packageForm(id, after, defaults = {}) {
       <div><label class="field-label">Short description</label><input class="field" name="description" value="${v('description')}"></div>
       <div class="border border-outline-variant rounded-lg">
         <div class="flex flex-wrap items-end gap-2 p-3 border-b border-outline-variant">
-          <div class="flex-1 min-w-[220px]"><label class="field-label">Add a service to the package</label><input class="field mb-2" type="search" data-package-search placeholder="Search services…"><select class="field" data-svc><option value="">Choose a service…</option>${active.filter(s=>Number(s.price)>0).map(s=>`<option value="${s.id}">${esc(s.name)} · ${money(s.price)}</option>`).join('')}</select></div>
+          <div class="flex-1 min-w-[220px]"><label class="field-label">Add a service to the package</label><input class="field" data-svc list="package-service-options" placeholder="Search and select a service…" autocomplete="off"><datalist id="package-service-options">${active.filter(s=>Number(s.price)>0).map(s=>`<option value="${esc(s.name)} · ${money(s.price)}"></option>`).join('')}</datalist></div>
           <button type="button" class="btn-secondary" data-add>Add</button>
           <span class="text-body-sm text-on-surface-variant ml-auto">Separately: <b data-list></b></span></div>
         <table class="tbl"><tbody data-items></tbody></table></div>
@@ -182,18 +182,13 @@ export async function packageForm(id, after, defaults = {}) {
       showAgreement();
       const addSvc = () => {
         const inp = root.querySelector('[data-svc]');
-        const s = active.find((x) => String(x.id) === inp.value);
+        const s = active.find(x=>`${x.name} · ${money(x.price)}`===inp.value);
         if (!s) { toast('Pick a service from the list', 'warning'); return; }
         const have = items.find((i) => i.service_id === s.id);
         if (have) have.qty++; else items.push({ service_id: s.id, qty: 1 });
-        inp.value = ''; paintItems(root);
+        inp.value = ''; paintItems(root);inp.focus();
       };
       root.querySelector('[data-add]').onclick = addSvc;
-      root.querySelector('[data-package-search]').addEventListener('input',event=>{
-        const query=event.target.value.trim().toLowerCase();
-        const matches=active.filter(s=>Number(s.price)>0&&(!query||s.name.toLowerCase().includes(query)));
-        root.querySelector('[data-svc]').innerHTML='<option value="">Choose a service…</option>'+matches.map(s=>`<option value="${s.id}">${esc(s.name)} · ${money(s.price)}</option>`).join('');
-      });
       root.querySelector('[data-svc]').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addSvc(); } });
       root.addEventListener('click', (e) => { const rm = e.target.closest('[data-rm]'); if (rm) { items.splice(+rm.dataset.rm, 1); paintItems(root); } });
       root.addEventListener('input', (e) => { if (e.target.matches('[data-qty]')) { items[+e.target.dataset.qty].qty = Math.max(1, +e.target.value || 1); root.querySelector('[data-list]').textContent = money(items.reduce((s, it) => s + (services.find((x) => x.id === it.service_id)?.price || 0) * it.qty, 0)); } });
