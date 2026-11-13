@@ -354,7 +354,7 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
         <p class="text-body-sm">Packages contain bundled services and are billed at the package price. They are separate from the service tariff.</p>
       </div>
       <div data-entry class="flex flex-wrap gap-2 items-end">
-        <div class="flex-1 min-w-[240px]"><label class="field-label">Service — search and pick</label><input class="field field-sm" list="nb-service-list" data-svc placeholder="Type a service name (consultation, X-ray, ECG, lab test…)" autocomplete="off"><datalist id="nb-service-list"></datalist></div>
+        <div class="flex-1 min-w-[240px]"><label class="field-label">Service</label><select class="field field-sm" data-svc id="nb-service-list"><option value="">Choose a service…</option></select></div>
         <div style="width:80px"><label class="field-label">Qty</label><input class="field field-sm text-center" type="number" min="1" value="1" data-newqty></div>
         <button type="button" class="btn-primary btn-sm" data-add><span class="material-symbols-outlined text-[15px]">add</span> Add line</button>
         <div class="w-full text-body-md" data-linepreview aria-live="polite"><span class="text-on-surface-variant">Unit price and line total show here. Added lines list below; change the quantity or discount there.</span></div>
@@ -623,11 +623,11 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
 
       const svcInput = root.querySelector('[data-svc]'), qtyInput = root.querySelector('[data-newqty]'), preview = root.querySelector('[data-linepreview]');
       const serviceLabel = s => `${s.name} — ${s.code || s.id} — ${money(s.price,2)}`;
-      const fillList = () => { root.querySelector('#nb-service-list').innerHTML = servicesFor(form.bill_type.value).map((s) => `<option value="${esc(serviceLabel(s))}"></option>`).join(''); };
+      const fillList = () => { root.querySelector('#nb-service-list').innerHTML = '<option value="">Choose a service…</option>'+servicesFor(form.bill_type.value).map((s) => `<option value="${s.id}">${esc(serviceLabel(s))}</option>`).join(''); };
       fillList(); form.bill_type.addEventListener('change', fillList);
       const chosen = () => {
         const list=servicesFor(form.bill_type.value), value=svcInput.value.trim();
-        const exact=list.find(s=>serviceLabel(s)===value);
+        const exact=list.find(s=>String(s.id)===value);
         if(exact)return exact;
         const matches=list.filter(s=>s.name===value);
         return matches.length===1?matches[0]:undefined;

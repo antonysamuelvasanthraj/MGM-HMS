@@ -383,7 +383,7 @@ export function live({ topics = [], events = [], load, interval = 0 }) {
   const refresh = async (context) => {
     if (disposed) return;
       const editing = document.activeElement;
-      if (!context?.first && editing?.closest?.('#view') && editing.matches?.('input,textarea,select,[contenteditable="true"]')) {
+      if (!context?.first && (document.querySelector('[role="dialog"][aria-modal="true"]') || (editing?.closest?.('#view') && editing.matches?.('input,textarea,select,[contenteditable="true"]')))) {
         pending = context;
         return;
       }
