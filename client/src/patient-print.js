@@ -30,7 +30,7 @@ export function billSheet(b,{signature=true}={}){
   </tbody></table>
   <table style="width:55%;margin-left:auto;border-collapse:collapse">
    ${row('Gross charges',money(b.gross,2))}${Number(b.discount)>0?row('Discount','− '+money(b.discount,2)):''}${Number(b.tax)>0?row('Tax',money(b.tax,2)):''}
-   ${row('<b>Total</b>',`<b>${money(b.total,2)}</b>`,'border-top:2px solid #172b4d')}${Number(b.free_treatment_value)>0?row('Approved free treatment','− '+money(b.free_treatment_value,2)):''}${Number(b.covered_amount)>0?row('Payer / other coverage','− '+money(b.covered_amount,2)):''}${row('Received','− '+money(b.paid,2))}${row('<b>Balance</b>',`<b>${money(b.balance,2)}</b>`)}
+   ${row('<b>Total</b>',`<b>${money(b.total,2)}</b>`,'border-top:2px solid #172b4d')}${Number(b.free_treatment_value)>0?row('Approved free treatment','− '+money(b.free_treatment_value,2)):''}${Number(b.covered_amount)>0?row('Payer / other coverage','− '+money(b.covered_amount,2)):''}${row('Received','− '+money(b.paid,2))}${row(Number(b.balance)>0.005?'<b>Outstanding due</b>':'<b>Balance</b>',`<b>${money(b.balance,2)}</b>`)}
   </table>
   ${Number(b.paid)>0?`<p style="margin:8px 0 0"><b>Paid amount (Rs.):</b> ${esc(wordsOf(b.paid))}</p>`:''}
   ${signature?`<div style="display:flex;justify-content:space-between;margin-top:${small?14:26}px"><span>Patient / attendant signature</span><span>Billing / authorised signatory</span></div>`:''}`;

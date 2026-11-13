@@ -225,7 +225,10 @@ function wire(root, e, reload) {
       const {billSheet}=await import('../patient-print.js');
       const sum=key=>bills.reduce((total,bill)=>total+Number(bill[key]||0),0);
       const combined={...bills[0],bill_no:`Statement ${e.encounter_no}`,bill_type:'OP',
-        items:bills.flatMap(bill=>(bill.items||[]).map(item=>({...item,description:`${item.description} (${bill.bill_no})` }))),
+        items:bills.flatMap(bill=>{
+          const status=Number(bill.balance)>0.005?`Bill pending ${money(bill.balance,2)}`:Number(bill.free_treatment_value)>0?'Free treatment':Number(bill.paid)>0?'Paid':'Covered / settled';
+          return (bill.items||[]).map(item=>({...item,description:`${item.description} (${bill.bill_no}) — ${status}` }));
+        }),
         payments:bills.flatMap(bill=>bill.payments||[]),
         gross:sum('gross'),discount:sum('discount'),tax:sum('tax'),total:sum('total'),paid:sum('paid'),balance:sum('balance'),
         free_treatment_value:sum('free_treatment_value'),covered_amount:sum('covered_amount')};
