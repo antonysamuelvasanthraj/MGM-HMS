@@ -198,6 +198,7 @@ export function billStatus(b) {
 const startsNow = (row) => setting('release_op_rule', 'payment') === 'immediate' && row?.status && row.status !== 'awaiting_payment';
 
 export function clearancePill(c, row = null) {
+  if(row && Number(row.billed)===0 && !row.bill_item_id && !row.bill_id && c==='unpaid')return '<span class="pill-warning pill-dot">Not billed — send to reception</span>';
   const payer = row && isPayer(row.financial_category || row.bill_payer) ? (row.financial_category || row.bill_payer) : null;
   if (c === 'payer_approved') return payerPill(payer || 'insurance', row?.claim_status, 'approved — released to the lab');
   if (payer && ['unpaid', 'part_paid'].includes(c)) return payerPill(payer, row.claim_status, 'blocked until the case is approved or reception authorises');
