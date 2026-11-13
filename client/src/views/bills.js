@@ -336,7 +336,7 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
   const servicesFor = type => state.meta.services.filter(s => !['pharmacy','medicine','drug'].includes(s.category)).filter(s => type!=='IP'||!['day','hour'].includes(s.billing_unit)).filter(s => type === 'LAB' ? s.category === 'lab' : type === 'IMAGING' ? s.category === 'imaging' : !opd || (['procedure','other'].includes(s.category) && s.billing_unit !== 'day'));
   let visits = [];
   modal({ inlineHost,
-    title: opd ? 'OPD procedures & basic charges' : 'Services & payment', subtitle: 'Add consultation, procedures, lab tests, imaging or a package for the selected patient.', size: 'lg',
+    title: opd ? 'OPD procedures & basic charges' : 'Services & payment', subtitle: 'Add consultation, procedures, lab tests, imaging or a package for the selected patient.', size: 'full',
     body: `<form data-nb class="space-y-3"><div data-billing-context></div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="md:col-span-2"><label class="field-label">Patient *</label><div data-picker></div></div>

@@ -51,6 +51,8 @@ export function releaseOrders(billId) {
 export function takePayment(req, { bill_id, amount, mode, reference, remarks, transaction_id, collection_group, allow_advance = false, patient_share_authorized = false }) {
   return tx(() => {
     const bill = get('SELECT * FROM bills WHERE id=?', bill_id);
+    if (bill?.bill_type === 'PHARM' && ['reception','cashier','registration','frontoffice','front_office'].includes(req.user?.role))
+      fail(403,'Pharmacy bills are view-only at reception. Collect at the pharmacy counter.');
     if (!bill) fail(404, 'bill_not_found');
     if (bill.status === 'cancelled') fail(409, 'bill_cancelled');
     const amt = money(amount);
