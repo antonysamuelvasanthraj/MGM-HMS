@@ -229,7 +229,8 @@ function wireCounter(root, reload) {
   root.addEventListener('change', (e) => {
     if (!e.target.matches('[data-ipmode]')) return;
     if (cart.length) { cart.length = 0; paintCart(root); }
-    ipMode = e.target.checked ? JSON.parse(e.target.dataset.ipmode) : null;
+    ipMode = JSON.parse(e.target.dataset.ipmode);
+    e.target.checked = true;
     showPatient(root, JSON.parse(e.target.dataset.ipmode));
   });
 
@@ -510,6 +511,5 @@ function showPatient(root, adm = ipMode) {
     el.after(box);
   }).catch(()=>{});
   el.innerHTML = `${esc(patient.name)} · ${esc(patient.uhid)}${patient.outstanding > 0 ? ` · outstanding ${money(patient.outstanding)}` : ''}
-    ${adm ? `<label class="ml-3 inline-flex items-center gap-1.5 font-medium text-info"><input type="checkbox" data-ipmode='${esc(JSON.stringify(adm))}' ${ipMode ? 'checked' : ''}>
-      Inpatient ${esc(adm.ip_no)} — issue from IP store to the IP bill</label>` : '<span class="ml-2 pill-neutral">OP store · pharmacy bill</span>'}`;
+    ${adm ? `<span class="ml-3 inline-flex items-center gap-1.5 font-medium text-info">Inpatient ${esc(adm.ip_no)} — IP store · charged to this admission</span>` : '<span class="ml-2 pill-neutral">OP store · pharmacy bill</span>'}`;
 }
