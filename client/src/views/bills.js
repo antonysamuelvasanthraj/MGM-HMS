@@ -354,7 +354,7 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
         <p class="text-body-sm">Packages contain bundled services and are billed at the package price. They are separate from the service tariff.</p>
       </div>
       <div data-entry class="flex flex-wrap gap-2 items-end">
-        <div class="flex-1 min-w-[240px]"><label class="field-label">Service</label><select class="field field-sm" data-svc id="nb-service-list"><option value="">Choose a service…</option></select></div>
+        <div class="flex-1 min-w-[240px]"><label class="field-label">Service</label><input class="field field-sm mb-2" type="search" data-service-search placeholder="Type to search services…" aria-label="Search services" autocomplete="off"><select class="field field-sm" data-svc id="nb-service-list"><option value="">Choose a service…</option></select></div>
         <div style="width:80px"><label class="field-label">Qty</label><input class="field field-sm text-center" type="number" min="1" value="1" data-newqty></div>
         <button type="button" class="btn-primary btn-sm" data-add><span class="material-symbols-outlined text-[15px]">add</span> Add line</button>
         <div class="w-full text-body-md" data-linepreview aria-live="polite"><span class="text-on-surface-variant">Unit price and line total show here. Added lines list below; change the quantity or discount there.</span></div>
@@ -623,7 +623,16 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
 
       const svcInput = root.querySelector('[data-svc]'), qtyInput = root.querySelector('[data-newqty]'), preview = root.querySelector('[data-linepreview]');
       const serviceLabel = s => `${s.name} — ${money(s.price,2)}`;
-      const fillList = () => { root.querySelector('#nb-service-list').innerHTML = '<option value="">Choose a service…</option>'+servicesFor(form.bill_type.value).filter(s=>Number(s.price)>0).map((s) => `<option value="${s.id}">${esc(serviceLabel(s))}</option>`).join(''); };
+      const searchInput=root.querySelector('[data-service-search]');
+      const fillList = () => {
+        const selected=svcInput.value;
+        const query=searchInput.value.trim().toLowerCase();
+        const matches=servicesFor(form.bill_type.value).filter(s=>Number(s.price)>0 && (!query || `${s.name} ${s.code||''}`.toLowerCase().includes(query)));
+        svcInput.innerHTML='<option value="">Choose a service…</option>'+matches.map(s=>`<option value="${s.id}">${esc(serviceLabel(s))}</option>`).join('');
+        if(matches.some(s=>String(s.id)===selected))svcInput.value=selected;
+        else if(matches.length===1)svcInput.value=String(matches[0].id);
+      };
+      searchInput.addEventListener('input',()=>{fillList();showPreview();});
       fillList(); form.bill_type.addEventListener('change', fillList);
       const chosen = () => {
         const list=servicesFor(form.bill_type.value), value=svcInput.value.trim();
