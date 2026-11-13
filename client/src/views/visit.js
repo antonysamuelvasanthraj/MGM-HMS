@@ -8,7 +8,7 @@ import {
   api, qs, state, can, navigate,
   $, $$, esc, bind, toast, modal, confirmDialog, pill, priorityPill, flagPill, money,
   fmtDateTime, fmtTime, fmtDate, ago, spinner, emptyState, kpi, mins, billStatus,
- modeLabel,
+ modeLabel,printDocument,
 } from './_kit.js';
 import { openCollect, printReceipt } from './op-registration.js';
 import { openVitals } from './vitals-queue.js';
@@ -48,6 +48,7 @@ function view(e) {
     title: `${e.patient_name}`,
     subtitle: `${esc(e.doctor_name || 'No doctor assigned')} · ${esc(e.dept_name || '')} · registered ${fmtDateTime(e.opened_at)}`,
     actions: `
+      <button class="btn-secondary" data-print-session>Print complete session</button>
       <a href="/patient/${e.patient_id}" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">folder_shared</span> Full record</a>
       ${e.patient_due > 0 && can('payment.collect') ? `<button class="btn-primary" data-collect><span class="material-symbols-outlined text-[18px]">payments</span> Collect patient share ${money(e.patient_due)}</button>` : ''}
       ${can('consult.write') && ['ready', 'in_consult', 'vitals_done'].includes(e.stage)
@@ -217,6 +218,12 @@ function consultBlock(c) {
 function wire(root, e, reload) {
   root.querySelector('[data-collect]')?.addEventListener('click', () => openCollect(e.id, reload));
   root.querySelector('[data-vitals]')?.addEventListener('click', () => openVitals(e.id, reload));
+  root.querySelector('[data-print-session]')?.addEventListener('click',()=>{
+    const copy=root.cloneNode(true);
+    copy.querySelectorAll('button,a,input,select,textarea,[data-skeleton]').forEach(element=>element.remove());
+    const title=`Complete session — ${e.encounter_no} — ${e.patient_name}`;
+    printDocument(title,`<style>body{font-family:Arial,sans-serif;font-size:11px}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{padding:5px;border-bottom:1px solid #ddd;text-align:left}h1,h2,h3{margin:12px 0 6px}section{break-inside:avoid}.grid{display:block}.material-symbols-outlined{display:none}</style><h1>Current visit / consultation record</h1><p>${esc(e.encounter_no)} · ${esc(e.uhid)} · ${esc(e.patient_name)}</p>${copy.innerHTML}<p>Printed from recorded information for this visit. Unavailable or unsigned reports are not represented as final reports.</p>`,{paper:'A4'});
+  });
   root.querySelector('[data-dx-bill]')?.addEventListener('click', () => openDiagnosticsBilling(reload, { patient: { id: e.patient_id, name: e.patient_name, uhid: e.uhid }, encounterId: e.id, doctorId: e.doctor_id }));
   root.querySelectorAll('[data-change-payer]').forEach((b) => b.addEventListener('click', () => openPayerChange(e.id, reload)));
   bind(root, 'click', '[data-collect-bill]', (ev, b) => openCollect(null, reload, { billId: +b.dataset.collectBill }));
