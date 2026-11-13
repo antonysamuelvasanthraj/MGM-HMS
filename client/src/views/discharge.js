@@ -18,11 +18,13 @@ import {printStay} from '../patient-print.js';
 
 let cache = [];
 let past = { q: '', from: '', rows: [] };
+const paperMode=()=>state.meta?.settings?.hospital_mode==='paper'||state.meta?.settings?.workflow_doctor==='manual';
 
 export async function mount(ctx) {
   const root = mountPage(ctx, layout());
 
   async function load() {
+    root.classList.toggle('paper-discharge',paperMode());
     const d = await api.get('/ipd/discharge/board');
     cache = d.rows;
     $('[data-kpis]', root).innerHTML = [
@@ -50,7 +52,7 @@ export async function mount(ctx) {
       <td>${r.summary_status === 'final' ? pill('verified', 'Signed') : r.has_summary ? pill('pending', 'Draft') : pill('rejected', 'Not written')}</td>
       <td class="text-right"><button class="btn-secondary btn-xs" data-feedback>Forms / feedback</button>${can('billing.view')?'<button class="btn-secondary btn-xs" data-past-print>Print complete stay</button>':''}${r.access?.clinical ? `<button class="btn-secondary btn-xs" data-past-summary>${r.summary_status === 'final' ? 'View / print' : 'Open summary'}</button>` : ''}</td></tr>`).join('')
       : '<tr><td colspan="7" class="py-8 text-center text-on-surface-variant">No discharges in this period.</td></tr>';
-    $('[data-past-count]', root).textContent = `${past.rows.length} discharged · ${past.rows.filter((r) => r.summary_status !== 'final').length} summary not signed`;
+    $('[data-past-count]', root).textContent = paperMode()?`${past.rows.length} discharged · paper documentation`:`${past.rows.length} discharged · ${past.rows.filter((r) => r.summary_status !== 'final').length} summary not signed`;
   }
   bind(root, 'click', '[data-feedback]', (e,b)=>openAdmissionForms(+b.closest('tr').dataset.adm));
   bind(root, 'click', '[data-past-summary]', (e, b) => openDischargeSummary(+b.closest('tr').dataset.adm, loadPast));
@@ -94,6 +96,15 @@ function layout() {
     title: 'Discharge Coordination',
     subtitle: 'Patients ready to go home, and what is still pending.',
     body: `
+      <style>
+      .paper-discharge [data-rows] td:nth-child(5),
+      .paper-discharge table:has([data-rows]) th:nth-child(5),
+      .paper-discharge [data-past] td:nth-child(6),
+      .paper-discharge table:has([data-past]) th:nth-child(6),
+      .paper-discharge [data-act="summary"],
+      .paper-discharge [data-act="clear"],
+      .paper-discharge [data-past-summary]{display:none}
+      </style>
       ${kpiRow([], 4)}
       ${tableCard({
         title: 'Discharge board', subtitle: 'A tick means that gate is closed',
