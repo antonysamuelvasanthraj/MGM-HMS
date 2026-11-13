@@ -104,7 +104,7 @@ function view(e) {
                   <div class="font-data-mono text-label-sm text-on-surface-variant">${esc(o.order_no)}${o.sample_id ? ` · ${esc(o.sample_id)}` : ''}</div></td>
                 <td class="capitalize text-body-md">${esc(o.category)}</td>
                 <td>${priorityPill(o.priority)}</td>
-                <td>${pill(o.status)}</td>
+                <td>${o.status==='awaiting_payment'&&Number(o.billed)===0&&!o.bill_item_id?pill('pending','Not billed — choose payment / approval'):pill(o.status)}</td>
                 <td class="text-body-sm">${fmtTime(o.ordered_at)}</td>
                 <td class="text-right"><a class="btn-ghost btn-xs" href="${o.category === 'imaging' ? '/imaging' : o.category === 'lab' ? '/laboratory' : `/orders?encounter=${e.id}`}">Open</a></td>
               </tr>`).join('')}</tbody></table>`
