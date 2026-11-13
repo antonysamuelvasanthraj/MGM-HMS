@@ -231,7 +231,7 @@ function wire(root, e, reload) {
           const list=bill.items||[],weight=list.reduce((sum,item)=>sum+Math.max(0,Number(item.amount)||0),0);
           let remaining=Math.round(Math.max(0,Number(bill.paid)||0)*100);
           const positive=list.filter(item=>Number(item.amount)>0);let index=0;
-          return list.map(item=>{let cents=0;if(Number(item.amount)>0){index++;cents=index===positive.length?remaining:Math.min(remaining,Math.round(Math.max(0,Number(bill.paid)||0)*100*Number(item.amount)/weight));remaining-=cents;}return {...item,print_paid:cents/100,description:`${item.description} (${bill.bill_no})${status?' — '+status:''}`};});
+          return list.map(item=>{let cents=0;if(Number(item.amount)>0){index++;cents=index===positive.length?remaining:Math.min(remaining,Math.round(Math.max(0,Number(bill.paid)||0)*100*Number(item.amount)/weight));remaining-=cents;}const share=weight>0?Math.max(0,Number(item.amount))/weight:0;return {...item,print_paid:cents/100,print_due:Number(bill.balance)>0.005,print_free:Math.round(Number(bill.free_treatment_value||0)*share*100)/100,description:`${item.description} (${bill.bill_no})${status?' — '+status:''}`};});
         }),
         payments:bills.flatMap(bill=>bill.payments||[]),
         gross:sum('gross'),discount:sum('discount'),tax:sum('tax'),total:sum('total'),paid:sum('paid'),balance:sum('balance'),
