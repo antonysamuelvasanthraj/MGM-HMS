@@ -50,6 +50,7 @@ function scope(encounterId) {
 export function payerCheck(encounterId) {
   const e = get('SELECT e.*, p.payer_type patient_payer_type, p.payer_id patient_payer_id, p.payer_name patient_payer_name, p.policy_no FROM encounters e JOIN patients p ON p.id=e.patient_id WHERE e.id=?', encounterId);
   if (!e) fail(404, 'encounter_not_found');
+  if (['closed','cancelled'].includes(e.stage)) fail(409,'This visit is closed. Settled discharge accounts cannot be changed through payer conversion.');
   const { adm, ids } = scope(e.id);
   const ph = ids.map(() => '?').join(',');
   const bills = all(`SELECT id, bill_no, bill_type, payer_type, total, paid, balance, status, claim_id FROM bills WHERE encounter_id IN (${ph}) AND status<>'cancelled' ORDER BY id`, ...ids);
