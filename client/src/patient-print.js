@@ -12,7 +12,7 @@ const headOf=(cat)=>(HEADS.find(([k])=>k===cat)||[null,'Other charges'])[1];
 export const billPaper = (lines) => (lines <= 3 ? 'A5 landscape' : 'A4');
 const wordsOf = (n) => { const o=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],t=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'],two=(x)=>x<20?o[x]:t[Math.floor(x/10)]+(x%10?' '+o[x%10]:''),three=(x)=>(x>=100?o[Math.floor(x/100)]+' Hundred'+(x%100?' and ':''):'')+(x%100?two(x%100):''),v=Math.round(Math.abs(+n||0)*100),r=Math.floor(v/100),p=v%100,parts=[[Math.floor(r/10000000),'Crore'],[Math.floor(r/100000)%100,'Lakh'],[Math.floor(r/1000)%100,'Thousand']].filter(([k])=>k).map(([k,u])=>two(k)+' '+u);if(r%1000)parts.push(three(r%1000));return `${parts.join(' ')||'Zero'}${p?` and ${two(p)} Paise`:''} only`; };
 /** One bill laid out like the discharge bill: patient strip, services grouped by department, totals, amount in words. */
-export function billSheet(b){
+export function billSheet(b,{signature=true}={}){
  const payments=b.payments||[];
  const items=(b.items||[]).filter(i=>Number(i.amount)!==0||!i.waiver_of);
  const groups=[...new Set(items.map(i=>headOf(i.category)))],small=items.length<=3,many=groups.length>1&&!small;
@@ -30,10 +30,10 @@ export function billSheet(b){
   </tbody></table>
   <table style="width:55%;margin-left:auto;border-collapse:collapse">
    ${row('Gross charges',money(b.gross,2))}${Number(b.discount)>0?row('Discount','− '+money(b.discount,2)):''}${Number(b.tax)>0?row('Tax',money(b.tax,2)):''}
-   ${row('<b>Total</b>',`<b>${money(b.total,2)}</b>`,'border-top:2px solid #172b4d')}${row('Received','− '+money(b.paid,2))}${row('<b>Balance</b>',`<b>${money(b.balance,2)}</b>`)}
+   ${row('<b>Total</b>',`<b>${money(b.total,2)}</b>`,'border-top:2px solid #172b4d')}${Number(b.free_treatment_value)>0?row('Approved free treatment','− '+money(b.free_treatment_value,2)):''}${Number(b.covered_amount)>0?row('Payer / other coverage','− '+money(b.covered_amount,2)):''}${row('Received','− '+money(b.paid,2))}${row('<b>Balance</b>',`<b>${money(b.balance,2)}</b>`)}
   </table>
   ${Number(b.paid)>0?`<p style="margin:8px 0 0"><b>Paid amount (Rs.):</b> ${esc(wordsOf(b.paid))}</p>`:''}
-  <div style="display:flex;justify-content:space-between;margin-top:${small?14:26}px"><span>Patient / attendant signature</span><span>Billing / authorised signatory</span></div>`;
+  ${signature?`<div style="display:flex;justify-content:space-between;margin-top:${small?14:26}px"><span>Patient / attendant signature</span><span>Billing / authorised signatory</span></div>`:''}`;
 }
 export async function printPatientPrescription(patientId,rxId){
  const rows=await api.get(`/prescriptions?patient_id=${patientId}`),r=rows.find(x=>x.id===+rxId);

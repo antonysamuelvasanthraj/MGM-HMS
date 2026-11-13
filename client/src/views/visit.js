@@ -223,7 +223,13 @@ function wire(root, e, reload) {
       const bills=await Promise.all((e.bills||[]).filter(b=>b.status!=='cancelled').map(b=>api.get(`/bills/${b.id}`)));
       if(!bills.length){toast('No bills recorded for this visit','info');return;}
       const {billSheet}=await import('../patient-print.js');
-      printDocument(`Consolidated bills — ${e.patient_name}`,`<h1>Consolidated bills and services</h1><p>${esc(e.patient_name)} · ${esc(e.uhid)} · ${esc(e.encounter_no)}</p>${bills.map(b=>`<section style="margin-bottom:24px">${billSheet(b)}</section>`).join('')}`,{paper:'A4'});
+      const sum=key=>bills.reduce((total,bill)=>total+Number(bill[key]||0),0);
+      const combined={...bills[0],bill_no:`Statement ${e.encounter_no}`,bill_type:'OP',
+        items:bills.flatMap(bill=>(bill.items||[]).map(item=>({...item,description:`${item.description} (${bill.bill_no})` }))),
+        payments:bills.flatMap(bill=>bill.payments||[]),
+        gross:sum('gross'),discount:sum('discount'),tax:sum('tax'),total:sum('total'),paid:sum('paid'),balance:sum('balance'),
+        free_treatment_value:sum('free_treatment_value'),covered_amount:sum('covered_amount')};
+      printDocument(`Consolidated bill — ${e.patient_name}`,`<h1>Consolidated bill — current visit</h1><p>Original bills: ${bills.map(b=>esc(b.bill_no)).join(', ')}</p>${billSheet(combined)}`,{paper:'A4'});
     }catch(error){apiError(error,'Could not prepare consolidated bills');}
   };
   root.querySelectorAll('[data-print-session]').forEach(button=>button.addEventListener('click',printSession));
