@@ -841,8 +841,17 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
   });
 }
 
-export async function printBill(id) {
+export async function printBill(id, documentType = null) {
   const b = await api.get(`/bills/${id}`);
+  if(!documentType && b.admission?.id){
+    return modal({title:'Print IP billing documents',body:'<p>All documents remain linked to the same admission. Reimbursement prints document money already received; they do not collect money again.</p>',footer:'<button class="btn-secondary" data-close>Cancel</button><button class="btn-secondary" data-document="reimbursement">Patient payment statement</button><button class="btn-primary" data-document="complete">Complete bill / stay</button>',onMount(root,close){root.querySelectorAll('[data-document]').forEach(button=>button.onclick=()=>{close();printBill(id,button.dataset.document);});}});
+  }
+  if(documentType==='reimbursement'){
+    const receipts=(b.payments||[]).filter(p=>!p.cancelled);
+    const net=receipts.reduce((sum,p)=>sum+Number(p.amount||0),0);
+    if(net<=0){toast('No net patient payment is available for reimbursement documentation','warning');return;}
+    return printDocument(`Patient payment statement — ${b.bill_no}`,`<h2>Patient payment statement</h2><p>${esc(b.patient_name)} · ${esc(b.uhid)} · ${esc(b.bill_no)}</p><p>Evidence of payments recorded against this bill. Subject to the reimbursing payer’s eligibility rules.</p><table><thead><tr><th>Receipt</th><th>Date</th><th>Mode</th><th>Amount</th></tr></thead><tbody>${receipts.map(p=>`<tr><td>${esc(p.receipt_no||'')}</td><td>${esc(fmtDateTime(p.created_at))}</td><td>${esc(p.mode||'')}</td><td>${money(p.amount,2)}</td></tr>`).join('')}</tbody></table><p>Net paid after refunds: <b>${money(net,2)}</b></p><p>This statement does not create a new charge or receipt.</p>`,{paper:'A4'});
+  }
   const s = state.meta.settings;
   // every inpatient bill prints as the itemised stay bill (grouped by department), the same as at discharge
   if(b.admission?.id&&b.bill_type!=='PHARM'){const {printStay}=await import('../patient-print.js');return printStay(b.admission.id,false);}
