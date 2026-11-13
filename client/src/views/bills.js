@@ -674,7 +674,13 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
           <td><input class="field field-sm" type="number" step="0.01" data-d value="0"></td>
           <td class="num" data-a>₹0.00</td>
           <td class="text-right"><button type="button" class="btn-ghost btn-xs" data-rm><span class="material-symbols-outlined text-[15px]">close</span></button></td>`;
-        body.append(tr); svcInput.value = ''; qtyInput.value = '1'; showPreview(); total(); svcInput.focus();
+        body.append(tr);
+        searchInput.value = '';
+        svcInput.value = '';
+        fillList();
+        suggestions.classList.add('hidden');
+        qtyInput.value = '1';
+        showPreview(); total(); searchInput.focus();
       };
       qtyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addLine(); } });
       svcInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (chosen()) qtyInput.select(); } });
