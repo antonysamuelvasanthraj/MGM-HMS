@@ -198,7 +198,9 @@ const serviceBills = (cat) => (q) => {
 };
 const receptionBills = (where, extra = []) => (q) => {
   const rows = all(`SELECT b.bill_no, b.bill_type, b.bill_date, p.uhid, p.name patient, p.mobile, coalesce(b.payer_type,'self') category, b.total + b.discount gross, b.discount, b.total, b.paid,
-      b.covered_amount covered, b.waived_amount free, b.balance, b.status, b.discount_reason, (SELECT group_concat(DISTINCT mode) FROM payments x WHERE x.bill_id=b.id AND x.cancelled=0) modes
+      b.covered_amount covered, b.waived_amount free, b.balance, b.status, b.discount_reason,
+      coalesce(nullif(b.authorization_reason,''),(SELECT group_concat(reason,'; ') FROM bill_settlements s WHERE s.bill_id=b.id AND s.mode IN ('due','credit') AND s.status<>'cancelled'),nullif(b.notes,''),'Not recorded') due_reason,
+      (SELECT group_concat(DISTINCT mode) FROM payments x WHERE x.bill_id=b.id AND x.cancelled=0) modes
     FROM bills b JOIN patients p ON p.id=b.patient_id WHERE b.bill_type<>'PHARM' AND b.bill_date BETWEEN ? AND ? ${where} ORDER BY b.id DESC`, q.from, q.to);
   return { kpis: [kpi('Bills', rows.length, 'number'), kpi('Net billed', sum(rows, 'total')), kpi('Paid', sum(rows, 'paid')), kpi('Payer / free', r2(sum(rows, 'covered') + sum(rows, 'free'))), kpi('Due', sum(rows, 'balance'))],
     columns: [col('bill_no', 'Bill'), col('bill_type', 'Type'), date('bill_date', 'Date'), col('uhid', 'UHID'), col('patient', 'Patient'), col('category', 'Category'), money('gross', 'Gross'), money('discount', 'Discount'), money('total', 'Net'), money('paid', 'Paid'), money('covered', 'Payer'), money('free', 'Free'), money('balance', 'Due'), col('status', 'Status'), ...extra],
@@ -277,7 +279,7 @@ const RECEPTION = [
   ['rec_imaging_payment', 'Imaging payment report', serviceBills('imaging')],
   ['rec_collection', 'Collection report', receipts('reception')],
   ['rec_payment_mode', 'Payment mode report', modeReport('reception')],
-  ['rec_due', 'Due report', receptionBills('AND b.balance > 0.005 AND b.status<>\'cancelled\'', [col('mobile', 'Mobile')])],
+  ['rec_due', 'Due report', receptionBills('AND b.balance > 0.005 AND b.status<>\'cancelled\'', [col('due_reason','Due / credit reason'),col('mobile', 'Mobile')])],
   ['rec_discount', 'Discount report', discounts],
   ['rec_refund', 'Refund report', refunds('reception')],
   ['rec_insurance', 'Insurance patient report', payerPatients('insurance')],
