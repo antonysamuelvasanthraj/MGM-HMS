@@ -16,6 +16,7 @@ export const DEFAULT_ROLE_PERMS = {
     'inventory.view', 'inventory.approve', 'purchase.view', 'books.reopen', 'stores.view',
   ],
   reception: [
+    'payment.approve_free',
     'dash.reception', 'dash.work', 'patient.view', 'patient.create', 'patient.edit',
     'appt.*', 'op.register', 'op.collect', 'queue.view', 'queue.manage', 'ipd.view', 'ipd.admit', 'ipd.manage', 'ipd.discharge',
     'billing.view', 'billing.create', 'billing.payer_change', 'payment.collect', 'payment.authorize', 'payment.view',
