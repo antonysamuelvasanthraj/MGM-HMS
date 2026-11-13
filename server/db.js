@@ -40,9 +40,7 @@ export const one = (sql, ...p) => { const r = get(sql, ...p); return r ? Object.
 /** Insert an object as a row; returns the new id. */
 export function insert(table, obj) {
   if (table === 'bills' && obj.bill_no) {
-    const series = { self: 'SELF', insurance: 'TPA', aarogyasri: 'AAR', corporate: 'COR', trust: 'TRUST', credit: 'CREDIT', due: 'DUE', free: 'FREE' };
-    const kind = series[obj.payer_type || 'self'] || 'SELF';
-    obj = { ...obj, bill_no: `${nextNo(`bill_${kind}`)}-${kind}` };
+    obj = { ...obj, bill_no: nextNo('bill_short') };
   }
   const keys = Object.keys(obj).filter((k) => obj[k] !== undefined);
   const sql = `INSERT INTO ${table} (${keys.join(',')}) VALUES (${keys.map(() => '?').join(',')})`;
@@ -94,6 +92,20 @@ const DEFAULT_SEQUENCES = {
 };
 
 export function nextNo(name) {
+  if (name === 'uhid' || name === 'bill_short') {
+    const patient = name === 'uhid';
+    const table = patient ? 'patients' : 'bills';
+    const column = patient ? 'uhid' : 'bill_no';
+    const prefix = patient ? 'P' : 'B';
+    const seqName = patient ? 'uhid_short' : 'bill_short';
+    run('INSERT OR IGNORE INTO sequences(name,prefix,next_val,width,period) VALUES (?,?,1,6,NULL)',seqName,prefix);
+    let next = get('SELECT next_val FROM sequences WHERE name=?',seqName).next_val;
+    let number;
+    do { number = prefix + String(next++).padStart(6,'0'); }
+    while(get(`SELECT 1 FROM ${table} WHERE ${column}=?`,number));
+    run('UPDATE sequences SET next_val=? WHERE name=?',next,seqName);
+    return number;
+  }
   let seq = get('SELECT * FROM sequences WHERE name=?', name);
   if (!seq) {
     // Voucher series are named vch_<TYPE>; other new document types have defaults.

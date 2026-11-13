@@ -369,9 +369,8 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
         <div><label class="field-label">Reason for discounts</label><input class="field field-sm" data-new-discount-reason placeholder="Required for service or overall discount"></div>
         <span class="text-body-lg"><span data-total-label>Total</span> <strong class="font-headline-md text-primary" data-t>₹0.00</strong></span>
       </div>
-      <label class="flex items-center gap-2 text-body-lg font-semibold cursor-pointer">
-        <input type="checkbox" name="collect" checked> Collect payment / record settlement now
-      </label>
+      <input type="checkbox" name="collect" checked hidden aria-hidden="true" tabindex="-1">
+      <p class="text-body-sm">Enter payment received now. Any unpaid balance is recorded as credit.</p>
       <div class="space-y-3 p-3 bg-surface-container-low rounded-xl border border-outline-variant" data-pay>
         <div class="flex items-center gap-4 border-b border-outline-variant pb-2">
           <span class="text-body-sm font-medium text-on-surface-variant">Payment Method:</span>
@@ -767,11 +766,8 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
                 reference: r.querySelector('[data-split-ref]').value.trim() || undefined,
                 reason: r.querySelector('[data-split-mode]').value === 'due' ? (r.querySelector('[data-split-ref]').value.trim() || 'Approved due balance') : undefined,
               })).filter(r => r.amount > 0);
-              if (!splitRows.length) {
-                toast('Add at least one payment mode with an amount', 'warning');
-                busy(actionButton, false);
-                return;
-              }
+              const remaining = Math.round((currentBillTotal - splitRows.reduce((sum, line) => sum + line.amount, 0)) * 100) / 100;
+              if (remaining > 0) splitRows.push({ mode: 'due', amount: remaining, reason: 'Outstanding balance — credit' });
               payload.lines = splitRows;
             } else {
               const sAmt = Math.max(0, +form.single_amount.value || 0);
