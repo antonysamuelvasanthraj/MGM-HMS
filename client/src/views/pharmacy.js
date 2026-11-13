@@ -328,6 +328,12 @@ function wireCounter(root, reload) {
     const batches = await api.get(`/pharmacy/batches?medicine_id=${b.dataset.m}&location=${store()}`);
     if (!batches.length) { toast(`No sellable batch in the ${store()} store`, 'warning'); return; }
     const m = await api.get(`/pharmacy/medicines/${b.dataset.m}`);
+    if(patient){
+      try{
+        const check=await api.get(`/pharmacy/allergy-check?patient_id=${patient.id}&medicine_id=${m.id}`);
+        if(check.conflicts.length){pending=null;preview();toast(`ALLERGY — cannot dispense: ${check.conflicts.map(c=>`${c.medicine}: ${c.allergy}`).join('; ')}`,'error');return;}
+      }catch(error){pending=null;preview();apiError(error,'Could not verify medicine allergies');return;}
+    }
     // the chosen medicine waits in the entry row until a quantity is typed; Enter or Add line puts it in the bill
     pending = { m, batches };
     input.value = m.name; list.classList.add('hidden');
@@ -446,7 +452,10 @@ function wireCounter(root, reload) {
       $('[data-pat-name]', root).textContent = 'No patient selected.';
       $('[data-pp-input]', root).value = '';
       paintCart(root); reload();
-    } catch (e) { apiError(e, 'Could not complete the sale'); }
+    } catch (e) {
+      if(e.payload?.error==='medicine_allergy_conflict')toast(`ALLERGY — dispensing blocked: ${(e.payload.conflicts||[]).map(c=>`${c.medicine}: ${c.allergy}`).join('; ')}`,'error');
+      else apiError(e, 'Could not complete the sale');
+    }
     finally { busy(actionButton, false); }
   };
 
@@ -492,7 +501,13 @@ function showPatient(root, adm = ipMode) {
   const el = $('[data-pat-name]', root);
   root.querySelector('[data-package-summary]')?.remove();
   root.querySelector('[data-billing-context]')?.remove();
+  root.querySelector('[data-pharmacy-allergies]')?.remove();
   if (!patient) { el.textContent = 'No patient selected.'; return; }
+  if(patient.allergies?.length){
+    const warning=document.createElement('div');warning.dataset.pharmacyAllergies='';warning.setAttribute('role','alert');
+    warning.className='mt-3 p-3 rounded border bg-danger-bg text-danger';
+    warning.innerHTML=`<strong>ALLERGIES:</strong> ${patient.allergies.map(a=>`${esc(a.substance)} · ${esc(a.severity)}`).join('; ')}`;el.after(warning);
+  }
   const currentPatient = patient.id;
   const contextBox=document.createElement('div');contextBox.dataset.billingContext='';contextBox.className='mt-3';el.after(contextBox);showBillingContext(contextBox,currentPatient);
   api.get(`/pharmacy/patient-package/${currentPatient}`).then(p => {

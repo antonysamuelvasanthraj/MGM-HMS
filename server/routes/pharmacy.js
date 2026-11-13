@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { medicineAllergyConflicts } from '../allergy-safety.js';
 import { invoiceOCR } from '../local-invoice-ocr.js';
 import {visitBillingCategory} from '../payer-context.js';
 import {
@@ -377,6 +378,15 @@ pharmacy.get('/batches', requireAuth, h((req) => all(
  * Pharmacy sale. FEFO batch pick unless a batch is named. Creates the bill,
  * moves stock and (optionally) takes payment in one transaction.
  */
+function allergyConflicts(patientId,items){
+  return medicineAllergyConflicts(all('SELECT substance,severity FROM allergies WHERE patient_id=?',patientId),
+    items.map(it=>get('SELECT id,name,generic,composition FROM medicines WHERE id=?',num(it.medicine_id))).filter(Boolean));
+}
+pharmacy.get('/allergy-check',requirePerm('pharmacy.dispense'),h(req=>{
+  const patientId=num(req.query.patient_id);
+  if(!get('SELECT id FROM patients WHERE id=?',patientId))fail(400,'patient_required');
+  return {conflicts:allergyConflicts(patientId,[{medicine_id:req.query.medicine_id}])};
+}));
 export function dispense(req, b = {}) {
   const items = b.items || [];
   if (Number(b.discount || 0) !== 0 || Number(b.discount_pct || 0) !== 0 || items.some(it => Number(it.discount || 0) !== 0 || Number(it.discount_pct || 0) !== 0)) fail(400, 'pharmacy_discounts_disabled');
@@ -397,6 +407,9 @@ export function dispense(req, b = {}) {
   }
 
   return tx(() => {
+    // Recheck current allergies in the write transaction, including held/Rx/ward flows.
+    const conflicts=allergyConflicts(patientId,items);
+    if(conflicts.length)fail(409,'medicine_allergy_conflict',{conflicts});
     // Admitted patients are charged to their running IP bill; everyone else gets a pharmacy bill.
     const ipBill = b.admission_id ? get(
       `SELECT bl.* FROM bills bl JOIN admissions a ON a.encounter_id=bl.encounter_id
