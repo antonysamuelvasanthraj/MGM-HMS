@@ -143,7 +143,7 @@ function view(e) {
               : `<p class="p-4 text-body-md text-on-surface-variant">No charges raised for this visit.</p>`,
           })}
           ${card({
-            title: 'Receipts', pad: false,
+            title: 'Receipts', pad: false, actions:'<button class="btn-primary btn-sm" data-print-session>Print consolidated current visit</button>',
             body: e.payments.length ? `<table class="tbl"><tbody>${e.payments.map((p) => `<tr>
                 <td><div class="font-data-mono text-body-sm">${esc(p.receipt_no)}</div>
                   <div class="text-label-sm text-on-surface-variant">${fmtDateTime(p.created_at)} · ${esc(p.received_by_name || '')}</div></td>
@@ -218,12 +218,13 @@ function consultBlock(c) {
 function wire(root, e, reload) {
   root.querySelector('[data-collect]')?.addEventListener('click', () => openCollect(e.id, reload));
   root.querySelector('[data-vitals]')?.addEventListener('click', () => openVitals(e.id, reload));
-  root.querySelector('[data-print-session]')?.addEventListener('click',()=>{
+  const printSession=()=>{
     const copy=root.cloneNode(true);
     copy.querySelectorAll('button,a,input,select,textarea,[data-skeleton]').forEach(element=>element.remove());
     const title=`Complete session — ${e.encounter_no} — ${e.patient_name}`;
     printDocument(title,`<style>body{font-family:Arial,sans-serif;font-size:11px}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{padding:5px;border-bottom:1px solid #ddd;text-align:left}h1,h2,h3{margin:12px 0 6px}section{break-inside:avoid}.grid{display:block}.material-symbols-outlined{display:none}</style><h1>Current visit / consultation record</h1><p>${esc(e.encounter_no)} · ${esc(e.uhid)} · ${esc(e.patient_name)}</p>${copy.innerHTML}<p>Printed from recorded information for this visit. Unavailable or unsigned reports are not represented as final reports.</p>`,{paper:'A4'});
-  });
+  };
+  root.querySelectorAll('[data-print-session]').forEach(button=>button.addEventListener('click',printSession));
   root.querySelector('[data-dx-bill]')?.addEventListener('click', () => openDiagnosticsBilling(reload, { patient: { id: e.patient_id, name: e.patient_name, uhid: e.uhid }, encounterId: e.id, doctorId: e.doctor_id }));
   root.querySelectorAll('[data-change-payer]').forEach((b) => b.addEventListener('click', () => openPayerChange(e.id, reload)));
   bind(root, 'click', '[data-collect-bill]', (ev, b) => openCollect(null, reload, { billId: +b.dataset.collectBill }));
