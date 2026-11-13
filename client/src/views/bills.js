@@ -356,6 +356,7 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
         ${can('insurance.view') ? '<button type="button" class="btn-secondary hidden" data-payer-case>Open Insurance & Payer Cases</button>' : ''}
         <p class="text-body-sm">Packages contain bundled services and are billed at the package price. They are separate from the service tariff.</p>
       </div>
+      <label class="hidden items-center gap-2 text-body-sm" data-ip-patient-pay><input type="checkbox" name="patient_payable"> Payable by patient — these new charges are excluded from scheme / TPA coverage</label>
       <div data-entry class="flex flex-wrap gap-2 items-end">
         <div class="flex-1 min-w-[240px]"><label class="field-label">Service</label><input class="field field-sm" type="search" data-service-search placeholder="Search and select a service…" aria-label="Search services" autocomplete="off"><select hidden data-svc id="nb-service-list"><option value="">Choose a service…</option></select></div>
         <div style="width:80px"><label class="field-label">Qty</label><input class="field field-sm text-center" type="number" min="1" value="1" data-newqty></div>
@@ -556,6 +557,9 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
       form.package_id.onchange = packageDetail;
 
       form.bill_type.onchange = () => {
+        const eligible=form.bill_type.value==='IP'&&['insurance','aarogyasri','corporate','trust'].includes(activeAdmission?.financial_category);
+        root.querySelector('[data-ip-patient-pay]').classList.toggle('hidden',!eligible);
+        if(!eligible)form.patient_payable.checked=false;
         const pkg = form.bill_type.value === 'PKG';
         const heading=root.querySelector('[role="dialog"] h2,[data-inline-workflow] h2');
         if(heading)heading.textContent = {LAB:'Laboratory bill',IMAGING:'Imaging bill',PKG:'Package bill',OP:opd?'OPD procedures & basic charges':'Services & payment'}[form.bill_type.value];
@@ -790,6 +794,7 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
             encounter_id: +form.encounter_id.value || null,
             doctor_id: +form.doctor_id.value || null,
             bill_type: form.bill_type.value,
+            patient_payable:form.bill_type.value==='IP'&&form.patient_payable.checked,
             package_id: pkg?.id,
             items: lines,
             discount:Number(form.overall_discount.value || 0),

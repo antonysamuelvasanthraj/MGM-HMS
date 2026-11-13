@@ -361,6 +361,7 @@ billing.post('/bills', requirePerm('billing.create'), h((req) => {
     if(b.collect)fail(400,'collect_ip_deposit_against_running_bill');
   }
   const billingDoctor = b.doctor_id ? get("SELECT id FROM users WHERE id=? AND role='doctor' AND active=1", num(b.doctor_id)) : null;
+  if(b.patient_payable&&(!admission||!['insurance','aarogyasri','corporate','trust'].includes(admission.financial_category)))fail(400,'patient_payable_requires_ip_payer');
   if (b.doctor_id && !billingDoctor) fail(400, 'active_doctor_required');
   let items = Array.isArray(b.items) ? b.items : [];
   if (b.package_id) {
@@ -406,6 +407,7 @@ billing.post('/bills', requirePerm('billing.create'), h((req) => {
         category,
         qty, rate, discount: disc, gst_pct: num(it.gst_pct, svc?.gst_pct || 0),
         amount: money(qty * rate - disc),
+        patient_pays:b.patient_payable?1:0,
       });
       if (it.order_id) update('orders', num(it.order_id), { billed: 1 });
     }
