@@ -104,7 +104,7 @@ function view(e) {
                   <div class="font-data-mono text-label-sm text-on-surface-variant">${esc(o.order_no)}${o.sample_id ? ` · ${esc(o.sample_id)}` : ''}</div></td>
                 <td class="capitalize text-body-md">${esc(o.category)}</td>
                 <td>${priorityPill(o.priority)}</td>
-                <td>${o.status==='awaiting_payment'&&Number(o.billed)===0&&!o.bill_item_id?pill('pending','Not billed — choose payment / approval'):pill(o.status)}</td>
+                <td>${o.status==='awaiting_payment'&&Number(o.billed)===0&&!o.bill_item_id?`${pill('pending','Not billed')}${can('billing.create')?` <button class="btn-secondary btn-xs" data-bill-existing-order="${o.id}">Bill / Free / Due / Credit</button>`:''}`:pill(o.status)}</td>
                 <td class="text-body-sm">${fmtTime(o.ordered_at)}</td>
                 <td class="text-right"><a class="btn-ghost btn-xs" href="${o.category === 'imaging' ? '/imaging' : o.category === 'lab' ? '/laboratory' : `/orders?encounter=${e.id}`}">Open</a></td>
               </tr>`).join('')}</tbody></table>`
@@ -220,6 +220,17 @@ function wire(root, e, reload) {
   root.querySelector('[data-dx-bill]')?.addEventListener('click', () => openDiagnosticsBilling(reload, { patient: { id: e.patient_id, name: e.patient_name, uhid: e.uhid }, encounterId: e.id, doctorId: e.doctor_id }));
   root.querySelectorAll('[data-change-payer]').forEach((b) => b.addEventListener('click', () => openPayerChange(e.id, reload)));
   bind(root, 'click', '[data-collect-bill]', (ev, b) => openCollect(null, reload, { billId: +b.dataset.collectBill }));
+  bind(root,'click','[data-bill-existing-order]',async(event,button)=>{
+    const order=e.orders.find(o=>o.id===Number(button.dataset.billExistingOrder));
+    if(!order)return;
+    busy(button,true);
+    try{
+      const bill=await api.post('/bills',{patient_id:e.patient_id,encounter_id:e.id,bill_type:order.category==='imaging'?'IMAGING':'LAB',items:[{service_id:order.service_id,order_id:order.id,description:order.label,category:order.category,qty:1}],collect:false});
+      await reload();
+      const {collectBill}=await import('../collect.js');
+      collectBill(bill.id,reload);
+    }catch(error){apiError(error,'Could not bill this existing order');busy(button,false);}
+  });
   bind(root, 'click', '[data-print-receipt]', async (ev, b) => {
     printReceipt(await api.get(`/payments/${b.dataset.printReceipt}/receipt`));
   });
