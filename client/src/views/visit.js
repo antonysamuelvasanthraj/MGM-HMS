@@ -224,11 +224,14 @@ function wire(root, e, reload) {
       if(!bills.length){toast('No bills recorded for this visit','info');return;}
       const {billSheet}=await import('../patient-print.js');
       const sum=key=>bills.reduce((total,bill)=>total+Number(bill[key]||0),0);
-      const combined={...bills[0],bill_no:`Statement ${e.encounter_no}`,bill_type:'OP',
+      const combined={...bills[0],bill_no:`Statement ${e.encounter_no}`,bill_type:'OP',show_paid_column:true,
         items:bills.flatMap(bill=>{
           const status=Number(bill.balance)>0.005?`${Number(bill.paid)>0?'Partially paid':'Pending'} — bill due ${money(bill.balance,2)}`:'';
           const paymentStatus=Number(bill.balance)>0.005?`${Number(bill.paid)>0?'Part paid':'Unpaid'}; bill paid ${money(bill.paid,2)}; due ${money(bill.balance,2)}`:Number(bill.free_treatment_value)>0?'Free treatment':Number(bill.paid)>0?'Paid':'Covered';
-          return (bill.items||[]).map(item=>({...item,print_payment_status:paymentStatus,description:`${item.description} (${bill.bill_no})${status?' — '+status:''}` }));
+          const list=bill.items||[],weight=list.reduce((sum,item)=>sum+Math.max(0,Number(item.amount)||0),0);
+          let remaining=Math.round(Math.max(0,Number(bill.paid)||0)*100);
+          const positive=list.filter(item=>Number(item.amount)>0);let index=0;
+          return list.map(item=>{let cents=0;if(Number(item.amount)>0){index++;cents=index===positive.length?remaining:Math.min(remaining,Math.round(Math.max(0,Number(bill.paid)||0)*100*Number(item.amount)/weight));remaining-=cents;}return {...item,print_paid:cents/100,description:`${item.description} (${bill.bill_no})${status?' — '+status:''}`};});
         }),
         payments:bills.flatMap(bill=>bill.payments||[]),
         gross:sum('gross'),discount:sum('discount'),tax:sum('tax'),total:sum('total'),paid:sum('paid'),balance:sum('balance'),
