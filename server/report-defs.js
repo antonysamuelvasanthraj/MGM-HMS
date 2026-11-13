@@ -549,6 +549,30 @@ export const EXTRA_REPORTS = [
 ];
 export { get };
 
+// Keep patient receipts and insurer receipts in disjoint reports, by receipt date.
+EXTRA_REPORTS.push({id:'ip_patient_collections',group:'Reception',title:'IP patient collections — including scheme patient shares',perm:R,filters:['range'],run:q=>{
+  const rows=all(`SELECT p.pay_date d,p.receipt_no,pt.name patient,pt.uhid,b.bill_no,b.payer_type category,p.mode,
+    ${receiptDeskSql()} desk,coalesce(p.transaction_id,p.reference) reference,
+    CASE WHEN p.amount>0 THEN p.amount ELSE 0 END received,
+    CASE WHEN p.amount<0 THEN -p.amount ELSE 0 END refunded,p.amount net
+    FROM payments p JOIN bills b ON b.id=p.bill_id JOIN patients pt ON pt.id=p.patient_id
+    LEFT JOIN encounters e ON e.id=b.encounter_id
+    WHERE p.cancelled=0 AND p.pay_date BETWEEN ? AND ? AND (b.bill_type='IP' OR e.kind='IP') ORDER BY p.id DESC`,q.from,q.to);
+  return {subtitle:'Patient money only, by receipt date, including IP pharmacy and TPA/Aarogyasri patient shares. Refunds reduce net collections. Free treatment, credit and payer receipts are excluded.',
+    kpis:[kpi('Patient receipts',sum(rows,'received')),kpi('Patient refunds',sum(rows,'refunded')),kpi('Net patient collections',sum(rows,'net'))],
+    columns:[date('d','Date'),col('receipt_no','Receipt'),col('patient','Patient'),col('uhid','UHID'),col('bill_no','Bill'),col('category','Billing category'),col('desk','Collection desk'),col('mode','Payment mode'),col('reference','Reference'),money('received','Received'),money('refunded','Refunded'),money('net','Net')],rows,total:['received','refunded','net']};
+}});
+EXTRA_REPORTS.push({id:'tpa_aarogyasri_payer_collections',group:'Scheme / payer',title:'TPA / Aarogyasri collections — payer money only',perm:V,filters:['range'],run:q=>{
+  const rows=all(`SELECT r.received_on d,r.receipt_no,pt.name patient,pt.uhid,b.bill_no,s.mode category,s.payer_name,
+    s.settlement_no,r.mode,r.reference,r.amount received
+    FROM settlement_receipts r JOIN bill_settlements s ON s.id=r.settlement_id
+    JOIN bills b ON b.id=s.bill_id JOIN patients pt ON pt.id=s.patient_id
+    WHERE s.status<>'cancelled' AND s.mode IN ('insurance','aarogyasri') AND r.received_on BETWEEN ? AND ? ORDER BY r.id DESC`,q.from,q.to);
+  return {subtitle:'Actual insurer/government receipts by receipt date. Patient contributions, co-pay, free treatment, disallowed amounts and unpaid claims are excluded.',
+    kpis:[kpi('TPA received',sum(rows.filter(r=>r.category==='insurance'),'received')),kpi('Aarogyasri received',sum(rows.filter(r=>r.category==='aarogyasri'),'received')),kpi('Total payer received',sum(rows,'received'))],
+    columns:[date('d','Date'),col('receipt_no','Payer receipt'),col('patient','Patient'),col('uhid','UHID'),col('bill_no','Bill'),col('category','Category'),col('payer_name','Payer'),col('settlement_no','Settlement'),col('mode','Payment mode'),col('reference','Reference'),money('received','Payer received')],rows,total:['received']};
+}});
+
 EXTRA_REPORTS.push(
  {id:'emergency_store_batches',group:'Pharmacy',title:'ER / ICU / OT emergency stock — batches & expiry',perm:P,filters:[],run:()=>({columns:[col('location','Store'),col('name','Medicine'),col('batch_no','Batch'),date('expiry','Expiry'),num('qty','Available'),money('purchase_rate','Unit cost'),money('stock_value','Stock value'),col('expiry_status','Expiry status')],rows:all(`SELECT b.location,m.name,b.batch_no,b.expiry,b.qty,b.purchase_rate,round(b.qty*b.purchase_rate,2) stock_value,CASE WHEN b.expiry<date('now','localtime') THEN 'Expired' WHEN b.expiry<=date('now','localtime','+90 days') THEN 'Near expiry' ELSE 'Valid' END expiry_status FROM medicine_batches b JOIN medicines m ON m.id=b.medicine_id WHERE b.location IN ('ER','ICU','OT') ORDER BY b.location,b.expiry,m.name`),total:['stock_value']})},
  {id:'emergency_store_transfers',group:'Pharmacy',title:'ER / ICU / OT received batches — transfer history',perm:P,filters:['range'],run:q=>({columns:[col('transfer_no','Transfer'),col('source','From'),col('destination','To'),col('status','Status'),col('name','Medicine'),col('batch_no','Batch'),date('expiry','Expiry'),num('qty','Issued'),num('qty_received','Received'),col('received_at','Received at')],rows:all(`SELECT t.transfer_no,t.source,t.destination,t.status,m.name,b.batch_no,b.expiry,i.qty,i.qty_received,t.received_at FROM stock_transfers t JOIN stock_transfer_lines l ON l.transfer_id=t.id JOIN stock_transfer_issues i ON i.line_id=l.id JOIN medicine_batches b ON b.id=i.source_batch_id JOIN medicines m ON m.id=b.medicine_id WHERE t.destination IN ('ER','ICU','OT') AND date(t.requested_at) BETWEEN ? AND ? ORDER BY t.id DESC`,q.from,q.to)})},
