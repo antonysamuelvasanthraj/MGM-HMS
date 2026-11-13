@@ -269,7 +269,8 @@ function wireCounter(root, reload) {
   // keyboard and barcode scanner: Enter takes the first in-stock match, ↓ moves into the list
   input.addEventListener('keydown', (e) => {
     const first = () => list.querySelector('[data-m]:not([disabled])');
-    if (e.key === 'ArrowDown' && first()) { e.preventDefault(); first().focus(); }
+    if (e.key === 'Escape') { list.classList.add('hidden'); return; }
+    if (e.key === 'ArrowDown' && first()) { e.preventDefault(); list.classList.remove('hidden'); first().focus(); }
     if (e.key !== 'Enter' || input.value.trim().length < 2) return;
     e.preventDefault();
     let tries = 0;  // a scanner types faster than the search: wait for the results of this text
@@ -277,6 +278,8 @@ function wireCounter(root, reload) {
     pick();
   });
   list.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); document.activeElement?.closest('[data-m]')?.click(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); list.classList.add('hidden'); input.focus(); return; }
     if (!['ArrowDown', 'ArrowUp'].includes(e.key)) return;
     const all = [...list.querySelectorAll('[data-m]:not([disabled])')], i = all.indexOf(document.activeElement);
     e.preventDefault();
@@ -328,7 +331,8 @@ function wireCounter(root, reload) {
     pending = { m, batches };
     input.value = m.name; list.classList.add('hidden');
     preview();
-    $('[data-newqty]', root).focus();
+    const quantity=$('[data-newqty]', root);
+    quantity.focus();quantity.select();
   });
   let pending = null;
   function preview() {
