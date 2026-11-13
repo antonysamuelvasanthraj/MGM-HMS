@@ -35,6 +35,9 @@ ipd.post('/admissions/:id/forms', requirePerm('ipd.view'), h(req=>{
  const a=get('SELECT * FROM admissions WHERE id=?',+req.params.id)||fail(404,'admission_not_found');
  const {form_type,details}=req.body||{};
  if(!['estimate','consent','feedback'].includes(form_type)||!details||typeof details!=='object'||Array.isArray(details))fail(400,'invalid_form');
+ const contact=String(details.mobile??'').trim().replace(/[\s()-]/g,'');
+ if(!/^(?:\+91)?[6-9][0-9]{9}$/.test(contact))fail(400,'Enter a complete 10-digit mobile number (optional +91 prefix)');
+ details.mobile=contact;
  if(form_type==='feedback'&&(a.status!=='discharged'||!Number.isInteger(details.rating)||details.rating<1||details.rating>5))fail(400,'discharged_patient_and_rating_required');
  if(JSON.stringify(details).length>40000)fail(400,'form_too_large');
  if(form_type==='estimate'&&(!Array.isArray(details.lines)||!details.lines.length||details.lines.length>100||details.lines.some(l=>typeof l.description!=='string'||!l.description.trim()||!Number.isFinite(l.days)||l.days<=0||!Number.isFinite(l.rate)||l.rate<0)||!Number.isFinite(details.advance)||details.advance<0))fail(400,'invalid_estimate');
