@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import {restoreCancelledBillStock} from '../cancel-bill-stock.js';
 import {
   h, fail, all, get, one, insert, update, run, nextNo, today, where, emit, num, money,
   recalcBill, syncEncounterPayment, tx, patientCard, nowIso, priceFor,
@@ -555,19 +556,22 @@ billing.post('/bills/:id/cancel', requirePerm('billing.cancel'), h((req) => {
   if (before.paid > 0.005) fail(409, 'refund_before_cancel', { paid: before.paid });
   if(get('SELECT s.id FROM ward_replacement_supply s JOIN bill_items i ON i.id=s.bill_item_id WHERE i.bill_id=?',id))fail(409,'replacement_requires_ward_review');
   const lock = closedDayGuard(req, billDay(before), req.body.reason);
+  let restoredStock=[];
   tx(() => {
     for (const s2 of all("SELECT id FROM bill_settlements WHERE bill_id=? AND status<>'cancelled'", id)) {
       cancelSettlement(req, s2.id, `Bill cancelled: ${req.body.reason}`);
     }
     update('bills', id, { status: 'cancelled', cancelled_at: nowIso(), cancel_reason: req.body.reason, cancelled_by: req.user.id });
+    restoredStock=restoreCancelledBillStock(id,req.user.id,req.body.reason);
     recalcBill(id);
     run("UPDATE orders SET status='cancelled' WHERE status IN ('awaiting_payment','ordered') AND id IN (SELECT order_id FROM bill_items WHERE bill_id=?)", id);
   });
   const view = billView(id);
   if (view.encounter_id) syncEncounterPayment(view.encounter_id);
-  emit(req, { topics: TOPICS, event: 'bill.updated', data: view,
+  emit(req, { topics: [...TOPICS,'stock','pharmacy','inventory'], event: 'bill.updated', data: view,
     action: 'bill.cancel', entity: 'bills', entityId: id,
-    detail: { before: pickBill(before), after: pickBill(view), reason: req.body.reason, ...lock } });
+    detail: { before: pickBill(before), after: pickBill(view), restored_stock:restoredStock, reason: req.body.reason, ...lock } });
+  if(restoredStock.length)emit(req,{topics:['inventory','pharmacy'],event:'stock.changed',data:{bill_id:id,restored:restoredStock}});
   return view;
 }));
 

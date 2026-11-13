@@ -233,6 +233,7 @@ pharmacy.get('/stock', requireAuth, h((req) => {
   if (req.query.filter === 'expiring') extra.push(`b.expiry <= date('now','localtime','+90 day') AND b.qty > 0`);
   if (req.query.filter === 'expired') extra.push(`b.expiry < date('now','localtime') AND b.qty > 0`);
   if (req.query.filter === 'zero') extra.push('b.qty <= 0');
+  if (req.query.filter === 'in_stock') extra.push('b.qty > 0');
   const w = extra.length ? `WHERE ${extra.join(' AND ')}` : '';
   const rows = all(
     `SELECT b.*, m.name medicine_name, m.code medicine_code, m.form, m.rack, m.reorder_level,

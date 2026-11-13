@@ -14,7 +14,7 @@ const LOCATIONS = ['Central', 'OP', 'IP', 'ER', 'ICU', 'OT', 'Ward', 'LAB'];
 let cache = [];
 
 export async function mount(ctx) {
-  f={q:'',filter:'',location:LOCATIONS.includes(ctx.query?.location)?ctx.query.location:''};
+  f={q:'',filter:'in_stock',location:LOCATIONS.includes(ctx.query?.location)?ctx.query.location:''};
   const root = mountPage(ctx, layout());
   let openAdjustment = ctx.query?.adjust === '1';
   wireFilters(root, (v) => { f = { ...f, ...v }; load(); });
@@ -103,7 +103,7 @@ function layout() {
         { type: 'select', key: 'location', label: 'Location', value: f.location, options: [
           { value: '', label: 'All locations' }, ...LOCATIONS.map((l) => ({ value: l, label: l }))] },
         { type: 'select', key: 'filter', label: 'View', value: f.filter, options: [
-          { value: '', label: 'All batches' }, { value: 'expiring', label: 'Expiring in 90 days' },
+          { value: 'in_stock', label: 'In stock only' }, { value: '', label: 'All batches (including zero stock)' }, { value: 'expiring', label: 'Expiring in 90 days' },
           { value: 'expired', label: 'Expired' }, { value: 'zero', label: 'Zero stock' }] },
       ])}
       <div class="grid grid-cols-1 2xl:grid-cols-[1.6fr_1fr] gap-5 items-start">
