@@ -622,9 +622,16 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
       };
 
       const svcInput = root.querySelector('[data-svc]'), qtyInput = root.querySelector('[data-newqty]'), preview = root.querySelector('[data-linepreview]');
-      const fillList = () => { root.querySelector('#nb-service-list').innerHTML = servicesFor(form.bill_type.value).map((s) => `<option value="${esc(s.name)}"></option>`).join(''); };
+      const serviceLabel = s => `${s.name} — ${s.code || s.id} — ${money(s.price,2)}`;
+      const fillList = () => { root.querySelector('#nb-service-list').innerHTML = servicesFor(form.bill_type.value).map((s) => `<option value="${esc(serviceLabel(s))}"></option>`).join(''); };
       fillList(); form.bill_type.addEventListener('change', fillList);
-      const chosen = () => servicesFor(form.bill_type.value).find((s) => s.name === svcInput.value.trim());
+      const chosen = () => {
+        const list=servicesFor(form.bill_type.value), value=svcInput.value.trim();
+        const exact=list.find(s=>serviceLabel(s)===value);
+        if(exact)return exact;
+        const matches=list.filter(s=>s.name===value);
+        return matches.length===1?matches[0]:undefined;
+      };
       const showPreview = () => { const sv = chosen(), q = Math.max(0, +qtyInput.value || 0);
         preview.innerHTML = sv ? `<span>Unit price <b>${money(sv.price, 2)}</b></span> &nbsp; <span>Qty <b>${q}</b></span> &nbsp; <span>Line total <b>${money(q * sv.price, 2)}</b></span>` : '<span class="text-on-surface-variant">Unit price and line total show here. Added lines list below; change the quantity or discount there.</span>'; };
       svcInput.addEventListener('input', showPreview); qtyInput.addEventListener('input', showPreview);
