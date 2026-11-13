@@ -1,4 +1,5 @@
 import {openSchemePatientPayment} from '../scheme-patient-pay.js';
+import {canChangePayer,openPayerChange} from '../payer-change.js';
 import {printLetterhead} from '../ui.js';
 import {pharmacyInvoice,rupeesInWords} from '../pharmacy-invoice.js';
 import {billPaper} from '../patient-print.js';
