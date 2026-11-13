@@ -266,6 +266,13 @@ const RECEPTION = [
   ['rec_cancelled', 'Registration cancellation report', visits("AND e.stage='cancelled'")],
   ['rec_admissions', 'Admission report', admissionsReport('admission')],
   ['rec_discharges', 'Discharge report', admissionsReport('discharge')],
+  ['rec_discharge_category_list', 'Discharges — billing category detail', admissionsReport('discharge')],
+  ['rec_discharge_category_summary', 'Discharges — billing category summary', q => {
+    const detail=admissionsReport('discharge')(q);
+    const groups=new Map();
+    for(const row of detail.rows){const category=row.category||'self';const group=groups.get(category)||{category,discharges:0,billed:0,balance:0};group.discharges++;group.billed=r2(group.billed+Number(row.billed||0));group.balance=r2(group.balance+Number(row.balance||0));groups.set(category,group);}
+    return {kpis:detail.kpis,columns:[col('category','Billing category'),num('discharges','Discharges'),money('billed','Billed'),money('balance','Balance')],rows:[...groups.values()],total:['discharges','billed','balance']};
+  }],
   ['rec_lab_payment', 'Lab payment report', serviceBills('lab')],
   ['rec_imaging_payment', 'Imaging payment report', serviceBills('imaging')],
   ['rec_collection', 'Collection report', receipts('reception')],
