@@ -9,6 +9,7 @@ import { state, loadMeta, can, setting } from './store.js';
 import { NAV, titleFor, sectionFor } from './shell/nav.js';
 import { markActive } from './shell/sidebar.js';
 import { resetTopics, announce } from './ws.js';
+import {paperScreenBlocked} from './paper-mode.js';
 
 let started = false;
 let current = null;          // { route, dispose }
@@ -52,6 +53,10 @@ export async function render(path) {
 
   state.route = ctx.route;
   markActive(ctx.route);
+  if(paperScreenBlocked(ctx.route)){
+    $('#view').innerHTML='<div class="p-6"><h2>Paper mode</h2><p>This clinical record is maintained on paper. Electronic documentation is available in Hybrid or Paperless mode.</p><a href="/dashboard">Return to dashboard</a></div>';
+    return;
+  }
   const billingDesk=ctx.route==='/billing-desk';
   const title = billingDesk?(ctx.query.desk==='pharmacy'?'Pharmacy Billing':'Reception Billing'):titleFor(ctx.route);
   const section=billingDesk?(ctx.query.desk==='pharmacy'?'Pharmacy':'Reception & OPD'):sectionFor(ctx.route);

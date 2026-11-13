@@ -3,6 +3,7 @@ import { NAV, sectionFor } from './nav.js';
 import { state, can, onState, setting } from '../store.js';
 import { $, $$, esc } from '../ui.js';
 import { navigate } from '../router.js';
+import {paperScreenBlocked} from '../paper-mode.js';
 
 let mounted = false;
 
@@ -16,6 +17,7 @@ const LAST_KEY = () => `hms_area_last_${state.user?.id || 'x'}`;
 function readLast() { try { return JSON.parse(localStorage.getItem(LAST_KEY()) || '{}'); } catch { return {}; } }
 
 function allowedItem(i) {
+  if(paperScreenBlocked(i.route))return false;
   const allowed = (p) => !p || (Array.isArray(p) ? p.some((x) => can(x)) : can(p));
   // `manual: [setting, value]` hides a portal screen while that department works on paper
   return !i.sidebarHidden && !i.excludeRoles?.includes(state.user?.role) && allowed(i.perm) && !(i.hideIf && can(i.hideIf)) && !(i.manual && setting(i.manual[0]) === i.manual[1]);
