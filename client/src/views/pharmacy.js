@@ -436,8 +436,6 @@ function wireCounter(root, reload) {
         title: 'Sale complete',
         action: { label: 'Print bill', run: () => printBill(r.bill.id) },   // the GST tax invoice is the pharmacy document; no separate receipt
       });
-      const schemePatientId=patient?.id;
-      if(r.bill.payer_type==='aarogyasri'&&can('scheme.patient_pay'))toast('Aarogyasri: permit a patient share only when authorized','info',{action:{label:'Patient payment permitted',run:()=>openSchemePatientPayment(schemePatientId,r.bill.id,reload)}});
       if (ipMode) toast(`Charged to IP bill ${r.bill.bill_no} — settled at discharge by reception`, 'info');
       else if (r.bill.payer_type === 'self' && r.bill.balance > 0) collectBill(r.bill.id, reload, { mode: mode === 'card' ? 'debit_card' : mode }); // keep the counter's chosen mode
       else if (r.bill.deferred_collection) toast('Recorded against the patient and payer case / approved due. Collect only the patient share; payer settlement is recorded when received.', 'info');
