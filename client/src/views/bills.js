@@ -655,6 +655,18 @@ export async function newBill(after, opd = false, {patientId=null,encounterId=nu
         suggestions.classList.add('hidden');
         showPreview();qtyInput.focus();qtyInput.select();
       });
+      suggestions.addEventListener('keydown',event=>{
+        const buttons=[...suggestions.querySelectorAll('[data-service-result]')];
+        const index=buttons.indexOf(document.activeElement);
+        if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+          event.preventDefault();
+          const next=index+(event.key==='ArrowDown'?1:-1);
+          if(next<0)searchInput.focus();
+          else buttons[Math.min(next,buttons.length-1)]?.focus();
+        }
+        if(event.key==='Enter'){event.preventDefault();buttons[index]?.click();}
+        if(event.key==='Escape'){event.preventDefault();suggestions.classList.add('hidden');searchInput.focus();}
+      });
       searchInput.addEventListener('keydown',event=>{
         if(event.key==='Escape')suggestions.classList.add('hidden');
         if(event.key==='ArrowDown'){event.preventDefault();suggestions.querySelector('button')?.focus();}

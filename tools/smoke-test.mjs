@@ -611,7 +611,7 @@ for (const [category, series] of [['insurance','TPA'],['aarogyasri','AAR'],['cor
 }
 const creditPatient=await call('/patients',{name:'QA deferred credit',gender:'Male',age_years:30,payer_type:'credit'});
 const creditBill=await call('/bills',{patient_id:creditPatient.id,bill_type:'OP',items:[{description:'Credit service',qty:1,rate:100}]});
-assert.ok(creditBill.bill_no.endsWith('-CREDIT'));assert.equal(creditBill.deferred_collection,true);assert.equal(creditBill.paid,0);
+assert.match(creditBill.bill_no,/^B\d{6,}$/);assert.equal(creditBill.payer_type,'credit');assert.equal(creditBill.deferred_collection,true);assert.equal(creditBill.paid,0);
 await call('/payments',{bill_id:creditBill.id,amount:100,mode:'cash'});assert.equal((await call('/bills/'+creditBill.id)).balance,0);
 // GRN comparisons, one-sided laboratory ranges, stock-loss accounting and staff workflow guards.
 await as('admin');
