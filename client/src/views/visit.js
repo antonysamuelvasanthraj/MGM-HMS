@@ -218,11 +218,13 @@ function consultBlock(c) {
 function wire(root, e, reload) {
   root.querySelector('[data-collect]')?.addEventListener('click', () => openCollect(e.id, reload));
   root.querySelector('[data-vitals]')?.addEventListener('click', () => openVitals(e.id, reload));
-  const printSession=()=>{
-    const copy=root.cloneNode(true);
-    copy.querySelectorAll('button,a,input,select,textarea,[data-skeleton]').forEach(element=>element.remove());
-    const title=`Complete session — ${e.encounter_no} — ${e.patient_name}`;
-    printDocument(title,`<style>body{font-family:Arial,sans-serif;font-size:11px}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{padding:5px;border-bottom:1px solid #ddd;text-align:left}h1,h2,h3{margin:12px 0 6px}section{break-inside:avoid}.grid{display:block}.material-symbols-outlined{display:none}</style><h1>Current visit / consultation record</h1><p>${esc(e.encounter_no)} · ${esc(e.uhid)} · ${esc(e.patient_name)}</p>${copy.innerHTML}<p>Printed from recorded information for this visit. Unavailable or unsigned reports are not represented as final reports.</p>`,{paper:'A4'});
+  const printSession=async()=>{
+    try{
+      const bills=await Promise.all((e.bills||[]).filter(b=>b.status!=='cancelled').map(b=>api.get(`/bills/${b.id}`)));
+      if(!bills.length){toast('No bills recorded for this visit','info');return;}
+      const {billSheet}=await import('../patient-print.js');
+      printDocument(`Consolidated bills — ${e.patient_name}`,`<h1>Consolidated bills and services</h1><p>${esc(e.patient_name)} · ${esc(e.uhid)} · ${esc(e.encounter_no)}</p>${bills.map(b=>`<section style="margin-bottom:24px">${billSheet(b)}</section>`).join('')}`,{paper:'A4'});
+    }catch(error){apiError(error,'Could not prepare consolidated bills');}
   };
   root.querySelectorAll('[data-print-session]').forEach(button=>button.addEventListener('click',printSession));
   root.querySelector('[data-dx-bill]')?.addEventListener('click', () => openDiagnosticsBilling(reload, { patient: { id: e.patient_id, name: e.patient_name, uhid: e.uhid }, encounterId: e.id, doctorId: e.doctor_id }));
