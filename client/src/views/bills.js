@@ -54,6 +54,7 @@ export async function mount(ctx) {
   });
   bind(root,'click','[data-new-op]',async()=>{const {openBillingRegistration}=await import('./op-registration.js');await openBillingRegistration(load);});
   bind(root, 'click', '[data-new]', () => newBill(load, ctx.query.new === 'op'));
+  bind(root,'click','[data-change-payer]',()=>modal({title:'Change payer / billing category',size:'lg',body:'<label class="field-label">Patient</label><div data-payer-patient></div><div data-payer-visits class="mt-3"></div>',footer:'<button class="btn-secondary" data-close>Close</button>',onMount(dialog,close){patientPicker(dialog.querySelector('[data-payer-patient]'),async patient=>{try{const visits=await api.get('/encounters?patient_id='+patient.id);const host=dialog.querySelector('[data-payer-visits]');host.innerHTML=visits.length?visits.map(v=>`<button class="btn-secondary block mt-2" data-payer-visit="${v.id}">${esc(v.encounter_no)} · ${esc(v.kind||'')} · ${esc(v.stage||'')}</button>`).join(''):'No visits found for this patient.';host.querySelectorAll('[data-payer-visit]').forEach(button=>button.onclick=()=>{close();openPayerChange(+button.dataset.payerVisit,load);});}catch(error){apiError(error);}});}}));
   bind(root,'click','[data-op-procedure]',()=>newBill(load,true));
   bind(root,'click','[data-new-ip]',async()=>{const {admitPatient}=await import('./admissions.js');await admitPatient(load);});
   bind(root,'click','[data-bill-view]',(_event,button)=>{
@@ -80,6 +81,7 @@ function layout() {
     title: 'Billing & Invoice Management',
     subtitle: 'Raise and review bills. Collect against a bill here.',
     actions: `${can('op.collect') || can('finance.view') || can('admin.view') ? `<a href="/collections" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">point_of_sale</span> Collections</a>` : ''}
+      ${canChangePayer(true)?'<button class="btn-secondary" data-change-payer>Change payer / billing category</button>':''}
       <button class="btn-secondary" data-export><span class="material-symbols-outlined text-[18px]">download</span> Export</button>
       ${can('op.register')&&setting('workflow_doctor','portal')!=='manual'?'<button class="btn-secondary" data-new-op>OP visit / consultation fee</button>':''}
       ${can('ipd.admit')?'<button class="btn-secondary" data-new-ip>New IPD admission / bill</button>':''}

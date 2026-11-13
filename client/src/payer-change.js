@@ -19,7 +19,7 @@ const CATS = [['self', 'Cash / self-pay'], ['credit', 'Patient credit — pay la
 const PAYER = ['insurance', 'aarogyasri', 'corporate', 'trust'];
 const label = (c) => CATS.find(([v]) => v === c)?.[1] || c;
 
-export const canChangePayer = (ip = false) => can('billing.payer_change') || can('insurance.write') || (ip && can('ipd.manage'));
+export const canChangePayer = (ip = false) => can('admin.write') || can('insurance.write') || (can('billing.payer_change') && can('op.collect'));
 export const canApprovePayer = () => can('insurance.write') || can('admin.write') || can('billing.payer_approve');
 /** Setting on (default): a desk that cannot approve sends the change as a request to the Insurance desk. */
 export const payerNeedsApproval = () => setting('payer_change_requires_approval', '1') !== '0' && !canApprovePayer()

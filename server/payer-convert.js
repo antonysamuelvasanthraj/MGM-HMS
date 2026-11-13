@@ -32,7 +32,7 @@ const LABEL = { self: 'Self-pay', credit: 'Patient credit', insurance: 'Insuranc
 const r2 = (v) => Math.round((+v + Number.EPSILON) * 100) / 100;
 
 /** Who may change a payer: reception / billing desk, the insurance desk, admin. IP keeps ipd.manage for compatibility. */
-export const mayChangePayer = (u, ip = false) => can(u, 'billing.payer_change') || can(u, 'insurance.write') || (ip && can(u, 'ipd.manage'));
+export const mayChangePayer = (u, ip = false) => can(u,'admin.write') || can(u,'insurance.write') || (can(u,'billing.payer_change') && can(u,'op.collect'));
 /** Who decides a payer-change request: the insurance desk, an administrator, or a role given billing.payer_approve. */
 export const mayApprovePayer = (u) => can(u, 'insurance.write') || can(u, 'admin.write') || can(u, 'billing.payer_approve');
 /** With the setting on (default), a desk that cannot approve sends a request instead of converting directly. */
