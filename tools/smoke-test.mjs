@@ -591,7 +591,7 @@ assert.ok(payerMedicine,'Payer pharmacy checks need available OP stock');
 for (const [category, series] of [['insurance','TPA'],['aarogyasri','AAR'],['corporate','COR'],['trust','TRUST']]) {
  const pp=await call('/patients',{name:'QA pending '+category,gender:'Male',age_years:30,payer_type:category});
  const pb=await call('/bills',{patient_id:pp.id,bill_type:'OP',items:[{description:'Covered service',qty:1,rate:100}]});
- assert.ok(pb.bill_no.endsWith('-'+series));assert.equal(pb.patient_id,pp.id);assert.ok(pb.claim_id);
+ assert.match(pb.bill_no,/^B\d{6,}$/);assert.equal(pb.payer_type,category);assert.equal(pb.patient_id,pp.id);assert.ok(pb.claim_id);
  await call('/insurance/claims/'+pb.claim_id,{status:'preauth_pending'},'PATCH');
  const pv=await call('/bills/'+pb.id);assert.equal(pv.patient_due,0);assert.equal(pv.payer_pending,100);
  await call('/payments',{bill_id:pb.id,amount:100,mode:'cash'},'POST',400);

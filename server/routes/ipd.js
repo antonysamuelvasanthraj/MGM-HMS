@@ -36,7 +36,7 @@ ipd.post('/admissions/:id/forms', requirePerm('ipd.view'), h(req=>{
  const {form_type,details}=req.body||{};
  if(!['estimate','consent','feedback'].includes(form_type)||!details||typeof details!=='object'||Array.isArray(details))fail(400,'invalid_form');
  const contact=String(details.mobile??'').trim().replace(/[\s()-]/g,'');
- if(!/^(?:\+91)?[6-9][0-9]{9}$/.test(contact))fail(400,'Enter a complete 10-digit mobile number (optional +91 prefix)');
+ if((contact||form_type==='consent')&&!/^(?:\+91)?[6-9][0-9]{9}$/.test(contact))fail(400,'Enter a complete 10-digit mobile number (optional +91 prefix)');
  details.mobile=contact;
  if(form_type==='feedback'&&(a.status!=='discharged'||!Number.isInteger(details.rating)||details.rating<1||details.rating>5))fail(400,'discharged_patient_and_rating_required');
  if(JSON.stringify(details).length>40000)fail(400,'form_too_large');
