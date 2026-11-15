@@ -641,8 +641,9 @@ function receiptView(id) {
     `SELECT pm.*, pt.uhid, pt.name patient_name, pt.gender, pt.age_years, pt.mobile, pt.address,
             b.bill_no, b.total bill_total, b.balance bill_balance, b.bill_type, b.discount bill_discount, b.discount_reason,
             u.name received_by_name, c.name counter_name, e.encounter_no, e.token_no,
-            d.name doctor_name
+            d.name doctor_name, rf.name referral_name
        FROM payments pm JOIN patients pt ON pt.id=pm.patient_id
+       LEFT JOIN referral_sources rf ON rf.id=pt.referral_doctor_id
        LEFT JOIN bills b ON b.id=pm.bill_id
        LEFT JOIN users u ON u.id=pm.received_by
        LEFT JOIN counters c ON c.id=pm.counter_id

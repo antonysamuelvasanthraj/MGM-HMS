@@ -587,9 +587,10 @@ export function printReceipt(rc) {
     ${printLetterhead('PAYMENT RECEIPT',rc.receipt_no)}<p style="text-align:right;font-size:10px">${esc(rc.created_at)}</p>
     <table style="width:100%;font-size:12px;margin-top:12px">
       <tr><td style="color:#526176;width:110px">Patient</td><td><b>${esc(rc.patient_name)}</b> · ${rc.age_years ?? ''}y ${esc(rc.gender || '')}</td>
-          <td style="color:#526176;width:90px">UHID</td><td style="font-family:monospace">${esc(rc.uhid)}</td></tr>
-      <tr><td style="color:#526176">Bill</td><td style="font-family:monospace">${esc(rc.bill_no || '—')}</td>
+          <td style="color:#526176;width:90px">UHID</td><td style="">${esc(rc.uhid)}</td></tr>
+      <tr><td style="color:#526176">Bill</td><td style="">${esc(rc.bill_no || '—')}</td>
           <td style="color:#526176">Doctor</td><td>${esc(rc.doctor_name || '—')}</td></tr>
+      ${rc.referral_name ? `<tr><td style="color:#526176">Referred by</td><td colspan="3">${esc(rc.referral_name)}</td></tr>` : ''}
       <tr><td style="color:#526176">Counter</td><td>${esc(rc.counter_name || '—')}</td>
           <td style="color:#526176">Received by</td><td>${esc(rc.received_by_name || '')}</td></tr>
     </table>
@@ -601,21 +602,21 @@ export function printReceipt(rc) {
       <tbody>${(rc.items || []).filter((i) => i.amount || i.waiver_of).map((i) => `<tr>
         <td style="padding:7px;border-bottom:1px solid #EEF2F7">${esc(i.description)}${i.discount > 0 ? `<div style="font-size:10px;color:#166534">Discount −${Number(i.discount).toFixed(2)} on ${Number(i.qty * i.rate).toFixed(2)}</div>` : ''}</td>
         <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7">${i.qty}</td>
-        <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7;font-family:monospace">${Number(i.amount).toFixed(2)}</td></tr>`).join('')}
+        <td style="padding:7px;text-align:right;border-bottom:1px solid #EEF2F7">${Number(i.amount).toFixed(2)}</td></tr>`).join('')}
       </tbody>
       <tfoot>
         ${rc.bill_discount > 0 ? `<tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">Bill discount${rc.discount_reason ? ` (${esc(rc.discount_reason)})` : ''}</td>
-            <td style="padding:7px;text-align:right;font-family:monospace">−${Number(rc.bill_discount).toFixed(2)}</td></tr>` : ''}
+            <td style="padding:7px;text-align:right">−${Number(rc.bill_discount).toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">Bill total</td>
-            <td style="padding:7px;text-align:right;font-family:monospace">${Number(rc.bill_total || 0).toFixed(2)}</td></tr>
+            <td style="padding:7px;text-align:right">${Number(rc.bill_total || 0).toFixed(2)}</td></tr>
         ${(rc.adjustments || []).map((a) => `<tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">${esc(a.payer_name === 'Package adjustment' ? 'Covered by the package' : a.mode === 'free' ? `Free — ${a.reason || 'approved'}` : `Payer — ${a.payer_name || a.mode}`)}</td>
-            <td style="padding:7px;text-align:right;font-family:monospace">−${Number(a.amount).toFixed(2)}</td></tr>`).join('')}
+            <td style="padding:7px;text-align:right">−${Number(a.amount).toFixed(2)}</td></tr>`).join('')}
         ${rc.paid_before > 0 ? `<tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">Paid earlier</td>
-            <td style="padding:7px;text-align:right;font-family:monospace">−${Number(rc.paid_before).toFixed(2)}</td></tr>` : ''}
+            <td style="padding:7px;text-align:right">−${Number(rc.paid_before).toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:7px;text-align:right;font-weight:700">Received (${esc(modeLabel(rc.mode))})</td>
-            <td style="padding:7px;text-align:right;font-weight:700;font-family:monospace;color:#166534">${Number(rc.amount).toFixed(2)}</td></tr>
+            <td style="padding:7px;text-align:right;font-weight:700;color:#166534">${Number(rc.amount).toFixed(2)}</td></tr>
         <tr><td colspan="2" style="padding:7px;text-align:right;color:#526176">Balance</td>
-            <td style="padding:7px;text-align:right;font-family:monospace">${Number(rc.bill_balance || 0).toFixed(2)}</td></tr>
+            <td style="padding:7px;text-align:right">${Number(rc.bill_balance || 0).toFixed(2)}</td></tr>
       </tfoot>
     </table>
     ${rc.reference ? `<div style="font-size:11px;color:#526176;margin-top:6px">Reference: ${esc(rc.reference)}</div>` : ''}
@@ -624,5 +625,5 @@ export function printReceipt(rc) {
       <div style="text-align:center">_______________________<br>Authorised signatory</div>
     </div>
   </div>`;
-  printDocument(rc.receipt_no, html);
+  printDocument(rc.receipt_no, html, { paper: 'A5 landscape' });   // a receipt is a small page: half an A4 sheet
 }
