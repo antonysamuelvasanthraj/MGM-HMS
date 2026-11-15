@@ -84,11 +84,11 @@ function layout() {
 }
 
 const BED_TONE = {
-  occupied: 'bg-primary-fixed border-primary/30 text-primary',
-  vacant: 'bg-success-bg border-success/30 text-success',
-  reserved: 'bg-warning-bg border-warning/30 text-warning',
-  cleaning: 'bg-info-bg border-info/30 text-info',
-  blocked: 'bg-neutral-bg border-outline-variant text-neutral',
+  occupied: 'bed-state-occupied',
+  vacant: 'bed-state-vacant',
+  reserved: 'bed-state-reserved',
+  cleaning: 'bed-state-cleaning',
+  blocked: 'bed-state-blocked',
 };
 
 function bedBoard(d) {
@@ -114,6 +114,7 @@ function bedBoard(d) {
                 <span class="material-symbols-outlined text-[14px]">${b.status === 'occupied' ? 'person' : b.status === 'cleaning' ? 'cleaning_services' : b.status === 'reserved' ? 'bookmark' : 'bed'}</span>
               </div>
               <div class="text-label-sm truncate mt-0.5 font-medium">${esc(b.patient_name || b.status)}</div>
+              <div class="text-label-sm font-semibold mt-1">${esc(b.status[0].toUpperCase() + b.status.slice(1))}</div>
               ${b.los_days !== null && b.patient_name ? `<div class="text-label-sm opacity-70">${b.los_days}d · ${esc(b.financial_category || '')}</div>` : ''}
             </button>`).join('')}
         </div>
@@ -409,7 +410,8 @@ async function transferBed(a, after) {
   modal({
     title: 'Transfer bed', subtitle: `${esc(a.patient_name)} currently in ${esc(a.bed_no || '')}`, size: 'md',
     body: `<label class="field-label">Move to</label>
-      <select class="field" data-bed>${free.map((b) => `<option value="${b.id}">${esc(b.ward_name)} · ${esc(b.bed_no)} (${esc(b.class)}) — ${money(b.tariff)}/day</option>`).join('')}</select>
+      <select class="field" data-bed>${!free.length ? '<option value="">No vacant beds available</option>' : ''}
+          ${free.map((b) => `<option value="${b.id}">${esc(b.ward_name)} · ${esc(b.bed_no)} (${esc(b.class)}) — ${money(b.tariff)}/day</option>`).join('')}</select>
       <p class="text-body-sm text-on-surface-variant mt-2">The current bed is released for cleaning. The day already started is billed at the old rate; the new bed and its ward's daily charges start from the next 24-hour cycle. Hourly charges stop at once.</p>
       <div data-plan class="mt-3 text-body-md"></div>`,
     footer: `<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-ok>Transfer</button>`,
@@ -466,7 +468,7 @@ function bedActions(bed, after) {
 export async function admitPatient(after, presetBedId = null, { patientId = null, emergencyId = null, er = null, inlineHost = null } = {}) {
   const [beds, catalog, preset] = await Promise.all([api.get('/ipd/beds'), api.get('/ipd/charge-catalog'),
     patientId ? api.get(`/patients/${patientId}`) : Promise.resolve(null)]);
-  const free = beds.beds.filter((b) => b.status === 'vacant' || b.id === presetBedId);
+  const free = beds.beds.filter((b) => b.status === 'vacant' || (b.status === 'reserved' && b.id === presetBedId));
   const daily = catalog.filter((c) => ['day', 'hour'].includes(c.billing_unit));
   const kindOf = (bedId) => beds.beds.find((b) => b.id === +bedId)?.ward_kind || 'general';
   const appliesIn = (c, kind) => !c.ward_kinds || String(c.ward_kinds).split(',').includes(kind);
@@ -477,8 +479,9 @@ export async function admitPatient(after, presetBedId = null, { patientId = null
       <div><label class="field-label">Patient *</label>${preset ? `<div class="field flex items-center">${esc(preset.name)} · ${esc(preset.uhid)}</div>` : '<div data-picker></div>'}</div>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="field-label">Bed *</label><select class="field" name="bed_id" required>
+          ${!free.length ? '<option value="">No vacant beds available</option>' : ''}
           ${free.map((b) => `<option value="${b.id}" ${b.id === presetBedId ? 'selected' : ''}>${esc(b.ward_name)} · ${esc(b.bed_no)} — ${esc(b.class)} (${money(b.tariff)}/day)</option>`).join('')}
-        </select></div>
+        </select>${!free.length ? '<p class="text-body-sm text-danger mt-1" role="status">No vacant beds. Ask the ward team to mark a cleaned bed as vacant on the bed board, then reopen admission.</p>' : ''}</div>
         <div><label class="field-label">Consultant *</label><select class="field" name="consultant_id" required>
           ${doctorOptions(false).map((o) => `<option value="${o.value}">${esc(o.label)}</option>`).join('')}</select></div>
       </div>
@@ -508,7 +511,7 @@ export async function admitPatient(after, presetBedId = null, { patientId = null
           <span class="flex-1 text-body-md">${esc(c.name)}${c.ward_kinds ? ` <span class="text-label-sm text-on-surface-variant">(${esc(c.ward_kinds.replace(/,/g, ', '))})</span>` : ''}</span><span class="font-data-mono text-body-sm">${money(c.price)}/${c.billing_unit === 'hour' ? 'hour' : 'day'}</span></label>`).join('')}</div>
       </fieldset>
     </form>`,
-    footer: `<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save>Admit</button>`,
+    footer: `<button class="btn-secondary" data-close>Cancel</button><button class="btn-primary" data-save ${free.length ? '' : 'disabled'}>Admit</button>`,
     onMount(root, close) {
       const form0 = root.querySelector('[data-af]');
       // tick the chosen ward's automatic charges; untick charges that belong to other wards

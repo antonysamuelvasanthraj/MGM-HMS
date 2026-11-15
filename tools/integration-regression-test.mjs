@@ -299,7 +299,7 @@ try {
   check('estimate snapshot reprints exact rates',()=>assert.equal(formAfter.find(f=>f.id===savedEstimate.id).details.lines[0].rate,1000));
   const invalidEstimate=await request(`/ipd/admissions/${a.id}/forms`,{form_type:'estimate',details:{advance:0,lines:[{description:'Invalid',days:-1,rate:100}]}});
   check('invalid estimate quantities rejected',()=>assert.equal(invalidEstimate.status,400));
-  const consent=await api(`/ipd/admissions/${a.id}/forms`,{form_type:'consent',details:{attendant:'Test',relation:'Parent',procedures:'Specified procedure',language:'Telugu / English'}});
+  const consent=await api(`/ipd/admissions/${a.id}/forms`,{form_type:'consent',details:{attendant:'Test',relation:'Parent',mobile:'9876543210',procedures:'Specified procedure',language:'Telugu / English'}});
   check('reception consent snapshot saved without signed status',()=>assert.ok(consent.id));
   const formDb=new DatabaseSync(path.join(dataDir,'surelyhms.db'));
   const originalStatus=formDb.prepare('SELECT status FROM admissions WHERE id=?').get(a.id).status;

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { medicineAllergyConflicts } from '../allergy-safety.js';
+import {disposeStock} from '../stock-disposal.js';
 import { invoiceOCR } from '../local-invoice-ocr.js';
 import {visitBillingCategory} from '../payer-context.js';
 import {
@@ -308,6 +309,11 @@ pharmacy.post('/stock/adjust', requirePerm('inventory.write'), h((req) => {
 }));
 
 /* ------------------------------------------------------- dispensing / POS */
+pharmacy.post('/stock/dispose',requirePerm('inventory.write'),h(req=>{
+  const result=disposeStock({batchId:num(req.body.batch_id),qty:Number(req.body.qty),expectedQty:req.body.expected_qty,reason:req.body.reason,userId:req.user.id,expiredOnly:true});
+  emit(req,{topics:[...TOPICS,'accounts'],event:'stock.changed',data:result,action:'stock.expiry_disposal',entity:'medicine_batches',entityId:result.batch_id,detail:{...result,reason:req.body.reason}});
+  return result;
+}));
 
 pharmacy.get('/held-bills', requirePerm('pharmacy.view'), h(req => all(`SELECT h.id,h.patient_id,h.notes,h.created_at,p.name patient_name,p.uhid,u.name held_by FROM pharmacy_held_bills h JOIN patients p ON p.id=h.patient_id JOIN users u ON u.id=h.created_by WHERE h.status='held' ORDER BY h.id DESC`)));
 pharmacy.post('/held-bills', requirePerm('pharmacy.dispense'), h(req => {

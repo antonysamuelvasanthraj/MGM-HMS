@@ -721,6 +721,14 @@ ipd.get('/discharge/board', requirePerm('ipd.view'), h((req) => {
          OR (a.status='admitted' AND cast(julianday('now','localtime') - julianday(a.admitted_at) AS int) >= 5)
       ORDER BY a.status DESC, a.admitted_at`);
   for (const r of rows) {
+    if (r.claim_status === 'rejected') {
+      const claim = get('SELECT id,stage_note FROM insurance_claims WHERE admission_id=? ORDER BY id DESC LIMIT 1', r.id);
+      const audit = claim && get(`SELECT user_name,at FROM audit_log WHERE entity='insurance_claims' AND entity_id=?
+        AND json_valid(detail) AND json_extract(detail,'$.after.status')='rejected' ORDER BY id DESC LIMIT 1`, claim.id);
+      r.claim_stage_note = claim?.stage_note || '';
+      r.claim_rejected_by = audit?.user_name || null;
+      r.claim_rejected_at = audit?.at || null;
+    }
     r.checks = {
       clinical: ['clinically_cleared', 'financially_cleared'].includes(r.status),
       orders_closed: r.pending_orders === 0,

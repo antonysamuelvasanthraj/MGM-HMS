@@ -40,7 +40,7 @@ export async function printPatientPrescription(patientId,rxId){
  if(!r){toast('Prescription not found','warning');return;}
  printDocument(`Prescription — ${r.patient_name}`,header(r)+`<h2>Prescription</h2><p>${fmtDateTime(r.created_at)} · ${esc(r.doctor_name)} · ${esc(r.encounter_no||'')} · ${esc(r.status)}</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>Medicine</th><th>Dose / route</th><th>Frequency</th><th>Days</th><th>Qty</th><th>Dispensed / Remaining</th><th>Instructions</th></tr></thead><tbody>${r.items.map(i=>`<tr><td>${esc(i.drug)}</td><td>${esc(i.dose||'')} ${esc(i.route||'')}</td><td>${esc(i.frequency||'')}</td><td>${i.duration_days||''}</td><td>${i.qty||''}</td><td>${i.dispensed_qty||0} / ${Math.max(0,(i.qty||0)-(i.dispensed_qty||0))}</td><td>${esc(i.instructions||'')}</td></tr>`).join('')}</tbody></table><p>${esc(r.notes||'')}</p><p>All prescribed medicines are listed. Remaining quantities may be purchased outside. Substitutions require doctor approval.</p><p>Doctor signature: __________________</p>`);
 }
-export async function printStay(id,includeClinical=true){
+export async function printStay(id,includeClinical=false){
  const d=await api.get(`/ipd/admissions/${id}/print-pack`),a=d.admission;
  const visibleBills=d.bills.filter(b=>!(Number(b.total)===0 && b.items.length && b.items.every(i=>Number(i.amount)===0 && /^DEMO /i.test(i.description))));
  const items=visibleBills.flatMap(b=>b.items.filter(i=>Number(i.amount)!==0||!i.waiver_of).map(i=>({...i,bill_no:b.bill_no})));

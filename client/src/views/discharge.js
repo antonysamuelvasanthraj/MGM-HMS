@@ -145,7 +145,7 @@ function rowHTML(r) {
       <div class="text-label-sm text-on-surface-variant mt-0.5">${r.ready ? 'All gates closed' : `${Object.values(c).filter(Boolean).length}/5 closed`}</div></td>
     <td class="num">${money(r.total)}</td>
     <td class="num ${r.balance > 0 ? 'text-danger font-semibold' : 'text-success'}">${r.balance < -0.005 ? `Advance ${money(-r.balance)}` : money(r.balance)}</td>
-    <td>${pill(r.status)}${r.claim_status ? ` ${pill(r.claim_status)}` : ''}</td>
+    <td>${pill(r.status)}${r.claim_status ? ` ${pill(r.claim_status)}` : ''}${r.claim_status === 'rejected' ? `<div class="text-body-sm mt-1">${esc(r.claim_rejected_by ? `Rejection recorded by ${r.claim_rejected_by}` : 'Rejection recorder unavailable in audit history')}${r.claim_rejected_at ? ` · ${fmtDateTime(r.claim_rejected_at)}` : ''}</div>${r.claim_stage_note ? `<div class="text-body-sm">${esc(r.claim_stage_note)}</div>` : ''}` : ''}</td>
     <td class="text-right whitespace-nowrap">
       ${can('billing.view') ? `<button class="btn-secondary btn-xs" data-act="print-stay">Print all charges${r.access?.clinical?' & diagnosis':''}</button>` : ''}
       ${r.access?.clinical ? `<button class="btn-secondary btn-xs" data-act="summary">${r.summary_status === 'final' ? 'Summary ✓' : c.summary ? 'Summary (draft)' : 'Write summary'}</button>` : ''}
@@ -244,7 +244,7 @@ export async function doDischarge(row, after) {
   } catch (e) { if (!e.handled) apiError(e, 'Could not complete the discharge'); }
 }
 
-function offerPrintPack(row){if(!can('billing.view'))return;const clinical=row.access?.clinical||(row.summary_status==='final'&&can('ipd.discharge'));modal({title:'Discharge documents — '+row.patient_name,body:`<p>Print the complete stay bill, including pharmacy, laboratory and all added charges. The original bill numbers and receipts are retained.</p>${clinical?'<label class="flex gap-2 mt-3"><input type="checkbox" checked data-include-clinical>Include diagnosis, released diagnostic reports and clinical discharge record</label>':'<p class="mt-3">Reception can include the clinical record after the doctor signs the final discharge summary. Draft clinical notes stay restricted.</p>'}`,footer:'<button class="btn-secondary" data-close>Close</button><button class="btn-primary" data-print-pack>Print discharge documents</button>',onMount(root){root.querySelector('[data-print-pack]').onclick=()=>printStay(row.id,!!root.querySelector('[data-include-clinical]')?.checked);}});}
+function offerPrintPack(row){if(!can('billing.view'))return;const clinical=row.access?.clinical||(row.summary_status==='final'&&can('ipd.discharge'));modal({title:'Discharge documents — '+row.patient_name,body:`<p>Print the complete stay bill, including pharmacy, laboratory and all added charges. The original bill numbers and receipts are retained.</p>${clinical?'<label class="flex gap-2 mt-3"><input type="checkbox" data-include-clinical>Include diagnosis, released diagnostic reports and clinical discharge record</label>':'<p class="mt-3">Reception can include the clinical record after the doctor signs the final discharge summary. Draft clinical notes stay restricted.</p>'}`,footer:'<button class="btn-secondary" data-close>Close</button><button class="btn-primary" data-print-pack>Print discharge documents</button>',onMount(root){root.querySelector('[data-print-pack]').onclick=()=>printStay(row.id,!!root.querySelector('[data-include-clinical]')?.checked);}});}
 
 async function refundExcess(row, after) {
   const full = await api.get(`/ipd/admissions/${row.id}`);

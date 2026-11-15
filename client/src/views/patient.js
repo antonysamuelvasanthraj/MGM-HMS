@@ -77,7 +77,7 @@ export async function mount(ctx) {
   bind(root,'click','[data-patient-collect]',(_e,b)=>collectBill(+b.dataset.patientCollect,load));
   bind(root, 'click', '[data-print-bill]', (e,b)=>printBill(+b.dataset.printBill));
   bind(root, 'click', '[data-print-rx]', (e,b)=>printPatientPrescription(id,+b.dataset.printRx));
-  bind(root, 'click', '[data-print-stay]', (e,b)=>printStay(+b.dataset.printStay,!!data.access?.clinical||(can('ipd.discharge')&&data.admissions.some(a=>a.id===+b.dataset.printStay&&a.summary_status==='final'))));
+  bind(root, 'click', '[data-print-stay]', (e,b)=>printStay(+b.dataset.printStay,false));
 
   return live({ topics: [`patient:${id}`, 'patients'], events: ['patient.updated', 'encounter.created', 'admission.created', 'admission.updated', 'admission.discharged', 'payment.received', 'consultation.saved', 'lab.verified'], load });
 }

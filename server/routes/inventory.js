@@ -7,6 +7,7 @@
  * in another, and each step is a stock_moves row with the user who did it.
  */
 import { Router } from 'express';
+import {disposeStock} from '../stock-disposal.js';
 import {
   h, fail, all, get, one, insert, update, run, tx, emit, nowIso, nextNo, num, money, today, recalcBill, setting,
 } from '../lib.js';
@@ -361,6 +362,8 @@ inventory.post('/sales-returns', requirePerm('pharmacy.dispense'), h((req) => tx
   if (!qtyOk(qty) || qty > item.qty - item.returned_qty + 0.0001) fail(400, 'return_qty_invalid', { returnable: item.qty - item.returned_qty });
   if (!reason) fail(400, 'reason_required');
   const batch = get('SELECT * FROM medicine_batches WHERE id=?', item.batch_id);
+  if(b.disposition&&!['restock','dispose'].includes(b.disposition))fail(400,'return_disposition_invalid');
+  const disposed=batch.expiry<=today()||b.disposition==='dispose';
   const amount = money(qty * item.rate);
   const rid = insert('sales_returns', { return_no: nextNo('sales_return'), bill_id: bill.id, bill_item_id: item.id,
     batch_id: batch.id, qty, amount, refund_mode: b.refund_mode || null, reason, created_by: req.user.id });
@@ -373,6 +376,7 @@ inventory.post('/sales-returns', requirePerm('pharmacy.dispense'), h((req) => tx
   if (cost > 0) postVoucher({ type: 'COGS', source: 'sales_return', sourceId: rid, narration: `Stock back from return on ${bill.bill_no}`,
     lines: [{ account: 'inventory_pharmacy', debit: cost, segment: 'PHARMACY' },
             { account: 'cogs_pharmacy', credit: cost, segment: 'PHARMACY' }] });
+  if(disposed)disposeStock({batchId:batch.id,qty,reason:`Patient return ${reason}`,userId:req.user.id,expiredOnly:batch.expiry<=today(),refType:'sales_return_disposal',refId:rid});
   let after = recalcBill(bill.id);
   let refunded = null;
   if (after.balance < -0.005) {
@@ -384,7 +388,7 @@ inventory.post('/sales-returns', requirePerm('pharmacy.dispense'), h((req) => tx
   const row = get('SELECT * FROM sales_returns WHERE id=?', rid);
   emit(req, { topics: [...topics, 'billing', 'accounts'], event: 'sales_return.created', data: row, action: 'sales_return.create',
     entity: 'sales_returns', entityId: rid, detail: { before: { bill_total: bill.total, paid: bill.paid },
-      after: { bill_total: after.total, refund: refunded?.refund?.amount || 0 }, reason } });
+      after: { bill_total: after.total, refund: refunded?.refund?.amount || 0,disposition:disposed?'disposed':'restocked' }, reason } });
   return { return: row, bill: after, refund: refunded?.refund || null };
 })));
 
@@ -410,6 +414,7 @@ inventory.post('/purchase-returns', requirePerm('purchase.write'), h((req) => tx
   const pi = batch.purchase_id ? get('SELECT * FROM purchase_items WHERE batch_id=? ORDER BY id DESC LIMIT 1', batch.id) : null;
   const supplierId = num(b.supplier_id, batch.supplier_id);
   if (!supplierId) fail(400, 'supplier_required');
+  if(batch.supplier_id&&supplierId!==batch.supplier_id)fail(400,'batch_supplier_mismatch');
   const value = money(qty * batch.purchase_rate);
   const cg = money(value * (pi?.cgst_pct || 0) / 100), sg = money(value * (pi?.sgst_pct || 0) / 100),
     ig = money(value * (pi?.igst_pct || 0) / 100);

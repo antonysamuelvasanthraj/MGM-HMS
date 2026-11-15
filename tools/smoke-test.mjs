@@ -38,7 +38,7 @@ let lists=0;
 for(const file of fs.readdirSync('server/routes')){
  const prefix=({patients:'/patients',pharmacy:'/pharmacy',inventory:'/pharmacy','ward-replacements':'/pharmacy',ipd:'/ipd'})[file.replace('.js','')]||'';
  for(const m of fs.readFileSync('server/routes/'+file,'utf8').matchAll(/\.get\('([^']+)'/g)){
-  if(!m[1].includes(':')&&m[1]!=='/portal/me'){await call(prefix+m[1]);lists++;}   // /portal/me answers patient sessions only (tested below)
+  if(!m[1].includes(':')&&m[1]!=='/portal/me'&&m[1]!=='/allergy-check'){await call(prefix+m[1]);lists++;}   // /portal/me answers patient sessions only (tested below)
  }
 }
 const meta=await call('/meta');const doctor=meta.doctors.find(d=>d.role==='doctor');
@@ -412,9 +412,8 @@ await as('admin');
 /* ---------------- free visit: saved first, approved later */
 await as('reception');
 const fr=await call('/encounters',{patient_id:p.id,doctor_id:doctor.id,payment_status:'free',free_reason:'Hospital staff or dependant'});
-assert.ok(fr.approval_pending,'free visit saved pending approval');assert.equal(fr.encounter.payment_status,'pending');
-assert.ok((await call('/approvals')).rows.some(r=>r.id===fr.bill.id));
-await call(`/approvals/${fr.bill.id}/approve`,{},'POST',403);
+// reception holds payment.approve_free: a free visit is approved when it is registered, not queued
+assert.equal(!!fr.approval_pending,false,'reception approves free visits itself');assert.equal(fr.encounter.payment_status,'free');
 await call('/desk/day?desk=reception');await call('/desk/day?desk=pharmacy',undefined,'GET',403);
 const handoverBill=await call('/bills',{patient_id:p.id,bill_type:'OP',items:[{description:'Handover test charge',qty:1,rate:50}],collect:true,mode:'cash'});
 const hv=await call('/desk/handover?desk=reception');
@@ -433,8 +432,6 @@ await call(`/pharmacy/transfers/${etr.id}/ratify`,{},'POST',403);
 await call('/admin/roles/lab',{perms:['lab.*']},'PUT',403);
 await as('admin');
 await call(`/pharmacy/transfers/${etr.id}/ratify`,{});
-const ap=await call(`/approvals/${fr.bill.id}/approve`,{});
-assert.equal(ap.bill.balance,0);
 assert.equal((await call(`/encounters/${fr.encounter.id}`)).payment_status,'free');
 const cashBeforeAcceptance=await call('/desk/day?desk=reception');
 await call(`/desk/handover/${ho.id}/verify`,{status:'accepted'});

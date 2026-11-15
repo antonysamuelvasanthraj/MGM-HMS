@@ -40,13 +40,17 @@ try {
   console.log('  git HEAD', sh('git rev-parse --short HEAD', { quiet: true }).trim(), 'is on origin/main');
 
   step(4, 'Sending to Oracle (data folder untouched)');
+  // what goes to Oracle is exactly what is committed (git archive of HEAD), plus the built stylesheet that git does not hold
   const files = sh('git ls-files client server tools package.json', { quiet: true }).split('\n').filter(Boolean);
-  files.push('client/app.css');   // built, not in git
   // relative paths: a drive letter in the path makes GNU tar think it is a remote host
-  fs.mkdirSync('.ship-tmp', { recursive: true });
-  const list = '.ship-tmp/files.txt', tar = '.ship-tmp/ship.tar';
-  fs.writeFileSync(list, files.join('\n'));
-  sh(`tar -cf ${tar} -T ${list}`);
+  fs.rmSync('.ship-tmp', { recursive: true, force: true });
+  fs.mkdirSync('.ship-tmp/export', { recursive: true });
+  sh('git archive HEAD client server tools package.json -o .ship-tmp/head.tar');
+  sh('tar -xf .ship-tmp/head.tar -C .ship-tmp/export');
+  fs.copyFileSync('client/app.css', '.ship-tmp/export/client/app.css');
+  files.push('client/app.css');
+  const tar = '.ship-tmp/ship.tar';
+  sh(`tar -cf ${tar} -C .ship-tmp/export .`);
   sh(`scp -q -i "${KEY}" ${tar} ${HOST}:/tmp/ship.tar`);
   sh(`${SSH} "cd ${APP} && tar -xf /tmp/ship.tar && sudo systemctl restart hms; sleep 3; systemctl is-active hms"`);
 
@@ -54,9 +58,12 @@ try {
   // the file list goes in through stdin: a few hundred names do not fit on one command line
   const remote = sh(`${SSH} "cd ${APP} && xargs -d '\\n' md5sum"`, { quiet: true, input: files.join('\n') });
   const theirs = new Map(remote.split('\n').filter(Boolean).map((l) => { const m = l.match(/^([0-9a-f]{32})\s+\*?(.+)$/); return m ? [m[2], m[1]] : null; }).filter(Boolean));
-  const bad = files.filter((f) => theirs.get(f) !== md5(f));
+  const bad = files.filter((f) => theirs.get(f) !== md5(path.join('.ship-tmp/export', f)));
   if (bad.length) throw new Error(`Not identical on Oracle: ${bad.slice(0, 10).join(', ')}`);
   console.log(`  ${files.length} files identical on Oracle`);
+  // and the folder on this PC must equal what was committed, or git and this PC have drifted apart
+  const drift = sh('git status --porcelain --untracked-files=no -- client server tools package.json', { quiet: true }).trim();
+  if (drift) console.log(`  WARNING: this PC has uncommitted edits (not on Oracle):\n${drift.split('\n').map((l) => '    ' + l).join('\n')}`);
 
   step(6, 'Local copy');
   console.log('  This PC is the source, so it is already current. If the local server (start-live.cmd) is running, restart it to load server changes; screens reload with Ctrl+F5.');
