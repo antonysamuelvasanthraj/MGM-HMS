@@ -59,7 +59,7 @@ ipd.post('/admissions/:id/forms', requirePerm('ipd.view'), h(req=>{
 }));
 ipd.get('/admissions/:id/print-pack', requirePerm('ipd.view'), h(req=>{
   if(!can(req.user,'billing.view'))fail(403,'forbidden');
-  const a=get(`SELECT a.*,p.name patient_name,p.uhid,p.age_years,p.gender,p.mobile,u.name consultant_name,b.bed_no,w.name ward_name FROM admissions a JOIN patients p ON p.id=a.patient_id LEFT JOIN users u ON u.id=a.consultant_id LEFT JOIN beds b ON b.id=a.bed_id LEFT JOIN wards w ON w.id=b.ward_id WHERE a.id=?`,+req.params.id)||fail(404,'admission_not_found');
+  const a=get(`SELECT a.*,p.name patient_name,p.uhid,p.age_years,p.gender,p.mobile,(SELECT rf.name FROM referral_sources rf WHERE rf.id=p.referral_doctor_id) referral_name,u.name consultant_name,b.bed_no,w.name ward_name FROM admissions a JOIN patients p ON p.id=a.patient_id LEFT JOIN users u ON u.id=a.consultant_id LEFT JOIN beds b ON b.id=a.bed_id LEFT JOIN wards w ON w.id=b.ward_id WHERE a.id=?`,+req.params.id)||fail(404,'admission_not_found');
   a.claim=get('SELECT claim_no,tpa,status,approved,payer_type FROM insurance_claims WHERE admission_id=? ORDER BY id DESC LIMIT 1',a.id)||null;
   if(a.status!=='discharged')accrueAdmission(a.id);
   const er=a.emergency_id?get('SELECT encounter_id FROM emergency_cases WHERE id=?',a.emergency_id)?.encounter_id:-1;
@@ -246,8 +246,9 @@ ipd.get('/admissions/:id', requirePerm('ipd.view'), h((req) => {
   const a = get(
     `SELECT a.*, p.uhid, p.name patient_name, p.gender, p.age_years, p.mobile, p.blood_group,
             b.bed_no, b.class bed_class, b.tariff, w.name ward_name, w.kind ward_kind,
-            u.name consultant_name, u.designation consultant_designation
+            u.name consultant_name, u.designation consultant_designation, rf.name referral_name
        FROM admissions a JOIN patients p ON p.id=a.patient_id
+       LEFT JOIN referral_sources rf ON rf.id=p.referral_doctor_id
        LEFT JOIN beds b ON b.id=a.bed_id LEFT JOIN wards w ON w.id=b.ward_id
        LEFT JOIN users u ON u.id=a.consultant_id WHERE a.id=?`, id);
   if (!a) fail(404, 'admission_not_found');

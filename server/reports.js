@@ -458,6 +458,8 @@ export function runReport(user, id, query) {
     manufacturer: String(query.manufacturer || '').trim().slice(0,180),
     encounter_type: ['OP','IP'].includes(query.encounter_type) ? query.encounter_type : null,
     visiting_doctor_id: query.visiting_doctor_id ? +query.visiting_doctor_id : null,
+    user_id: query.user_id ? +query.user_id : null,
+    referral_id: query.referral_id ? +query.referral_id : null,
   };
   if (query.department) q.department = String(query.department);
   const out = r.run(q, user);

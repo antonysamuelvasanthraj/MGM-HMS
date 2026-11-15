@@ -37,7 +37,7 @@ function view(b) {
       ${can('payment.collect') && due > 0.005 && b.status !== 'cancelled' ? `<button class="btn-primary" data-collect>Collect ${money(due, 2)}</button>` : ''}
       <button class="btn-secondary" data-manage title="Add charge, discount, change doctor, cancel">More actions</button><button class="btn-primary" data-print>Print</button>`,
     body: `${card({ body: `<div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 text-body-md">
-        ${cell('Invoice no.', esc(b.bill_no))}${cell('Doctor', esc(b.doctor_name || '—'))}${cell('Bill type', esc(b.bill_type))}${cell('Status', billStatus(b))}
+        ${cell('Invoice no.', esc(b.bill_no))}${cell('Doctor', esc(b.doctor_name || '—'))}${b.referral_name ? cell('Referred by', esc(b.referral_name)) : ''}${cell('Bill type', esc(b.bill_type))}${cell('Status', billStatus(b))}
         ${cell('Patient', esc(b.patient_name))}${cell('Patient ID', esc(b.uhid))}${cell('Gender / age', `${esc(b.gender || '—')} / ${b.age_years ?? '—'}`)}${cell('Mobile', esc(b.mobile || '—'))}
         ${cell('Date', fmtDate(b.bill_date || b.created_at))}${cell('Visit', b.encounter_no ? `<a class="text-primary underline" href="/visit/${b.encounter_id}">${esc(b.encounter_no)}</a>` : '—')}${cell('Payer', esc(b.payer_type || 'self'))}${cell('Lines', items.length)}</div>` })}
       ${card({ title: `Services & charges (${items.length})`, pad: false, body: `<div class="overflow-auto"><table class="tbl"><thead><tr><th style="width:48px">S.No</th><th>Service / particulars</th><th>Category</th><th>Date</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Discount</th><th class="num">Amount</th></tr></thead><tbody>

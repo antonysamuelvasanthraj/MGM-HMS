@@ -22,7 +22,7 @@ export async function mount(ctx) {
     return;
   }
   const inGroup = ctx.query.group ? cat.reports.find((r) => r.group.toLowerCase() === String(ctx.query.group).toLowerCase()) : null;
-  const f = { id: cat.reports.some((r) => r.id === ctx.query.report) ? ctx.query.report : (inGroup || cat.reports[0]).id, preset: 'month', from: '', to: '', segment: '', category: '', mode: '', doctor_id: '', account_id: '' };
+  const f = { id: cat.reports.some((r) => r.id === ctx.query.report) ? ctx.query.report : (inGroup || cat.reports[0]).id, preset: 'month', from: '', to: '', segment: '', category: '', mode: '', doctor_id: '', user_id: '', referral_id: '', account_id: '' };
   const groups = [...new Set(cat.reports.map((r) => r.group))];
   const root = mountPage(ctx, page({
     wide: true,
@@ -59,6 +59,8 @@ export async function mount(ctx) {
       ${has('category') ? sel('category', 'Patient category', CATS) : ''}
       ${has('mode') ? sel('mode', 'Payment mode', MODES) : ''}
       ${has('doctor') ? sel('doctor_id', 'Doctor', [['', 'All doctors'], ...cat.doctors.map((d) => [d.id, d.name])]) : ''}
+      ${has('cashier') ? sel('user_id', 'Received by', [['', 'All users'], ...(cat.cashiers || []).map((u) => [u.id, u.name])]) : ''}
+      ${has('referral') ? sel('referral_id', 'Referral doctor', [['', 'All referrals'], ...(cat.referrals || []).map((u) => [u.id, u.name])]) : ''}
       ${has('patient') ? `<div><label class="field-label">Patient / UHID</label><input class="field field-sm" data-k="patient" value="${esc(f.patient || '')}"></div>` : ''}
       ${has('medicine') ? `<div><label class="field-label">Medicine / generic</label><input class="field field-sm" data-k="medicine" value="${esc(f.medicine || '')}"></div>` : ''}
       ${has('manufacturer') ? `<div><label class="field-label">Manufacturer</label><input class="field field-sm" data-k="manufacturer" value="${esc(f.manufacturer || '')}"></div>` : ''}
@@ -84,7 +86,7 @@ export async function mount(ctx) {
       const r = cat.reports.find((x) => x.id === f.id);
       const preset = r.filters.includes('asof') ? 'custom' : f.preset;
       const nextResult = await api.get(`/reports/run/${f.id}${qs({ preset, from: preset === 'custom' ? (f.from || f.to) : undefined, to: preset === 'custom' ? f.to : undefined,
-        segment: f.segment, category: f.category, mode: f.mode, doctor_id: f.doctor_id, account_id: f.account_id,
+        segment: f.segment, category: f.category, mode: f.mode, doctor_id: f.doctor_id, user_id: f.user_id, referral_id: f.referral_id, account_id: f.account_id,
         patient:f.patient, medicine:f.medicine, manufacturer:f.manufacturer, encounter_type:f.encounter_type })}`);
       if (disposed || version !== generation) return;
       result = nextResult;
@@ -182,7 +184,7 @@ const isNum = (c) => c.type === 'money' || c.type === 'number';
 function render(r) {
   if (r.note) return card({ title: r.title, body: `<p class="text-body-lg text-on-surface-variant">${esc(r.note)}</p>` });
   const period = r.from === r.to ? fmtDate(r.to) : `${fmtDate(r.from)} – ${fmtDate(r.to)}`;
-  const filters = [r.segment && `Department ${r.segment}`, r.category && `Category ${r.category}`, r.mode && `Mode ${r.mode}`, r.doctor_id && 'One doctor'].filter(Boolean).join(' · ');
+  const filters = [r.segment && `Department ${r.segment}`, r.category && `Category ${r.category}`, r.mode && `Mode ${r.mode}`, r.doctor_id && 'One doctor', r.user_id && 'One user', r.referral_id && 'One referral doctor'].filter(Boolean).join(' · ');
   const kpis = (r.kpis || []).length ? `<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">${r.kpis.map((k) => `<div class="card p-3">
       <div class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">${esc(k.label)}</div>
       <div class="text-headline-sm font-semibold tabular-nums mt-0.5">${kpiValue(k)}</div></div>`).join('')}</div>` : '';

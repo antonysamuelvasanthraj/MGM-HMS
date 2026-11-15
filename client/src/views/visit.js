@@ -46,7 +46,7 @@ function view(e) {
       ${e.token_no ? `<span class="pill-brand">Token ${e.token_no}</span>` : ''}
       ${priorityPill(e.priority)}`,
     title: `${e.patient_name}`,
-    subtitle: `${esc(e.doctor_name || 'No doctor assigned')} · ${esc(e.dept_name || '')} · registered ${fmtDateTime(e.opened_at)}`,
+    subtitle: `${esc(e.doctor_name || 'No doctor assigned')} · ${esc(e.dept_name || '')}${e.referral_name ? ` · Referred by ${esc(e.referral_name)}` : ''} · registered ${fmtDateTime(e.opened_at)}`,
     actions: `
       <button class="btn-secondary" data-print-session>Print complete session</button>
       <a href="/patient/${e.patient_id}" class="btn-secondary"><span class="material-symbols-outlined text-[18px]">folder_shared</span> Full record</a>

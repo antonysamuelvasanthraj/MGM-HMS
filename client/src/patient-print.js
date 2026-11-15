@@ -20,7 +20,7 @@ export function billSheet(b,{signature=true}={}){
  const row=(l,v,st='')=>`<tr${st?` style="${st}"`:''}><td>${l}</td><td style="text-align:right">${v}</td></tr>`;
  return `${printStyle}<table style="width:100%;border-collapse:collapse;margin:6px 0"><tr><td><b>Patient:</b> ${esc(b.patient_name)}</td><td><b>Age / Gender:</b> ${esc(b.age_years??'')} / ${esc(b.gender||'')}</td><td><b>Bill no:</b> ${esc(b.bill_no)}</td></tr>
    <tr><td><b>UHID:</b> ${esc(b.uhid)}</td><td><b>Mobile:</b> ${esc(b.mobile||'—')}</td><td><b>Date:</b> ${day(b.bill_date||b.created_at)}</td></tr>
-   <tr><td><b>${b.referred_by?'Referred by':'Doctor'}:</b> ${esc(b.referred_by||b.doctor_name||'—')}</td><td><b>Payer:</b> ${esc(payerLabels[b.payer_type]||b.payer_type||'Self-pay')}</td><td><b>Type:</b> ${esc(careLabels[b.bill_type]||b.bill_type)}</td></tr></table>
+   <tr><td><b>${b.referred_by?'Referred by':'Doctor'}:</b> ${esc(b.referred_by||b.doctor_name||'—')}</td><td><b>Payer:</b> ${esc(payerLabels[b.payer_type]||b.payer_type||'Self-pay')}</td><td><b>Type:</b> ${esc(careLabels[b.bill_type]||b.bill_type)}</td></tr>${b.referral_name?`<tr><td colspan="3"><b>Referred by:</b> ${esc(b.referral_name)}</td></tr>`:''}</table>
   ${payments.length?`<h3>Payment history</h3><table style="width:100%"><thead><tr><th>Receipt</th><th>Date</th><th>Mode</th><th>Status</th><th>Amount</th></tr></thead><tbody>${payments.map(p=>`<tr><td>${esc(p.receipt_no||'')}</td><td>${esc(fmtDateTime(p.received_at||p.created_at))}</td><td>${esc(p.mode||'')}</td><td>${esc(p.status||'received')}</td><td style="text-align:right">${money(p.amount,2)}</td></tr>`).join('')}</tbody></table>`:''}
   <h2>${esc(careLabels[b.bill_type]||'Bill')} — itemised bill</h2>
   <table style="width:100%;border-collapse:collapse"><thead><tr><th style="width:34px">S.No</th><th>Particulars</th><th>Date</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">${b.show_paid_column?'Paid':'Charge'}</th></tr></thead><tbody>
@@ -58,7 +58,7 @@ export async function printStay(id,includeClinical=true){
    <tr><td><b>UHID:</b> ${esc(a.uhid)}</td><td><b>IP No:</b> ${esc(a.ip_no)}</td></tr>
    <tr><td><b>Ward / Bed:</b> ${esc(a.ward_name||'—')} / ${esc(a.bed_no||'—')}</td><td><b>Payer:</b> ${esc(PAYERS.includes(a.financial_category)?payerName:payerLabels[a.financial_category]||a.financial_category)}${a.claim?` · ${esc(a.claim.claim_no)}`:''}</td></tr>
    <tr><td><b>Admitted:</b> ${fmtDateTime(a.admitted_at)}</td><td><b>Discharged:</b> ${a.discharged_at?fmtDateTime(a.discharged_at):'Still admitted'}</td></tr>
-   <tr><td colspan="2"><b>Consultant:</b> ${esc(a.consultant_name||'')}</td></tr></table>
+   <tr><td${a.referral_name?'':' colspan="2"'}><b>Consultant:</b> ${esc(a.consultant_name||'')}</td>${a.referral_name?`<td><b>Referred by:</b> ${esc(a.referral_name)}</td>`:''}</tr></table>
   <h2>${a.discharged_at?'Final bill — complete stay':'Inpatient bill — stay to date'}</h2>
   <table style="width:100%;border-collapse:collapse"><thead><tr><th>Date</th><th>Particulars</th><th>Bill</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead><tbody>
   ${groups.map(g=>{const rows=items.filter(i=>headOf(i.category)===g);const sub=rows.reduce((t,i)=>t+Number(i.amount),0);

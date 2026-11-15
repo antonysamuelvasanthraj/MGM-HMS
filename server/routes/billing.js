@@ -147,12 +147,13 @@ function billView(id) {
     `SELECT b.*, p.uhid, p.name patient_name, p.gender, p.age_years, p.mobile, p.payer_name,
             e.encounter_no, e.token_no, e.visit_date, e.kind AS encounter_kind, e.stage AS encounter_stage, e.direct_to_doctor,
             u.name created_by_name, c.name counter_name,
-            d.name doctor_name
+            d.name doctor_name, rf.name referral_name
        FROM bills b JOIN patients p ON p.id=b.patient_id
        LEFT JOIN encounters e ON e.id=b.encounter_id
        LEFT JOIN users d ON d.id=coalesce(b.doctor_id,e.doctor_id)
        LEFT JOIN users u ON u.id=b.created_by
        LEFT JOIN counters c ON c.id=b.counter_id
+       LEFT JOIN referral_sources rf ON rf.id=p.referral_doctor_id
       WHERE b.id=?`, id);
   if (!b) return null;
   b.items = all('SELECT i.*, vd.name visiting_doctor_name, mb.batch_no, mb.expiry, mb.mrp, m.generic, m.hsn FROM bill_items i LEFT JOIN visiting_doctors vd ON vd.id=i.visiting_doctor_id LEFT JOIN medicine_batches mb ON mb.id=i.batch_id LEFT JOIN medicines m ON m.id=mb.medicine_id WHERE i.bill_id=? ORDER BY i.id', id);

@@ -227,6 +227,7 @@ opd.get('/encounters/:id', requirePerm('patient.view'), h((req) => {
   if (!v) fail(404, 'encounter_not_found');
   if(!can(req.user,'patient.clinical'))v.consultation=null;
   if(!can(req.user,'patient.clinical')&&!can(req.user,'pharmacy.view'))v.prescription=null;
+  v.referral_name=get("SELECT rf.name FROM patients p JOIN referral_sources rf ON rf.id=p.referral_doctor_id WHERE p.id=?",v.patient_id)?.name||'';
   return v;
 }));
 

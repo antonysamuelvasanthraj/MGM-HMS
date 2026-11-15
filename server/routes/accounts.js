@@ -382,6 +382,8 @@ accounts.post('/accounts/day-close/:date/reopen', requirePerm('books.reopen'), h
 accounts.get('/reports/catalog', requireAuth, h((req) => ({
   reports: catalog(req.user),
   doctors: all("SELECT id, name FROM users WHERE role='doctor' AND active=1 ORDER BY name"),
+  cashiers: all('SELECT id, name FROM users WHERE id IN (SELECT DISTINCT received_by FROM payments WHERE received_by IS NOT NULL) ORDER BY name'),
+  referrals: all("SELECT id, name FROM referral_sources WHERE kind='doctor' AND active=1 ORDER BY name"),
   accounts: can(req.user, 'finance.view') ? all('SELECT id, code, name FROM accounts WHERE is_group=0 AND active=1 ORDER BY code') : [],
 })));
 

@@ -194,7 +194,7 @@ export async function openAdmission(id, after) {
   const scheme = SCHEMES.includes(a.financial_category);
   drawer({
     title: `${a.patient_name} — ${a.ip_no}`,
-    subtitle: `${esc(a.ward_name || '')} ${esc(a.bed_no || '')} · ${esc(a.consultant_name || '')} · day ${Math.max(1, Math.ceil((Date.now() - new Date(a.admitted_at.replace(' ', 'T'))) / 864e5))}`,
+    subtitle: `${esc(a.ward_name || '')} ${esc(a.bed_no || '')} · ${esc(a.consultant_name || '')}${a.referral_name ? ` · Referred by ${esc(a.referral_name)}` : ''} · day ${Math.max(1, Math.ceil((Date.now() - new Date(a.admitted_at.replace(' ', 'T'))) / 864e5))}`,
     width: 'max-w-4xl',
     body: `<div class="p-5 space-y-4">
       ${patientBanner(scheme ? { ...a.patient, outstanding: 0 } : a.patient, { clinicalRestricted: a.access?.clinical === false })}
