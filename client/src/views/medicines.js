@@ -100,7 +100,7 @@ async function openMedicine(id, after) {
           <th class="text-right">MRP</th><th>Supplier</th><th></th></tr></thead>
         <tbody>${m.batches.map((b) => {
           const days = Math.round((new Date(b.expiry) - Date.now()) / 864e5);
-          return `<tr><td class="font-data-mono">${esc(b.batch_no)}<div>${esc(b.location || 'Central')} ${b.qty <= 0 ? '<span class="pill-neutral">Exhausted</span>' : days < 0 ? '<span class="pill-danger">Expired</span>' : '<span class="pill-success">In stock</span>'}</div></td>
+          return `<tr><td class="font-data-mono">${esc(b.batch_no)}<div>${esc(b.location || 'Central')} ${b.qty <= 0 ? '<span class="pill-danger pill-dot font-bold">EXHAUSTED</span>' : days < 0 ? '<span class="pill-danger">Expired</span>' : '<span class="pill-success">In stock</span>'}</div></td>
             <td class="${days < 0 ? 'text-danger font-bold' : days < 90 ? 'text-warning font-semibold' : ''}">${fmtDate(b.expiry)}
               <span class="text-label-sm text-on-surface-variant">${days < 0 ? 'expired' : `${days}d`}</span></td>
             <td class="num">${b.qty}</td><td class="num">${money(b.purchase_rate, 2)}</td>
