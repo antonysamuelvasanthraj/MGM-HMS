@@ -22,7 +22,7 @@ export async function mount(ctx) {
     return;
   }
   const inGroup = ctx.query.group ? cat.reports.find((r) => r.group.toLowerCase() === String(ctx.query.group).toLowerCase()) : null;
-  const f = { id: cat.reports.some((r) => r.id === ctx.query.report) ? ctx.query.report : (inGroup || cat.reports[0]).id, preset: 'month', from: '', to: '', segment: '', category: '', mode: '', doctor_id: '', user_id: '', referral_id: '', account_id: '' };
+  const f = { id: cat.reports.some((r) => r.id === ctx.query.report) ? ctx.query.report : (inGroup || cat.reports[0]).id, preset: 'month', from: '', to: '', segment: '', category: '', mode: '', doctor_id: '', user_id: '', referral_id: '', svc_category: '', report_type: 'summary', dueexcess: '', account_id: '' };
   const groups = [...new Set(cat.reports.map((r) => r.group))];
   const root = mountPage(ctx, page({
     wide: true,
@@ -64,7 +64,10 @@ export async function mount(ctx) {
       ${has('patient') ? `<div><label class="field-label">Patient / UHID</label><input class="field field-sm" data-k="patient" value="${esc(f.patient || '')}"></div>` : ''}
       ${has('medicine') ? `<div><label class="field-label">Medicine / generic</label><input class="field field-sm" data-k="medicine" value="${esc(f.medicine || '')}"></div>` : ''}
       ${has('manufacturer') ? `<div><label class="field-label">Manufacturer</label><input class="field field-sm" data-k="manufacturer" value="${esc(f.manufacturer || '')}"></div>` : ''}
-      ${has('encounter_type') ? sel('encounter_type','OP / IP',[['','All'],['OP','OP'],['IP','IP']]) : ''}
+      ${has('encounter_type') ? sel('encounter_type','Encounter type',[['','All'],['OP','OP'],['IP','IP']]) : ''}
+      ${has('report_type') ? sel('report_type', 'Report type', [['summary', 'Summary'], ['detailed', 'Detailed'], ['toggle', 'Toggle down'], ['doctor', 'Doctor wise']]) : ''}
+      ${has('svc_category') ? sel('svc_category', 'Category master', [['', 'All categories'], ...(cat.service_categories || []).map((c) => [c, c])]) : ''}
+      ${has('dueexcess') ? sel('dueexcess', 'Due / Excess', [['', 'Due and excess'], ['due', 'Due'], ['excess', 'Excess']]) : ''}
       ${has('account') ? sel('account_id', 'Account', [['', 'Choose account'], ...cat.accounts.map((a) => [a.id, `${a.code} · ${a.name}`])]) : ''}
       <div class="flex-1"></div>
       <button class="btn-secondary btn-sm" data-xls><span class="material-symbols-outlined text-[16px]">table_view</span>Excel</button>
@@ -86,7 +89,7 @@ export async function mount(ctx) {
       const r = cat.reports.find((x) => x.id === f.id);
       const preset = r.filters.includes('asof') ? 'custom' : f.preset;
       const nextResult = await api.get(`/reports/run/${f.id}${qs({ preset, from: preset === 'custom' ? (f.from || f.to) : undefined, to: preset === 'custom' ? f.to : undefined,
-        segment: f.segment, category: f.category, mode: f.mode, doctor_id: f.doctor_id, user_id: f.user_id, referral_id: f.referral_id, account_id: f.account_id,
+        segment: f.segment, category: f.category, mode: f.mode, doctor_id: f.doctor_id, user_id: f.user_id, referral_id: f.referral_id, svc_category: f.svc_category, report_type: f.report_type, dueexcess: f.dueexcess, account_id: f.account_id,
         patient:f.patient, medicine:f.medicine, manufacturer:f.manufacturer, encounter_type:f.encounter_type })}`);
       if (disposed || version !== generation) return;
       result = nextResult;

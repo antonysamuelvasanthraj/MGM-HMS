@@ -13,7 +13,7 @@ import { collectBill } from '../collect.js';
 import { receptionBillsTests, openDiagnosticsBilling } from '../reception-diagnostics.js';
 
 const MONEY = {
-  unbilled: ['warning', 'Not billed'], unpaid: ['danger', 'Unpaid'], partial: ['warning', 'Part-paid'], paid: ['success', 'Paid'],
+  unbilled: ['danger', 'NOT BILLED'], unpaid: ['danger', 'Unpaid'], partial: ['warning', 'Part-paid'], paid: ['success', 'Paid'],
   due_credit: ['info', 'Due / credit'], payer_pending: ['info', 'Payer pending'], covered: ['success', 'Payer covered'], ip_ledger: ['info', 'On IP bill'],
   er_deferred: ['info', 'ER — bill later'], waived: ['neutral', 'Waived'], paid_outside: ['neutral', 'Paid at centre'], cancelled: ['neutral', 'Cancelled'], bill_cancelled: ['danger', 'Bill cancelled'],
 };

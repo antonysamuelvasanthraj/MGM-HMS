@@ -459,6 +459,9 @@ export function runReport(user, id, query) {
     encounter_type: ['OP','IP'].includes(query.encounter_type) ? query.encounter_type : null,
     visiting_doctor_id: query.visiting_doctor_id ? +query.visiting_doctor_id : null,
     user_id: query.user_id ? +query.user_id : null,
+    svc_category: String(query.svc_category || '').trim().slice(0, 60) || null,
+    report_type: ['summary', 'detailed', 'toggle', 'doctor'].includes(query.report_type) ? query.report_type : null,
+    dueexcess: ['due', 'excess'].includes(query.dueexcess) ? query.dueexcess : null,
     referral_id: query.referral_id ? +query.referral_id : null,
   };
   if (query.department) q.department = String(query.department);

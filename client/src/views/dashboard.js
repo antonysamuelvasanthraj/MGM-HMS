@@ -124,6 +124,7 @@ export async function mount(ctx) {
     else (await import('./laboratory.js')).printReport(+b.dataset.openReport);
   });
   bind(root, 'click', '[data-collect]', (e, b) => collectBill(+b.dataset.collect, load));
+  bind(root, 'click', '[data-bill-unbilled]', () => navigate('/investigations?money=unbilled'));
   bind(root, 'click', '[data-remind]', (e, b) => remindBill(+b.dataset.remind));
   bind(root, 'click', '[data-print]', () => window.print());
   bind(root, 'click', '[data-export]', () => exportBoard(data));
@@ -427,7 +428,11 @@ function visitTable(rows, kind) {
   }), 'Nobody in this queue.');
 }
 function payTable(rows) {
-  return tbl([['Patient'], ['Doctor'], ['Tests'], ['Total', 'r'], ['Discount', 'r'], ['Payable', 'r'], ['Paid', 'r'], ['Due', 'r'], ['Category'], ['Authorisation'], ['', 'r']], rows.map((o) => `<tr>
+  return tbl([['Patient'], ['Doctor'], ['Tests'], ['Total', 'r'], ['Discount', 'r'], ['Payable', 'r'], ['Paid', 'r'], ['Due', 'r'], ['Category'], ['Authorisation'], ['', 'r']], rows.map((o) => o.unbilled ? `<tr class="bg-danger-bg/40">
+    <td>${who(o)}<div class="font-data-mono text-body-sm text-danger font-bold">${esc(o.order_no || '')}</div></td><td class="text-body-sm">${esc(o.doctor_name || '—')}</td>
+    <td class="text-body-md max-w-[240px] text-danger font-bold">${esc(o.tests)}${o.stat ? ` ${priorityPill('stat')}` : ''}</td>
+    <td colspan="6" class="text-danger font-bold">NOT BILLED — raise the bill, then collect</td>
+    <td class="text-right">${can('billing.create') ? `<button class="btn-primary btn-xs" data-bill-unbilled="${o.patient_id}">Bill now</button>` : ''}</td></tr>` : `<tr>
     <td>${who(o)}<div class="font-data-mono text-body-sm text-on-surface-variant">${esc(o.bill_no)}</div></td><td class="text-body-sm">${esc(o.doctor_name || '—')}</td>
     <td class="text-body-sm max-w-[240px]">${esc(o.tests)}${o.stat ? ` ${priorityPill('stat')}` : ''}</td>
     <td class="num">${m2(o.gross)}</td><td class="num">${o.discount ? m2(o.discount) : '—'}</td><td class="num">${m2(o.payable)}</td><td class="num">${o.paid ? m2(o.paid) : '—'}</td>

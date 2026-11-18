@@ -200,12 +200,14 @@ function receptionDash(q) {
   const col = M.collections({ from: d, to: d, desk: 'reception' });
   const bill = M.billing({ from: d, to: d, desk: 'reception' });
   const rec = M.receivables(d);
-  const payQueue = (cat) => all(`SELECT b.id bill_id, b.bill_no, b.total + b.discount gross, b.discount, b.total payable, b.paid, b.balance due, b.payer_type category, b.claim_status,
-      b.authorization_status, b.approval_request, b.claim_status, p.id patient_id, p.uhid, p.name patient_name, p.age_years, p.gender, u.name doctor_name,
-      group_concat(o.label, ', ') tests, min(o.ordered_at) ordered_at, max(o.priority='stat') stat
-    FROM orders o JOIN bill_items bi ON bi.order_id=o.id JOIN bills b ON b.id=bi.bill_id AND b.status<>'cancelled'
+  // an order raised after the visit closed, or on a paper slip, may have no bill yet: it is still money reception has to ask for
+  const payQueue = (cat) => all(`SELECT b.id bill_id, coalesce(b.bill_no,'') bill_no, coalesce(b.total + b.discount,0) gross, coalesce(b.discount,0) discount, coalesce(b.total,0) payable, coalesce(b.paid,0) paid,
+      coalesce(b.balance,0) due, coalesce(b.payer_type,p.payer_type) category, b.claim_status,
+      b.authorization_status, b.approval_request, p.id patient_id, p.uhid, p.name patient_name, p.age_years, p.gender, u.name doctor_name,
+      group_concat(o.label, ', ') tests, min(o.ordered_at) ordered_at, max(o.priority='stat') stat, (b.id IS NULL) unbilled, min(o.order_no) order_no
+    FROM orders o LEFT JOIN bill_items bi ON bi.order_id=o.id LEFT JOIN bills b ON b.id=bi.bill_id AND b.status<>'cancelled'
     JOIN patients p ON p.id=o.patient_id LEFT JOIN users u ON u.id=o.ordered_by
-    WHERE o.category=? AND o.status='awaiting_payment' GROUP BY b.id ORDER BY stat DESC, ordered_at`, cat);
+    WHERE o.category=? AND o.status='awaiting_payment' GROUP BY coalesce(b.id, -o.id) ORDER BY stat DESC, ordered_at`, cat);
   const labQ = payQueue('lab'), imgQ = [...payQueue('imaging'), ...payQueue('procedure')];
   const visitRow = `SELECT e.id, e.token_prefix, e.token_no, e.stage, e.payment_status, e.visit_type, e.priority, e.opened_at,
       p.id patient_id, p.uhid, p.name patient_name, p.age_years, p.gender, p.payer_type category, u.name doctor_name, dp.name department,

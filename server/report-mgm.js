@@ -31,6 +31,25 @@ export function imagingGroup(name) {
   return 'IMG_OTHER';
 }
 
+/** The old system's category master: what a line on a bill is called in the category-wise report. */
+export const SERVICE_CATEGORIES = ['Consultation', 'Investigation', 'X RAY', 'CT SCAN', '2D ECHO', 'Other imaging', 'Procedure Charges', 'ER Charges', 'Package', 'Bed & ward charges', 'Pharmacy', 'Ambulance', 'Charges'];
+export function serviceCategory(item) {
+  const n = String(item.description || ''), c = String(item.category || '');
+  if (/ambulance/i.test(n)) return 'Ambulance';
+  if (c === 'pharmacy' || item.batch_id) return 'Pharmacy';
+  if (c === 'consultation') return 'Consultation';
+  if (c === 'imaging') return { XRAY: 'X RAY', CT: 'CT SCAN', ECHO: '2D ECHO' }[imagingGroup(n)] || 'Other imaging';
+  if (c === 'lab') return 'Investigation';
+  if (c === 'package') return 'Package';
+  if (c === 'emergency') return 'ER Charges';
+  if (['procedure', 'ot', 'surgery', 'anaesthesia', 'professional'].includes(c)) return 'Procedure Charges';
+  if (['bed', 'room', 'nursing', 'ipd', 'icu'].includes(c)) return 'Bed & ward charges';
+  return 'Charges';
+}
+/** OP or IP follows the bill's visit, never the service name. */
+const VISIT_SQL = "CASE WHEN b.bill_type='IP' OR e.kind='IP' THEN 'IP' ELSE 'OP' END";
+const dmy = (d) => String(d || '').split('-').reverse().join('-');
+
 const MATRIX = [['OP', 'OP'], ['IP', 'IP'], ['AGS', 'AGS (Aarogyasri IP)'], ['LAB', 'LAB'], ['XRAY', 'X-RAY'], ['CT', 'CT'], ['ECHO', '2D ECHO'],
   ['IMG_OTHER', 'Other imaging'], ['PHAR', 'PHAR'], ['OTHER', 'ER / OT / other']];
 const IP_SEGMENTS = ['IP', 'ICU', 'ROOM', 'NURSING', 'PACKAGE'];
@@ -208,20 +227,19 @@ export const MGM_REPORTS = [
         columns: [num('sno', 'S.No'), col('uhid', 'Patient ID'), col('patient', "Patient's name"), col('diagnosis', 'Diagnosis'), col('consultant', 'Consultant'), date('admitted_at', 'Admission date & time'), col('ward', 'Ward'), col('category', 'Category'), num('days', 'No. of days'), money('total', 'Total amt'), money('paid', 'Paid amt')],
         rows, total: ['total', 'paid'] }; } },
 
-  { id: 'collection_op_ip', group: 'Reception', title: 'Collection report — OP and IP separately', perm: R, filters: ['range', 'encounter_type', 'mode', 'doctor', 'cashier', 'referral'],
+  { id: 'collection_op_ip', group: 'Reception', title: 'Collection report — OP and IP, with summary', perm: R, filters: ['range', 'encounter_type', 'mode', 'doctor', 'cashier', 'referral'],
     run: (q) => {
       const { from, to } = range(q), w = ['p.cancelled=0', 'p.pay_date BETWEEN ? AND ?'], args = [from, to];
       if (q.mode) { w.push('p.mode=?'); args.push(q.mode); }
       if (q.doctor_id) { w.push('coalesce(b.doctor_id,e.doctor_id)=?'); args.push(q.doctor_id); }
       if (q.user_id) { w.push('p.received_by=?'); args.push(q.user_id); }
       if (q.referral_id) { w.push('pt.referral_doctor_id=?'); args.push(q.referral_id); }
-      // OP or IP follows the bill's visit, never the service name
-      const VISIT = "CASE WHEN b.bill_type='IP' OR e.kind='IP' THEN 'IP' ELSE 'OP' END";
-      if (q.encounter_type) { w.push(`${VISIT}=?`); args.push(q.encounter_type); }
-      const rows = all(`SELECT p.id pid, p.receipt_no, substr(p.created_at,1,16) at, b.bill_no, pt.uhid, pt.name patient,
-          coalesce(d.name,'') doctor, coalesce(rf.name,'') referral, ${VISIT} visit, coalesce(a.ip_no,'') ip_no,
+      if (q.encounter_type) { w.push(`${VISIT_SQL}=?`); args.push(q.encounter_type); }
+      const rows = all(`SELECT p.id pid, p.receipt_no, substr(p.created_at,1,16) at, b.bill_no, b.bill_date, b.total bill_total, b.discount bill_disc, pt.uhid, pt.name patient,
+          coalesce(d.name,'') doctor, coalesce(rf.name,'') referral, ${VISIT_SQL} visit, coalesce(a.ip_no,'') ip_no,
           a.status adm_status, a.discharged_at, p.created_at paid_at,
-          b.total - (SELECT coalesce(sum(x.amount),0) FROM payments x WHERE x.bill_id=p.bill_id AND x.cancelled=0 AND (x.created_at < p.created_at OR (x.created_at=p.created_at AND x.id<=p.id))) bill_balance, p.mode, p.amount, coalesce(u.name,'') cashier,
+          b.total - (SELECT coalesce(sum(x.amount),0) FROM payments x WHERE x.bill_id=p.bill_id AND x.cancelled=0 AND (x.created_at < p.created_at OR (x.created_at=p.created_at AND x.id<=p.id))) bill_balance,
+          p.mode, p.amount, coalesce(u.name,'') cashier,
           coalesce((SELECT group_concat(substr(i.description,1,38), '; ') FROM bill_items i WHERE i.bill_id=b.id AND i.amount>0),'') particulars
         FROM payments p JOIN bills b ON b.id=p.bill_id JOIN patients pt ON pt.id=p.patient_id
         LEFT JOIN encounters e ON e.id=b.encounter_id LEFT JOIN admissions a ON a.encounter_id=b.encounter_id
@@ -231,26 +249,100 @@ export const MGM_REPORTS = [
       // IP receipts: advance while admitted, part / final settlement after the discharge, refunds negative
       const stage = (r) => r.visit !== 'IP' ? '' : r.amount < 0 ? 'Refund'
         : (r.adm_status !== 'discharged' || !r.discharged_at || r.paid_at <= r.discharged_at) ? 'Advance' : (r.bill_balance <= 0.005 ? 'Final settlement' : 'Part payment');
-      const MODE = (m) => (m === 'cash' ? 'Cash' : m === 'upi' ? 'UPI' : /card/.test(m) ? 'Card' : 'Others');
-      const line = (r) => ({ section: r.visit === 'IP' ? 'B · IP' : 'A · OP', receipt_no: r.receipt_no, at: r.at, bill_no: r.bill_no, uhid: r.uhid, patient: r.patient,
-        doctor: r.doctor, referral: r.referral, ip_no: r.ip_no, stage: stage(r), particulars: r.particulars, mode: r.mode, cashier: r.cashier, amount: r2(r.amount) });
+      const MODE = (m) => (m === 'cash' ? 'Cash' : /card/.test(m) ? 'Card' : ['upi', 'bank_transfer', 'wallet', 'online'].includes(m) ? 'Online' : 'Others');
+      const line = (r) => ({ section: r.visit === 'IP' ? 'B · IP' : 'A · OP', at: r.at, uhid: r.uhid, patient: r.patient, receipt_no: r.receipt_no, bill_no: r.bill_no, bill_date: r.bill_date,
+        doctor: r.doctor, referral: r.referral, ip_no: r.ip_no, stage: stage(r), particulars: r.particulars, bill_total: r2(r.bill_total), bill_disc: r2(r.bill_disc),
+        amount: r2(r.amount), pending: r2(Math.max(0, r.bill_balance)), mode: r.mode, cashier: r.cashier });
       const op = rows.filter((r) => r.visit === 'OP'), ip = rows.filter((r) => r.visit === 'IP');
-      const refunds = (list) => r2(-list.filter((r) => r.amount < 0).reduce((s, r) => s + r.amount, 0));
       const total = (list) => r2(list.reduce((s, r) => s + r.amount, 0));
+      const received = (list) => r2(list.filter((r) => r.amount > 0).reduce((s, r) => s + r.amount, 0));
+      const refunds = (list) => r2(-list.filter((r) => r.amount < 0).reduce((s, r) => s + r.amount, 0));
       const out = [];
       const block = (label, list) => { out.push(...list.map(line)); out.push({ section: label, receipt_no: `${label} total`, amount: total(list), bold: true }); };
       if (!q.encounter_type || q.encounter_type === 'OP') block('A · OP', op);
       if (!q.encounter_type || q.encounter_type === 'IP') block('B · IP', ip);
-      out.push({ section: 'Summary', receipt_no: 'GRAND TOTAL (OP + IP)', amount: total(rows), bold: true });
-      for (const m of ['Cash', 'UPI', 'Card', 'Others']) out.push({ section: 'Summary', receipt_no: `${m} (OP ${total(op.filter((r) => MODE(r.mode) === m))} · IP ${total(ip.filter((r) => MODE(r.mode) === m))})`, amount: total(rows.filter((r) => MODE(r.mode) === m)) });
-      out.push({ section: 'Summary', receipt_no: `Refunds included above (OP ${refunds(op)} · IP ${refunds(ip)})`, amount: -refunds(rows) });
-      out.push({ section: 'Summary', receipt_no: 'NET COLLECTION', amount: total(rows), bold: true });
+      const sumRow = (label, v, bold) => out.push({ section: 'Summary', receipt_no: label, amount: v, ...(bold ? { bold: true } : {}) });
+      sumRow('GRAND TOTAL (OP + IP)', total(rows), true);
+      for (const m of ['Cash', 'Card', 'Online', 'Others']) { const v = total(rows.filter((r) => MODE(r.mode) === m)); if (v || m !== 'Others') sumRow(`Amount collected in ${m} (OP ${total(op.filter((r) => MODE(r.mode) === m))} · IP ${total(ip.filter((r) => MODE(r.mode) === m))})`, v); }
+      sumRow('Total amount collected', received(rows), true);
+      sumRow('Total refund', -refunds(rows));
+      sumRow('Total collected (minus refund)', total(rows), true);
+      const byMode = new Map(); for (const r of rows) byMode.set(r.mode, r2((byMode.get(r.mode) || 0) + r.amount));
+      for (const [m, v] of [...byMode].sort()) sumRow(`Payments — ${m}`, v);
       const discount = r2(all(`SELECT coalesce(sum(discount),0) d FROM bills WHERE status<>'cancelled' AND bill_date BETWEEN ? AND ?`, from, to)[0]?.d);
-      return { subtitle: `Receipts by date received. OP or IP follows the bill's visit, not the service. Advances are listed once as received and are not counted again against the final IP bill. Discounts (₹${discount}) are shown separately and are not part of collection.`,
+      return { subtitle: `Receipts from ${dmy(from)} to ${dmy(to)}${q.encounter_type ? ` · ${q.encounter_type} only` : ''}. OP or IP follows the bill's visit. Advances are listed once as received and not counted again against the final IP bill. Discounts (₹${discount}) are separate and not part of collection.`,
         kpis: [kpi('OP collection', total(op)), kpi('IP collection', total(ip)), kpi('Grand total', total(rows)), kpi('Refunds', refunds(rows)), kpi('Net collection', total(rows)), kpi('Discounts given', discount)],
-        columns: [col('section', 'Section'), col('receipt_no', 'Receipt'), col('at', 'Date & time'), col('bill_no', 'Bill'), col('uhid', 'UHID'), col('patient', 'Patient'), col('doctor', 'Doctor'),
-          col('referral', 'Referral doctor'), col('ip_no', 'IP no'), col('stage', 'IP receipt'), col('particulars', 'Particulars'), col('mode', 'Mode'), col('cashier', 'Received by'), money('amount', 'Amount')],
+        columns: [col('section', 'Section'), col('at', 'Paid date'), col('uhid', 'Patient Id'), col('patient', 'Patient name'), col('receipt_no', 'Receipt no.'), col('bill_no', 'Bill no'), date('bill_date', 'Bill date'),
+          col('doctor', 'Doctor'), col('referral', 'Referral doctor'), col('ip_no', 'IP no'), col('stage', 'IP receipt'), col('particulars', 'Particulars'), money('bill_total', 'Bill amount'), money('bill_disc', 'Discount'),
+          money('amount', 'Paid amount'), money('pending', 'Pending amount'), col('mode', 'Payment type'), col('cashier', 'Created by')],
         rows: out };
+    } },
+
+  { id: 'due_report', group: 'Reception', title: 'Due report — pending and excess by bill', perm: R, filters: ['range', 'encounter_type', 'dueexcess'],
+    run: (q) => {
+      const { from, to } = range(q), w = ["b.status<>'cancelled'", 'b.bill_date BETWEEN ? AND ?'], args = [from, to];
+      if (q.encounter_type) { w.push(`${VISIT_SQL}=?`); args.push(q.encounter_type); }
+      const bills = all(`SELECT b.*, pt.uhid, pt.name patient, coalesce(pt.mobile,'') mobile,
+          (SELECT group_concat(s.reason,'; ') FROM bill_settlements s WHERE s.bill_id=b.id AND s.mode IN ('due','credit') AND s.status<>'cancelled' AND s.reason IS NOT NULL AND s.reason<>'') due_reason
+        FROM bills b JOIN patients pt ON pt.id=b.patient_id LEFT JOIN encounters e ON e.id=b.encounter_id
+        WHERE ${w.join(' AND ')} ORDER BY b.bill_date, b.id`, ...args);
+      let n = 0;
+      const rows = bills.flatMap((b) => {
+        const policy = collectionPolicy(b), deferred = ['insurance', 'aarogyasri', 'corporate', 'trust'].includes(b.payer_type);
+        const due = r2(policy.patient_due + (deferred ? 0 : policy.payer_receivable)), excess = b.balance < -0.5 ? r2(-b.balance) : 0;
+        if (q.dueexcess === 'due' ? due <= 0.5 : q.dueexcess === 'excess' ? excess <= 0.5 : (due <= 0.5 && excess <= 0.5)) return [];
+        return [{ sno: ++n, d: b.bill_date, uhid: b.uhid, patient: b.patient, bill_no: b.bill_no, mobile: b.mobile,
+          status: excess > 0.5 ? 'Excess' : b.paid > 0 ? 'Part paid' : 'Pending', total: r2(b.total), paid: r2(b.paid), due, excess,
+          remarks: b.due_reason || b.authorization_reason || b.notes || '' }];
+      });
+      return { subtitle: `Due report from ${dmy(from)} to ${dmy(to)}${q.encounter_type ? ` · ${q.encounter_type}` : ''}. Due is what the patient still owes; excess is money held beyond the bill.`,
+        kpis: [kpi('Bills listed', rows.length, 'number'), kpi('Total due', sum(rows, 'due')), kpi('Total excess', sum(rows, 'excess'))],
+        columns: [num('sno', 'S.No.'), date('d', 'Date'), col('uhid', 'Patient Id'), col('patient', 'Patient name'), col('bill_no', 'Bill number'), col('mobile', 'Mobile number'), col('status', 'Payment status'),
+          money('total', 'Bill amount'), money('paid', 'Paid amount'), money('due', 'Due'), money('excess', 'Excess'), col('remarks', 'Remarks')],
+        rows, total: ['total', 'paid', 'due', 'excess'] };
+    } },
+
+  { id: 'category_wise', group: 'Reception', title: 'Category-wise report — summary, detailed, toggle down, doctor-wise', perm: R, filters: ['range', 'svc_category', 'report_type', 'encounter_type'],
+    run: (q) => {
+      const { from, to } = range(q), w = ["b.status<>'cancelled'", "b.bill_type<>'PHARM'", 'b.bill_date BETWEEN ? AND ?', 'i.amount<>0'], args = [from, to];
+      if (q.encounter_type) { w.push(`${VISIT_SQL}=?`); args.push(q.encounter_type); }
+      const raw = all(`SELECT b.id bid, b.bill_no, substr(b.created_at,1,16) at, pt.uhid, pt.name patient, coalesce(d.name,'Direct / unassigned') doctor,
+          i.category icat, i.description, i.qty, i.amount, i.batch_id, i.discount line_disc, b.discount bill_disc
+        FROM bill_items i JOIN bills b ON b.id=i.bill_id JOIN patients pt ON pt.id=b.patient_id
+        LEFT JOIN encounters e ON e.id=b.encounter_id LEFT JOIN users d ON d.id=coalesce(b.doctor_id,e.doctor_id)
+        WHERE ${w.join(' AND ')} ORDER BY b.created_at, b.id, i.id`, ...args);
+      // one line per bill and category, the way the old report listed them
+      const per = new Map();
+      for (const r of raw) {
+        const category = serviceCategory({ category: r.icat, description: r.description, batch_id: r.batch_id });
+        if (q.svc_category && category !== q.svc_category) continue;
+        const key = `${r.bid}|${category}`, cur = per.get(key) || { at: r.at, uhid: r.uhid, patient: r.patient, bill_no: r.bill_no, category, doctor: r.doctor, qty: 0, amount: 0, disc: 'No' };
+        cur.qty += +r.qty || 0; cur.amount = r2(cur.amount + r.amount);
+        if (+r.line_disc > 0 || +r.bill_disc > 0) cur.disc = 'YES';
+        per.set(key, cur);
+      }
+      const detail = [...per.values()];
+      const type = ['summary', 'detailed', 'toggle', 'doctor'].includes(q.report_type) ? q.report_type : 'summary';
+      const grand = r2(detail.reduce((s, r) => s + r.amount, 0));
+      const byCat = new Map(); for (const r of detail) { const c = byCat.get(r.category) || { name: r.category, qty: 0, amount: 0 }; c.qty += r.qty; c.amount = r2(c.amount + r.amount); byCat.set(r.category, c); }
+      const cats = [...byCat.values()].sort((a, b) => a.name.localeCompare(b.name));
+      const TITLE = { summary: 'SUMMARY', detailed: 'DETAILED', toggle: 'TOGGLE DOWN', doctor: 'DOCTOR WISE' }[type];
+      const subtitle = `Category wise report ${TITLE} from ${dmy(from)} to ${dmy(to)}${q.encounter_type ? ` in '${q.encounter_type}'` : ''}${q.svc_category ? ` · ${q.svc_category}` : ''}. Pharmacy counter sales are not included.`;
+      const kpis = [kpi('Total amount', grand), kpi('Categories', cats.length, 'number'), kpi('Lines', detail.length, 'number')];
+      if (type === 'summary') {
+        const rows = cats.map((c, i) => ({ sno: i + 1, name: c.name, qty: c.qty, amount: c.amount }));
+        rows.push({ name: 'Total', qty: sum(rows, 'qty'), amount: grand, bold: true });
+        return { subtitle, kpis, columns: [num('sno', 'S.No.'), col('name', 'Name'), num('qty', 'Quantity'), money('amount', 'Total amount')], rows };
+      }
+      const columns = [num('sno', 'Sl.No'), col('at', 'Bill date'), col('uhid', 'Patient Id'), col('patient', 'Patient name'), col('bill_no', 'Order no'), col('category', 'Category'),
+        col('doctor', 'Consultant name'), col('disc', 'Is discount bill'), money('amount', 'Total')];
+      const rows = []; let n = 0;
+      const lines = (list) => list.forEach((r) => rows.push({ sno: ++n, ...r }));
+      if (type === 'detailed') lines([...detail].sort((a, b) => a.category.localeCompare(b.category) || a.at.localeCompare(b.at)));
+      else if (type === 'toggle') for (const c of cats) { rows.push({ category: c.name, bill_no: `${c.qty} item(s)`, amount: c.amount, bold: true }); lines(detail.filter((r) => r.category === c.name)); }
+      else { const docs = [...new Set(detail.map((r) => r.doctor))].sort(); for (const dname of docs) { const list = detail.filter((r) => r.doctor === dname); rows.push({ doctor: dname, bill_no: `${list.length} line(s)`, amount: r2(list.reduce((s, r) => s + r.amount, 0)), bold: true }); lines(list.sort((a, b) => a.category.localeCompare(b.category) || a.at.localeCompare(b.at))); } }
+      rows.push({ category: 'Total', amount: grand, bold: true });
+      return { subtitle, kpis, columns, rows };
     } },
 
   { id: 'referral_statement', group: 'Finance', title: 'Referral statement — patient, referred by, final, discount, proceeds', perm: F, filters: ['range'],
